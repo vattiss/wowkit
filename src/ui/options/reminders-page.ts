@@ -8,8 +8,8 @@ import { addWeaponSection } from "./weapon-section";
 
 /** One checkbox per buff of the class list, labeled with the spell's name. */
 function addBuffCheckboxes(category: SettingsCategory): void {
-    for (const step of getClassBuffs()) {
-        addCheckbox(category, `buff_${step.key}`, getSpellLabel(step.id) ?? step.key, getText("TIP_BUFF_ONE"), step.isOnByDefault, () => isBuffEnabled(step), (isChecked) => setBuffEnabled(step, isChecked));
+    for (const classBuff of getClassBuffs()) {
+        addCheckbox(category, `buff_${classBuff.key}`, getSpellLabel(classBuff.id) ?? classBuff.key, getText("TIP_BUFF_ONE"), classBuff.isOnByDefault, () => isBuffEnabled(classBuff), (isChecked) => setBuffEnabled(classBuff, isChecked));
     }
 }
 
@@ -25,7 +25,7 @@ export function registerRemindersPage(root: SettingsCategory): void {
         addHeader(layout, "HDR_BUFFS");
         addFeatureCheckbox(category, "showBuff", "OPT_BUFF", "TIP_BUFF");
         addBuffCheckboxes(category);
-        if (buffs.some((step) => step.party !== undefined)) addFeatureCheckbox(category, "showPartyBuffs", "OPT_PARTY_BUFFS", "TIP_PARTY_BUFFS");
+        if (buffs.some((classBuff) => classBuff.party !== undefined)) addFeatureCheckbox(category, "showPartyBuffs", "OPT_PARTY_BUFFS", "TIP_PARTY_BUFFS");
         addSoundDropdown(category, "soundBuff");
         addColorSwatch(category, "buff", "OPT_COLOR_BUFF");
     }
@@ -35,7 +35,7 @@ export function registerRemindersPage(root: SettingsCategory): void {
     addHeader(layout, "HDR_MESSAGES");
     addFeatureCheckbox(category, "showBarNotice", "OPT_BAR_NOTICE", "TIP_BAR_NOTICE");
     addFeatureCheckbox(category, "showRankNotice", "OPT_RANK_NOTICE", "TIP_RANK_NOTICE");
-    if (buffs.some((step) => step.party?.groupIds !== undefined)) {
+    if (buffs.some((classBuff) => classBuff.party?.groupIds !== undefined)) {
         addFeatureCheckbox(category, "showReagentNotice", "OPT_REAGENT_NOTICE", "TIP_REAGENT_NOTICE");
     }
 

@@ -2,11 +2,11 @@
 // auras at all, or auras whose name and ID are secret, so a buff seen or cast a moment ago counts
 // as up until its usual duration runs out.
 import { hasKnownExpiry } from "../constants";
-import { findFamilyOf } from "../data/aura-families";
+import { findBuffCategoryOf } from "../data/buff-categories";
 import { buildAuraKey } from "../util/text";
 import { getSpellName } from "./spells";
 
-/** How long a seen or cast buff lasts (seconds), for buffs outside the known families. */
+/** How long a seen or cast buff lasts (seconds), for buffs outside the known buff categories. */
 export type DurationLookup = (this: void, spellId: number | undefined, name: string) => number;
 
 /** A druid form (Cat Form, Travel Form...): no end, only changes with a shapeshift. */
@@ -23,9 +23,9 @@ function isFormKey(key: string): boolean {
 export class AuraMemory {
     /** Aura key -> GetTime() when the memory runs out. */
     private readonly heldNames = new LuaMap<string, number>();
-    /** Family key -> GetTime() when the memory runs out. */
-    private readonly heldFamilies = new LuaMap<string, number>();
-    /** Aura or family key -> GetTime() of the player's cast. */
+    /** Category key -> GetTime() when the memory runs out. */
+    private readonly heldCategories = new LuaMap<string, number>();
+    /** Aura or category key -> GetTime() of the player's cast. */
     private readonly castAt = new LuaMap<string, number>();
 
     constructor(private durationOf: DurationLookup = () => 30) {}
@@ -35,7 +35,7 @@ export class AuraMemory {
     }
 
     isEmpty(): boolean {
-        return this.heldNames.isEmpty() && this.heldFamilies.isEmpty();
+        return this.heldNames.isEmpty() && this.heldCategories.isEmpty();
     }
 
     /**
@@ -46,43 +46,43 @@ export class AuraMemory {
         const name = auraName ?? getSpellName(spellId);
         if (name === undefined || name === "") return;
         const key = buildAuraKey(name);
-        const family = findFamilyOf(name);
-        const seconds = family?.seconds ?? (isFormKey(key) ? FORM_SECONDS : this.durationOf(spellId, name));
+        const category = findBuffCategoryOf(name);
+        const seconds = category?.seconds ?? (isFormKey(key) ? FORM_SECONDS : this.durationOf(spellId, name));
         const now = GetTime();
         let expires: number | undefined;
         if (remain !== undefined && hasKnownExpiry(remain)) expires = now + remain;
         else if (isFromCast || remain !== undefined || (this.heldNames.get(key) ?? 0) <= now) expires = now + seconds;
         if (expires !== undefined) {
             this.heldNames.set(key, expires);
-            if (family) this.heldFamilies.set(family.key, expires);
+            if (category) this.heldCategories.set(category.key, expires);
         }
         if (isFromCast) {
             this.castAt.set(key, now);
-            if (family) this.castAt.set(family.key, now);
+            if (category) this.castAt.set(category.key, now);
         }
     }
 
-    /** Is the buff (or a member of its family) remembered as up? */
+    /** Is the buff (or a member of its category) remembered as up? */
     isRemembered(spellId: number): boolean {
         const name = getSpellName(spellId);
         if (name === undefined || name === "") return false;
         const now = GetTime();
         if (now < (this.heldNames.get(buildAuraKey(name)) ?? 0)) return true;
-        const family = findFamilyOf(name);
-        return family !== undefined && now < (this.heldFamilies.get(family.key) ?? 0);
+        const category = findBuffCategoryOf(name);
+        return category !== undefined && now < (this.heldCategories.get(category.key) ?? 0);
     }
 
-    /** The buff was looked for and is gone. `familiesSeen`: families still up in the same scan. */
-    release(spellId: number, familiesSeen: LuaMap<string, AuraData> | undefined): void {
+    /** The buff was looked for and is gone. `categoriesSeen`: categories still up in the same scan. */
+    release(spellId: number, categoriesSeen: LuaMap<string, AuraData> | undefined): void {
         const name = getSpellName(spellId);
         if (name === undefined || name === "") return;
         const key = buildAuraKey(name);
         const now = GetTime();
         if (now - (this.castAt.get(key) ?? -10) < CAST_SETTLE) return;
         this.heldNames.delete(key);
-        const family = findFamilyOf(name);
-        if (family && !familiesSeen?.has(family.key) && now - (this.castAt.get(family.key) ?? -10) >= CAST_SETTLE) {
-            this.heldFamilies.delete(family.key);
+        const category = findBuffCategoryOf(name);
+        if (category && !categoriesSeen?.has(category.key) && now - (this.castAt.get(category.key) ?? -10) >= CAST_SETTLE) {
+            this.heldCategories.delete(category.key);
         }
     }
 

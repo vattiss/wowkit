@@ -6,7 +6,7 @@ import { OFFHAND_PRIORITY, WEAPON_BUFF_BY_SPELL, WEAPON_BUFFS, WEAPON_PRIORITY, 
 import { settings } from "../settings";
 import { contains } from "../util/text";
 
-export interface WeaponPick {
+export interface PickedWeaponBuff {
     entry: WeaponBuff;
     /** The highest learned rank. */
     spellId: number;
@@ -42,7 +42,7 @@ function findLearnedId(entry: WeaponBuff | undefined): number | undefined {
     return undefined;
 }
 
-function createWeaponPick(entry: WeaponBuff | undefined): WeaponPick | undefined {
+function createPickedWeaponBuff(entry: WeaponBuff | undefined): PickedWeaponBuff | undefined {
     const spellId = findLearnedId(entry);
     return entry && spellId !== undefined ? { entry, spellId } : undefined;
 }
@@ -63,25 +63,25 @@ export function isCoatingBothWeapons(): boolean {
 }
 
 /** The automatic pick: the best weapon buff already learned. */
-export function findAutomaticWeaponBuff(isOffhand: boolean): WeaponPick | undefined {
+export function findAutomaticWeaponBuff(isOffhand: boolean): PickedWeaponBuff | undefined {
     const choices = getWeaponChoices();
     const token = getClassToken();
     const order = token !== undefined ? (isOffhand ? OFFHAND_PRIORITY : WEAPON_PRIORITY)[token] : undefined;
     for (const key of order ?? []) {
-        const found = createWeaponPick(choices.find((choice) => choice.key === key));
+        const found = createPickedWeaponBuff(choices.find((choice) => choice.key === key));
         if (found) return found;
     }
     for (const entry of choices) {
-        const found = createWeaponPick(entry);
+        const found = createPickedWeaponBuff(entry);
         if (found) return found;
     }
     return undefined;
 }
 
 /** The player's pick if it is learned, otherwise the automatic one. */
-export function findSelectedWeaponBuff(isOffhand = false): WeaponPick | undefined {
+export function findSelectedWeaponBuff(isOffhand = false): PickedWeaponBuff | undefined {
     const key = isOffhand ? settings.weaponBuffOff : settings.weaponBuff;
-    const chosen = key !== undefined && key !== "auto" ? createWeaponPick(getWeaponChoices().find((choice) => choice.key === key)) : undefined;
+    const chosen = key !== undefined && key !== "auto" ? createPickedWeaponBuff(getWeaponChoices().find((choice) => choice.key === key)) : undefined;
     return chosen ?? findAutomaticWeaponBuff(isOffhand);
 }
 

@@ -7,7 +7,7 @@ import { isLearned } from "../wow/spells";
 import { getCurrentTime } from "../wow/clock";
 import { canReceiveBuffs, doesUseMana, getPartyUnits, getUnitIdentity, isInSpellRange } from "../wow/party";
 import { isInCombat } from "../wow/player";
-import { getClassBuffs, isBuffEnabled, type BuffStep } from "./class-buffs";
+import { getClassBuffs, isBuffEnabled, type ClassBuff } from "./class-buffs";
 import { hasReagentFor } from "./reagents";
 import { settings } from "../settings";
 
@@ -32,23 +32,23 @@ interface Member {
     classToken: string;
 }
 
-/** The buffs to check: enabled, learned, castable on others; one per family (the first). */
-function getPartySteps(): BuffStep[] {
-    const steps: BuffStep[] = [];
-    const families = new LuaSet<object>();
-    for (const step of getClassBuffs()) {
-        const family = step.anyBuff ?? step;
-        if (step.party && isBuffEnabled(step) && isLearned(step.id) && !families.has(family)) {
-            families.add(family);
-            steps.push(step);
+/** The buffs to check: enabled, learned, castable on others; one per category (the first). */
+function getPartyBuffs(): ClassBuff[] {
+    const classBuffs: ClassBuff[] = [];
+    const categories = new LuaSet<object>();
+    for (const classBuff of getClassBuffs()) {
+        const category = classBuff.categoryMembers ?? classBuff;
+        if (classBuff.party && isBuffEnabled(classBuff) && isLearned(classBuff.id) && !categories.has(category)) {
+            categories.add(category);
+            classBuffs.push(classBuff);
         }
     }
-    return steps;
+    return classBuffs;
 }
 
 /** The highest learned rank of the group version that has its reagent. */
-function findUsableGroupSpell(step: BuffStep): number | undefined {
-    const ranks = step.party?.groupIds ?? [];
+function findUsableGroupSpell(classBuff: ClassBuff): number | undefined {
+    const ranks = classBuff.party?.groupIds ?? [];
     for (let i = ranks.length - 1; i >= 0; i--) {
         const id = ranks[i]!;
         if (isLearned(id)) return hasReagentFor(id) ? id : undefined;
@@ -56,19 +56,19 @@ function findUsableGroupSpell(step: BuffStep): number | undefined {
     return undefined;
 }
 
-function buildSuggestionsFor(step: BuffStep, members: Member[]): PartySuggestion[] {
-    const party = step.party!;
+function buildSuggestionsFor(classBuff: ClassBuff, members: Member[]): PartySuggestion[] {
+    const party = classBuff.party!;
     const missing = members.filter(
         (member) =>
             (!party.isManaOnly || doesUseMana(member.unit)) &&
-            isInSpellRange(step.id, member.unit) &&
-            getUnitBuffState(member.unit, step.id, party.isOwnOnly === true) === "missing",
+            isInSpellRange(classBuff.id, member.unit) &&
+            getUnitBuffState(member.unit, classBuff.id, party.isOwnOnly === true) === "missing",
     );
     if (missing.length === 0) return [];
-    const groupSpell = findUsableGroupSpell(step);
-    if (groupSpell === undefined) return [{ spellId: step.id, names: missing.map((m) => m.name) }];
+    const groupSpell = findUsableGroupSpell(classBuff);
+    if (groupSpell === undefined) return [{ spellId: classBuff.id, names: missing.map((m) => m.name) }];
     if (!party.isPerClass) {
-        return [{ spellId: missing.length >= GROUP_MIN ? groupSpell : step.id, names: missing.map((m) => m.name) }];
+        return [{ spellId: missing.length >= GROUP_MIN ? groupSpell : classBuff.id, names: missing.map((m) => m.name) }];
     }
     // Greater Blessings cover one class: the group version for classes with enough members missing
     const byClass = new LuaMap<string, string[]>();
@@ -83,7 +83,7 @@ function buildSuggestionsFor(step: BuffStep, members: Member[]): PartySuggestion
         if (names.length >= GROUP_MIN) out.push({ spellId: groupSpell, names });
         else singles.push(...names);
     }
-    if (singles.length > 0) out.push({ spellId: step.id, names: singles });
+    if (singles.length > 0) out.push({ spellId: classBuff.id, names: singles });
     return out;
 }
 
@@ -96,7 +96,7 @@ export function findPartyBuffSuggestions(): PartySuggestion[] {
     const members: Member[] = getPartyUnits()
         .filter((unit) => canReceiveBuffs(unit))
         .map((unit) => ({ unit, ...getUnitIdentity(unit) }));
-    cached = members.length === 0 ? [] : getPartySteps().flatMap((step) => buildSuggestionsFor(step, members));
+    cached = members.length === 0 ? [] : getPartyBuffs().flatMap((classBuff) => buildSuggestionsFor(classBuff, members));
     return cached;
 }
 

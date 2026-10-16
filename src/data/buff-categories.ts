@@ -1,17 +1,17 @@
-// Buff families: any member counts for the whole family. Some are exclusive (one aspect, one
+// Buff categories: any member counts for the whole category. Some are exclusive (one aspect, one
 // armor), others pair a buff with its group version (Prayer of Fortitude counts as Fortitude).
 // Matched by name: the client often hides the aura ID in combat, and names survive remapped IDs.
 import { buildAuraKey, contains } from "../util/text";
 
-export interface AuraFamily {
+export interface BuffCategory {
     key: string;
-    /** Lowercase text found in the aura names of the family. */
+    /** Lowercase text found in the aura names of the category. */
     tokens: string[];
     /** How long a seen or cast member counts as up while auras are hidden. */
     seconds: number;
 }
 
-const AURA_FAMILIES: AuraFamily[] = [
+const BUFF_CATEGORIES: BuffCategory[] = [
     { key: "blessing", tokens: ["blessing"], seconds: 300 },
     {
         key: "palaura",
@@ -29,12 +29,12 @@ const AURA_FAMILIES: AuraFamily[] = [
     { key: "intellect", tokens: ["arcane intellect", "arcane brilliance"], seconds: 1800 },
 ];
 
-export function findFamilyOf(name: string | undefined): AuraFamily | undefined {
+export function findBuffCategoryOf(name: string | undefined): BuffCategory | undefined {
     if (name === undefined || name === "") return undefined;
     const key = buildAuraKey(name);
-    for (const family of AURA_FAMILIES) {
-        for (const token of family.tokens) {
-            if (contains(key, token)) return family;
+    for (const category of BUFF_CATEGORIES) {
+        for (const token of category.tokens) {
+            if (contains(key, token)) return category;
         }
     }
     return undefined;

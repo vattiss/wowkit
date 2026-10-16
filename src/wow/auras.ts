@@ -1,7 +1,7 @@
 // Buffs on the player: reading them (by ID, by name, by a full scan), with AuraMemory filling in
 // while the client hides them.
 import { NO_EXPIRY } from "../constants";
-import { findFamilyOf } from "../data/aura-families";
+import { findBuffCategoryOf } from "../data/buff-categories";
 import type { WeaponBuff } from "../data/weapon-buffs";
 import { attempt, getReadable, tryCall } from "./safe";
 import { buildAuraKey } from "../util/text";
@@ -15,15 +15,15 @@ export interface AuraRead {
     remain: number;
     /** The client hid at least one aura, so "not found" proves nothing. */
     isUnreadable: boolean;
-    /** The buff families seen in the scan (family key -> aura). */
-    families?: LuaMap<string, AuraData>;
+    /** The buff categories seen in the scan (category key -> aura). */
+    categories?: LuaMap<string, AuraData>;
 }
 
 interface AuraScan {
     at: number;
     names: LuaMap<string, AuraData>;
     ids: LuaMap<number, AuraData>;
-    families: LuaMap<string, AuraData>;
+    categories: LuaMap<string, AuraData>;
     isUnreadable: boolean;
 }
 
@@ -34,7 +34,7 @@ const memory = new AuraMemory();
 /** Scans per "unit\0filter". */
 const scans = new LuaMap<string, AuraScan>();
 
-/** How long buffs outside the known families last (the class buff lists know). */
+/** How long buffs outside the known buff categories last (the class buff lists know). */
 export function setBuffDurationLookup(lookup: DurationLookup): void {
     memory.setDurationLookup(lookup);
 }
@@ -73,7 +73,7 @@ function scanAuras(unit: UnitToken, filter: string): AuraScan {
     const cacheKey = `${unit}\0${filter}`;
     const cached = scans.get(cacheKey);
     if (cached && now - cached.at < SCAN_REUSE) return cached;
-    const result: AuraScan = { at: now, names: new LuaMap(), ids: new LuaMap(), families: new LuaMap(), isUnreadable: false };
+    const result: AuraScan = { at: now, names: new LuaMap(), ids: new LuaMap(), categories: new LuaMap(), isUnreadable: false };
     scans.set(cacheKey, result);
     for (let i = 1; i <= 40; i++) {
         const [didSucceed, aura] = tryCall(C_UnitAuras.GetAuraDataByIndex, unit, i, filter);
@@ -94,8 +94,8 @@ function scanAuras(unit: UnitToken, filter: string): AuraScan {
             if (id !== undefined) result.ids.set(id, aura);
             if (name !== undefined) {
                 result.names.set(buildAuraKey(name), aura);
-                const family = findFamilyOf(name);
-                if (family) result.families.set(family.key, aura);
+                const category = findBuffCategoryOf(name);
+                if (category) result.categories.set(category.key, aura);
             }
         }
     }
@@ -123,14 +123,14 @@ export function findAura(spellId: number | undefined): AuraRead {
     }
 
     const result = scanAuras("player", "HELPFUL");
-    const wantFamily = findFamilyOf(wantName);
+    const wantCategory = findBuffCategoryOf(wantName);
     const aura =
         (wantName !== undefined ? result.names.get(buildAuraKey(wantName)) : undefined) ??
         (resolved !== undefined ? result.ids.get(resolved) : undefined) ??
         result.ids.get(spellId) ??
-        (wantFamily ? result.families.get(wantFamily.key) : undefined);
-    if (aura) return { isFound: true, remain: getRemainingSeconds(aura), isUnreadable: false, families: result.families };
-    return { isFound: false, remain: 0, isUnreadable: result.isUnreadable, families: result.families };
+        (wantCategory ? result.categories.get(wantCategory.key) : undefined);
+    if (aura) return { isFound: true, remain: getRemainingSeconds(aura), isUnreadable: false, categories: result.categories };
+    return { isFound: false, remain: 0, isUnreadable: result.isUnreadable, categories: result.categories };
 }
 
 /** Is the buff on the player, counting the remembered state while the client hides auras? */
@@ -144,7 +144,7 @@ export function hasAura(spellId: number): boolean {
     // In combat the client may simply return no auras: a buff we saw or cast is trusted until it
     // runs out. "Not found" only counts out of combat.
     if (memory.isRemembered(spellId) && isInCombat()) return true;
-    memory.release(spellId, read.families);
+    memory.release(spellId, read.categories);
     return false;
 }
 
@@ -157,15 +157,15 @@ export function noteSelfBuff(spellId: number | undefined): void {
 export type UnitBuffState = "has" | "missing" | "unknown";
 
 /**
- * Does another unit (a party member) have the buff, or one of its family (Prayer of Fortitude
- * for Fortitude)? `ownOnly`: only an aura the player cast counts. "unknown" when the client hid
+ * Does another unit (a party member) have the buff, or another buff of its category (Prayer of
+ * Fortitude for Fortitude)? `isOwnOnly`: only an aura the player cast counts. "unknown" when the client hid
  * the auras: no memory here, so a hidden aura never counts as missing.
  */
 export function getUnitBuffState(unit: UnitToken, spellId: number, isOwnOnly: boolean): UnitBuffState {
     const wantName = getSpellName(resolve(spellId) ?? spellId) ?? getSpellName(spellId);
     if (wantName === undefined) return "unknown";
     const wantKey = buildAuraKey(wantName);
-    const wantFamily = findFamilyOf(wantName);
+    const wantCategory = findBuffCategoryOf(wantName);
     let isUnreadable = false;
     for (let i = 1; i <= 40; i++) {
         const [didSucceed, aura] = tryCall(C_UnitAuras.GetAuraDataByIndex, unit, i, "HELPFUL");
@@ -174,7 +174,7 @@ export function getUnitBuffState(unit: UnitToken, spellId: number, isOwnOnly: bo
         const [, name, isHidden] = identify(aura);
         if (isHidden || name === undefined) {
             isUnreadable = true;
-        } else if (buildAuraKey(name) === wantKey || (wantFamily !== undefined && findFamilyOf(name) === wantFamily)) {
+        } else if (buildAuraKey(name) === wantKey || (wantCategory !== undefined && findBuffCategoryOf(name) === wantCategory)) {
             if (!isOwnOnly) return "has";
             const source = getReadable(aura.sourceUnit);
             if (source === undefined) isUnreadable = true;

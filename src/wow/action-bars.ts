@@ -277,7 +277,7 @@ export function getButtonNamesOf(spellId: number | undefined): string[] {
     return findButtonsOf(spellId).map((button) => button.GetName() ?? "unnamed");
 }
 
-export interface OldRank {
+export interface OutdatedRank {
     id: number;
     name: string;
     onBar: number;
@@ -285,14 +285,14 @@ export interface OldRank {
 }
 
 /** Every spell on the bars at a lower rank than the highest learned one, sorted by name. */
-export function findOutdatedRanks(): OldRank[] {
+export function findOutdatedRanks(): OutdatedRank[] {
     const byName = new LuaMap<string, { id: number; rank: number }>();
     for (const [id] of buttonsBySpell) {
         const name = getReadableSpellName(id);
         const rank = name !== undefined ? getSpellRank(id) : undefined;
         if (name !== undefined && rank !== undefined && rank > (byName.get(name)?.rank ?? -1)) byName.set(name, { id, rank });
     }
-    const out: OldRank[] = [];
+    const out: OutdatedRank[] = [];
     for (const [name, entry] of byName) {
         const best = getHighestRank(entry.id);
         if (best !== undefined && best > entry.rank) out.push({ id: entry.id, name, onBar: entry.rank, best });

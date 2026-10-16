@@ -50,6 +50,7 @@ WOW_ADDONS_DIR="C:/Program Files (x86)/World of Warcraft/_classic_beta_/Interfac
 ### Layout
 
 Diagrams of the build pipeline, the layers and the signals: [docs/architecture.md](docs/architecture.md).
+The words used in the code (buff, aura, buff category, group version...): [docs/glossary.md](docs/glossary.md).
 
 ```
 src/            addon sources, bundled into one Lua file

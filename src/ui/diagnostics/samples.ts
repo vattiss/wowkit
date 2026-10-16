@@ -29,23 +29,23 @@ function describeYesNo(answer: unknown): string {
 
 /** Why each buff is or is not asked for, how the client says it is known, where it would glow. */
 function sampleBuffs(context: string): void {
-    for (const step of getClassBuffs()) {
-        const id = resolve(step.id) ?? step.id;
+    for (const classBuff of getClassBuffs()) {
+        const id = resolve(classBuff.id) ?? classBuff.id;
         const name = getSpellName(id) ?? tostring(id);
-        const check = checkBuff(step);
+        const check = checkBuff(classBuff);
         const state = check.isWanted ? `missing, usable=${tostring(isCastable(id))}` : (check.why ?? "?");
-        recordCount(`buff says | ${name}`, context, isBuffEnabled(step) ? state : "switched off");
+        recordCount(`buff says | ${name}`, context, isBuffEnabled(classBuff) ? state : "switched off");
         recordCount(
             `known via | ${name}`,
             context,
             string.format(
                 "same id=%s known=%s inBookExact=%s inBook=%s itemType=%s resolved=%s",
-                tostring(id === step.id),
-                describeYesNo(attempt(C_SpellBook.IsSpellKnown, step.id)),
-                describeYesNo(attempt(C_SpellBook.IsSpellInSpellBook, step.id, Enum.SpellBookSpellBank.Player, false)),
-                describeYesNo(attempt(C_SpellBook.IsSpellInSpellBook, step.id)),
-                getBookItemType(step.id),
-                tostring(isLearned(step.id)),
+                tostring(id === classBuff.id),
+                describeYesNo(attempt(C_SpellBook.IsSpellKnown, classBuff.id)),
+                describeYesNo(attempt(C_SpellBook.IsSpellInSpellBook, classBuff.id, Enum.SpellBookSpellBank.Player, false)),
+                describeYesNo(attempt(C_SpellBook.IsSpellInSpellBook, classBuff.id)),
+                getBookItemType(classBuff.id),
+                tostring(isLearned(classBuff.id)),
             ),
         );
         const buttons = getButtonNamesOf(id);

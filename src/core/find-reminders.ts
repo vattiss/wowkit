@@ -2,7 +2,7 @@
 //
 // It reads the game and the settings and returns a plain description. It shows nothing and does
 // not remember the previous tick; that is show-reminders.ts.
-import { findOutdatedRanks, isOnBars, type OldRank } from "../wow/action-bars";
+import { findOutdatedRanks, isOnBars, type OutdatedRank } from "../wow/action-bars";
 import { shouldStayIdle } from "../wow/player";
 import { isCastable } from "../wow/spells";
 import { findMissingBuffs, rememberSelfBuffs } from "../reminders/buff-reminder";
@@ -20,7 +20,7 @@ export interface Reminders {
     /** Party members missing one of the player's buffs. */
     partySuggestions: PartySuggestion[];
     /** Spells on the bars at a lower rank than the highest the player knows. */
-    outdatedRanks: OldRank[];
+    outdatedRanks: OutdatedRank[];
 }
 
 function createEmptyReminders(): Reminders {
