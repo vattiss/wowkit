@@ -215,6 +215,36 @@ do
 	check("enough rage: Battle Shout glows", wow.glowsOn("ActionButton1") == 1, wow.glowsOn("ActionButton1"))
 end
 
+-- Druid: every missing buff glows at once ---------------------------------------------------
+do
+	local wow = scenario("druid", function(s)
+		s.class = { "Druid", "DRUID", 11 }
+		learn(s, 1126, "Mark of the Wild", 1, 136078)
+		learn(s, 467, "Thorns", 1, 136104)
+		s.bars[1] = 1126
+		s.bars[2] = 467
+	end)
+	local s = wow.state
+	check("both missing buffs glow at once", wow.glowsOn("ActionButton1") == 1 and wow.glowsOn("ActionButton2") == 1)
+
+	s.auras[1] = { name = "Mark of the Wild", spellId = 1126, expirationTime = 1000 + 1800 }
+	wow.fire("UNIT_AURA", "player")
+	wow.advance(1)
+	check("cast one: it goes out, the other stays", wow.glowsOn("ActionButton1") == 0 and wow.glowsOn("ActionButton2") == 1)
+end
+
+-- Hunter: of a group of buffs (aspects) only one glows --------------------------------------
+do
+	local wow = scenario("hunter", function(s)
+		s.class = { "Hunter", "HUNTER", 3 }
+		learn(s, 13165, "Aspect of the Hawk", 1, 136076)
+		learn(s, 13163, "Aspect of the Monkey", 1, 132160)
+		learn(s, 20043, "Aspect of the Wild", 1, 136074)
+		s.bars[1], s.bars[2], s.bars[3] = 13165, 13163, 20043
+	end)
+	check("only the first aspect glows", wow.glowsOn("ActionButton1") == 1 and wow.glowsOn("ActionButton2") == 0 and wow.glowsOn("ActionButton3") == 0)
+end
+
 -- Shaman: the weapon buff --------------------------------------------------------------------
 do
 	local wow = scenario("shaman", function(s)
@@ -233,6 +263,13 @@ do
 	check("weapon alarm sound plays once", #wow.sounds == 1 and wow.sounds[1] == 12889, #wow.sounds)
 	wow.advance(2)
 	check("sound does not repeat", #wow.sounds == 1, #wow.sounds)
+
+	-- Casting the shield is not applying the weapon buff: its glow must not blink out
+	s.auras[1] = { name = "Lightning Shield", spellId = 324, expirationTime = 1000 + 600 }
+	wow.fire("UNIT_SPELLCAST_SUCCEEDED", "player", "cast-guid", 324)
+	wow.advance(0.5)
+	check("casting the shield: the shield glow goes out", wow.glowsOn("ActionButton4") == 0)
+	check("casting the shield: the weapon glow stays", wow.glowsOn("ActionButton3") == 1, wow.glowsOn("ActionButton3"))
 
 	-- Rockbiter goes on the weapon
 	s.enchant[16] = { enchantID = 1, remainingTimeMs = 3600 * 1000 }

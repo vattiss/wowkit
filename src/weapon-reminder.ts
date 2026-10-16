@@ -40,9 +40,15 @@ export class WeaponReminder {
     /** Two-weapon mode: per hand. */
     private readonly handMissingSince = new LuaMap<Hand, number>();
 
-    /** The player cast a spell: if it put on a weapon buff, its grace time starts. */
+    /**
+     * The player cast a spell: if it put on a weapon buff, its grace time starts. In combat the
+     * client may hide both the spell ID and its name; a cast like that, while the weapon buff is
+     * wanted, is assumed to be the weapon buff. A cast we can identify as another spell (the
+     * shield) is not: it must not hide the weapon glow.
+     */
     noteCast(spellId: number | undefined, castName: string | undefined): void {
-        const entry = weaponBuffForCast(spellId, castName) ?? (this.needLast ? selectedWeaponBuff()?.entry : undefined);
+        const identified = (spellId !== undefined && !issecretvalue(spellId)) || castName !== undefined;
+        const entry = weaponBuffForCast(spellId, castName) ?? (!identified && this.needLast ? selectedWeaponBuff()?.entry : undefined);
         if (!entry) return;
         this.rememberApply(entry);
         clearWeaponTooltipCache();

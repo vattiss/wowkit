@@ -23,7 +23,7 @@ const L = {
 
     HDR_BUFFS: "Buffs",
     OPT_BUFF: "Highlight a missing buff",
-    TIP_BUFF: "The first missing buff of the list below glows on its action button.",
+    TIP_BUFF: "Every missing buff of the list below glows on its action button (one per group, e.g. one aspect).",
     TIP_BUFF_ONE: "Remind me when this buff is missing. Of a group (aspects, paladin auras, armors) any one counts.",
     OPT_COLOR_BUFF: "Buff color",
     OPT_PARTY_BUFFS: "Party members missing your buffs",

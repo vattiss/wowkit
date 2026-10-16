@@ -9,8 +9,8 @@ from Blizzard's own API documentation in [Gethe/wow-ui-source](https://github.co
 
 Reminds you of what is easy to forget while you level. It never casts anything.
 
-- **Missing buffs**: the first missing buff of your class list (Fortitude, Mark of the Wild, aspects,
-  paladin auras, armors...) glows on its action button. Of a group (one aspect, one aura, one armor)
+- **Missing buffs**: every missing buff of your class list (Fortitude, Mark of the Wild, aspects,
+  paladin auras, armors...) glows on its action button, all at once (one per group). Of a group (one aspect, one aura, one armor)
   any member counts. In combat, when the client hides auras, buffs you saw or cast are remembered.
 - **Weapon buffs**: shaman imbues, rogue poisons (per hand) and warlock stones glow when missing or
   about to run out (30 s), with an alarm sound by default.

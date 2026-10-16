@@ -36,7 +36,7 @@ let isBooted = false;
 let ticker: TimerHandle | undefined;
 /** The buff and weapon spell that glowed last tick, as "buff:weapon". */
 let lastGlowKey: string | undefined;
-let lastBuffSound: number | undefined;
+let lastBuffGlow: number[] = [];
 let lastWeaponSound: number | undefined;
 let lastNoticeKey: string | undefined;
 let lastNoticeAt = 0;
@@ -86,25 +86,31 @@ function tick(): void {
 
     // Nothing while dead, mounted, eating or resting in town
     const idle = shouldStayIdle(settings.hideResting) || settings.muted;
-    const buffs = settings.showBuff && !idle ? missingBuffs() : { glow: undefined, notOnBars: [] };
+    const buffs = settings.showBuff && !idle ? missingBuffs() : { glow: [], notOnBars: [] };
     const party = settings.showBuff && !idle ? partyBuffSuggestions() : [];
     const weaponCheck = settings.showWeapon && !idle ? weaponReminder.check() : undefined;
-    // The player's own missing buff first, then a party buff that can be cast from the bars
-    const buff = buffs.glow ?? party.find((s) => isOnBars(s.spellId) && spellUsable(s.spellId) !== false)?.spellId;
+    // The player's own missing buffs, then the party buffs that can be cast from the bars
+    const buff = [...buffs.glow];
+    for (const suggestion of party) {
+        if (!buff.includes(suggestion.spellId) && isOnBars(suggestion.spellId) && spellUsable(suggestion.spellId) !== false) {
+            buff.push(suggestion.spellId);
+        }
+    }
     const weapon = weaponCheck?.need ? weaponCheck.spellId : undefined;
 
-    if (buff !== undefined && buff !== lastBuffSound) playAlertSound(settings.soundBuff);
-    lastBuffSound = buff;
+    // A sound when a buff starts glowing, not each time another one goes out
+    if (buff.some((id) => !lastBuffGlow.includes(id))) playAlertSound(settings.soundBuff);
+    lastBuffGlow = buff;
     if (weapon !== undefined && weapon !== lastWeaponSound) playAlertSound(settings.soundWeapon);
     lastWeaponSound = weapon;
 
     showNotices(buffs.notOnBars, party, idle);
 
-    const glowKey = `${buff ?? 0}:${weapon ?? 0}`;
+    const glowKey = `${buff.join(",")}:${weapon ?? 0}`;
     if (glowKey !== lastGlowKey) {
         lastGlowKey = glowKey;
         buffGlow.show(buff);
-        weaponGlow.show(weapon);
+        weaponGlow.show(weapon !== undefined ? [weapon] : []);
     }
 }
 

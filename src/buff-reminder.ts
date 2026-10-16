@@ -13,8 +13,8 @@ export interface BuffCheck {
 }
 
 export interface MissingBuffs {
-    /** The first missing buff that is on an action button and can be cast now: it glows. */
-    glow?: number;
+    /** The missing buffs on an action button that can be cast now: they glow (one per family). */
+    glow: number[];
     /** Missing buffs on no button, one per family: named in a message. */
     notOnBars: number[];
 }
@@ -49,11 +49,13 @@ export function rememberSelfBuffs(): void {
 }
 
 /**
- * The missing buffs in list order. Of a family (one aspect, one paladin aura) one is enough: when
- * a member is on the bars nothing of the family is named, else the first one.
+ * The missing buffs in list order. Of a family (one aspect, one paladin aura) one is enough: the
+ * first member on the bars glows; when a member is on the bars nothing of the family is named in
+ * the "not on your bars" message, else the first one.
  */
 export function missingBuffs(): MissingBuffs {
-    let glow: number | undefined;
+    const glow: number[] = [];
+    const glowFamilies = new LuaSet<object>();
     const candidates: { id: number; family: object }[] = [];
     const familyOnBars = new LuaSet<object>();
     for (const step of classBuffs()) {
@@ -63,7 +65,10 @@ export function missingBuffs(): MissingBuffs {
             if (isOnBars(id)) {
                 // Only a buff that can be cast now glows (Battle Shout waits for rage); one the
                 // client gives no answer about still does
-                if (spellUsable(id) !== false) glow ??= id;
+                if (spellUsable(id) !== false && !glowFamilies.has(family)) {
+                    glowFamilies.add(family);
+                    glow.push(id);
+                }
                 familyOnBars.add(family);
             } else {
                 candidates.push({ id, family });

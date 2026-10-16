@@ -97,15 +97,15 @@ function overlay(button: ActionButton, kind: string, [r, g, b]: Rgb): Frame {
 }
 
 export interface ReminderGlow {
-    /** Glows the buttons of this spell; undefined clears. */
-    show: (this: void, spellId: number | undefined) => void;
+    /** Glows the buttons of these spells; an empty list clears. */
+    show: (this: void, spellIds: number[]) => void;
     clear: (this: void) => void;
 }
 
 /** One reminder glow (the buff or the weapon buff). `enabled` reads its settings switch. */
 function reminderGlow(kind: ColorKey, enabled: (this: void) => boolean): ReminderGlow {
     const glowing = new LuaSet<ActionButton>();
-    let last: number | undefined;
+    let last: string | undefined;
     const clearGlow = () => {
         for (const button of glowing) {
             overlays.get(button)?.get(kind)?.frame.Hide();
@@ -115,16 +115,19 @@ function reminderGlow(kind: ColorKey, enabled: (this: void) => boolean): Reminde
     };
     return {
         clear: clearGlow,
-        show: (spellId) => {
-            if (spellId === undefined || !enabled()) return clearGlow();
-            if (spellId === last && !glowing.isEmpty()) return;
-            const buttons = buttonsFor(spellId);
+        show: (spellIds) => {
+            if (spellIds.length === 0 || !enabled()) return clearGlow();
+            const key = spellIds.join(",");
+            if (key === last && !glowing.isEmpty()) return;
+            const buttons = spellIds.flatMap((spellId) => buttonsFor(spellId));
             clearGlow();
-            last = spellId;
+            last = key;
             const rgb = color(kind);
             for (const button of buttons) {
-                overlay(button, kind, rgb).Show();
-                glowing.add(button);
+                if (!glowing.has(button)) {
+                    overlay(button, kind, rgb).Show();
+                    glowing.add(button);
+                }
             }
         },
     };
