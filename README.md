@@ -59,7 +59,9 @@ src/            addon sources, bundled into one Lua file
   reminders/         what to remind about: missing buffs, weapon buffs, party buffs, reagents
   wow/               the only code that calls the game: spells, auras, action bars, player, party,
                      bags, clock, events, glows and notices, saved data, protected calls
-  ui/                the Settings panel pages and the debug report (may call the game too)
+  ui/options/        the Settings panel pages: landing, reminders (with the weapon section), debug
+                     report; the controls and widgets they are built from
+  ui/diagnostics/    debug mode: what to sample, the recorder, the report text (may call the game too)
   settings.ts        saved settings; changes go through changeSetting() and settingChanged
   data/              buff lists, weapon buffs, aura families, reagents, spell IDs
   util/              text helpers, signals

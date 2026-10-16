@@ -245,6 +245,53 @@ do
 	check("only the first aspect glows", wow.glowsOn("ActionButton1") == 1 and wow.glowsOn("ActionButton2") == 0 and wow.glowsOn("ActionButton3") == 0)
 end
 
+-- Debug mode and the debug report page ---------------------------------------------------------
+do
+	local wow = scenario("debug report", function(s)
+		s.class = { "Priest", "PRIEST", 5 }
+		learn(s, 1243, "Power Word: Fortitude", 1, 135987)
+		s.bars[1] = 1243
+	end)
+	wow.settings.ForeverReminders_isDebugMode.set(true)
+	wow.advance(3)
+
+	-- The page is built when it is first shown: find the hidden page, show it, press "Debug report"
+	local page
+	for _, frame in ipairs(wow.frames) do
+		if frame.scripts.OnShow and not frame.shown and frame.template == nil and frame.parent == nil then page = frame end
+	end
+	check("the debug page is registered", page ~= nil)
+	page.scripts.OnShow(page)
+	local reportButton
+	for _, frame in ipairs(wow.frames) do
+		if frame.template == "UIPanelButtonTemplate" and frame.text == "Debug report" then reportButton = frame end
+	end
+	check("the page has a Debug report button", reportButton ~= nil)
+	reportButton.scripts.OnClick(reportButton)
+	local report
+	for _, frame in ipairs(wow.frames) do
+		if frame.frameType == "EditBox" and type(frame.text) == "string" and frame.text:find("debug report", 1, true) then report = frame.text end
+	end
+	check("the report is written", report ~= nil)
+	check("the report counts the samples", report:find("samples: ", 1, true) and not report:find("samples: 0", 1, true), report)
+	check("the report says why the buff is wanted", report:find("buff says | Power Word: Fortitude", 1, true), report)
+	check("the report shows no swallowed errors", not report:find("swallowed error", 1, true), report)
+
+	-- Switching it off stops the samples; clearing empties the report
+	wow.settings.ForeverReminders_isDebugMode.set(false)
+	local clearButton
+	for _, frame in ipairs(wow.frames) do
+		if frame.template == "UIPanelButtonTemplate" and frame.text == "Clear debug data" then clearButton = frame end
+	end
+	clearButton.scripts.OnClick(clearButton)
+	reportButton.scripts.OnClick(reportButton)
+	local after
+	for _, frame in ipairs(wow.frames) do
+		if frame.frameType == "EditBox" and type(frame.text) == "string" and frame.text:find("debug report", 1, true) then after = frame.text end
+	end
+	check("clearing the data empties the report", after:find("samples: 0", 1, true), after)
+end
+
 -- Shaman: the weapon buff --------------------------------------------------------------------
 do
 	local wow = scenario("shaman", function(s)

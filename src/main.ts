@@ -3,8 +3,8 @@
 import { setBuffDurationLookup } from "./wow/auras";
 import { getBuffSeconds } from "./reminders/class-buffs";
 import { booted, startGameEvents } from "./core/game-events";
-import { initDebug, applyDebugMode } from "./ui/diagnostics";
-import { registerOptions } from "./ui/options-page";
+import { applyDebugMode, initDebug } from "./ui/diagnostics/debug-mode";
+import { registerOptions } from "./ui/options/register-options";
 
 const [addonName = "ForeverReminders"] = [...$vararg];
 

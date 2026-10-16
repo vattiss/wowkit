@@ -70,8 +70,8 @@ flowchart TB
     end
 
     subgraph ui["ui/ (may call the game: Settings panel)"]
-        optionsPage["options-page.ts<br/>the Settings panel pages"]
-        diagnostics["diagnostics.ts<br/>debug report"]
+        optionsPage["options/<br/>register-options, home, reminders<br/>and debug pages, controls, widgets"]
+        diagnostics["diagnostics/<br/>debug-mode, samples,<br/>recorder, report"]
     end
 
     subgraph reminders["reminders/ (what to remind about; no Blizzard calls)"]
@@ -123,7 +123,7 @@ flowchart LR
     spells -- "spellBookIndexed" --> events["core/game-events.ts<br/>ticks again"]
     actionBars["wow/action-bars.ts"] -- "barsMapped" --> events
     settings["settings.ts"] -- "settingChanged" --> events
-    settings -- "settingChanged (isDebugMode)" --> diagnostics["ui/diagnostics.ts"]
+    settings -- "settingChanged (isDebugMode)" --> diagnostics["ui/diagnostics/debug-mode.ts"]
     safe["wow/safe.ts"] -- "swallowedError" --> diagnostics
     events -- "booted" --> main["main.ts<br/>registers options,<br/>starts debug"]
 ```
