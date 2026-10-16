@@ -3,6 +3,7 @@
 // Player choices are changed through changeSetting(), which announces the change, so the options
 // page never has to know who reacts to it. Diagnostic data (debug, blockedAction) is written
 // directly: nobody reacts to it.
+import { bindSavedTable, loadSavedTable } from "./wow/saved-variables";
 import { createSignal } from "./util/signal";
 
 export type SoundKey = "none" | "ping" | "ready" | "raidwarning" | "alarm" | "whisper" | "quest" | "toast" | "click";
@@ -21,7 +22,7 @@ export interface DebugStore {
     info?: { client: string; addon: string; className: string; level: string };
 }
 
-export interface Settings {
+export interface AddonSettings {
     isMuted: boolean;
     hideResting: boolean;
     showBuff: boolean;
@@ -46,13 +47,8 @@ export interface Settings {
     blockedAction?: string;
 }
 
-declare global {
-    // Filled in by the client before ADDON_LOADED
-    var ForeverRemindersCharDB: Partial<Settings> | undefined;
-}
-
 /** The live settings. Its identity never changes: loadSettings() makes it the saved table. */
-export const settings: Settings = {
+export const settings: AddonSettings = {
     isMuted: false,
     hideResting: true,
     showBuff: true,
@@ -69,24 +65,42 @@ export const settings: Settings = {
 };
 
 /** A player choice changed (the key of the setting). */
-export const settingChanged = createSignal<[key: keyof Settings]>();
+export const settingChanged = createSignal<[key: keyof AddonSettings]>();
 
 /**
  * Changes a player choice and announces it. Nested tables (colors, buffOn) are replaced as a
  * whole: pass a new table.
  */
-export function changeSetting<K extends keyof Settings>(key: K, value: Settings[K]): void {
+export function changeSetting<K extends keyof AddonSettings>(key: K, value: AddonSettings[K]): void {
     settings[key] = value;
     settingChanged.emit(key);
 }
 
 /** Call once on ADDON_LOADED: the saved values replace the defaults. */
 export function loadSettings(): void {
-    const saved = ForeverRemindersCharDB;
+    const saved = loadSavedTable<AddonSettings>();
     if (saved !== undefined) {
         for (const [key, value] of pairs(saved)) {
             (settings as unknown as Record<string, unknown>)[key as string] = value;
         }
     }
-    ForeverRemindersCharDB = settings;
+    bindSavedTable(settings);
+}
+
+const COLOR_DEFAULTS: { [key in ColorKey]: Rgb } = {
+    buff: [0.2, 0.55, 1],
+    weapon: [1, 0.12, 0.08],
+};
+
+export function getDefaultColor(key: ColorKey): Rgb {
+    return COLOR_DEFAULTS[key];
+}
+
+/** The glow color of a reminder: the player's choice, else the default. */
+export function getColor(key: ColorKey): Rgb {
+    const saved = settings.colors[key];
+    if (saved !== undefined && type(saved) === "table" && tonumber(saved[0]) !== undefined) {
+        return [saved[0], saved[1] ?? 0, saved[2] ?? 0];
+    }
+    return COLOR_DEFAULTS[key];
 }

@@ -53,23 +53,31 @@ Diagrams of the build pipeline, the layers and the signals: [docs/architecture.m
 
 ```
 src/            addon sources, bundled into one Lua file
-  main.ts            entry point and composition root (wires the modules together)
+  main.ts            entry point; wires the modules together
   core.ts            the 0.2 s tick, notices and game events
-  buff-reminder.ts   which buffs are missing; party-buffs.ts on party members; reagents.ts
-  weapon-choice.ts   which weapon buff to keep up; weapon-reminder.ts whether it needs a reminder
-  action-bars.ts     which spell is on which button, old ranks; glow.ts draws the glows
+  reminders/         what to remind about: missing buffs, weapon buffs, party buffs, reagents
+  wow/               the only code that calls the game: spells, auras, action bars, player, party,
+                     bags, clock, events, glows and notices, saved data, protected calls
+  ui/                the Settings panel pages and the debug report (may call the game too)
   settings.ts        saved settings; changes go through changeSetting() and settingChanged
-  options.ts         the Settings panel page; debug.ts the debug report
-  api/               the client: spells and spellbook, auras and aura memory, weapon enchants, player state
-  data/              buff lists, weapon buffs, aura families, reagents
-  util/              protected calls and secret values (safe.ts), text, signals
+  data/              buff lists, weapon buffs, aura families, reagents, spell IDs
+  util/              text helpers, signals
 addon/          static addon files (TOC, logo); the TOC's @version@ is filled from package.json
 types/
-  wow-manual.d.ts   hand-written typings: script handlers, CreateFrame, FrameXML globals, string unions
+  wow-manual.d.ts   hand-written typings: script handlers, CreateFrame, string unions
+  wow-framexml.d.ts hand-written typings: Settings panel API, action buttons, FrameXML globals
   generated/        generated from Blizzard's API docs - do not edit
-scripts/        build, deploy, test and type-generation scripts
+scripts/        build, deploy, test, type-generation and check scripts
 test/           Lua smoke test against a mocked client (mock_wow.lua)
 ```
+
+### Rules
+
+- **Only `src/wow/` and `src/ui/` call the game.** Reminder logic talks to `wow/` in plain terms
+  (`isInCombat()`, `isLearned(spell)`) and never sees secret values, protected calls or remapped IDs.
+- **Names read like English:** functions start with a verb, booleans read as questions (`isFound`).
+
+`npm run check` enforces both and is part of `npm test`.
 
 ### WoW API typings
 
@@ -99,10 +107,10 @@ type), fix it with `SIGNATURE_OVERRIDES` in the generator or extra overloads in 
 
 - `noImplicitSelf` is on: plain functions and namespace functions are called with `.`, interface methods with `:`.
   Script handlers get the widget as an explicit first parameter: `frame.SetScript("OnEvent", (self, event, ...args) => ...)`.
-- Use `onEvent("EVENT_NAME", handler)` from `src/events.ts` for typed event payloads.
+- Use `onEvent("EVENT_NAME", handler)` from `src/wow/events.ts` for typed event payloads.
 - No `RegExp`: use Lua patterns via `string.match` / `string.gsub` / `string.gmatch`.
 - Arrays are Lua sequences (1-based in Lua, 0-based in TS - TSTL translates the indices).
 - Globals such as SavedVariables are declared with `declare global { var Name: Type }`.
 - Classes work (methods are called with `:`); pass methods as callbacks wrapped in an arrow function.
 - No import cycles: the bundle's `require` does not support them. Lower layers notify upper ones
-  through signals (`util/signal.ts`); `api/`, `data/` and `util/` import nothing from the layers above.
+  through signals (`util/signal.ts`); `wow/`, `data/` and `util/` import nothing from the layers above.

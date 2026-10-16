@@ -1,12 +1,10 @@
 // Which weapon buff the player should keep up: the player's pick if learned, else the best one
 // already learned.
-import { getHintName, isLearned, resolve, resolveFromName, getSpellName, spellsInvalidated } from "./api/spells";
-import { getClassToken } from "./buffs";
-import { OFF_HAND_SLOT } from "./constants";
-import { OFFHAND_PRIORITY, WEAPON_BUFF_BY_SPELL, WEAPON_BUFFS, WEAPON_PRIORITY, type WeaponBuff } from "./data/weapon-buffs";
-import { settings } from "./settings";
-import { attempt } from "./util/safe";
-import { contains } from "./util/text";
+import { getHintName, isLearned, resolve, resolveFromName, getSpellName, spellsInvalidated } from "../wow/spells";
+import { getClassToken, isOffhandWeaponEquipped } from "../wow/player";
+import { OFFHAND_PRIORITY, WEAPON_BUFF_BY_SPELL, WEAPON_BUFFS, WEAPON_PRIORITY, type WeaponBuff } from "../data/weapon-buffs";
+import { settings } from "../settings";
+import { contains } from "../util/text";
 
 export interface WeaponPick {
     entry: WeaponBuff;
@@ -44,7 +42,7 @@ function findLearnedId(entry: WeaponBuff | undefined): number | undefined {
     return undefined;
 }
 
-function toWeaponPick(entry: WeaponBuff | undefined): WeaponPick | undefined {
+function createWeaponPick(entry: WeaponBuff | undefined): WeaponPick | undefined {
     const spellId = findLearnedId(entry);
     return entry && spellId !== undefined ? { entry, spellId } : undefined;
 }
@@ -61,11 +59,7 @@ export function hasOffhandChoice(): boolean {
 
 /** The class coats both weapons and an off-hand weapon is equipped. */
 export function isCoatingBothWeapons(): boolean {
-    if (!hasOffhandChoice()) return false;
-    const itemId = attempt(GetInventoryItemID, "player", OFF_HAND_SLOT);
-    if (itemId === undefined || type(itemId) !== "number") return false;
-    const [, , , , , classId] = C_Item.GetItemInfoInstant(itemId);
-    return classId === Enum.ItemClass.Weapon;
+    return hasOffhandChoice() && isOffhandWeaponEquipped();
 }
 
 /** The automatic pick: the best weapon buff already learned. */
@@ -74,11 +68,11 @@ export function findAutomaticWeaponBuff(isOffhand: boolean): WeaponPick | undefi
     const token = getClassToken();
     const order = token !== undefined ? (isOffhand ? OFFHAND_PRIORITY : WEAPON_PRIORITY)[token] : undefined;
     for (const key of order ?? []) {
-        const found = toWeaponPick(choices.find((choice) => choice.key === key));
+        const found = createWeaponPick(choices.find((choice) => choice.key === key));
         if (found) return found;
     }
     for (const entry of choices) {
-        const found = toWeaponPick(entry);
+        const found = createWeaponPick(entry);
         if (found) return found;
     }
     return undefined;
@@ -87,7 +81,7 @@ export function findAutomaticWeaponBuff(isOffhand: boolean): WeaponPick | undefi
 /** The player's pick if it is learned, otherwise the automatic one. */
 export function findSelectedWeaponBuff(isOffhand = false): WeaponPick | undefined {
     const key = isOffhand ? settings.weaponBuffOff : settings.weaponBuff;
-    const chosen = key !== undefined && key !== "auto" ? toWeaponPick(getWeaponChoices().find((choice) => choice.key === key)) : undefined;
+    const chosen = key !== undefined && key !== "auto" ? createWeaponPick(getWeaponChoices().find((choice) => choice.key === key)) : undefined;
     return chosen ?? findAutomaticWeaponBuff(isOffhand);
 }
 
@@ -115,7 +109,7 @@ function doesMatchName(entry: WeaponBuff, name: string): boolean {
 
 /** The weapon buff a cast put on, by spell ID, by a rank the table misses, or by the cast name. */
 export function findWeaponBuffForCast(spellId: number | undefined, castName: string | undefined): WeaponBuff | undefined {
-    if (spellId !== undefined && !issecretvalue(spellId)) {
+    if (spellId !== undefined) {
         const entry = WEAPON_BUFF_BY_SPELL.get(spellId);
         if (entry) return entry;
         const name = getSpellName(spellId);

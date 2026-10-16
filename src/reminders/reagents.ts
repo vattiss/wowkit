@@ -1,10 +1,10 @@
 // Reagents of the group buffs: whether a spell needs one, whether there is one in the bags, and
 // which are running low. Whether a spell needs a reagent is read from its tooltip, so a client
 // that dropped the reagent cost never nags about it.
-import { isLearned, resolve, spellsInvalidated } from "./api/spells";
-import { REAGENT_LOW, REAGENTS, type Reagent } from "./data/reagents";
-import { attempt, getReadable } from "./util/safe";
-import { contains } from "./util/text";
+import { getItemCount, getItemName } from "../wow/bags";
+import { getSpellTooltipTexts, isLearned, resolve, spellsInvalidated } from "../wow/spells";
+import { REAGENT_LOW, REAGENTS, type Reagent } from "../data/reagents";
+import { contains } from "../util/text";
 
 export interface ReagentStock {
     reagent: Reagent;
@@ -22,24 +22,18 @@ spellsInvalidated.listen(() => {
 });
 
 function getReagentName(reagent: Reagent): string {
-    return getReadable(attempt(C_Item.GetItemNameByID, reagent.itemId)) ?? reagent.name;
+    return getItemName(reagent.itemId) ?? reagent.name;
 }
 
 function doesTooltipNameReagent(spellId: number, reagent: Reagent): boolean {
     const cached = tooltipNeedsReagent.get(spellId);
     if (cached !== undefined) return cached;
-    const data = attempt(C_TooltipInfo.GetSpellByID, resolve(spellId) ?? spellId);
+    const texts = getSpellTooltipTexts(resolve(spellId) ?? spellId);
     // No tooltip: assume the classic cost
-    let isNeeded = data === undefined || type(data) !== "table";
-    if (!isNeeded) {
-        const wanted = string.lower(getReagentName(reagent));
-        for (const line of data!.lines ?? []) {
-            for (const text of [getReadable(line.leftText), getReadable(line.rightText)]) {
-                if (text !== undefined && contains(string.lower(text), wanted)) isNeeded = true;
-            }
-        }
-        tooltipNeedsReagent.set(spellId, isNeeded);
-    }
+    if (texts === undefined) return true;
+    const reagentName = string.lower(getReagentName(reagent));
+    const isNeeded = texts.some((text) => contains(string.lower(text), reagentName));
+    tooltipNeedsReagent.set(spellId, isNeeded);
     return isNeeded;
 }
 
@@ -50,7 +44,7 @@ export function findReagentFor(spellId: number): Reagent | undefined {
 }
 
 export function getReagentCount(reagent: Reagent): number {
-    return getReadable(attempt(C_Item.GetItemCount, reagent.itemId)) ?? 0;
+    return getItemCount(reagent.itemId);
 }
 
 /** Can the spell be cast as far as reagents go? */

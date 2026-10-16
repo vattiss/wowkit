@@ -1,10 +1,9 @@
 // Which buffs of the class list are missing.
-import { findAura, hasAura } from "./api/auras";
-import { isLearned, resolve, isCastable } from "./api/spells";
-import { isInCombat } from "./api/unit";
-import { isOnBars } from "./action-bars";
-import { getClassBuffs, isBuffEnabled, type BuffStep } from "./buffs";
-import { attempt } from "./util/safe";
+import { hasAura } from "../wow/auras";
+import { isLearned, resolve, isCastable } from "../wow/spells";
+import { isInCombat, isSwimming } from "../wow/player";
+import { isOnBars } from "../wow/action-bars";
+import { getClassBuffs, isBuffEnabled, type BuffStep } from "./class-buffs";
 
 export interface BuffCheck {
     isWanted: boolean;
@@ -23,14 +22,12 @@ export interface MissingBuffs {
 export function checkBuff(step: BuffStep): BuffCheck {
     const id = resolve(step.id);
     if (id === undefined || !isLearned(id)) return { isWanted: false, why: "not learned yet" };
-    if (step.isSwimmingOnly && attempt(IsSwimming) !== true) return { isWanted: false, why: "only while swimming" };
+    if (step.isSwimmingOnly && !isSwimming()) return { isWanted: false, why: "only while swimming" };
     for (const other of step.anyBuff ?? []) {
         if (hasAura(other)) return { isWanted: false, why: "a buff from the same group is already up" };
     }
-    // A readable aura decides; while the client hides auras, the memory of the last sighting does
-    const read = findAura(id);
-    if (read.isFound) return { isWanted: false, why: "already active" };
-    if ((read.isUnreadable || isInCombat()) && hasAura(id)) return { isWanted: false, why: "already active" };
+    // hasAura reads the aura, and falls back on what was seen or cast while the client hides auras
+    if (hasAura(id)) return { isWanted: false, why: "already active" };
     return { isWanted: true };
 }
 

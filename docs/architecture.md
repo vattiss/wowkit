@@ -1,8 +1,24 @@
 # Architecture
 
 Forever Reminders is a World of Warcraft: Forever addon written in TypeScript and compiled to a
-single Lua file. This page shows how it is built and how its modules depend on each other at run
-time.
+single Lua file. This page shows how it is built, how the code is organised, and the two rules that
+keep it readable.
+
+## The two rules
+
+**1. Only `src/wow/` and `src/ui/` talk to the game.**
+Blizzard's API is full of quirks: values that are secret in combat, calls that can raise errors,
+spell IDs that Forever remaps, `multiple, return, values`. All of that stays inside `src/wow/`,
+which turns it into plain answers in the addon's own words (`isInCombat()`, `isLearned(spell)`,
+`getItemCount(item)`). The reminder logic in `src/reminders/` never sees a Blizzard function, so it
+reads like plain code. `src/ui/` is the other place that may call the game, because the options page
+and the debug report are built from the Settings panel API.
+
+**2. Names read like English.**
+Functions start with a verb (`getSpellName`, `findMissingBuffs`, `showNotice`). Booleans read as
+questions (`isFound`, `hasArrived`, `shouldRecheckDrop`).
+
+Both rules are checked by `npm run check` (part of `npm test`), so they cannot creep back in.
 
 ## Build pipeline
 
@@ -33,112 +49,55 @@ flowchart LR
     dist -- "npm run deploy" --> game["_classic_beta_/Interface/AddOns"]
 ```
 
-## Run-time layers
+## Code layout
 
-Dependencies point downwards only. `api/`, `data/` and `util/` import nothing from the layers
-above them; when a lower module has news for an upper one, it fires a signal (see below).
-`main.ts` is the composition root: the only place that wires modules together.
+Dependencies point downwards only. `wow/` imports no reminder logic and no settings; when it has
+news for something above it, it fires a signal (see below).
 
 ```mermaid
 flowchart TB
-    main["main.ts<br/>composition root"]
+    main["main.ts<br/>wires everything together"]
+    core["core.ts<br/>the 0.2 s tick, game events, notices"]
 
-    subgraph ui["Presentation"]
-        options["options.ts<br/>Settings panel page"]
-        debug["debug.ts<br/>debug report"]
-        glow["glow.ts<br/>button glows"]
-        notice["notice.ts<br/>on-screen notice, sounds"]
-        locale["locale.ts<br/>strings, chat"]
+    subgraph ui["ui/ (may call the game: Settings panel)"]
+        optionsPage["options-page.ts<br/>the Settings panel pages"]
+        diagnostics["diagnostics.ts<br/>debug report"]
     end
 
-    subgraph app["Application"]
-        core["core.ts<br/>0.2 s tick, game events,<br/>scheduling"]
-        events["events.ts<br/>typed event subscriptions"]
-        settings["settings.ts<br/>saved settings,<br/>changeSetting()"]
-    end
-
-    subgraph domain["Domain"]
-        buffReminder["buff-reminder.ts<br/>missing buffs"]
-        partyBuffs["party-buffs.ts<br/>party members missing<br/>the player's buffs"]
-        reagents["reagents.ts<br/>reagent stock"]
-        weaponReminder["weapon-reminder.ts<br/>class WeaponReminder"]
+    subgraph reminders["reminders/ (what to remind about; no Blizzard calls)"]
+        buffReminder["buff-reminder.ts<br/>which buffs are missing"]
+        classBuffs["class-buffs.ts<br/>the class buff list, switches"]
         weaponChoice["weapon-choice.ts<br/>which weapon buff"]
-        buffs["buffs.ts<br/>class buff list,<br/>per-buff switches"]
-        actionBars["action-bars.ts<br/>spell to button map,<br/>old ranks"]
+        weaponReminder["weapon-reminder.ts<br/>class WeaponReminder"]
+        partyBuffs["party-buffs.ts<br/>party members missing a buff"]
+        reagents["reagents.ts<br/>reagent stock"]
     end
 
-    subgraph api["Client API (api/)"]
-        spells["spells.ts<br/>resolution, ranks"]
-        spellbook["spellbook.ts<br/>class SpellBookIndex"]
-        auras["auras.ts<br/>aura reads"]
-        auraMemory["aura-memory.ts<br/>class AuraMemory"]
-        weapon["weapon.ts<br/>weapon enchants"]
-        unit["unit.ts<br/>combat, idle"]
+    subgraph wow["wow/ (the only code that calls the game)"]
+        spells["spells.ts, spellbook.ts<br/>learned, ranks, castable"]
+        auras["auras.ts, aura-memory.ts<br/>buffs on the player and the party"]
+        weaponEnchants["weapon-enchants.ts"]
+        actionBars["action-bars.ts<br/>which spell is on which button"]
+        player["player.ts, party.ts"]
+        screen["glow.ts, notice.ts<br/>glows, notices, sounds, chat"]
+        misc["clock.ts, bags.ts, events.ts,<br/>saved-variables.ts"]
+        safe["safe.ts<br/>secret values, protected calls"]
     end
 
-    subgraph base["Data and utilities"]
-        data["data/<br/>buff lists, weapon buffs,<br/>aura families, spell IDs"]
-        util["util/<br/>safe.ts, text.ts, signal.ts"]
-        constants["constants.ts"]
-    end
-
-    client[("WoW client<br/>C_* APIs, frames, events")]
+    shared["settings.ts, locale.ts, constants.ts<br/>data/ (buff lists, spell IDs), util/"]
+    game[("WoW client<br/>C_* APIs, frames, events")]
 
     main --> core
-    main --> options
-    main --> debug
-    main -. "duration lookup" .-> auras
-
-    options --> glow
-    options --> notice
-    options --> debug
-    options --> settings
-    options --> weaponChoice
-    options --> buffs
-    debug --> buffReminder
-    debug --> weaponReminder
-    debug --> actionBars
-    glow --> actionBars
-
-    core --> events
-    core --> settings
-    core --> glow
-    core --> notice
-    core --> buffReminder
-    core --> partyBuffs
-    core --> reagents
-    core --> weaponReminder
-    core --> actionBars
-
-    buffReminder --> buffs
-    partyBuffs --> buffs
-    partyBuffs --> reagents
-    partyBuffs --> auras
-    partyBuffs --> unit
-    reagents --> spells
-    buffReminder --> actionBars
-    buffReminder --> auras
-    weaponReminder --> weaponChoice
-    weaponReminder --> auras
-    weaponReminder --> weapon
-    weaponChoice --> buffs
-    buffs --> settings
-    actionBars --> spells
-
-    spells --> spellbook
-    auras --> auraMemory
-    auras --> spells
-    auras --> unit
-    auraMemory --> spells
-
-    api --> base
-    domain --> base
-
-    events --> client
-    api --> client
-    actionBars --> client
-    glow --> client
-    notice --> client
+    main --> ui
+    core --> reminders
+    core --> wow
+    ui --> reminders
+    ui --> wow
+    reminders --> wow
+    reminders --> shared
+    wow --> shared
+    wow --> game
+    ui --> game
 ```
 
 ## Signals (notifications upwards)
@@ -148,14 +107,14 @@ import upper ones. They expose a signal (`util/signal.ts`) and the upper module 
 
 ```mermaid
 flowchart LR
-    spellbook["SpellBookIndex.built"] --> spells["spells.ts"]
-    spells -- "spellsInvalidated" --> auras["auras.ts<br/>drops aura scans"]
+    spellbook["SpellBookIndex.built"] --> spells["wow/spells.ts"]
+    spells -- "spellsInvalidated" --> auras["wow/auras.ts<br/>drops aura scans"]
     spells -- "spellsInvalidated" --> weaponChoice["weapon-choice.ts<br/>drops name caches"]
     spells -- "spellBookIndexed" --> core["core.ts<br/>ticks again"]
-    actionBars["action-bars.ts"] -- "barsMapped" --> core
+    actionBars["wow/action-bars.ts"] -- "barsMapped" --> core
     settings["settings.ts"] -- "settingChanged" --> core
-    settings -- "settingChanged (debugMode)" --> debug["debug.ts"]
-    safe["util/safe.ts"] -- "swallowedError" --> debug
+    settings -- "settingChanged (isDebugMode)" --> diagnostics["ui/diagnostics.ts"]
+    safe["wow/safe.ts"] -- "swallowedError" --> diagnostics
     core -- "booted" --> main["main.ts<br/>registers options,<br/>starts debug"]
 ```
 
@@ -167,24 +126,24 @@ what the notice says.
 ```mermaid
 sequenceDiagram
     participant Core as core.ts
-    participant Unit as api/unit
+    participant Player as wow/player
     participant Buff as buff-reminder
-    participant Bars as action-bars
+    participant Bars as wow/action-bars
     participant Weapon as WeaponReminder
-    participant Glow as glow / notice
+    participant Screen as wow/glow, wow/notice
 
     Core->>Buff: rememberSelfBuffs() (out of combat)
-    Core->>Unit: shouldStayIdle(hideResting)
+    Core->>Player: shouldStayIdle(quietWhenResting)
     alt not idle
-        Core->>Buff: missingBuffs()
+        Core->>Buff: findMissingBuffs()
         Buff->>Bars: isOnBars(spell)
         Buff-->>Core: glow, notOnBars
         Core->>Weapon: check()
-        Weapon-->>Core: spellId, remain, need
-        Core->>Core: partyBuffSuggestions() (out of combat, at most every 1 s)
+        Weapon-->>Core: spellId, remain, isNeeded
+        Core->>Core: findPartyBuffSuggestions() (out of combat, at most every 1 s)
     end
-    Core->>Glow: play sound when a reminder is new
-    Core->>Bars: oldRanksOnBars()
-    Core->>Glow: showNotice(lines) (repeats at most every 30 s)
-    Core->>Glow: buffGlow.show(), weaponGlow.show() (only on change)
+    Core->>Screen: playAlertSound() when a reminder is new
+    Core->>Bars: findOutdatedRanks()
+    Core->>Screen: showNotice(lines) (repeats at most every 30 s)
+    Core->>Screen: glow.show(spells, color) (only on change)
 ```

@@ -1,20 +1,18 @@
 // Addon entry point and composition root: wires the modules together.
 // WoW runs each addon file with `...` = (addonName, addonTable).
-import { setBuffDurationLookup } from "./api/auras";
-import { getBuffSeconds } from "./buffs";
+import { setBuffDurationLookup } from "./wow/auras";
+import { getBuffSeconds } from "./reminders/class-buffs";
 import { booted, start } from "./core";
-import * as debug from "./debug";
-import { say } from "./locale";
-import { registerOptions } from "./options";
+import { initDebug, applyDebugMode } from "./ui/diagnostics";
+import { registerOptions } from "./ui/options-page";
 
 const [addonName = "ForeverReminders"] = [...$vararg];
 
 // The aura memory learns buff durations from the class buff lists
 setBuffDurationLookup(getBuffSeconds);
-debug.initDebug(addonName);
+initDebug(addonName);
 booted.listen(() => {
-    const [didSucceed, err] = pcall(registerOptions);
-    if (!didSucceed) say(tostring(err));
-    debug.applyDebugMode();
+    registerOptions();
+    applyDebugMode();
 });
 start(addonName);

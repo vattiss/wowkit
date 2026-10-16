@@ -1,10 +1,11 @@
 // Whether the weapon buff needs a reminder. The client's weapon enchant reads lag behind casts and
 // are sometimes missing, so this is a small state machine: a grace time after a cast, the time the
 // buff was last seen to last until, and a "missing" reading that must hold before it is believed.
-import { findWeaponBuffAura } from "./api/auras";
-import { clearWeaponTooltipCache, getWeaponEnchant, hasWeaponTooltipText } from "./api/weapon";
-import { hasKnownExpiry, NO_EXPIRY } from "./constants";
-import { WEAPON_BUFF_BY_ENCHANT, type WeaponBuff } from "./data/weapon-buffs";
+import { findWeaponBuffAura } from "../wow/auras";
+import { getCurrentTime } from "../wow/clock";
+import { clearWeaponTooltipCache, getWeaponEnchant, hasWeaponTooltipText } from "../wow/weapon-enchants";
+import { hasKnownExpiry, NO_EXPIRY } from "../constants";
+import { WEAPON_BUFF_BY_ENCHANT, type WeaponBuff } from "../data/weapon-buffs";
 import { findSelectedWeaponBuff, findWeaponBuffForCast, isCoatingBothWeapons, getWeaponMatchTokens } from "./weapon-choice";
 
 /** Weapon buffs warn this many seconds before they run out. */
@@ -47,7 +48,7 @@ export class WeaponReminder {
      * shield) is not: it must not hide the weapon glow.
      */
     noteCast(spellId: number | undefined, castName: string | undefined): void {
-        const isIdentified = (spellId !== undefined && !issecretvalue(spellId)) || castName !== undefined;
+        const isIdentified = spellId !== undefined || castName !== undefined;
         const entry = findWeaponBuffForCast(spellId, castName) ?? (!isIdentified && this.wasNeededLast ? findSelectedWeaponBuff()?.entry : undefined);
         if (!entry) return;
         this.rememberApply(entry);
@@ -58,7 +59,7 @@ export class WeaponReminder {
         const pick = findSelectedWeaponBuff();
         if (!pick) return;
         if (this.wasNeededLast) return this.rememberApply(pick.entry);
-        const now = GetTime();
+        const now = getCurrentTime();
         if (now < this.graceUntil || (this.castAt > 0 && now - this.castAt < CAST_ENCHANT_WINDOW)) return;
         this.shouldRecheckDrop = true;
     }
@@ -82,7 +83,7 @@ export class WeaponReminder {
         const { entry, spellId } = pick;
         const { status, remain } = this.detect(entry);
         if (status !== "missing") this.missingSince = undefined;
-        const now = GetTime();
+        const now = getCurrentTime();
         const buildResult = (left: number, isNeeded: boolean): WeaponCheck => {
             this.wasNeededLast = isNeeded;
             return { spellId, remain: left, isNeeded };
@@ -124,7 +125,7 @@ export class WeaponReminder {
     }
 
     private rememberApply(entry: WeaponBuff): void {
-        const now = GetTime();
+        const now = getCurrentTime();
         this.graceUntil = now + CAST_GRACE;
         this.castAt = now;
         this.seenUntil = now + entry.duration;
@@ -191,7 +192,7 @@ export class WeaponReminder {
 
     /** Two coated weapons (rogue): each hand on its own; the first one that needs a poison wins. */
     private checkBothHands(): WeaponCheck {
-        const now = GetTime();
+        const now = getCurrentTime();
         const due = this.checkHand(false, now) ?? this.checkHand(true, now);
         this.wasNeededLast = due !== undefined;
         if (due) return { spellId: due.spellId, remain: due.remain, isNeeded: true };

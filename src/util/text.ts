@@ -1,5 +1,11 @@
 // Text helpers. Names are compared in three slightly different normal forms, each for its own job.
 
+/** The text without leading and trailing white space. */
+export function trimText(text: string): string {
+    const [trimmed] = string.match(text, "^%s*(.-)%s*$");
+    return trimmed ?? "";
+}
+
 /** Plain-text search (no Lua patterns). */
 export function contains(text: string, token: string): boolean {
     return string.find(text, token, 1, true)[0] !== undefined;
@@ -11,7 +17,7 @@ export function contains(text: string, token: string): boolean {
  */
 export function buildAuraKey(name: string): string {
     const [stripped] = string.gsub(string.lower(name), "%s*%([^%)]*%)", "");
-    return strtrim(stripped);
+    return trimText(stripped);
 }
 
 /**
@@ -21,7 +27,7 @@ export function buildAuraKey(name: string): string {
 export function buildSpellBookKey(name: string): string {
     let [key] = string.gsub(buildAuraKey(name), "%s*rank%s*%d+", "");
     [key] = string.gsub(key, "%s+", " ");
-    return strtrim(key);
+    return trimText(key);
 }
 
 /**
@@ -30,6 +36,6 @@ export function buildSpellBookKey(name: string): string {
  */
 export function buildButtonKey(name: string): string | undefined {
     const [stripped] = string.gsub(name, "%s*%([^)]*%)%s*$", "");
-    const key = strtrim(string.lower(stripped));
+    const key = trimText(string.lower(stripped));
     return key !== "" ? key : undefined;
 }

@@ -1,17 +1,8 @@
 // The buff list of the player's class and the per-character switch of each buff.
-import { getSpellName } from "./api/spells";
-import { BUFF_LISTS, type BuffStep } from "./data/buff-lists";
-import { changeSetting, settings } from "./settings";
-import { isReadable } from "./util/safe";
-
-/** The player's class token ("PRIEST"). */
-export function getClassToken(): string | undefined {
-    const [, classFile] = UnitClass("player");
-    if (classFile !== undefined && isReadable(classFile)) return string.upper(classFile);
-    const [base] = UnitClassBase("player");
-    if (base !== undefined && isReadable(base)) return string.upper(base);
-    return undefined;
-}
+import { getSpellName } from "../wow/spells";
+import { BUFF_LISTS, type BuffStep } from "../data/buff-lists";
+import { changeSetting, settings } from "../settings";
+import { getClassToken } from "../wow/player";
 
 /** The buffs of the player's class, in list order. */
 export function getClassBuffs(): BuffStep[] {

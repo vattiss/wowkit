@@ -2,19 +2,20 @@
 // second and counts the events it really sends, so questions such as "can a buff be read in
 // combat?" are answered with data from the game instead of guesses. Nothing is printed: the
 // counts live in the saved settings, and report() turns them into text.
-import { getButtonNamesOf, findOutdatedRanks } from "./action-bars";
-import { isLearned, resolve, getSpellName, isCastable } from "./api/spells";
-import { isInCombat, getPartyUnits } from "./api/unit";
-import { getWeaponEnchant } from "./api/weapon";
-import { checkBuff } from "./buff-reminder";
-import { getClassBuffs, getClassToken, isBuffEnabled } from "./buffs";
-import { MAIN_HAND_SLOT, OFF_HAND_SLOT } from "./constants";
-import { findPartyBuffSuggestions } from "./party-buffs";
-import { findLowReagents } from "./reagents";
-import { settingChanged, settings, type DebugStore } from "./settings";
-import { attempt, attemptMulti, isReadable, swallowedError } from "./util/safe";
-import { getWeaponChoices } from "./weapon-choice";
-import { weaponReminder } from "./weapon-reminder";
+import { getButtonNamesOf, findOutdatedRanks } from "../wow/action-bars";
+import { isLearned, resolve, getSpellName, isCastable } from "../wow/spells";
+import { getPartyUnits } from "../wow/party";
+import { getClassToken, isInCombat } from "../wow/player";
+import { getWeaponEnchant } from "../wow/weapon-enchants";
+import { checkBuff } from "../reminders/buff-reminder";
+import { getClassBuffs, isBuffEnabled } from "../reminders/class-buffs";
+import { MAIN_HAND_SLOT, OFF_HAND_SLOT } from "../constants";
+import { findPartyBuffSuggestions } from "../reminders/party-buffs";
+import { findLowReagents } from "../reminders/reagents";
+import { settingChanged, settings, type DebugStore } from "../settings";
+import { attempt, attemptMulti, isReadable, swallowedError } from "../wow/safe";
+import { getWeaponChoices } from "../reminders/weapon-choice";
+import { weaponReminder } from "../reminders/weapon-reminder";
 
 const MAX_KEYS = 700;
 const MAX_TEXTS = 150;

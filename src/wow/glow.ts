@@ -1,30 +1,13 @@
 // The reminder glow on action buttons: Blizzard's spell-alert ("proc") animation, tinted with the
 // reminder's color.
 import { findButtonsOf } from "./action-bars";
-import { settings, type ColorKey, type Rgb } from "./settings";
-import { tryCall } from "./util/safe";
-
-const COLOR_DEFAULTS: { [key in ColorKey]: Rgb } = {
-    buff: [0.2, 0.55, 1],
-    weapon: [1, 0.12, 0.08],
-};
+import type { ColorKey, Rgb } from "../settings";
+import { tryCall } from "./safe";
 
 /** Fallback art if the spell-alert glow template is missing; built-in client art only. */
 const GLOW_FALLBACK = "Interface\\Cooldown\\star4";
 const GLOW_SCALE = 1.45;
 const GLOW_ALPHA = 0.95;
-
-export function getDefaultColor(key: ColorKey): Rgb {
-    return COLOR_DEFAULTS[key];
-}
-
-export function getColor(key: ColorKey): Rgb {
-    const saved = settings.colors[key];
-    if (saved !== undefined && type(saved) === "table" && tonumber(saved[0]) !== undefined) {
-        return [saved[0], saved[1] ?? 0, saved[2] ?? 0];
-    }
-    return COLOR_DEFAULTS[key];
-}
 
 interface Overlay {
     frame: Frame;
@@ -97,13 +80,13 @@ function getOverlay(button: ActionButton, kind: string, [r, g, b]: Rgb): Frame {
 }
 
 export interface ReminderGlow {
-    /** Glows the buttons of these spells; an empty list clears. */
-    show: (this: void, spellIds: number[]) => void;
+    /** Glows the buttons of these spells in the color; an empty list clears. */
+    show: (this: void, spellIds: number[], color: Rgb) => void;
     clear: (this: void) => void;
 }
 
-/** One reminder glow (the buff or the weapon buff). `enabled` reads its settings switch. */
-function createReminderGlow(kind: ColorKey, enabled: (this: void) => boolean): ReminderGlow {
+/** One reminder glow (the buff or the weapon buff); each kind keeps its own overlays. */
+export function createReminderGlow(kind: ColorKey): ReminderGlow {
     const glowing = new LuaSet<ActionButton>();
     let last: string | undefined;
     const clearGlow = () => {
@@ -115,23 +98,19 @@ function createReminderGlow(kind: ColorKey, enabled: (this: void) => boolean): R
     };
     return {
         clear: clearGlow,
-        show: (spellIds) => {
-            if (spellIds.length === 0 || !enabled()) return clearGlow();
+        show: (spellIds, color) => {
+            if (spellIds.length === 0) return clearGlow();
             const key = spellIds.join(",");
             if (key === last && !glowing.isEmpty()) return;
             const buttons = spellIds.flatMap((spellId) => findButtonsOf(spellId));
             clearGlow();
             last = key;
-            const rgb = getColor(kind);
             for (const button of buttons) {
                 if (!glowing.has(button)) {
-                    getOverlay(button, kind, rgb).Show();
+                    getOverlay(button, kind, color).Show();
                     glowing.add(button);
                 }
             }
         },
     };
 }
-
-export const buffGlow = createReminderGlow("buff", () => settings.showBuff);
-export const weaponGlow = createReminderGlow("weapon", () => settings.showWeapon);

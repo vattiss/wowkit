@@ -83,7 +83,3 @@ export type TextKey = keyof typeof L;
 export function getText(key: TextKey): string {
     return L[key];
 }
-
-export function say(message: string): void {
-    print(`|cff66ccff${L.TITLE}|r: ${message}`);
-}

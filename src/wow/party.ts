@@ -1,30 +1,9 @@
-// The player and the party: in combat, eating, idle (dead, mounted, in town); party members in reach.
-import { attempt, attemptMulti, isReadable, getReadable, tryCall } from "../util/safe";
+// The other members of the player's party.
+import { attempt, attemptMulti, getReadable, isReadable } from "./safe";
 
-export function isInCombat(): boolean {
-    const [didSucceed, combat] = tryCall(UnitAffectingCombat, "player");
-    if (!didSucceed) return false;
-    if (isReadable(combat)) return combat === true;
-    // A secret answer: only comparing with nil is allowed
-    return combat !== undefined;
-}
-
-const EATING_AURAS = new LuaSet<string>();
-EATING_AURAS.add("food");
-EATING_AURAS.add("drink");
-
-export function isEating(): boolean {
-    for (let i = 1; i <= 40; i++) {
-        const aura = attempt(C_UnitAuras.GetAuraDataByIndex, "player", i, "HELPFUL");
-        if (!aura) return false;
-        const name = getReadable(aura.name);
-        if (name !== undefined && EATING_AURAS.has(string.lower(name))) return true;
-    }
-    return false;
-}
-
-export function isResting(): boolean {
-    return attempt(IsResting) === true;
+export interface UnitIdentity {
+    name: string;
+    classToken: string;
 }
 
 /** The party members (party1..4) that exist; none in a raid (the party feature skips raids). */
@@ -62,21 +41,11 @@ export function doesUseMana(unit: UnitToken): boolean {
 }
 
 /** The unit's name and class token, for messages and Greater Blessings. */
-export function getUnitIdentity(unit: UnitToken): { name: string; classToken: string } {
+export function getUnitIdentity(unit: UnitToken): UnitIdentity {
     const [didReadName, name] = attemptMulti(() => UnitName(unit));
     const [didReadClass, , classFile] = attemptMulti(() => UnitClass(unit));
     return {
         name: didReadName && isReadable(name) && name !== undefined ? name : unit,
         classToken: didReadClass && isReadable(classFile) && classFile !== undefined ? classFile : "?",
     };
-}
-
-/** Nothing is shown while dead, on a taxi, mounted, eating, or (with `quietResting`) resting in town. */
-export function shouldStayIdle(shouldStayQuietWhenResting: boolean): boolean {
-    if (attempt(UnitIsDeadOrGhost, "player") === true) return true;
-    if (attempt(UnitOnTaxi, "player") === true) return true;
-    if (attempt(IsMounted) === true) return true;
-    if (isEating()) return true;
-    // A town or an inn: nobody fights there
-    return shouldStayQuietWhenResting && !isInCombat() && isResting();
 }

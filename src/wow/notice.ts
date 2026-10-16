@@ -1,7 +1,7 @@
 // Alert sounds and the on-screen notice.
-import type { TextKey } from "./locale";
-import type { SoundKey } from "./settings";
-import { attempt } from "./util/safe";
+import { getText, type TextKey } from "../locale";
+import type { SoundKey } from "../settings";
+import { attempt } from "./safe";
 
 export interface SoundChoice {
     key: SoundKey;
@@ -29,6 +29,16 @@ export function playAlertSound(key: SoundKey): void {
     if (choice?.id === undefined) return;
     const soundKitId = (choice.kit !== undefined ? SOUNDKIT[choice.kit] : undefined) ?? choice.id;
     attempt(C_Sound.PlaySound, soundKitId, undefined, true);
+}
+
+/** A line in the chat window. */
+export function printToChat(text: string): void {
+    print(text);
+}
+
+/** A line in the chat window, in the addon's name. */
+export function say(message: string): void {
+    printToChat(`|cff66ccff${getText("TITLE")}|r: ${message}`);
 }
 
 const NOTICE_SECONDS = 10;

@@ -6,7 +6,7 @@
 // Protected calls: client functions can raise errors on odd input or state. The addon calls them
 // in protected mode and carries on; every error swallowed that way is reported through
 // `swallowedError`, so the debug report can count them instead of hiding our own bugs.
-import { createSignal } from "./signal";
+import { createSignal } from "../util/signal";
 
 /** An error a protected call swallowed. */
 export const swallowedError = createSignal<[message: string]>();

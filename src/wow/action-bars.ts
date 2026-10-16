@@ -4,10 +4,10 @@
 // Forever rules: never call C_TooltipInfo.GetAction while mapping the bars (tooltips froze the
 // client when many slots updated after a quest turn-in), and map the bars a few buttons per frame.
 // Only Blizzard's own bars are mapped (no Bartender4, Dominos or ElvUI).
-import { getHighestRank, resolve, getSpellInfo, getSpellRank } from "./api/spells";
-import { attempt, attemptMulti, getReadableId, isReadable } from "./util/safe";
-import { createSignal } from "./util/signal";
-import { buildButtonKey } from "./util/text";
+import { getHighestRank, resolve, getSpellInfo, getSpellRank } from "./spells";
+import { attempt, attemptMulti, getReadableId, isReadable } from "./safe";
+import { createSignal } from "../util/signal";
+import { buildButtonKey } from "../util/text";
 
 /** The bars were mapped again. */
 export const barsMapped = createSignal();
@@ -84,12 +84,12 @@ function addSpell(spellId: unknown, button: ActionButton): void {
  * its "action" attribute is the base slot 1-12, so the attribute comes last.
  */
 function getActionSlot(button: ActionButton): number | undefined {
-    const toValidSlot = (slot: unknown) => (slot !== undefined && slot !== 0 ? (slot as number) : undefined);
+    const getValidSlot = (slot: unknown) => (slot !== undefined && slot !== 0 ? (slot as number) : undefined);
     return (
-        toValidSlot(button.GetPagedID ? attempt(() => button.GetPagedID!()) : undefined) ??
-        toValidSlot(button.CalculateAction ? attempt(() => button.CalculateAction!()) : undefined) ??
-        toValidSlot(button.action) ??
-        toValidSlot(tonumber(attempt(() => button.GetAttribute("action"))))
+        getValidSlot(button.GetPagedID ? attempt(() => button.GetPagedID!()) : undefined) ??
+        getValidSlot(button.CalculateAction ? attempt(() => button.CalculateAction!()) : undefined) ??
+        getValidSlot(button.action) ??
+        getValidSlot(tonumber(attempt(() => button.GetAttribute("action"))))
     );
 }
 

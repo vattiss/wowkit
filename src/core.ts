@@ -1,23 +1,23 @@
 // The reminder loop: a tick every 0.2 seconds decides what glows and what the notice says, and
 // game events keep the caches (spells, auras, bars, weapon) fresh.
-import { barsMapped, isOnBars, mapBars, findOutdatedRanks } from "./action-bars";
-import { noteFormChange, noteSelfBuff, wipeAuraScan, wipeAuraScans } from "./api/auras";
-import { invalidateSpells, noteLearnedSpell, rebuildSpellBook, resolveFromName, spellBookIndexed, getSpellName, isCastable } from "./api/spells";
-import { isInCombat, isResting, shouldStayIdle } from "./api/unit";
-import { clearWeaponTooltipCache } from "./api/weapon";
-import { findMissingBuffs, rememberSelfBuffs } from "./buff-reminder";
+import { barsMapped, findOutdatedRanks, isOnBars, mapBars } from "./wow/action-bars";
+import { noteFormChange, noteSelfBuff, wipeAuraScan, wipeAuraScans } from "./wow/auras";
+import { getCurrentTime, runAfter, runEvery, type RepeatingTimer } from "./wow/clock";
+import { onEvent, onPlayerEvent, onPlayerSpellCast, type PlayerSpellCast } from "./wow/events";
+import { createReminderGlow } from "./wow/glow";
+import { playAlertSound, say, showNotice } from "./wow/notice";
+import { getEquippedItemId, isInCombat, isResting, shouldStayIdle } from "./wow/player";
+import { getSpellName, invalidateSpells, isCastable, noteLearnedSpell, rebuildSpellBook, spellBookIndexed } from "./wow/spells";
+import { clearWeaponTooltipCache } from "./wow/weapon-enchants";
 import { MAIN_HAND_SLOT, OFF_HAND_SLOT } from "./constants";
-import { onEvent, onPlayerEvent } from "./events";
-import { buffGlow, weaponGlow } from "./glow";
-import { say, getText } from "./locale";
-import { playAlertSound, showNotice } from "./notice";
-import { findPartyBuffSuggestions, refreshPartyBuffs, type PartySuggestion } from "./party-buffs";
-import { findLowReagents } from "./reagents";
-import { loadSettings, settingChanged, settings } from "./settings";
-import { attempt, attemptMulti, isReadable } from "./util/safe";
+import { getText } from "./locale";
+import { findMissingBuffs, rememberSelfBuffs } from "./reminders/buff-reminder";
+import { findPartyBuffSuggestions, refreshPartyBuffs, type PartySuggestion } from "./reminders/party-buffs";
+import { findLowReagents } from "./reminders/reagents";
+import { weaponReminder } from "./reminders/weapon-reminder";
+import { getColor, loadSettings, settingChanged, settings } from "./settings";
 import { createSignal } from "./util/signal";
 import { contains } from "./util/text";
-import { weaponReminder } from "./weapon-reminder";
 
 const TICK_SECONDS = 0.2;
 /** A notice with the same content is shown again only after this long. */
@@ -33,7 +33,9 @@ export const booted = createSignal();
 
 let addonName = "";
 let isBooted = false;
-let ticker: TimerHandle | undefined;
+let ticker: RepeatingTimer | undefined;
+const buffGlow = createReminderGlow("buff");
+const weaponGlow = createReminderGlow("weapon");
 /** The buff and weapon spell that glowed last tick, as "buff:weapon". */
 let lastGlowKey: string | undefined;
 let lastBuffGlow: number[] = [];
@@ -50,7 +52,7 @@ function invalidateTick(): void {
 
 /** One message with every current line: missing buffs on no bar, party buffs, old ranks. */
 function showNotices(notOnBars: number[], party: PartySuggestion[], isIdle: boolean): void {
-    if (GetTime() - barsChangedAt <= NOTICE_AFTER_BAR_CHANGE) return;
+    if (getCurrentTime() - barsChangedAt <= NOTICE_AFTER_BAR_CHANGE) return;
     const keys: string[] = [];
     const lines: string[] = [];
     if (settings.showBarNotice && notOnBars.length > 0) {
@@ -73,7 +75,7 @@ function showNotices(notOnBars: number[], party: PartySuggestion[], isIdle: bool
         return;
     }
     const key = keys.join(";");
-    const now = GetTime();
+    const now = getCurrentTime();
     if (key === lastNoticeKey && now - lastNoticeAt <= NOTICE_REPEAT) return;
     lastNoticeKey = key;
     lastNoticeAt = now;
@@ -109,8 +111,8 @@ function tick(): void {
     const glowKey = `${buff.join(",")}:${weapon ?? 0}`;
     if (glowKey !== lastGlowKey) {
         lastGlowKey = glowKey;
-        buffGlow.show(buff);
-        weaponGlow.show(weapon !== undefined ? [weapon] : []);
+        buffGlow.show(buff, getColor("buff"));
+        weaponGlow.show(weapon !== undefined ? [weapon] : [], getColor("weapon"));
     }
 }
 
@@ -134,7 +136,7 @@ function requestTick(): void {
     invalidateTick();
     if (isTickQueued) return;
     isTickQueued = true;
-    C_Timer.After(0, () => {
+    runAfter(0, () => {
         isTickQueued = false;
         tick();
     });
@@ -146,10 +148,10 @@ function forceTick(): void {
 }
 
 function scheduleBarFlush(): void {
-    barsChangedAt = GetTime();
+    barsChangedAt = getCurrentTime();
     barFlushGeneration += 1;
     const generation = barFlushGeneration;
-    C_Timer.After(BAR_SETTLE, () => {
+    runAfter(BAR_SETTLE, () => {
         if (generation !== barFlushGeneration) return;
         mapBars(true);
         requestTick();
@@ -163,7 +165,7 @@ function scheduleBarFlush(): void {
 function scheduleSpellFlush(): void {
     spellFlushGeneration += 1;
     const generation = spellFlushGeneration;
-    C_Timer.After(SPELL_SETTLE, () => {
+    runAfter(SPELL_SETTLE, () => {
         if (generation !== spellFlushGeneration) return;
         invalidateSpells(false);
         requestTick();
@@ -190,12 +192,6 @@ function checkReagentsOnArrival(): void {
 
 let mainHandItem: number | undefined;
 let offHandItem: number | undefined;
-let lastPlayerCastName: string | undefined;
-
-function getWeaponItemId(slot: number): number | undefined {
-    const id = attempt(GetInventoryItemID, "player", slot);
-    return type(id) === "number" ? id : undefined;
-}
 
 function onLogin(shouldGreet: boolean): void {
     if (!isBooted) {
@@ -203,11 +199,11 @@ function onLogin(shouldGreet: boolean): void {
         invalidateSpells(true);
         rebuildSpellBook(false);
         mapBars(true);
-        ticker = C_Timer.NewTicker(TICK_SECONDS, () => tick());
+        ticker = runEvery(TICK_SECONDS, () => tick());
         booted.emit();
     }
-    mainHandItem = getWeaponItemId(MAIN_HAND_SLOT);
-    offHandItem = getWeaponItemId(OFF_HAND_SLOT);
+    mainHandItem = getEquippedItemId(MAIN_HAND_SLOT);
+    offHandItem = getEquippedItemId(OFF_HAND_SLOT);
     if (shouldGreet) say(getText("INIT"));
     tick();
     checkReagentsOnArrival();
@@ -215,7 +211,7 @@ function onLogin(shouldGreet: boolean): void {
 
 function onEquipmentChanged(slot: number): void {
     if (slot === MAIN_HAND_SLOT || slot === OFF_HAND_SLOT) {
-        const id = getWeaponItemId(slot);
+        const id = getEquippedItemId(slot);
         const previous = slot === MAIN_HAND_SLOT ? mainHandItem : offHandItem;
         if (id !== previous) {
             if (slot === MAIN_HAND_SLOT) mainHandItem = id;
@@ -231,12 +227,9 @@ function onEquipmentChanged(slot: number): void {
  * A cast of a buff is remembered (in combat the client hides the aura), and a weapon buff cast
  * starts the grace time of the weapon reminder.
  */
-function onSpellCast(spellId: number | undefined): void {
-    const castName = lastPlayerCastName;
-    lastPlayerCastName = undefined;
-    const id = spellId === undefined || issecretvalue(spellId) ? resolveFromName(castName) : spellId;
-    noteSelfBuff(id);
-    weaponReminder.noteCast(id ?? spellId, castName);
+function onSpellCast(cast: PlayerSpellCast): void {
+    noteSelfBuff(cast.spellId);
+    weaponReminder.noteCast(cast.spellId, cast.spellName);
     wipeAuraScan("player");
     requestTick();
 }
@@ -268,7 +261,7 @@ export function start(name: string): void {
     onEvent("PLAYER_LOGIN", () => onLogin(true));
     onEvent("PLAYER_ENTERING_WORLD", () => onLogin(false));
     onEvent("PLAYER_LOGOUT", () => {
-        ticker?.Cancel();
+        ticker?.stop();
         ticker = undefined;
     });
 
@@ -314,11 +307,7 @@ export function start(name: string): void {
         clearWeaponTooltipCache();
         requestTick();
     });
-    onPlayerEvent("UNIT_SPELLCAST_START", () => {
-        const [didSucceed, name] = attemptMulti(() => UnitCastingInfo("player"));
-        if (didSucceed && isReadable(name) && type(name) === "string") lastPlayerCastName = name;
-    });
-    onPlayerEvent("UNIT_SPELLCAST_SUCCEEDED", (_unit, _castGuid, spellId) => onSpellCast(spellId));
+    onPlayerSpellCast(onSpellCast);
 
     onEvent("PLAYER_EQUIPMENT_CHANGED", onEquipmentChanged);
     onEvent("WEAPON_ENCHANT_CHANGED", () => {

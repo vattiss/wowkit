@@ -3,11 +3,11 @@
 import { NO_EXPIRY } from "../constants";
 import { findFamilyOf } from "../data/aura-families";
 import type { WeaponBuff } from "../data/weapon-buffs";
-import { attempt, getReadable, tryCall } from "../util/safe";
+import { attempt, getReadable, tryCall } from "./safe";
 import { buildAuraKey } from "../util/text";
 import { AuraMemory, type DurationLookup } from "./aura-memory";
 import { resolve, getSpellName, spellsInvalidated } from "./spells";
-import { isInCombat } from "./unit";
+import { isInCombat } from "./player";
 
 export interface AuraRead {
     isFound: boolean;

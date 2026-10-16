@@ -1,15 +1,14 @@
 // The options page in the game's Settings panel: a landing page, the Reminders page (native
 // checkboxes, dropdowns and color swatches bound to the settings) and the Debug report page.
 // It only reads and changes settings (changeSetting); whoever cares reacts to settingChanged.
-import { getSpellLabel } from "./api/spells";
-import { getClassBuffs, isBuffEnabled, setBuffEnabled } from "./buffs";
-import * as debug from "./debug";
-import { getColor, getDefaultColor } from "./glow";
-import { getText, say, type TextKey } from "./locale";
-import { SOUNDS, playAlertSound } from "./notice";
-import { changeSetting, settings, type ColorKey, type SoundKey } from "./settings";
-import { attempt } from "./util/safe";
-import { findAutomaticWeaponBuff, isWeaponBuffLearned, getWeaponChoices, hasOffhandChoice } from "./weapon-choice";
+import { getSpellLabel } from "../wow/spells";
+import { getClassBuffs, isBuffEnabled, setBuffEnabled } from "../reminders/class-buffs";
+import * as debug from "./diagnostics";
+import { getText, type TextKey } from "../locale";
+import { SOUNDS, playAlertSound, say } from "../wow/notice";
+import { changeSetting, getColor, getDefaultColor, settings, type ColorKey, type SoundKey } from "../settings";
+import { attempt } from "../wow/safe";
+import { findAutomaticWeaponBuff, isWeaponBuffLearned, getWeaponChoices, hasOffhandChoice } from "../reminders/weapon-choice";
 
 const GITHUB_URL = "https://github.com/vattiss/forever-reminders";
 const ISSUES_URL = `${GITHUB_URL}/issues`;
@@ -155,8 +154,8 @@ function addSoundDropdown(category: SettingsCategory, key: "soundBuff" | "soundW
 function addColorSwatch(category: SettingsCategory, key: ColorKey, label: TextKey): void {
     const createSwatch = Settings.CreateColorSwatch;
     if (!createSwatch) return;
-    const toHexColor = ([r, g, b]: [number, number, number]) => CreateColor(r, g, b).GenerateHexColor();
-    const setting = registerProxySetting(category, `color_${key}`, Settings.VarType.String, getText(label), toHexColor(getDefaultColor(key)), () => toHexColor(getColor(key)), (value) => {
+    const convertToHexColor = ([r, g, b]: [number, number, number]) => CreateColor(r, g, b).GenerateHexColor();
+    const setting = registerProxySetting(category, `color_${key}`, Settings.VarType.String, getText(label), convertToHexColor(getDefaultColor(key)), () => convertToHexColor(getColor(key)), (value) => {
         const picked = CreateColorFromHexString(value);
         if (!picked) return;
         changeSetting("colors", { ...settings.colors, [key]: [picked.r, picked.g, picked.b] });
@@ -304,9 +303,15 @@ function buildHome(home: Frame): void {
     issuesRow.SetPoint("RIGHT", home, "RIGHT", -24, 0);
 }
 
+/** Adds the addon's pages to the game's Settings panel; a failure is printed, never thrown. */
 export function registerOptions(): void {
     if (isRegistered || typeof Settings === "undefined") return;
     isRegistered = true;
+    const [didSucceed, error] = pcall(registerPages);
+    if (!didSucceed) say(tostring(error));
+}
+
+function registerPages(): void {
     const home = CreateFrame("Frame");
     buildHome(home);
     const root = Settings.RegisterCanvasLayoutCategory(home, getText("TITLE"));

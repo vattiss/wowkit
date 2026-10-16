@@ -4,7 +4,7 @@
 // Performance rules learned on the Forever client: never walk the whole spellbook on
 // SPELLS_CHANGED or quest turn-in (it froze the client); build the index a few skill lines per
 // frame, and at most once every few seconds.
-import { attempt, attemptMulti, getReadable } from "../util/safe";
+import { attempt, attemptMulti, getReadable } from "./safe";
 import { createSignal } from "../util/signal";
 import { contains, buildSpellBookKey } from "../util/text";
 

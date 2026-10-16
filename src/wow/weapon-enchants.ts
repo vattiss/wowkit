@@ -1,6 +1,6 @@
 // Weapon enchants (temporary enchants and imbues) and weapon tooltips.
 import { MAIN_HAND_SLOT, NO_EXPIRY, OFF_HAND_SLOT } from "../constants";
-import { isReadable, getReadable, tryCall } from "../util/safe";
+import { isReadable, getReadable, tryCall } from "./safe";
 import { contains } from "../util/text";
 
 /** has: true/false, or undefined when the client gave no answer. remain: seconds, or NO_EXPIRY. */
@@ -10,7 +10,7 @@ export interface EnchantRead {
     enchantId?: number;
 }
 
-function toNumber(value: unknown): number | undefined {
+function convertToNumber(value: unknown): number | undefined {
     if (!isReadable(value)) return undefined;
     return tonumber(value);
 }
@@ -22,9 +22,9 @@ function readTemporaryEnchant(isOffhand: boolean): EnchantRead | undefined {
     if (info === undefined) return { has: false, remain: 0, enchantId: 0 };
     if (type(info) !== "table") return undefined;
     const enchant = info as TemporaryItemEnchantInfo;
-    const remainMs = toNumber(enchant.remainingTimeMs);
+    const remainMs = convertToNumber(enchant.remainingTimeMs);
     const remain = remainMs !== undefined ? remainMs / 1000 : 0;
-    return { has: true, remain: remain > 0 ? remain : NO_EXPIRY, enchantId: toNumber(enchant.enchantID) };
+    return { has: true, remain: remain > 0 ? remain : NO_EXPIRY, enchantId: convertToNumber(enchant.enchantID) };
 }
 
 /** C_Item.GetWeaponEnchantInfo: only a temporary enchant or an imbue counts. */
@@ -34,10 +34,10 @@ function readItemEnchant(isOffhand: boolean): EnchantRead | undefined {
     for (const entry of list as WeaponEnchantInfo[]) {
         const kind = getReadable(entry.enchantType);
         if ((kind === Enum.ItemEnchantType.Temporary || kind === Enum.ItemEnchantType.Imbue) && getReadable(entry.hasEnchant) === true) {
-            let remain = toNumber(entry.timeLeft) ?? 0;
+            let remain = convertToNumber(entry.timeLeft) ?? 0;
             // Some clients report milliseconds here
             if (remain > 10000) remain = remain / 1000;
-            const enchantId = toNumber(entry.enchantID);
+            const enchantId = convertToNumber(entry.enchantID);
             return { has: true, remain: remain > 0 ? remain : NO_EXPIRY, enchantId: enchantId !== undefined && enchantId > 0 ? enchantId : undefined };
         }
     }

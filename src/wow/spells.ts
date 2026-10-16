@@ -3,7 +3,7 @@
 // Forever remaps many spell IDs, so a spell of the buff lists is resolved to the ID the player
 // knows: by ID, by override, and finally by name through the spellbook index.
 import { SPELL_NAME_HINT } from "../data/spells";
-import { attempt, attemptMulti, isReadable, getReadable, tryCall } from "../util/safe";
+import { attempt, attemptMulti, isReadable, getReadable, tryCall } from "./safe";
 import { createSignal } from "../util/signal";
 import { isJunkSpellName, SpellBookIndex } from "./spellbook";
 
@@ -132,6 +132,19 @@ export function isCastable(spellId: number): boolean | undefined {
     const [didSucceed, usable] = attemptMulti(() => C_Spell.IsSpellUsable(spellId));
     if (!didSucceed || !isReadable(usable)) return undefined;
     return usable === true;
+}
+
+/** The texts of the spell's tooltip; undefined when the client has none. */
+export function getSpellTooltipTexts(spellId: number): string[] | undefined {
+    const tooltip = attempt(C_TooltipInfo.GetSpellByID, spellId);
+    if (tooltip === undefined || type(tooltip) !== "table") return undefined;
+    const texts: string[] = [];
+    for (const line of tooltip.lines ?? []) {
+        for (const text of [getReadable(line.leftText), getReadable(line.rightText)]) {
+            if (text !== undefined) texts.push(text);
+        }
+    }
+    return texts;
 }
 
 /** The rank number from the spell's subtext ("Rank 2"); undefined without a rank or text. */

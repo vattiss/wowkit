@@ -26,7 +26,8 @@
     "watch": "node scripts/package-addon.ts && tstl -p tsconfig.json --watch",
     "deploy": "npm run build && node scripts/deploy.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.scripts.json",
-    "test": "npm run build && node scripts/smoke-test.ts"
+    "check": "node scripts/check-boundary.ts",
+    "test": "npm run check && npm run build && node scripts/smoke-test.ts"
   },
   "devDependencies": {
     "@types/luaparse": "^0.2.13",

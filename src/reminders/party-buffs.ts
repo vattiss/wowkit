@@ -2,12 +2,14 @@
 // other units' auras), party only (not raids), members online, alive and in range. When two or
 // more miss a buff (of one class, for Greater Blessings) and the reagent is in the bags, the
 // group version is suggested.
-import { getUnitBuffState } from "./api/auras";
-import { isLearned } from "./api/spells";
-import { canReceiveBuffs, isInCombat, isInSpellRange, getPartyUnits, getUnitIdentity, doesUseMana } from "./api/unit";
-import { getClassBuffs, isBuffEnabled, type BuffStep } from "./buffs";
+import { getUnitBuffState } from "../wow/auras";
+import { isLearned } from "../wow/spells";
+import { getCurrentTime } from "../wow/clock";
+import { canReceiveBuffs, doesUseMana, getPartyUnits, getUnitIdentity, isInSpellRange } from "../wow/party";
+import { isInCombat } from "../wow/player";
+import { getClassBuffs, isBuffEnabled, type BuffStep } from "./class-buffs";
 import { hasReagentFor } from "./reagents";
-import { settings } from "./settings";
+import { settings } from "../settings";
 
 export interface PartySuggestion {
     /** The spell to cast: the single buff or its group version. */
@@ -88,7 +90,7 @@ function buildSuggestionsFor(step: BuffStep, members: Member[]): PartySuggestion
 /** What to cast on whom; empty in combat, in raids, or when the feature is off. */
 export function findPartyBuffSuggestions(): PartySuggestion[] {
     if (!settings.showPartyBuffs || isInCombat()) return [];
-    const now = GetTime();
+    const now = getCurrentTime();
     if (now - cachedAt < REFRESH_SECONDS) return cached;
     cachedAt = now;
     const members: Member[] = getPartyUnits()
