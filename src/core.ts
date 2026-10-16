@@ -1,20 +1,20 @@
 // The reminder loop: a tick every 0.2 seconds decides what glows and what the notice says, and
 // game events keep the caches (spells, auras, bars, weapon) fresh.
-import { barsMapped, isOnBars, mapBars, oldRanksOnBars } from "./action-bars";
-import { formChanged, noteSelfBuff, wipeAuraScan, wipeAuraScans } from "./api/auras";
-import { invalidateSpells, noteLearnedSpell, rebuildSpellBook, resolveFromName, spellBookIndexed, spellName, spellUsable } from "./api/spells";
-import { inCombat, isResting, shouldStayIdle } from "./api/unit";
+import { barsMapped, isOnBars, mapBars, findOutdatedRanks } from "./action-bars";
+import { noteFormChange, noteSelfBuff, wipeAuraScan, wipeAuraScans } from "./api/auras";
+import { invalidateSpells, noteLearnedSpell, rebuildSpellBook, resolveFromName, spellBookIndexed, getSpellName, isCastable } from "./api/spells";
+import { isInCombat, isResting, shouldStayIdle } from "./api/unit";
 import { clearWeaponTooltipCache } from "./api/weapon";
-import { missingBuffs, rememberSelfBuffs } from "./buff-reminder";
+import { findMissingBuffs, rememberSelfBuffs } from "./buff-reminder";
 import { MAIN_HAND_SLOT, OFF_HAND_SLOT } from "./constants";
 import { onEvent, onPlayerEvent } from "./events";
 import { buffGlow, weaponGlow } from "./glow";
-import { say, T } from "./locale";
+import { say, getText } from "./locale";
 import { playAlertSound, showNotice } from "./notice";
-import { partyBuffSuggestions, refreshPartyBuffs, type PartySuggestion } from "./party-buffs";
-import { lowReagents } from "./reagents";
+import { findPartyBuffSuggestions, refreshPartyBuffs, type PartySuggestion } from "./party-buffs";
+import { findLowReagents } from "./reagents";
 import { loadSettings, settingChanged, settings } from "./settings";
-import { attempt, attemptMulti, readable } from "./util/safe";
+import { attempt, attemptMulti, isReadable } from "./util/safe";
 import { createSignal } from "./util/signal";
 import { contains } from "./util/text";
 import { weaponReminder } from "./weapon-reminder";
@@ -49,23 +49,23 @@ function invalidateTick(): void {
 }
 
 /** One message with every current line: missing buffs on no bar, party buffs, old ranks. */
-function showNotices(notOnBars: number[], party: PartySuggestion[], idle: boolean): void {
+function showNotices(notOnBars: number[], party: PartySuggestion[], isIdle: boolean): void {
     if (GetTime() - barsChangedAt <= NOTICE_AFTER_BAR_CHANGE) return;
     const keys: string[] = [];
     const lines: string[] = [];
     if (settings.showBarNotice && notOnBars.length > 0) {
         keys.push(`bar:${notOnBars.join(",")}`);
-        lines.push(string.format(T("NOTICE_NOT_ON_BAR"), notOnBars.map((id) => spellName(id) ?? "?").join(", ")));
+        lines.push(string.format(getText("NOTICE_NOT_ON_BAR"), notOnBars.map((id) => getSpellName(id) ?? "?").join(", ")));
     }
     for (const suggestion of party) {
         const names = suggestion.names.join(", ");
         keys.push(`party:${suggestion.spellId}:${names}`);
-        lines.push(string.format(T("NOTICE_PARTY"), spellName(suggestion.spellId) ?? "?", names));
+        lines.push(string.format(getText("NOTICE_PARTY"), getSpellName(suggestion.spellId) ?? "?", names));
     }
-    if (settings.showRankNotice && !idle) {
-        for (const entry of oldRanksOnBars()) {
+    if (settings.showRankNotice && !isIdle) {
+        for (const entry of findOutdatedRanks()) {
             keys.push(`${entry.id}:${entry.onBar}>${entry.best}`);
-            lines.push(string.format(T("NOTICE_OLD_RANK"), entry.name, entry.onBar, entry.best));
+            lines.push(string.format(getText("NOTICE_OLD_RANK"), entry.name, entry.onBar, entry.best));
         }
     }
     if (lines.length === 0) {
@@ -85,18 +85,18 @@ function tick(): void {
     rememberSelfBuffs();
 
     // Nothing while dead, mounted, eating or resting in town
-    const idle = shouldStayIdle(settings.hideResting) || settings.muted;
-    const buffs = settings.showBuff && !idle ? missingBuffs() : { glow: [], notOnBars: [] };
-    const party = settings.showBuff && !idle ? partyBuffSuggestions() : [];
-    const weaponCheck = settings.showWeapon && !idle ? weaponReminder.check() : undefined;
+    const isIdle = shouldStayIdle(settings.hideResting) || settings.isMuted;
+    const buffs = settings.showBuff && !isIdle ? findMissingBuffs() : { glow: [], notOnBars: [] };
+    const party = settings.showBuff && !isIdle ? findPartyBuffSuggestions() : [];
+    const weaponCheck = settings.showWeapon && !isIdle ? weaponReminder.check() : undefined;
     // The player's own missing buffs, then the party buffs that can be cast from the bars
     const buff = [...buffs.glow];
     for (const suggestion of party) {
-        if (!buff.includes(suggestion.spellId) && isOnBars(suggestion.spellId) && spellUsable(suggestion.spellId) !== false) {
+        if (!buff.includes(suggestion.spellId) && isOnBars(suggestion.spellId) && isCastable(suggestion.spellId) !== false) {
             buff.push(suggestion.spellId);
         }
     }
-    const weapon = weaponCheck?.need ? weaponCheck.spellId : undefined;
+    const weapon = weaponCheck?.isNeeded ? weaponCheck.spellId : undefined;
 
     // A sound when a buff starts glowing, not each time another one goes out
     if (buff.some((id) => !lastBuffGlow.includes(id))) playAlertSound(settings.soundBuff);
@@ -104,7 +104,7 @@ function tick(): void {
     if (weapon !== undefined && weapon !== lastWeaponSound) playAlertSound(settings.soundWeapon);
     lastWeaponSound = weapon;
 
-    showNotices(buffs.notOnBars, party, idle);
+    showNotices(buffs.notOnBars, party, isIdle);
 
     const glowKey = `${buff.join(",")}:${weapon ?? 0}`;
     if (glowKey !== lastGlowKey) {
@@ -125,17 +125,17 @@ function onSettingChanged(key: string): void {
 // ---------------------------------------------------------------------------------------------
 // Scheduling
 
-let tickQueued = false;
+let isTickQueued = false;
 let spellFlushGeneration = 0;
 let barFlushGeneration = 0;
 
 /** A tick on the next frame (several requests in one frame give one tick). */
 function requestTick(): void {
     invalidateTick();
-    if (tickQueued) return;
-    tickQueued = true;
+    if (isTickQueued) return;
+    isTickQueued = true;
     C_Timer.After(0, () => {
-        tickQueued = false;
+        isTickQueued = false;
         tick();
     });
 }
@@ -174,13 +174,13 @@ function scheduleSpellFlush(): void {
 /** Arriving in a town or an inn (where reagents are sold): name the ones running low. */
 let wasResting = false;
 function checkReagentsOnArrival(): void {
-    const resting = isResting();
-    const arrived = resting && !wasResting;
-    wasResting = resting;
-    if (!arrived || !settings.showReagentNotice || settings.muted) return;
-    const low = lowReagents();
+    const isRestingNow = isResting();
+    const hasArrived = isRestingNow && !wasResting;
+    wasResting = isRestingNow;
+    if (!hasArrived || !settings.showReagentNotice || settings.isMuted) return;
+    const low = findLowReagents();
     if (low.length === 0) return;
-    const message = string.format(T("NOTICE_REAGENTS_LOW"), low.map((stock) => `${stock.name} (${stock.count})`).join(", "));
+    const message = string.format(getText("NOTICE_REAGENTS_LOW"), low.map((stock) => `${stock.name} (${stock.count})`).join(", "));
     say(message);
     showNotice(message);
 }
@@ -192,12 +192,12 @@ let mainHandItem: number | undefined;
 let offHandItem: number | undefined;
 let lastPlayerCastName: string | undefined;
 
-function weaponItemId(slot: number): number | undefined {
+function getWeaponItemId(slot: number): number | undefined {
     const id = attempt(GetInventoryItemID, "player", slot);
     return type(id) === "number" ? id : undefined;
 }
 
-function onLogin(greet: boolean): void {
+function onLogin(shouldGreet: boolean): void {
     if (!isBooted) {
         isBooted = true;
         invalidateSpells(true);
@@ -206,16 +206,16 @@ function onLogin(greet: boolean): void {
         ticker = C_Timer.NewTicker(TICK_SECONDS, () => tick());
         booted.emit();
     }
-    mainHandItem = weaponItemId(MAIN_HAND_SLOT);
-    offHandItem = weaponItemId(OFF_HAND_SLOT);
-    if (greet) say(T("INIT"));
+    mainHandItem = getWeaponItemId(MAIN_HAND_SLOT);
+    offHandItem = getWeaponItemId(OFF_HAND_SLOT);
+    if (shouldGreet) say(getText("INIT"));
     tick();
     checkReagentsOnArrival();
 }
 
 function onEquipmentChanged(slot: number): void {
     if (slot === MAIN_HAND_SLOT || slot === OFF_HAND_SLOT) {
-        const id = weaponItemId(slot);
+        const id = getWeaponItemId(slot);
         const previous = slot === MAIN_HAND_SLOT ? mainHandItem : offHandItem;
         if (id !== previous) {
             if (slot === MAIN_HAND_SLOT) mainHandItem = id;
@@ -245,9 +245,9 @@ function onSpellCast(spellId: number | undefined): void {
 function noteBlockedAction(addon: string, action: string): void {
     const text = `${tostring(addon)} | ${tostring(action)}`;
     if (!contains(text, addonName)) return;
-    const described = `${text} | ${inCombat() ? "combat" : "no combat"}`;
+    const described = `${text} | ${isInCombat() ? "combat" : "no combat"}`;
     settings.blockedAction = described;
-    say(string.format(T("BLOCKED_ACTION"), described));
+    say(string.format(getText("BLOCKED_ACTION"), described));
 }
 
 /** Wires every event. `name` is this addon's folder name. */
@@ -285,7 +285,7 @@ export function start(name: string): void {
     onEvent("ACTIONBAR_SLOT_CHANGED", scheduleBarFlush);
     onEvent("ACTIONBAR_PAGE_CHANGED", scheduleBarFlush);
     onEvent("UPDATE_SHAPESHIFT_FORM", () => {
-        formChanged();
+        noteFormChange();
         scheduleBarFlush();
     });
 
@@ -315,8 +315,8 @@ export function start(name: string): void {
         requestTick();
     });
     onPlayerEvent("UNIT_SPELLCAST_START", () => {
-        const [ok, name] = attemptMulti(() => UnitCastingInfo("player"));
-        if (ok && readable(name) && type(name) === "string") lastPlayerCastName = name;
+        const [didSucceed, name] = attemptMulti(() => UnitCastingInfo("player"));
+        if (didSucceed && isReadable(name) && type(name) === "string") lastPlayerCastName = name;
     });
     onPlayerEvent("UNIT_SPELLCAST_SUCCEEDED", (_unit, _castGuid, spellId) => onSpellCast(spellId));
 

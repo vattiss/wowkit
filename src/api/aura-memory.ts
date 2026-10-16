@@ -2,9 +2,9 @@
 // auras at all, or auras whose name and ID are secret, so a buff seen or cast a moment ago counts
 // as up until its usual duration runs out.
 import { hasKnownExpiry } from "../constants";
-import { familyOf } from "../data/aura-families";
-import { auraKey } from "../util/text";
-import { spellName } from "./spells";
+import { findFamilyOf } from "../data/aura-families";
+import { buildAuraKey } from "../util/text";
+import { getSpellName } from "./spells";
 
 /** How long a seen or cast buff lasts (seconds), for buffs outside the known families. */
 export type DurationLookup = (this: void, spellId: number | undefined, name: string) => number;
@@ -42,45 +42,45 @@ export class AuraMemory {
      * The buff was seen (with `remain` seconds left; undefined when unknown) or cast. A sighting
      * renews the memory: an aspect seen every few seconds never runs out.
      */
-    remember(spellId: number | undefined, auraName: string | undefined, remain: number | undefined, fromCast: boolean): void {
-        const name = auraName ?? spellName(spellId);
+    remember(spellId: number | undefined, auraName: string | undefined, remain: number | undefined, isFromCast: boolean): void {
+        const name = auraName ?? getSpellName(spellId);
         if (name === undefined || name === "") return;
-        const key = auraKey(name);
-        const family = familyOf(name);
+        const key = buildAuraKey(name);
+        const family = findFamilyOf(name);
         const seconds = family?.seconds ?? (isFormKey(key) ? FORM_SECONDS : this.durationOf(spellId, name));
         const now = GetTime();
         let expires: number | undefined;
         if (remain !== undefined && hasKnownExpiry(remain)) expires = now + remain;
-        else if (fromCast || remain !== undefined || (this.heldNames.get(key) ?? 0) <= now) expires = now + seconds;
+        else if (isFromCast || remain !== undefined || (this.heldNames.get(key) ?? 0) <= now) expires = now + seconds;
         if (expires !== undefined) {
             this.heldNames.set(key, expires);
             if (family) this.heldFamilies.set(family.key, expires);
         }
-        if (fromCast) {
+        if (isFromCast) {
             this.castAt.set(key, now);
             if (family) this.castAt.set(family.key, now);
         }
     }
 
     /** Is the buff (or a member of its family) remembered as up? */
-    holds(spellId: number): boolean {
-        const name = spellName(spellId);
+    isRemembered(spellId: number): boolean {
+        const name = getSpellName(spellId);
         if (name === undefined || name === "") return false;
         const now = GetTime();
-        if (now < (this.heldNames.get(auraKey(name)) ?? 0)) return true;
-        const family = familyOf(name);
+        if (now < (this.heldNames.get(buildAuraKey(name)) ?? 0)) return true;
+        const family = findFamilyOf(name);
         return family !== undefined && now < (this.heldFamilies.get(family.key) ?? 0);
     }
 
     /** The buff was looked for and is gone. `familiesSeen`: families still up in the same scan. */
     release(spellId: number, familiesSeen: LuaMap<string, AuraData> | undefined): void {
-        const name = spellName(spellId);
+        const name = getSpellName(spellId);
         if (name === undefined || name === "") return;
-        const key = auraKey(name);
+        const key = buildAuraKey(name);
         const now = GetTime();
         if (now - (this.castAt.get(key) ?? -10) < CAST_SETTLE) return;
         this.heldNames.delete(key);
-        const family = familyOf(name);
+        const family = findFamilyOf(name);
         if (family && !familiesSeen?.has(family.key) && now - (this.castAt.get(family.key) ?? -10) >= CAST_SETTLE) {
             this.heldFamilies.delete(family.key);
         }

@@ -22,7 +22,7 @@ export interface DebugStore {
 }
 
 export interface Settings {
-    muted: boolean;
+    isMuted: boolean;
     hideResting: boolean;
     showBuff: boolean;
     showWeapon: boolean;
@@ -40,7 +40,7 @@ export interface Settings {
     /** Weapon buff picks (WeaponBuff.key); undefined = automatic. */
     weaponBuff?: string;
     weaponBuffOff?: string;
-    debugMode: boolean;
+    isDebugMode: boolean;
     debug?: DebugStore;
     /** The last action of this addon the client blocked. */
     blockedAction?: string;
@@ -53,7 +53,7 @@ declare global {
 
 /** The live settings. Its identity never changes: loadSettings() makes it the saved table. */
 export const settings: Settings = {
-    muted: false,
+    isMuted: false,
     hideResting: true,
     showBuff: true,
     showWeapon: true,
@@ -65,7 +65,7 @@ export const settings: Settings = {
     soundWeapon: "alarm",
     colors: {},
     buffOn: {},
-    debugMode: false,
+    isDebugMode: false,
 };
 
 /** A player choice changed (the key of the setting). */

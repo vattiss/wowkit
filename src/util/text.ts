@@ -9,7 +9,7 @@ export function contains(text: string, token: string): boolean {
  * Aura matching: lowercase, every "(...)" removed, trimmed.
  * "Power Word: Fortitude (Rank 2)" -> "power word: fortitude"
  */
-export function auraKey(name: string): string {
+export function buildAuraKey(name: string): string {
     const [stripped] = string.gsub(string.lower(name), "%s*%([^%)]*%)", "");
     return strtrim(stripped);
 }
@@ -18,8 +18,8 @@ export function auraKey(name: string): string {
  * Spellbook grouping: auraKey, without "Rank N", single-spaced, so every rank of a spell shares
  * one key. "Smite  Rank 3" -> "smite"
  */
-export function spellBookKey(name: string): string {
-    let [key] = string.gsub(auraKey(name), "%s*rank%s*%d+", "");
+export function buildSpellBookKey(name: string): string {
+    let [key] = string.gsub(buildAuraKey(name), "%s*rank%s*%d+", "");
     [key] = string.gsub(key, "%s+", " ");
     return strtrim(key);
 }
@@ -28,7 +28,7 @@ export function spellBookKey(name: string): string {
  * Action button matching: lowercase, only a trailing "(...)" removed, trimmed; undefined when
  * nothing is left. Names from macros keep inner parentheses.
  */
-export function buttonKey(name: string): string | undefined {
+export function buildButtonKey(name: string): string | undefined {
     const [stripped] = string.gsub(name, "%s*%([^)]*%)%s*$", "");
     const key = strtrim(string.lower(stripped));
     return key !== "" ? key : undefined;

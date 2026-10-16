@@ -12,7 +12,7 @@ import { createSignal } from "./signal";
 export const swallowedError = createSignal<[message: string]>();
 
 /** A value addon code may look at: not nil, not secret, and accessible from this code. */
-export function readable(value: unknown): boolean {
+export function isReadable(value: unknown): boolean {
     // Comparing with nil is allowed on secret values; anything else is not
     if (value === undefined) return false;
     if (issecretvalue(value)) return false;
@@ -20,13 +20,13 @@ export function readable(value: unknown): boolean {
 }
 
 /** The value when readable, else undefined. */
-export function safe<T>(value: T | undefined): T | undefined {
-    return readable(value) ? value : undefined;
+export function getReadable<T>(value: T | undefined): T | undefined {
+    return isReadable(value) ? value : undefined;
 }
 
 /** A readable positive number (spell, item or texture ID), else undefined. */
-export function plainId(value: unknown): number | undefined {
-    if (!readable(value) || value === 0 || value === "") return undefined;
+export function getReadableId(value: unknown): number | undefined {
+    if (!isReadable(value) || value === 0 || value === "") return undefined;
     const n = tonumber(value);
     return n !== undefined && n > 0 ? n : undefined;
 }
@@ -37,9 +37,9 @@ function reportError(this: void, error: unknown): unknown {
 }
 
 /** Calls `fn` in protected mode: whether it succeeded, and its result. */
-export function tryCall<A extends unknown[], R>(fn: (this: void, ...args: A) => R, ...args: A): LuaMultiReturn<[ok: boolean, result: R | undefined]> {
-    const [ok, result] = pcall(fn, ...args);
-    if (!ok) {
+export function tryCall<A extends unknown[], R>(fn: (this: void, ...args: A) => R, ...args: A): LuaMultiReturn<[didSucceed: boolean, result: R | undefined]> {
+    const [didSucceed, result] = pcall(fn, ...args);
+    if (!didSucceed) {
         reportError(result);
         return $multi(false, undefined);
     }
@@ -53,6 +53,6 @@ export function attempt<A extends unknown[], R>(fn: (this: void, ...args: A) => 
 }
 
 /** `attempt` for functions with several results: ok, then the results (all nil on error). */
-export function attemptMulti<R extends unknown[]>(fn: (this: void) => LuaMultiReturn<R>): LuaMultiReturn<[ok: boolean, ...results: Partial<R>]> {
-    return xpcall(fn, reportError) as unknown as LuaMultiReturn<[ok: boolean, ...results: Partial<R>]>;
+export function attemptMulti<R extends unknown[]>(fn: (this: void) => LuaMultiReturn<R>): LuaMultiReturn<[didSucceed: boolean, ...results: Partial<R>]> {
+    return xpcall(fn, reportError) as unknown as LuaMultiReturn<[didSucceed: boolean, ...results: Partial<R>]>;
 }

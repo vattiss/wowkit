@@ -1,22 +1,22 @@
 // The options page in the game's Settings panel: a landing page, the Reminders page (native
 // checkboxes, dropdowns and color swatches bound to the settings) and the Debug report page.
 // It only reads and changes settings (changeSetting); whoever cares reacts to settingChanged.
-import { spellLabel } from "./api/spells";
-import { classBuffs, isBuffEnabled, setBuffEnabled } from "./buffs";
+import { getSpellLabel } from "./api/spells";
+import { getClassBuffs, isBuffEnabled, setBuffEnabled } from "./buffs";
 import * as debug from "./debug";
-import { color, colorDefault } from "./glow";
-import { T, say, type TextKey } from "./locale";
+import { getColor, getDefaultColor } from "./glow";
+import { getText, say, type TextKey } from "./locale";
 import { SOUNDS, playAlertSound } from "./notice";
 import { changeSetting, settings, type ColorKey, type SoundKey } from "./settings";
 import { attempt } from "./util/safe";
-import { autoWeaponBuff, weaponBuffLearned, weaponChoices, weaponHasOffhandChoice } from "./weapon-choice";
+import { findAutomaticWeaponBuff, isWeaponBuffLearned, getWeaponChoices, hasOffhandChoice } from "./weapon-choice";
 
 const GITHUB_URL = "https://github.com/vattiss/forever-reminders";
 const ISSUES_URL = `${GITHUB_URL}/issues`;
 
-let registered = false;
+let isRegistered = false;
 
-function button(parent: Frame, width: number, height: number, label: string): Button {
+function createButton(parent: Frame, width: number, height: number, label: string): Button {
     const created = CreateFrame("Button", undefined, parent, "UIPanelButtonTemplate");
     created.SetSize(width, height);
     created.SetText(label);
@@ -32,7 +32,7 @@ function copyText(text: string): boolean {
         return true;
     }) === true) {
         DEFAULT_CHAT_FRAME.editBox?.HighlightText();
-        say(T("INFO_COPIED"));
+        say(getText("INFO_COPIED"));
         return true;
     }
     const box = (chat?.ChooseBoxForSend ? chat.ChooseBoxForSend() : undefined) ?? DEFAULT_CHAT_FRAME.editBox;
@@ -41,12 +41,12 @@ function copyText(text: string): boolean {
     box.SetText(text);
     box.HighlightText();
     box.SetFocus();
-    say(T("INFO_COPIED"));
+    say(getText("INFO_COPIED"));
     return true;
 }
 
 /** A label, a read-only box with the URL and a Copy button. */
-function linkRow(parent: Frame, label: TextKey, url: string): Frame {
+function createLinkRow(parent: Frame, label: TextKey, url: string): Frame {
     const row = CreateFrame("Frame", undefined, parent);
     row.SetHeight(26);
     const text = row.CreateFontString(undefined, "OVERLAY", "GameFontHighlightSmall");
@@ -54,7 +54,7 @@ function linkRow(parent: Frame, label: TextKey, url: string): Frame {
     text.SetWidth(90);
     text.SetJustifyH("LEFT");
     text.SetTextColor(0.92, 0.92, 0.92);
-    text.SetText(T(label));
+    text.SetText(getText(label));
     const box = CreateFrame("EditBox", undefined, row, "BackdropTemplate") as EditBox & BackdropFrame;
     box.SetPoint("LEFT", text, "RIGHT", 8, 0);
     box.SetPoint("RIGHT", -72, 0);
@@ -77,7 +77,7 @@ function linkRow(parent: Frame, label: TextKey, url: string): Frame {
     box.SetScript("OnEditFocusGained", (self) => self.HighlightText());
     box.SetScript("OnEscapePressed", (self) => self.ClearFocus());
     box.SetScript("OnEnterPressed", (self) => self.ClearFocus());
-    const copy = button(row, 64, 22, T("INFO_COPY"));
+    const copy = createButton(row, 64, 22, getText("INFO_COPY"));
     copy.SetPoint("RIGHT", 0, 0);
     copy.SetScript("OnClick", () => {
         if (!copyText(url)) {
@@ -91,27 +91,27 @@ function linkRow(parent: Frame, label: TextKey, url: string): Frame {
 // ---------------------------------------------------------------------------------------------
 // Settings controls. Proxy settings read and write `settings` directly.
 
-function proxy<T>(category: SettingsCategory, variable: string, varType: string, label: string, defaultValue: T, get: () => T, set: (value: T) => void) {
+function registerProxySetting<T>(category: SettingsCategory, variable: string, varType: string, label: string, defaultValue: T, get: () => T, set: (value: T) => void) {
     return Settings.RegisterProxySetting(category, `ForeverReminders_${variable}`, varType, label, defaultValue, get, set);
 }
 
-function header(layout: SettingsLayout, label: TextKey): void {
-    layout.AddInitializer(CreateSettingsListSectionHeaderInitializer(T(label)));
+function addHeader(layout: SettingsLayout, label: TextKey): void {
+    layout.AddInitializer(CreateSettingsListSectionHeaderInitializer(getText(label)));
 }
 
-function checkbox(category: SettingsCategory, variable: string, label: string, tooltip: string | undefined, defaultValue: boolean, get: () => boolean, set: (value: boolean) => void): void {
-    Settings.CreateCheckbox(category, proxy(category, variable, Settings.VarType.Boolean, label, defaultValue, get, set), tooltip);
+function addCheckbox(category: SettingsCategory, variable: string, label: string, tooltip: string | undefined, isOnByDefault: boolean, get: () => boolean, set: (isChecked: boolean) => void): void {
+    Settings.CreateCheckbox(category, registerProxySetting(category, variable, Settings.VarType.Boolean, label, isOnByDefault, get, set), tooltip);
 }
 
 type FeatureFlag = "hideResting" | "showBuff" | "showWeapon" | "showBarNotice" | "showRankNotice" | "showPartyBuffs" | "showReagentNotice";
 
 /** A switch stored as settings[key]. */
-function featureCheckbox(category: SettingsCategory, key: FeatureFlag, label: TextKey, tooltip: TextKey): void {
-    checkbox(category, key, T(label), T(tooltip), true, () => settings[key], (value) => changeSetting(key, value));
+function addFeatureCheckbox(category: SettingsCategory, key: FeatureFlag, label: TextKey, tooltip: TextKey): void {
+    addCheckbox(category, key, getText(label), getText(tooltip), true, () => settings[key], (isChecked) => changeSetting(key, isChecked));
 }
 
 /** `items` returns [value, label] pairs; static lists are built once. */
-function dropdown(
+function addDropdown(
     category: SettingsCategory,
     variable: string,
     label: TextKey,
@@ -122,9 +122,9 @@ function dropdown(
     items: () => [value: string, label: string][],
     isStatic = false,
 ): void {
-    const setting = proxy(category, variable, Settings.VarType.String, T(label), defaultValue, get, set);
+    const setting = registerProxySetting(category, variable, Settings.VarType.String, getText(label), defaultValue, get, set);
     let cached: unknown;
-    const options = () => {
+    const buildOptions = () => {
         if (isStatic && cached !== undefined) return cached;
         const container = Settings.CreateControlTextContainer();
         for (const [value, text] of items()) container.Add(value, text);
@@ -132,11 +132,11 @@ function dropdown(
         if (isStatic) cached = data;
         return data;
     };
-    Settings.CreateDropdown(category, setting, options, T(tooltip));
+    Settings.CreateDropdown(category, setting, buildOptions, getText(tooltip));
 }
 
-function soundDropdown(category: SettingsCategory, key: "soundBuff" | "soundWeapon"): void {
-    dropdown(
+function addSoundDropdown(category: SettingsCategory, key: "soundBuff" | "soundWeapon"): void {
+    addDropdown(
         category,
         key,
         "OPT_SOUND",
@@ -147,16 +147,16 @@ function soundDropdown(category: SettingsCategory, key: "soundBuff" | "soundWeap
             changeSetting(key, value as SoundKey);
             playAlertSound(value as SoundKey);
         },
-        () => SOUNDS.map((sound): [string, string] => [sound.key, T(sound.label)]),
+        () => SOUNDS.map((sound): [string, string] => [sound.key, getText(sound.label)]),
         true,
     );
 }
 
-function colorSwatch(category: SettingsCategory, key: ColorKey, label: TextKey): void {
+function addColorSwatch(category: SettingsCategory, key: ColorKey, label: TextKey): void {
     const createSwatch = Settings.CreateColorSwatch;
     if (!createSwatch) return;
-    const hex = ([r, g, b]: [number, number, number]) => CreateColor(r, g, b).GenerateHexColor();
-    const setting = proxy(category, `color_${key}`, Settings.VarType.String, T(label), hex(colorDefault(key)), () => hex(color(key)), (value) => {
+    const toHexColor = ([r, g, b]: [number, number, number]) => CreateColor(r, g, b).GenerateHexColor();
+    const setting = registerProxySetting(category, `color_${key}`, Settings.VarType.String, getText(label), toHexColor(getDefaultColor(key)), () => toHexColor(getColor(key)), (value) => {
         const picked = CreateColorFromHexString(value);
         if (!picked) return;
         changeSetting("colors", { ...settings.colors, [key]: [picked.r, picked.g, picked.b] });
@@ -165,77 +165,77 @@ function colorSwatch(category: SettingsCategory, key: ColorKey, label: TextKey):
 }
 
 /** One checkbox per buff of the class list, labeled with the spell's name. */
-function buffCheckboxes(category: SettingsCategory): void {
-    for (const step of classBuffs()) {
-        checkbox(category, `buff_${step.key}`, spellLabel(step.id) ?? step.key, T("TIP_BUFF_ONE"), step.onByDefault, () => isBuffEnabled(step), (value) => setBuffEnabled(step, value));
+function addBuffCheckboxes(category: SettingsCategory): void {
+    for (const step of getClassBuffs()) {
+        addCheckbox(category, `buff_${step.key}`, getSpellLabel(step.id) ?? step.key, getText("TIP_BUFF_ONE"), step.isOnByDefault, () => isBuffEnabled(step), (isChecked) => setBuffEnabled(step, isChecked));
     }
 }
 
-function weaponSection(category: SettingsCategory, layout: SettingsLayout): void {
-    if (weaponChoices().length === 0) return;
-    header(layout, "HDR_WEAPON");
-    featureCheckbox(category, "showWeapon", "OPT_WEAPON", "TIP_WEAPON");
+function addWeaponSection(category: SettingsCategory, layout: SettingsLayout): void {
+    if (getWeaponChoices().length === 0) return;
+    addHeader(layout, "HDR_WEAPON");
+    addFeatureCheckbox(category, "showWeapon", "OPT_WEAPON", "TIP_WEAPON");
     // One pick, or one per hand for classes that coat both weapons
-    const weaponPick = (key: "weaponBuff" | "weaponBuffOff", label: TextKey, offhand: boolean) => {
-        dropdown(
+    const addWeaponPick = (key: "weaponBuff" | "weaponBuffOff", label: TextKey, isOffhand: boolean) => {
+        addDropdown(
             category,
             key,
             label,
             "TIP_WEAPON_PICK",
             "auto",
             () => {
-                const picked = weaponChoices().find((entry) => entry.key === settings[key]);
-                return picked && weaponBuffLearned(picked) ? picked.key : "auto";
+                const picked = getWeaponChoices().find((entry) => entry.key === settings[key]);
+                return picked && isWeaponBuffLearned(picked) ? picked.key : "auto";
             },
             (value) => changeSetting(key, value !== "auto" ? value : undefined),
             () => {
-                const auto = autoWeaponBuff(offhand);
-                const autoLabel = auto ? `${T("OPT_AUTOMATIC")} (${auto.entry.name ?? spellLabel(auto.entry.id) ?? auto.entry.key})` : T("OPT_AUTOMATIC");
+                const auto = findAutomaticWeaponBuff(isOffhand);
+                const autoLabel = auto ? `${getText("OPT_AUTOMATIC")} (${auto.entry.name ?? getSpellLabel(auto.entry.id) ?? auto.entry.key})` : getText("OPT_AUTOMATIC");
                 const list: [string, string][] = [["auto", autoLabel]];
-                for (const entry of weaponChoices()) {
-                    if (weaponBuffLearned(entry)) list.push([entry.key, entry.name ?? spellLabel(entry.id) ?? entry.key]);
+                for (const entry of getWeaponChoices()) {
+                    if (isWeaponBuffLearned(entry)) list.push([entry.key, entry.name ?? getSpellLabel(entry.id) ?? entry.key]);
                 }
                 return list;
             },
         );
     };
-    if (weaponHasOffhandChoice()) {
-        weaponPick("weaponBuff", "OPT_WEAPON_PICK_MAIN", false);
-        weaponPick("weaponBuffOff", "OPT_WEAPON_PICK_OFF", true);
+    if (hasOffhandChoice()) {
+        addWeaponPick("weaponBuff", "OPT_WEAPON_PICK_MAIN", false);
+        addWeaponPick("weaponBuffOff", "OPT_WEAPON_PICK_OFF", true);
     } else {
-        weaponPick("weaponBuff", "OPT_WEAPON_PICK", false);
+        addWeaponPick("weaponBuff", "OPT_WEAPON_PICK", false);
     }
-    soundDropdown(category, "soundWeapon");
-    colorSwatch(category, "weapon", "OPT_COLOR_WEAPON");
+    addSoundDropdown(category, "soundWeapon");
+    addColorSwatch(category, "weapon", "OPT_COLOR_WEAPON");
 }
 
 function registerRemindersPage(root: SettingsCategory): void {
-    const [category, layout] = Settings.RegisterVerticalLayoutSubcategory(root, T("TAB_REMINDERS"));
+    const [category, layout] = Settings.RegisterVerticalLayoutSubcategory(root, getText("TAB_REMINDERS"));
 
-    header(layout, "HDR_CHARACTER");
-    checkbox(category, "muted", T("OPT_MUTE"), T("TIP_MUTE"), false, () => settings.muted, (value) => changeSetting("muted", value));
-    featureCheckbox(category, "hideResting", "OPT_HIDE_RESTING", "TIP_HIDE_RESTING");
+    addHeader(layout, "HDR_CHARACTER");
+    addCheckbox(category, "isMuted", getText("OPT_MUTE"), getText("TIP_MUTE"), false, () => settings.isMuted, (isChecked) => changeSetting("isMuted", isChecked));
+    addFeatureCheckbox(category, "hideResting", "OPT_HIDE_RESTING", "TIP_HIDE_RESTING");
 
-    if (classBuffs().length > 0) {
-        header(layout, "HDR_BUFFS");
-        featureCheckbox(category, "showBuff", "OPT_BUFF", "TIP_BUFF");
-        buffCheckboxes(category);
-        if (classBuffs().some((step) => step.party !== undefined)) featureCheckbox(category, "showPartyBuffs", "OPT_PARTY_BUFFS", "TIP_PARTY_BUFFS");
-        soundDropdown(category, "soundBuff");
-        colorSwatch(category, "buff", "OPT_COLOR_BUFF");
+    if (getClassBuffs().length > 0) {
+        addHeader(layout, "HDR_BUFFS");
+        addFeatureCheckbox(category, "showBuff", "OPT_BUFF", "TIP_BUFF");
+        addBuffCheckboxes(category);
+        if (getClassBuffs().some((step) => step.party !== undefined)) addFeatureCheckbox(category, "showPartyBuffs", "OPT_PARTY_BUFFS", "TIP_PARTY_BUFFS");
+        addSoundDropdown(category, "soundBuff");
+        addColorSwatch(category, "buff", "OPT_COLOR_BUFF");
     }
 
-    weaponSection(category, layout);
+    addWeaponSection(category, layout);
 
-    header(layout, "HDR_MESSAGES");
-    featureCheckbox(category, "showBarNotice", "OPT_BAR_NOTICE", "TIP_BAR_NOTICE");
-    featureCheckbox(category, "showRankNotice", "OPT_RANK_NOTICE", "TIP_RANK_NOTICE");
-    if (classBuffs().some((step) => step.party?.groupIds !== undefined)) {
-        featureCheckbox(category, "showReagentNotice", "OPT_REAGENT_NOTICE", "TIP_REAGENT_NOTICE");
+    addHeader(layout, "HDR_MESSAGES");
+    addFeatureCheckbox(category, "showBarNotice", "OPT_BAR_NOTICE", "TIP_BAR_NOTICE");
+    addFeatureCheckbox(category, "showRankNotice", "OPT_RANK_NOTICE", "TIP_RANK_NOTICE");
+    if (getClassBuffs().some((step) => step.party?.groupIds !== undefined)) {
+        addFeatureCheckbox(category, "showReagentNotice", "OPT_REAGENT_NOTICE", "TIP_REAGENT_NOTICE");
     }
 
-    header(layout, "HDR_DEBUG");
-    checkbox(category, "debugMode", T("OPT_DEBUG"), T("TIP_DEBUG"), false, () => settings.debugMode, (value) => changeSetting("debugMode", value));
+    addHeader(layout, "HDR_DEBUG");
+    addCheckbox(category, "isDebugMode", getText("OPT_DEBUG"), getText("TIP_DEBUG"), false, () => settings.isDebugMode, (isChecked) => changeSetting("isDebugMode", isChecked));
 }
 
 /** The debug report page: a text box and the Report / Clear buttons. */
@@ -245,7 +245,7 @@ function buildDebugPage(panel: Frame): void {
     hint.SetPoint("RIGHT", panel, "RIGHT", -24, 0);
     hint.SetJustifyH("LEFT");
     hint.SetWordWrap(true);
-    hint.SetText(T("OPT_DEBUG_HINT"));
+    hint.SetText(getText("OPT_DEBUG_HINT"));
 
     const scroll = CreateFrame("ScrollFrame", undefined, panel, "UIPanelScrollFrameTemplate");
     scroll.SetPoint("TOPLEFT", 16, -70);
@@ -262,19 +262,19 @@ function buildDebugPage(panel: Frame): void {
     edit.SetScript("OnEscapePressed", (self) => self.ClearFocus());
     scroll.SetScrollChild(edit);
 
-    const reportButton = button(panel, 160, 22, T("OPT_DEBUG_REPORT"));
+    const reportButton = createButton(panel, 160, 22, getText("OPT_DEBUG_REPORT"));
     reportButton.SetPoint("BOTTOMLEFT", 16, 14);
     reportButton.SetScript("OnClick", () => {
-        edit.SetText(debug.report());
+        edit.SetText(debug.buildReport());
         edit.HighlightText();
         edit.SetFocus();
     });
-    const clearButton = button(panel, 160, 22, T("OPT_DEBUG_CLEAR"));
+    const clearButton = createButton(panel, 160, 22, getText("OPT_DEBUG_CLEAR"));
     clearButton.SetPoint("LEFT", reportButton, "RIGHT", 8, 0);
     clearButton.SetScript("OnClick", () => {
-        debug.clear();
+        debug.clearDebugData();
         edit.SetText("");
-        say(T("OPT_DEBUG_CLEARED"));
+        say(getText("OPT_DEBUG_CLEARED"));
     });
 }
 
@@ -283,33 +283,33 @@ function buildHome(home: Frame): void {
     const title = home.CreateFontString(undefined, "OVERLAY", "GameFontNormalHuge");
     title.SetPoint("TOPLEFT", 16, -16);
     title.SetTextColor(1, 0.82, 0.2);
-    title.SetText(T("TITLE"));
+    title.SetText(getText("TITLE"));
     const text = home.CreateFontString(undefined, "OVERLAY", "GameFontHighlight");
     text.SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -16);
     text.SetPoint("RIGHT", home, "RIGHT", -24, 0);
     text.SetJustifyH("LEFT");
     text.SetWordWrap(true);
-    text.SetText(T("OPT_HOME_TEXT"));
+    text.SetText(getText("OPT_HOME_TEXT"));
     const help = home.CreateFontString(undefined, "OVERLAY", "GameFontHighlightSmall");
     help.SetPoint("TOPLEFT", text, "BOTTOMLEFT", 0, -12);
     help.SetPoint("RIGHT", home, "RIGHT", -24, 0);
     help.SetJustifyH("LEFT");
     help.SetWordWrap(true);
-    help.SetText(T("OPT_HOME_HELP"));
-    const githubRow = linkRow(home, "INFO_GITHUB", GITHUB_URL);
+    help.SetText(getText("OPT_HOME_HELP"));
+    const githubRow = createLinkRow(home, "INFO_GITHUB", GITHUB_URL);
     githubRow.SetPoint("TOPLEFT", help, "BOTTOMLEFT", 0, -16);
     githubRow.SetPoint("RIGHT", home, "RIGHT", -24, 0);
-    const issuesRow = linkRow(home, "INFO_ISSUES", ISSUES_URL);
+    const issuesRow = createLinkRow(home, "INFO_ISSUES", ISSUES_URL);
     issuesRow.SetPoint("TOPLEFT", githubRow, "BOTTOMLEFT", 0, -4);
     issuesRow.SetPoint("RIGHT", home, "RIGHT", -24, 0);
 }
 
 export function registerOptions(): void {
-    if (registered || typeof Settings === "undefined") return;
-    registered = true;
+    if (isRegistered || typeof Settings === "undefined") return;
+    isRegistered = true;
     const home = CreateFrame("Frame");
     buildHome(home);
-    const root = Settings.RegisterCanvasLayoutCategory(home, T("TITLE"));
+    const root = Settings.RegisterCanvasLayoutCategory(home, getText("TITLE"));
     Settings.RegisterAddOnCategory(root);
 
     registerRemindersPage(root);
@@ -317,11 +317,11 @@ export function registerOptions(): void {
     const debugPanel = CreateFrame("Frame");
     // A new frame starts shown, so the panel's first Show() would not fire OnShow
     debugPanel.Hide();
-    let built = false;
+    let isBuilt = false;
     debugPanel.SetScript("OnShow", (self) => {
-        if (built) return;
-        built = true;
+        if (isBuilt) return;
+        isBuilt = true;
         buildDebugPage(self);
     });
-    Settings.RegisterCanvasLayoutSubcategory(root, debugPanel, T("TAB_DEBUG"));
+    Settings.RegisterCanvasLayoutSubcategory(root, debugPanel, getText("TAB_DEBUG"));
 }

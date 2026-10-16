@@ -6,11 +6,11 @@ export interface PartyBuff {
     /** The group version (Prayer of Fortitude): rank IDs, lowest first. */
     groupIds?: number[];
     /** Only for members who use mana (Arcane Intellect). */
-    manaOnly?: boolean;
+    isManaOnly?: boolean;
     /** The group version covers members of one class only (Greater Blessings). */
-    perClass?: boolean;
+    isPerClass?: boolean;
     /** Only the player's own aura counts (blessings: another paladin's is a different choice). */
-    ownOnly?: boolean;
+    isOwnOnly?: boolean;
 }
 
 export interface BuffStep {
@@ -24,20 +24,20 @@ export interface BuffStep {
      */
     last?: number;
     /** Only asked for while swimming. */
-    swimming?: boolean;
+    isSwimmingOnly?: boolean;
     /** Off by default: a buff only one role wants. */
-    onByDefault: boolean;
+    isOnByDefault: boolean;
     /** Also reminded for party members. */
     party?: PartyBuff;
 }
 
-function buff(key: string, id: number, options: Omit<BuffStep, "key" | "id" | "onByDefault"> = {}, onByDefault = true): BuffStep {
-    return { key, id, onByDefault, ...options };
+function createBuffStep(key: string, id: number, options: Omit<BuffStep, "key" | "id" | "isOnByDefault"> = {}, isOnByDefault = true): BuffStep {
+    return { key, id, isOnByDefault, ...options };
 }
 
 /** A blessing: the player's own counts, its Greater version covers one class. */
-function blessing(groupIds: number[]): PartyBuff {
-    return { groupIds, perClass: true, ownOnly: true };
+function createBlessing(groupIds: number[]): PartyBuff {
+    return { groupIds, isPerClass: true, isOwnOnly: true };
 }
 
 const mageArmors = [M.MageArmor, M.IceArmor, M.FrostArmor];
@@ -57,49 +57,49 @@ const hunterAspects = [H.AspectHawk, H.AspectMonkey, H.AspectWild, H.AspectCheet
 
 /** In list order: of a family, the first one that is learned and on the bars is the one asked for. */
 export const BUFF_LISTS: { [classToken: string]: BuffStep[] | undefined } = {
-    DRUID: [buff("MarkoftheWild", D.MarkOfTheWild, { last: 1800, party: { groupIds: G.GiftOfTheWild } }), buff("Thorns", D.Thorns, { last: 600 }), buff("Moonkin", D.Moonkin, {}, false)],
+    DRUID: [createBuffStep("MarkoftheWild", D.MarkOfTheWild, { last: 1800, party: { groupIds: G.GiftOfTheWild } }), createBuffStep("Thorns", D.Thorns, { last: 600 }), createBuffStep("Moonkin", D.Moonkin, {}, false)],
     PALADIN: [
-        buff("DevotionAura", P.DevotionAura, { anyBuff: palaAuras }),
-        buff("RetributionAura", P.RetributionAura, { anyBuff: palaAuras }),
-        buff("ConcentrationAura", P.ConcentrationAura, { anyBuff: palaAuras }),
-        buff("SanctityAura", P.SanctityAura, { anyBuff: palaAuras }),
-        buff("FireResistAura", P.FireResistAura, { anyBuff: palaAuras }),
-        buff("FrostResistAura", P.FrostResistAura, { anyBuff: palaAuras }),
-        buff("ShadowResistAura", P.ShadowResistAura, { anyBuff: palaAuras }),
-        buff("BlessingMight", P.BlessingMight, { anyBuff: palaBlessings, party: blessing(G.GreaterBlessingMight) }),
-        buff("BlessingKings", P.BlessingKings, { anyBuff: palaBlessings, party: blessing(G.GreaterBlessingKings) }),
-        buff("BlessingWisdom", P.BlessingWisdom, { anyBuff: palaBlessings, party: blessing(G.GreaterBlessingWisdom) }),
-        buff("RighteousFury", P.RighteousFury, { last: 1800 }, false),
+        createBuffStep("DevotionAura", P.DevotionAura, { anyBuff: palaAuras }),
+        createBuffStep("RetributionAura", P.RetributionAura, { anyBuff: palaAuras }),
+        createBuffStep("ConcentrationAura", P.ConcentrationAura, { anyBuff: palaAuras }),
+        createBuffStep("SanctityAura", P.SanctityAura, { anyBuff: palaAuras }),
+        createBuffStep("FireResistAura", P.FireResistAura, { anyBuff: palaAuras }),
+        createBuffStep("FrostResistAura", P.FrostResistAura, { anyBuff: palaAuras }),
+        createBuffStep("ShadowResistAura", P.ShadowResistAura, { anyBuff: palaAuras }),
+        createBuffStep("BlessingMight", P.BlessingMight, { anyBuff: palaBlessings, party: createBlessing(G.GreaterBlessingMight) }),
+        createBuffStep("BlessingKings", P.BlessingKings, { anyBuff: palaBlessings, party: createBlessing(G.GreaterBlessingKings) }),
+        createBuffStep("BlessingWisdom", P.BlessingWisdom, { anyBuff: palaBlessings, party: createBlessing(G.GreaterBlessingWisdom) }),
+        createBuffStep("RighteousFury", P.RighteousFury, { last: 1800 }, false),
     ],
-    WARRIOR: [buff("BattleShout", W.BattleShout, { last: 120 })],
+    WARRIOR: [createBuffStep("BattleShout", W.BattleShout, { last: 120 })],
     HUNTER: [
-        buff("AspectHawk", H.AspectHawk, { anyBuff: hunterAspects }),
-        buff("AspectMonkey", H.AspectMonkey, { anyBuff: hunterAspects }),
-        buff("AspectWild", H.AspectWild, { anyBuff: hunterAspects }),
-        buff("TrueshotAura", H.TrueshotAura, { last: 1800 }),
+        createBuffStep("AspectHawk", H.AspectHawk, { anyBuff: hunterAspects }),
+        createBuffStep("AspectMonkey", H.AspectMonkey, { anyBuff: hunterAspects }),
+        createBuffStep("AspectWild", H.AspectWild, { anyBuff: hunterAspects }),
+        createBuffStep("TrueshotAura", H.TrueshotAura, { last: 1800 }),
     ],
     ROGUE: [],
     PRIEST: [
-        buff("InnerFire", Pr.InnerFire, { last: 600 }),
-        buff("PowerWordFortitude", Pr.PowerWordFortitude, { last: 1800, party: { groupIds: G.PrayerOfFortitude } }),
-        buff("DivineSpirit", Pr.DivineSpirit, { last: 1800, party: { groupIds: G.PrayerOfSpirit } }),
-        buff("ShadowProtection", Pr.ShadowProtection, { last: 600, party: { groupIds: G.PrayerOfShadowProtection } }),
-        buff("Shadowform", Pr.Shadowform, { last: 1800 }),
+        createBuffStep("InnerFire", Pr.InnerFire, { last: 600 }),
+        createBuffStep("PowerWordFortitude", Pr.PowerWordFortitude, { last: 1800, party: { groupIds: G.PrayerOfFortitude } }),
+        createBuffStep("DivineSpirit", Pr.DivineSpirit, { last: 1800, party: { groupIds: G.PrayerOfSpirit } }),
+        createBuffStep("ShadowProtection", Pr.ShadowProtection, { last: 600, party: { groupIds: G.PrayerOfShadowProtection } }),
+        createBuffStep("Shadowform", Pr.Shadowform, { last: 1800 }),
     ],
     SHAMAN: [
-        buff("LightningShield", Sh.LightningShield, { anyBuff: shamanShields, last: 600 }),
-        buff("WaterShield", Sh.WaterShield, { anyBuff: shamanShields, last: 600 }),
+        createBuffStep("LightningShield", Sh.LightningShield, { anyBuff: shamanShields, last: 600 }),
+        createBuffStep("WaterShield", Sh.WaterShield, { anyBuff: shamanShields, last: 600 }),
     ],
     MAGE: [
-        buff("ArcaneIntellect", M.ArcaneIntellect, { last: 1800, party: { groupIds: G.ArcaneBrilliance, manaOnly: true } }),
-        buff("MageArmor", M.MageArmor, { anyBuff: mageArmors }),
-        buff("IceArmor", M.IceArmor, { anyBuff: mageArmors }),
-        buff("FrostArmor", M.FrostArmor, { anyBuff: mageArmors }),
-        buff("AmplifyMagic", M.AmplifyMagic, { last: 600 }, false),
+        createBuffStep("ArcaneIntellect", M.ArcaneIntellect, { last: 1800, party: { groupIds: G.ArcaneBrilliance, isManaOnly: true } }),
+        createBuffStep("MageArmor", M.MageArmor, { anyBuff: mageArmors }),
+        createBuffStep("IceArmor", M.IceArmor, { anyBuff: mageArmors }),
+        createBuffStep("FrostArmor", M.FrostArmor, { anyBuff: mageArmors }),
+        createBuffStep("AmplifyMagic", M.AmplifyMagic, { last: 600 }, false),
     ],
     WARLOCK: [
-        buff("DemonArmor", L.DemonArmor, { anyBuff: lockSkins }),
-        buff("DemonSkin", L.DemonSkin, { anyBuff: lockSkins }),
-        buff("UnendingBreath", L.UnendingBreath, { swimming: true, last: 600 }),
+        createBuffStep("DemonArmor", L.DemonArmor, { anyBuff: lockSkins }),
+        createBuffStep("DemonSkin", L.DemonSkin, { anyBuff: lockSkins }),
+        createBuffStep("UnendingBreath", L.UnendingBreath, { isSwimmingOnly: true, last: 600 }),
     ],
 };

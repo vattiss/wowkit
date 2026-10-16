@@ -1,20 +1,20 @@
 // Buffs on the player: reading them (by ID, by name, by a full scan), with AuraMemory filling in
 // while the client hides them.
 import { NO_EXPIRY } from "../constants";
-import { familyOf } from "../data/aura-families";
+import { findFamilyOf } from "../data/aura-families";
 import type { WeaponBuff } from "../data/weapon-buffs";
-import { attempt, safe, tryCall } from "../util/safe";
-import { auraKey } from "../util/text";
+import { attempt, getReadable, tryCall } from "../util/safe";
+import { buildAuraKey } from "../util/text";
 import { AuraMemory, type DurationLookup } from "./aura-memory";
-import { resolve, spellName, spellsInvalidated } from "./spells";
-import { inCombat } from "./unit";
+import { resolve, getSpellName, spellsInvalidated } from "./spells";
+import { isInCombat } from "./unit";
 
 export interface AuraRead {
-    found: boolean;
+    isFound: boolean;
     /** Seconds left; NO_EXPIRY for auras without an end. */
     remain: number;
     /** The client hid at least one aura, so "not found" proves nothing. */
-    unreadable: boolean;
+    isUnreadable: boolean;
     /** The buff families seen in the scan (family key -> aura). */
     families?: LuaMap<string, AuraData>;
 }
@@ -24,7 +24,7 @@ interface AuraScan {
     names: LuaMap<string, AuraData>;
     ids: LuaMap<number, AuraData>;
     families: LuaMap<string, AuraData>;
-    unreadable: boolean;
+    isUnreadable: boolean;
 }
 
 /** A scan is reused for this long. */
@@ -53,48 +53,48 @@ export function wipeAuraScan(unit: string | undefined): void {
 
 spellsInvalidated.listen(wipeAuraScans);
 
-function remainOf(aura: AuraData): number {
-    const expiration = safe(aura.expirationTime);
+function getRemainingSeconds(aura: AuraData): number {
+    const expiration = getReadable(aura.expirationTime);
     if (expiration !== undefined && expiration > 0) return math.max(expiration - GetTime(), 0);
     return NO_EXPIRY;
 }
 
 /** The aura's readable ID and name, and whether the client hid them. */
 function identify(aura: AuraData): LuaMultiReturn<[id: number | undefined, name: string | undefined, hidden: boolean]> {
-    const id = safe(aura.spellId);
-    const name = safe(aura.name);
-    let hidden = (aura.spellId !== undefined && id === undefined) || (aura.name !== undefined && name === undefined);
-    if (!hidden && id === undefined && name === undefined) hidden = true;
-    return $multi(id, name, hidden);
+    const id = getReadable(aura.spellId);
+    const name = getReadable(aura.name);
+    let isHidden = (aura.spellId !== undefined && id === undefined) || (aura.name !== undefined && name === undefined);
+    if (!isHidden && id === undefined && name === undefined) isHidden = true;
+    return $multi(id, name, isHidden);
 }
 
-function scan(unit: UnitToken, filter: string): AuraScan {
+function scanAuras(unit: UnitToken, filter: string): AuraScan {
     const now = GetTime();
     const cacheKey = `${unit}\0${filter}`;
     const cached = scans.get(cacheKey);
     if (cached && now - cached.at < SCAN_REUSE) return cached;
-    const result: AuraScan = { at: now, names: new LuaMap(), ids: new LuaMap(), families: new LuaMap(), unreadable: false };
+    const result: AuraScan = { at: now, names: new LuaMap(), ids: new LuaMap(), families: new LuaMap(), isUnreadable: false };
     scans.set(cacheKey, result);
     for (let i = 1; i <= 40; i++) {
-        const [ok, aura] = tryCall(C_UnitAuras.GetAuraDataByIndex, unit, i, filter);
-        if (!ok) {
-            result.unreadable = true;
+        const [didSucceed, aura] = tryCall(C_UnitAuras.GetAuraDataByIndex, unit, i, filter);
+        if (!didSucceed) {
+            result.isUnreadable = true;
             break;
         }
         if (aura === undefined) {
             // No auras at all while we remember some, in combat or with a target: the client
             // hides them rather than the player having none
-            if (i === 1 && !memory.isEmpty() && (inCombat() || attempt(UnitExists, "target") === true)) result.unreadable = true;
+            if (i === 1 && !memory.isEmpty() && (isInCombat() || attempt(UnitExists, "target") === true)) result.isUnreadable = true;
             break;
         }
-        const [id, name, hidden] = identify(aura);
-        if (hidden) {
-            result.unreadable = true;
+        const [id, name, isHidden] = identify(aura);
+        if (isHidden) {
+            result.isUnreadable = true;
         } else {
             if (id !== undefined) result.ids.set(id, aura);
             if (name !== undefined) {
-                result.names.set(auraKey(name), aura);
-                const family = familyOf(name);
+                result.names.set(buildAuraKey(name), aura);
+                const family = findFamilyOf(name);
                 if (family) result.families.set(family.key, aura);
             }
         }
@@ -104,46 +104,46 @@ function scan(unit: UnitToken, filter: string): AuraScan {
 
 /** Raw read of a buff on the player, without the memory. */
 export function findAura(spellId: number | undefined): AuraRead {
-    if (spellId === undefined) return { found: false, remain: 0, unreadable: false };
+    if (spellId === undefined) return { isFound: false, remain: 0, isUnreadable: false };
     const resolved = resolve(spellId);
-    const wantName = spellName(resolved ?? spellId) ?? spellName(spellId);
+    const wantName = getSpellName(resolved ?? spellId) ?? getSpellName(spellId);
 
     for (const id of [resolved, spellId]) {
         if (id !== undefined) {
             const aura = attempt(C_UnitAuras.GetPlayerAuraBySpellID, id);
-            if (aura !== undefined && type(aura) === "table") return { found: true, remain: remainOf(aura), unreadable: false };
+            if (aura !== undefined && type(aura) === "table") return { isFound: true, remain: getRemainingSeconds(aura), isUnreadable: false };
         }
     }
     if (wantName !== undefined && wantName !== "") {
         const named = attempt(C_UnitAuras.GetAuraDataBySpellName, "player", wantName, "HELPFUL");
         if (named !== undefined && type(named) === "table") {
-            const [, , hidden] = identify(named);
-            if (!hidden) return { found: true, remain: remainOf(named), unreadable: false };
+            const [, , isHidden] = identify(named);
+            if (!isHidden) return { isFound: true, remain: getRemainingSeconds(named), isUnreadable: false };
         }
     }
 
-    const result = scan("player", "HELPFUL");
-    const wantFamily = familyOf(wantName);
+    const result = scanAuras("player", "HELPFUL");
+    const wantFamily = findFamilyOf(wantName);
     const aura =
-        (wantName !== undefined ? result.names.get(auraKey(wantName)) : undefined) ??
+        (wantName !== undefined ? result.names.get(buildAuraKey(wantName)) : undefined) ??
         (resolved !== undefined ? result.ids.get(resolved) : undefined) ??
         result.ids.get(spellId) ??
         (wantFamily ? result.families.get(wantFamily.key) : undefined);
-    if (aura) return { found: true, remain: remainOf(aura), unreadable: false, families: result.families };
-    return { found: false, remain: 0, unreadable: result.unreadable, families: result.families };
+    if (aura) return { isFound: true, remain: getRemainingSeconds(aura), isUnreadable: false, families: result.families };
+    return { isFound: false, remain: 0, isUnreadable: result.isUnreadable, families: result.families };
 }
 
 /** Is the buff on the player, counting the remembered state while the client hides auras? */
 export function hasAura(spellId: number): boolean {
     const read = findAura(spellId);
-    if (read.found) {
+    if (read.isFound) {
         memory.remember(spellId, undefined, read.remain, false);
         return true;
     }
-    if (read.unreadable) return memory.holds(spellId);
+    if (read.isUnreadable) return memory.isRemembered(spellId);
     // In combat the client may simply return no auras: a buff we saw or cast is trusted until it
     // runs out. "Not found" only counts out of combat.
-    if (memory.holds(spellId) && inCombat()) return true;
+    if (memory.isRemembered(spellId) && isInCombat()) return true;
     memory.release(spellId, read.families);
     return false;
 }
@@ -161,40 +161,40 @@ export type UnitBuffState = "has" | "missing" | "unknown";
  * for Fortitude)? `ownOnly`: only an aura the player cast counts. "unknown" when the client hid
  * the auras: no memory here, so a hidden aura never counts as missing.
  */
-export function unitBuffState(unit: UnitToken, spellId: number, ownOnly: boolean): UnitBuffState {
-    const wantName = spellName(resolve(spellId) ?? spellId) ?? spellName(spellId);
+export function getUnitBuffState(unit: UnitToken, spellId: number, isOwnOnly: boolean): UnitBuffState {
+    const wantName = getSpellName(resolve(spellId) ?? spellId) ?? getSpellName(spellId);
     if (wantName === undefined) return "unknown";
-    const wantKey = auraKey(wantName);
-    const wantFamily = familyOf(wantName);
-    let unreadable = false;
+    const wantKey = buildAuraKey(wantName);
+    const wantFamily = findFamilyOf(wantName);
+    let isUnreadable = false;
     for (let i = 1; i <= 40; i++) {
-        const [ok, aura] = tryCall(C_UnitAuras.GetAuraDataByIndex, unit, i, "HELPFUL");
-        if (!ok) return "unknown";
+        const [didSucceed, aura] = tryCall(C_UnitAuras.GetAuraDataByIndex, unit, i, "HELPFUL");
+        if (!didSucceed) return "unknown";
         if (aura === undefined) break;
-        const [, name, hidden] = identify(aura);
-        if (hidden || name === undefined) {
-            unreadable = true;
-        } else if (auraKey(name) === wantKey || (wantFamily !== undefined && familyOf(name) === wantFamily)) {
-            if (!ownOnly) return "has";
-            const source = safe(aura.sourceUnit);
-            if (source === undefined) unreadable = true;
+        const [, name, isHidden] = identify(aura);
+        if (isHidden || name === undefined) {
+            isUnreadable = true;
+        } else if (buildAuraKey(name) === wantKey || (wantFamily !== undefined && findFamilyOf(name) === wantFamily)) {
+            if (!isOwnOnly) return "has";
+            const source = getReadable(aura.sourceUnit);
+            if (source === undefined) isUnreadable = true;
             else if (attempt(UnitIsUnit, source, "player") === true) return "has";
         }
     }
-    return unreadable ? "unknown" : "missing";
+    return isUnreadable ? "unknown" : "missing";
 }
 
 /** A weapon buff kept as an aura on the player (some clients show imbues that way). */
 export function findWeaponBuffAura(entry: WeaponBuff): AuraRead {
     for (const id of [entry.id, ...(entry.ranks ?? [])]) {
         const read = findAura(id);
-        if (read.found) return read;
+        if (read.isFound) return read;
     }
-    return { found: false, remain: 0, unreadable: false };
+    return { isFound: false, remain: 0, isUnreadable: false };
 }
 
 /** A shapeshift happened. */
-export function formChanged(): void {
+export function noteFormChange(): void {
     memory.forgetForms();
     wipeAuraScans();
 }

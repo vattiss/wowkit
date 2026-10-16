@@ -1,6 +1,6 @@
 // The reminder glow on action buttons: Blizzard's spell-alert ("proc") animation, tinted with the
 // reminder's color.
-import { buttonsFor } from "./action-bars";
+import { findButtonsOf } from "./action-bars";
 import { settings, type ColorKey, type Rgb } from "./settings";
 import { tryCall } from "./util/safe";
 
@@ -14,11 +14,11 @@ const GLOW_FALLBACK = "Interface\\Cooldown\\star4";
 const GLOW_SCALE = 1.45;
 const GLOW_ALPHA = 0.95;
 
-export function colorDefault(key: ColorKey): Rgb {
+export function getDefaultColor(key: ColorKey): Rgb {
     return COLOR_DEFAULTS[key];
 }
 
-export function color(key: ColorKey): Rgb {
+export function getColor(key: ColorKey): Rgb {
     const saved = settings.colors[key];
     if (saved !== undefined && type(saved) === "table" && tonumber(saved[0]) !== undefined) {
         return [saved[0], saved[1] ?? 0, saved[2] ?? 0];
@@ -39,8 +39,8 @@ function createOverlay(button: ActionButton): Overlay {
     const level = button.GetFrameLevel() + 6;
     // Blizzard's own spell-alert glow, but our own instance, never the one the action bar manager
     // drives, so real procs are unaffected
-    const [ok, created] = tryCall(() => CreateFrame("Frame", undefined, button, "ActionButtonSpellAlertTemplate"));
-    const alert = ok ? (created as SpellAlertFrame) : undefined;
+    const [didSucceed, created] = tryCall(() => CreateFrame("Frame", undefined, button, "ActionButtonSpellAlertTemplate"));
+    const alert = didSucceed ? (created as SpellAlertFrame) : undefined;
     if (alert?.ProcStartAnim && alert.ProcLoop) {
         alert.SetFrameStrata("MEDIUM");
         alert.SetFrameLevel(level);
@@ -69,7 +69,7 @@ function createOverlay(button: ActionButton): Overlay {
     return { frame, texture };
 }
 
-function overlay(button: ActionButton, kind: string, [r, g, b]: Rgb): Frame {
+function getOverlay(button: ActionButton, kind: string, [r, g, b]: Rgb): Frame {
     let byKind = overlays.get(button);
     if (!byKind) {
         byKind = new LuaMap();
@@ -103,7 +103,7 @@ export interface ReminderGlow {
 }
 
 /** One reminder glow (the buff or the weapon buff). `enabled` reads its settings switch. */
-function reminderGlow(kind: ColorKey, enabled: (this: void) => boolean): ReminderGlow {
+function createReminderGlow(kind: ColorKey, enabled: (this: void) => boolean): ReminderGlow {
     const glowing = new LuaSet<ActionButton>();
     let last: string | undefined;
     const clearGlow = () => {
@@ -119,13 +119,13 @@ function reminderGlow(kind: ColorKey, enabled: (this: void) => boolean): Reminde
             if (spellIds.length === 0 || !enabled()) return clearGlow();
             const key = spellIds.join(",");
             if (key === last && !glowing.isEmpty()) return;
-            const buttons = spellIds.flatMap((spellId) => buttonsFor(spellId));
+            const buttons = spellIds.flatMap((spellId) => findButtonsOf(spellId));
             clearGlow();
             last = key;
-            const rgb = color(kind);
+            const rgb = getColor(kind);
             for (const button of buttons) {
                 if (!glowing.has(button)) {
-                    overlay(button, kind, rgb).Show();
+                    getOverlay(button, kind, rgb).Show();
                     glowing.add(button);
                 }
             }
@@ -133,5 +133,5 @@ function reminderGlow(kind: ColorKey, enabled: (this: void) => boolean): Reminde
     };
 }
 
-export const buffGlow = reminderGlow("buff", () => settings.showBuff);
-export const weaponGlow = reminderGlow("weapon", () => settings.showWeapon);
+export const buffGlow = createReminderGlow("buff", () => settings.showBuff);
+export const weaponGlow = createReminderGlow("weapon", () => settings.showWeapon);

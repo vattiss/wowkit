@@ -4,10 +4,10 @@
 // Forever rules: never call C_TooltipInfo.GetAction while mapping the bars (tooltips froze the
 // client when many slots updated after a quest turn-in), and map the bars a few buttons per frame.
 // Only Blizzard's own bars are mapped (no Bartender4, Dominos or ElvUI).
-import { highestKnownRank, resolve, spellInfo, spellRank } from "./api/spells";
-import { attempt, attemptMulti, plainId, readable } from "./util/safe";
+import { getHighestRank, resolve, getSpellInfo, getSpellRank } from "./api/spells";
+import { attempt, attemptMulti, getReadableId, isReadable } from "./util/safe";
 import { createSignal } from "./util/signal";
-import { buttonKey } from "./util/text";
+import { buildButtonKey } from "./util/text";
 
 /** The bars were mapped again. */
 export const barsMapped = createSignal();
@@ -43,19 +43,19 @@ function clear<K extends AnyNotNil, V>(map: LuaMap<K, V>): void {
 
 /** A value equal to `expected`; secret values never are (comparing them would raise an error). */
 function isToken(value: unknown, expected: string): boolean {
-    return readable(value) && value === expected;
+    return isReadable(value) && value === expected;
 }
 
-function readableSpellName(spellId: number | undefined): string | undefined {
-    const id = plainId(spellId);
+function getReadableSpellName(spellId: number | undefined): string | undefined {
+    const id = getReadableId(spellId);
     if (id === undefined) return undefined;
-    const name = spellInfo(id)?.name;
-    return name !== undefined && readable(name) && name !== "" ? name : undefined;
+    const name = getSpellInfo(id)?.name;
+    return name !== undefined && isReadable(name) && name !== "" ? name : undefined;
 }
 
 /** A texture key: a readable file ID or a lowercase path. */
-function textureKey(value: unknown): number | string | undefined {
-    if (!readable(value) || value === 0 || value === "") return undefined;
+function getTextureKey(value: unknown): number | string | undefined {
+    if (!isReadable(value) || value === 0 || value === "") return undefined;
     if (type(value) === "number" && (value as number) > 0) return value as number;
     if (type(value) === "string") return string.lower(value as string);
     return undefined;
@@ -66,15 +66,15 @@ function textureKey(value: unknown): number | string | undefined {
 
 function addSpellName(name: string, button: ActionButton): void {
     push(buttonsByName, name, button);
-    const key = buttonKey(name);
+    const key = buildButtonKey(name);
     if (key !== undefined) push(buttonsByNameKey, key, button);
 }
 
 function addSpell(spellId: unknown, button: ActionButton): void {
-    const id = plainId(spellId);
+    const id = getReadableId(spellId);
     if (id === undefined) return;
     push(buttonsBySpell, id, button);
-    const name = readableSpellName(id);
+    const name = getReadableSpellName(id);
     if (name !== undefined) addSpellName(name, button);
 }
 
@@ -83,13 +83,13 @@ function addSpell(spellId: unknown, button: ActionButton): void {
  * `action` (a druid form or warrior stance pages the main bar, e.g. bear form to 73-84), while
  * its "action" attribute is the base slot 1-12, so the attribute comes last.
  */
-function actionSlot(button: ActionButton): number | undefined {
-    const valid = (slot: unknown) => (slot !== undefined && slot !== 0 ? (slot as number) : undefined);
+function getActionSlot(button: ActionButton): number | undefined {
+    const toValidSlot = (slot: unknown) => (slot !== undefined && slot !== 0 ? (slot as number) : undefined);
     return (
-        valid(button.GetPagedID ? attempt(() => button.GetPagedID!()) : undefined) ??
-        valid(button.CalculateAction ? attempt(() => button.CalculateAction!()) : undefined) ??
-        valid(button.action) ??
-        valid(tonumber(attempt(() => button.GetAttribute("action"))))
+        toValidSlot(button.GetPagedID ? attempt(() => button.GetPagedID!()) : undefined) ??
+        toValidSlot(button.CalculateAction ? attempt(() => button.CalculateAction!()) : undefined) ??
+        toValidSlot(button.action) ??
+        toValidSlot(tonumber(attempt(() => button.GetAttribute("action"))))
     );
 }
 
@@ -99,7 +99,7 @@ function hasAction(slot: number): boolean {
 
 function addIcons(button: ActionButton, slot: number): void {
     const add = (value: unknown) => {
-        const key = textureKey(value);
+        const key = getTextureKey(value);
         if (key !== undefined) push(buttonsByIcon, key, button);
     };
     add(attempt(C_ActionBar.GetActionTexture, slot));
@@ -111,7 +111,7 @@ function addIcons(button: ActionButton, slot: number): void {
 /** Spells named on the cast lines of a macro (#showtooltip, /cast ...). */
 function addMacroSpells(macro: number | string, button: ActionButton): void {
     const body = attempt(GetMacroBody, macro);
-    if (body === undefined || !readable(body)) return;
+    if (body === undefined || !isReadable(body)) return;
     for (const [line] of string.gmatch(body, "[^\r\n]+")) {
         let [command] = string.match(line!, "^%s*#showtooltip%s+(.+)$");
         if (command === undefined) [command] = string.match(line!, "^%s*/%S+%s+(.+)$");
@@ -129,48 +129,48 @@ function addMacroToken(rawToken: string, button: ActionButton): void {
     if (token === "") return;
     const info = attempt(C_Spell.GetSpellInfo, token);
     if (info === undefined || type(info) !== "table") return;
-    addSpellName(readable(info.name) && info.name !== "" ? info.name : token, button);
+    addSpellName(isReadable(info.name) && info.name !== "" ? info.name : token, button);
     addSpell(info.spellID, button);
 }
 
 /** What the button casts: "spell" with a spell ID, "macro" with a macro, or nothing known. */
-function buttonAction(button: ActionButton, slot: number | undefined): LuaMultiReturn<[kind: string | undefined, id: unknown]> {
+function getButtonAction(button: ActionButton, slot: number | undefined): LuaMultiReturn<[kind: string | undefined, id: unknown]> {
     const attrType = attempt(() => button.GetAttribute("type"));
     if (attrType === "spell" || attrType === "macro") return $multi(attrType, attempt(() => button.GetAttribute(attrType)));
     if (attrType !== undefined && attrType !== "action") return $multi(attrType, undefined);
     if (slot === undefined || !hasAction(slot)) return $multi(attrType, undefined);
 
-    const [ok, kind, actionId, , spellFromAction] = attemptMulti(() => GetActionInfo(slot));
-    if (!ok) return $multi(attrType, undefined);
-    if (isToken(kind, "spell")) return $multi("spell", plainId(spellFromAction) ?? plainId(actionId));
+    const [didSucceed, kind, actionId, , spellFromAction] = attemptMulti(() => GetActionInfo(slot));
+    if (!didSucceed) return $multi(attrType, undefined);
+    if (isToken(kind, "spell")) return $multi("spell", getReadableId(spellFromAction) ?? getReadableId(actionId));
     if (isToken(kind, "macro")) return $multi("macro", actionId);
     if (isToken(kind, "item")) {
         // A poison, a warlock stone: the spell the item casts is what the reminders name
-        const itemId = plainId(actionId);
-        const [itemOk, , itemSpell] = attemptMulti(() => C_Item.GetItemSpell(itemId));
-        if (itemOk && plainId(itemSpell) !== undefined) return $multi("spell", plainId(itemSpell));
+        const itemId = getReadableId(actionId);
+        const [didReadItemSpell, , itemSpell] = attemptMulti(() => C_Item.GetItemSpell(itemId));
+        if (didReadItemSpell && getReadableId(itemSpell) !== undefined) return $multi("spell", getReadableId(itemSpell));
     }
     return $multi(attrType, undefined);
 }
 
 function addButton(button: ActionButton): void {
-    const slot = actionSlot(button);
-    let [kind, id] = buttonAction(button, slot);
+    const slot = getActionSlot(button);
+    let [kind, id] = getButtonAction(button, slot);
     if (kind === "macro" && id !== undefined) {
         const macro = id as number | string;
-        const macroSpell = plainId(attempt(GetMacroSpell, macro));
+        const macroSpell = getReadableId(attempt(GetMacroSpell, macro));
         if (macroSpell !== undefined) [kind, id] = ["spell", macroSpell];
         addMacroSpells(macro, button);
     }
     if (slot !== undefined && hasAction(slot)) addIcons(button, slot);
-    if (kind === "spell" && id !== undefined) addSpell(plainId(spellInfo(plainId(id))?.spellID) ?? plainId(id), button);
+    if (kind === "spell" && id !== undefined) addSpell(getReadableId(getSpellInfo(getReadableId(id))?.spellID) ?? getReadableId(id), button);
 }
 
 type QueueEntry = { button: ActionButton } | { stance: number; button: ActionButton | undefined };
 
 /** Maps every action button, a few per frame. `force` ignores the throttle. */
-export function mapBars(force: boolean): void {
-    if (!force && lastMapAt > 0 && GetTime() - lastMapAt < MAP_THROTTLE) return;
+export function mapBars(isForced: boolean): void {
+    if (!isForced && lastMapAt > 0 && GetTime() - lastMapAt < MAP_THROTTLE) return;
     clear(buttonsBySpell);
     clear(buttonsByName);
     clear(buttonsByNameKey);
@@ -191,21 +191,21 @@ export function mapBars(force: boolean): void {
     mapGeneration += 1;
     const generation = mapGeneration;
     let next = 0;
-    const pump = () => {
+    const mapNextButtons = () => {
         if (generation !== mapGeneration) return;
         for (let budget = MAP_BUDGET; next < queue.length && budget > 0; budget--) {
             const entry = queue[next++]!;
             if (!("stance" in entry)) {
                 addButton(entry.button);
             } else if (entry.button) {
-                const [ok, , , , spellId] = attemptMulti(() => GetShapeshiftFormInfo(entry.stance));
-                if (ok) addSpell(spellId, entry.button);
+                const [didSucceed, , , , spellId] = attemptMulti(() => GetShapeshiftFormInfo(entry.stance));
+                if (didSucceed) addSpell(spellId, entry.button);
             }
         }
-        if (next < queue.length) C_Timer.After(0, pump);
+        if (next < queue.length) C_Timer.After(0, mapNextButtons);
         else barsMapped.emit();
     };
-    pump();
+    mapNextButtons();
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -214,11 +214,11 @@ export function mapBars(force: boolean): void {
 function addIconKeys(spellId: number | undefined, keys: LuaSet<number | string>): void {
     if (spellId === undefined) return;
     const add = (value: unknown) => {
-        const key = textureKey(value);
+        const key = getTextureKey(value);
         if (key !== undefined) keys.add(key);
     };
     add(attempt(() => C_Spell.GetSpellTexture(spellId)));
-    const info = spellInfo(spellId);
+    const info = getSpellInfo(spellId);
     if (info) {
         add(info.iconID);
         add(info.originalIconID);
@@ -226,7 +226,7 @@ function addIconKeys(spellId: number | undefined, keys: LuaSet<number | string>)
 }
 
 /** The buttons a spell sits on: by ID, resolved ID, name, and (rarely shared) icon. */
-export function buttonsFor(spellId: number | undefined): ActionButton[] {
+export function findButtonsOf(spellId: number | undefined): ActionButton[] {
     const out: ActionButton[] = [];
     const seen = new LuaSet<ActionButton>();
     const take = (list: ActionButton[] | undefined) => {
@@ -237,14 +237,14 @@ export function buttonsFor(spellId: number | undefined): ActionButton[] {
             }
         }
     };
-    const id = plainId(spellId);
-    const resolved = plainId(resolve(spellId));
+    const id = getReadableId(spellId);
+    const resolved = getReadableId(resolve(spellId));
     if (id !== undefined) take(buttonsBySpell.get(id));
     if (resolved !== undefined && resolved !== id) take(buttonsBySpell.get(resolved));
-    const name = readableSpellName(id) ?? readableSpellName(resolved);
+    const name = getReadableSpellName(id) ?? getReadableSpellName(resolved);
     if (name !== undefined) {
         take(buttonsByName.get(name));
-        const key = buttonKey(name);
+        const key = buildButtonKey(name);
         if (key !== undefined) take(buttonsByNameKey.get(key));
     }
     const icons = new LuaSet<number | string>();
@@ -258,12 +258,12 @@ export function buttonsFor(spellId: number | undefined): ActionButton[] {
 }
 
 export function isOnBars(spellId: number | undefined): boolean {
-    return buttonsFor(spellId).length > 0;
+    return findButtonsOf(spellId).length > 0;
 }
 
 /** Names of the buttons a spell sits on (for the debug report). */
-export function buttonNamesFor(spellId: number | undefined): string[] {
-    return buttonsFor(spellId).map((button) => button.GetName() ?? "unnamed");
+export function getButtonNamesOf(spellId: number | undefined): string[] {
+    return findButtonsOf(spellId).map((button) => button.GetName() ?? "unnamed");
 }
 
 export interface OldRank {
@@ -274,16 +274,16 @@ export interface OldRank {
 }
 
 /** Every spell on the bars at a lower rank than the highest learned one, sorted by name. */
-export function oldRanksOnBars(): OldRank[] {
+export function findOutdatedRanks(): OldRank[] {
     const byName = new LuaMap<string, { id: number; rank: number }>();
     for (const [id] of buttonsBySpell) {
-        const name = readableSpellName(id);
-        const rank = name !== undefined ? spellRank(id) : undefined;
+        const name = getReadableSpellName(id);
+        const rank = name !== undefined ? getSpellRank(id) : undefined;
         if (name !== undefined && rank !== undefined && rank > (byName.get(name)?.rank ?? -1)) byName.set(name, { id, rank });
     }
     const out: OldRank[] = [];
     for (const [name, entry] of byName) {
-        const best = highestKnownRank(entry.id);
+        const best = getHighestRank(entry.id);
         if (best !== undefined && best > entry.rank) out.push({ id: entry.id, name, onBar: entry.rank, best });
     }
     out.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));

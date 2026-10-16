@@ -80,7 +80,7 @@ const L = {
 
 export type TextKey = keyof typeof L;
 
-export function T(key: TextKey): string {
+export function getText(key: TextKey): string {
     return L[key];
 }
 

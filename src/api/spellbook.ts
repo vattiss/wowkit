@@ -4,9 +4,9 @@
 // Performance rules learned on the Forever client: never walk the whole spellbook on
 // SPELLS_CHANGED or quest turn-in (it froze the client); build the index a few skill lines per
 // frame, and at most once every few seconds.
-import { attempt, attemptMulti, safe } from "../util/safe";
+import { attempt, attemptMulti, getReadable } from "../util/safe";
 import { createSignal } from "../util/signal";
-import { contains, spellBookKey } from "../util/text";
+import { contains, buildSpellBookKey } from "../util/text";
 
 const BANKS = [Enum.SpellBookSpellBank.Player, Enum.SpellBookSpellBank.Pet];
 /** Rebuilds that are not forced wait this long after the previous one. */
@@ -23,12 +23,12 @@ function readBookItem(slot: number, bank: Enum.SpellBookSpellBank): LuaMultiRetu
     const info = attempt(C_SpellBook.GetSpellBookItemInfo, slot, bank);
     if (info) {
         // The book also lists spells not learned yet: those are not known
-        if (safe(info.itemType) === Enum.SpellBookItemType.FutureSpell) return $multi();
-        return $multi(safe(info.name), safe(info.spellID));
+        if (getReadable(info.itemType) === Enum.SpellBookItemType.FutureSpell) return $multi();
+        return $multi(getReadable(info.name), getReadable(info.spellID));
     }
-    const [ok, name] = attemptMulti(() => C_SpellBook.GetSpellBookItemName(slot, bank));
-    if (!ok) return $multi();
-    return $multi(safe(name), undefined);
+    const [didSucceed, name] = attemptMulti(() => C_SpellBook.GetSpellBookItemName(slot, bank));
+    if (!didSucceed) return $multi();
+    return $multi(getReadable(name), undefined);
 }
 
 interface Entries {
@@ -44,7 +44,7 @@ export class SpellBookIndex {
 
     private entries: Entries | undefined;
     private generation = 0;
-    private building = false;
+    private isBuildRunning = false;
     private lastBuildAt = 0;
 
     isReady(): boolean {
@@ -52,24 +52,24 @@ export class SpellBookIndex {
     }
 
     isBuilding(): boolean {
-        return this.building;
+        return this.isBuildRunning;
     }
 
     /** The first spellbook ID of a spell name (undefined before the index is built). */
-    idFor(name: string): number | undefined {
-        return this.entries?.byName.get(spellBookKey(name));
+    findSpellIdByName(name: string): number | undefined {
+        return this.entries?.byName.get(buildSpellBookKey(name));
     }
 
     /** Every learned rank of a spell name. */
-    ranksFor(name: string): number[] {
-        return this.entries?.ranks.get(spellBookKey(name)) ?? [];
+    getRanksByName(name: string): number[] {
+        return this.entries?.ranks.get(buildSpellBookKey(name)) ?? [];
     }
 
     /** Drops the index; a running build is abandoned. */
     invalidate(): void {
         this.generation += 1;
         this.entries = undefined;
-        this.building = false;
+        this.isBuildRunning = false;
     }
 
     /**
@@ -79,20 +79,20 @@ export class SpellBookIndex {
      */
     noteLearned(id: number, name: string): void {
         if (!this.entries) return;
-        const key = spellBookKey(name);
+        const key = buildSpellBookKey(name);
         const ranks = this.entries.ranks.get(key) ?? [];
         this.entries.ranks.set(key, ranks);
         if (!ranks.includes(id)) ranks.push(id);
     }
 
     /** Rebuilds the index: all at once with `sync`, otherwise a few skill lines per frame. */
-    rebuild(sync: boolean): void {
-        if (this.building && !sync) return;
-        if (!sync && this.entries && GetTime() - this.lastBuildAt < MIN_REBUILD_INTERVAL) return;
+    rebuild(isImmediate: boolean): void {
+        if (this.isBuildRunning && !isImmediate) return;
+        if (!isImmediate && this.entries && GetTime() - this.lastBuildAt < MIN_REBUILD_INTERVAL) return;
         this.generation += 1;
         const generation = this.generation;
         this.entries = undefined;
-        this.building = true;
+        this.isBuildRunning = true;
         this.lastBuildAt = GetTime();
         const entries: Entries = { byName: new LuaMap(), ranks: new LuaMap() };
 
@@ -100,7 +100,7 @@ export class SpellBookIndex {
             for (const bank of BANKS) {
                 const [name, id] = readBookItem(slot, bank);
                 if (id !== undefined && name !== undefined && name !== "" && !isJunkSpellName(name)) {
-                    const key = spellBookKey(name);
+                    const key = buildSpellBookKey(name);
                     const ranks = entries.ranks.get(key);
                     if (ranks) ranks.push(id);
                     else entries.ranks.set(key, [id]);
@@ -112,10 +112,10 @@ export class SpellBookIndex {
         const lineCount = attempt(C_SpellBook.GetNumSpellBookSkillLines) ?? 0;
         let line = 1;
         let legacySlot = 1;
-        const pump = () => {
+        const readNextBatch = () => {
             if (generation !== this.generation) return;
             if (lineCount > 0) {
-                for (let budget = sync ? 99 : 2; line <= lineCount && budget > 0; line++, budget--) {
+                for (let budget = isImmediate ? 99 : 2; line <= lineCount && budget > 0; line++, budget--) {
                     const info = attempt(C_SpellBook.GetSpellBookSkillLineInfo, line);
                     if (info) {
                         const offset = tonumber(info.itemIndexOffset) ?? 0;
@@ -123,17 +123,17 @@ export class SpellBookIndex {
                         for (let slot = offset + 1; slot <= offset + count; slot++) readSlot(slot);
                     }
                 }
-                if (line <= lineCount) return C_Timer.After(0, pump);
+                if (line <= lineCount) return C_Timer.After(0, readNextBatch);
             } else {
                 // No skill lines reported: read the first 400 slots
-                for (let budget = sync ? 400 : 40; legacySlot <= 400 && budget > 0; legacySlot++, budget--) readSlot(legacySlot);
-                if (legacySlot <= 400) return C_Timer.After(0, pump);
+                for (let budget = isImmediate ? 400 : 40; legacySlot <= 400 && budget > 0; legacySlot++, budget--) readSlot(legacySlot);
+                if (legacySlot <= 400) return C_Timer.After(0, readNextBatch);
             }
             this.entries = entries;
-            this.building = false;
+            this.isBuildRunning = false;
             this.built.emit();
         };
-        if (sync) pump();
-        else C_Timer.After(0, pump);
+        if (isImmediate) readNextBatch();
+        else C_Timer.After(0, readNextBatch);
     }
 }
