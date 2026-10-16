@@ -1,0 +1,27 @@
+{
+  // Addon sources: compiled to a single Lua file by TypeScriptToLua
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": ["ESNext"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "types": ["lua-types/5.1", "@typescript-to-lua/language-extensions"],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "rootDir": ".",
+    "outDir": "dist/ForeverReminders"
+  },
+  "include": ["src/**/*.ts", "types/**/*.d.ts"],
+  "tstl": {
+    // WoW embeds Lua 5.1
+    "luaTarget": "5.1",
+    // One self-contained file; WoW has no `require`
+    "luaBundle": "ForeverReminders.lua",
+    "luaBundleEntry": "src/main.ts",
+    "luaLibImport": "require-minimal",
+    // Plain functions do not take a hidden `self`; methods of interfaces/classes still do (`:` calls)
+    "noImplicitSelf": true,
+    "noHeader": true
+  }
+}

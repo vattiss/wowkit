@@ -1,0 +1,40 @@
+{
+  "name": "forever-reminders",
+  "version": "0.1.0",
+  "description": "World of Warcraft: Forever addon reminding of missing buffs, weapon buffs, spells missing from the action bars and old spell ranks; written in TypeScript and compiled to Lua with TypeScriptToLua",
+  "private": true,
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vattiss/forever-reminders.git"
+  },
+  "author": "Attila Varga",
+  "license": "ISC",
+  "addon": {
+    "name": "ForeverReminders"
+  },
+  "wowUiSource": {
+    "repository": "https://github.com/Gethe/wow-ui-source.git",
+    "branch": "forever",
+    "commit": "b401e0332adfbf0460d319b06d8ea29279a941f1"
+  },
+  "scripts": {
+    "fetch:wow-ui": "node scripts/fetch-wow-ui-source.ts",
+    "fetch:wow-ui:latest": "node scripts/fetch-wow-ui-source.ts --latest",
+    "gen:types": "node scripts/generate-wow-types.ts",
+    "build": "tstl -p tsconfig.json && node scripts/package-addon.ts",
+    "watch": "node scripts/package-addon.ts && tstl -p tsconfig.json --watch",
+    "deploy": "npm run build && node scripts/deploy.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.scripts.json",
+    "test": "npm run build && node scripts/smoke-test.ts"
+  },
+  "devDependencies": {
+    "@types/luaparse": "^0.2.13",
+    "@types/node": "^26.6.5",
+    "@typescript-to-lua/language-extensions": "^1.19.0",
+    "lua-types": "^2.14.1",
+    "luaparse": "^0.3.1",
+    "typescript": "6.0.2",
+    "typescript-to-lua": "^1.37.1"
+  }
+}
