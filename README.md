@@ -54,7 +54,8 @@ Diagrams of the build pipeline, the layers and the signals: [docs/architecture.m
 ```
 src/            addon sources, bundled into one Lua file
   main.ts            entry point; wires the modules together
-  core.ts            the 0.2 s tick, notices and game events
+  core/              the reminder loop: game-events.ts (which event does what), refresh.ts (when to
+                     look again), tick.ts, then two stages: find-reminders.ts and show-reminders.ts
   reminders/         what to remind about: missing buffs, weapon buffs, party buffs, reagents
   wow/               the only code that calls the game: spells, auras, action bars, player, party,
                      bags, clock, events, glows and notices, saved data, protected calls

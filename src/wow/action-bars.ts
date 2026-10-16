@@ -4,6 +4,7 @@
 // Forever rules: never call C_TooltipInfo.GetAction while mapping the bars (tooltips froze the
 // client when many slots updated after a quest turn-in), and map the bars a few buttons per frame.
 // Only Blizzard's own bars are mapped (no Bartender4, Dominos or ElvUI).
+import { getCurrentTime } from "./clock";
 import { getHighestRank, resolve, getSpellInfo, getSpellRank } from "./spells";
 import { attempt, attemptMulti, getReadableId, isReadable } from "./safe";
 import { createSignal } from "../util/signal";
@@ -26,6 +27,16 @@ const buttonsByNameKey = new LuaMap<string, ActionButton[]>();
 const buttonsByIcon = new LuaMap<number | string, ActionButton[]>();
 let lastMapAt = 0;
 let mapGeneration = 0;
+/** When the player last changed the bars (a form, a stance, a page, a slot); the map is old until it is mapped again. */
+let barsChangedAt = -10;
+
+export function noteBarsChanged(): void {
+    barsChangedAt = getCurrentTime();
+}
+
+export function getSecondsSinceBarsChanged(): number {
+    return getCurrentTime() - barsChangedAt;
+}
 
 function getGlobal<T>(name: string): T | undefined {
     return (_G as unknown as { [name: string]: T | undefined })[name];
@@ -170,12 +181,12 @@ type QueueEntry = { button: ActionButton } | { stance: number; button: ActionBut
 
 /** Maps every action button, a few per frame. `force` ignores the throttle. */
 export function mapBars(isForced: boolean): void {
-    if (!isForced && lastMapAt > 0 && GetTime() - lastMapAt < MAP_THROTTLE) return;
+    if (!isForced && lastMapAt > 0 && getCurrentTime() - lastMapAt < MAP_THROTTLE) return;
     clear(buttonsBySpell);
     clear(buttonsByName);
     clear(buttonsByNameKey);
     clear(buttonsByIcon);
-    lastMapAt = GetTime();
+    lastMapAt = getCurrentTime();
 
     const queue: QueueEntry[] = [];
     const add = (name: string) => {

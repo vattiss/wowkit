@@ -57,7 +57,17 @@ news for something above it, it fires a signal (see below).
 ```mermaid
 flowchart TB
     main["main.ts<br/>wires everything together"]
-    core["core.ts<br/>the 0.2 s tick, game events, notices"]
+
+    subgraph core["core/ (when to look, and what one look does)"]
+        gameEvents["game-events.ts<br/>which event does what"]
+        refresh["refresh.ts, town-visit.ts<br/>when to look again"]
+        tick["tick.ts<br/>one tick"]
+        find["find-reminders.ts<br/>stage 1: what is due"]
+        show["show-reminders.ts, notices.ts<br/>stage 2: sounds, notice, glows"]
+        gameEvents --> refresh --> tick
+        tick --> find
+        tick --> show
+    end
 
     subgraph ui["ui/ (may call the game: Settings panel)"]
         optionsPage["options-page.ts<br/>the Settings panel pages"]
@@ -110,40 +120,38 @@ flowchart LR
     spellbook["SpellBookIndex.built"] --> spells["wow/spells.ts"]
     spells -- "spellsInvalidated" --> auras["wow/auras.ts<br/>drops aura scans"]
     spells -- "spellsInvalidated" --> weaponChoice["weapon-choice.ts<br/>drops name caches"]
-    spells -- "spellBookIndexed" --> core["core.ts<br/>ticks again"]
-    actionBars["wow/action-bars.ts"] -- "barsMapped" --> core
-    settings["settings.ts"] -- "settingChanged" --> core
+    spells -- "spellBookIndexed" --> events["core/game-events.ts<br/>ticks again"]
+    actionBars["wow/action-bars.ts"] -- "barsMapped" --> events
+    settings["settings.ts"] -- "settingChanged" --> events
     settings -- "settingChanged (isDebugMode)" --> diagnostics["ui/diagnostics.ts"]
     safe["wow/safe.ts"] -- "swallowedError" --> diagnostics
-    core -- "booted" --> main["main.ts<br/>registers options,<br/>starts debug"]
+    events -- "booted" --> main["main.ts<br/>registers options,<br/>starts debug"]
 ```
 
-## One tick
+## One tick: a two-stage pipeline
 
-Every 0.2 seconds (and on the next frame after relevant events) the core decides what glows and
-what the notice says.
+Every 0.2 seconds (and on the next frame after relevant events) a tick runs. It has two stages and
+one value passed between them, so the stage that decides never shows anything, and the stage that
+shows never decides.
 
 ```mermaid
 sequenceDiagram
-    participant Core as core.ts
-    participant Player as wow/player
-    participant Buff as buff-reminder
-    participant Bars as wow/action-bars
-    participant Weapon as WeaponReminder
+    participant Tick as core/tick
+    participant Find as core/find-reminders
+    participant Logic as reminders/*
+    participant Show as core/show-reminders
     participant Screen as wow/glow, wow/notice
 
-    Core->>Buff: rememberSelfBuffs() (out of combat)
-    Core->>Player: shouldStayIdle(quietWhenResting)
-    alt not idle
-        Core->>Buff: findMissingBuffs()
-        Buff->>Bars: isOnBars(spell)
-        Buff-->>Core: glow, notOnBars
-        Core->>Weapon: check()
-        Weapon-->>Core: spellId, remain, isNeeded
-        Core->>Core: findPartyBuffSuggestions() (out of combat, at most every 1 s)
-    end
-    Core->>Screen: playAlertSound() when a reminder is new
-    Core->>Bars: findOutdatedRanks()
-    Core->>Screen: showNotice(lines) (repeats at most every 30 s)
-    Core->>Screen: glow.show(spells, color) (only on change)
+    Tick->>Find: findReminders()
+    Find->>Logic: rememberSelfBuffs() (out of combat)
+    Note over Find: idle or muted: nothing is due
+    Find->>Logic: findMissingBuffs(), findPartyBuffSuggestions(), weaponReminder.check()
+    Find-->>Tick: Reminders (buffsToCast, weaponSpell, buffsNotOnBars, partySuggestions, outdatedRanks)
+    Tick->>Show: showReminders(reminders)
+    Show->>Screen: playAlertSound() for what is new
+    Show->>Screen: showNotice(lines) (the same message not again within 30 s)
+    Show->>Screen: glow.show(spells, color) (only when the set changed)
 ```
+
+The triggers are separate: `game-events.ts` lists which game event matters, and `refresh.ts`
+merges and delays the requests (event bursts froze Forever once), then calls `tick`.

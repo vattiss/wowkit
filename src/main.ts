@@ -2,7 +2,7 @@
 // WoW runs each addon file with `...` = (addonName, addonTable).
 import { setBuffDurationLookup } from "./wow/auras";
 import { getBuffSeconds } from "./reminders/class-buffs";
-import { booted, start } from "./core";
+import { booted, startGameEvents } from "./core/game-events";
 import { initDebug, applyDebugMode } from "./ui/diagnostics";
 import { registerOptions } from "./ui/options-page";
 
@@ -15,4 +15,4 @@ booted.listen(() => {
     registerOptions();
     applyDebugMode();
 });
-start(addonName);
+startGameEvents(addonName);
