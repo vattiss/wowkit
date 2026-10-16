@@ -1,0 +1,139 @@
+// The spellbook index: every learned spell by name, with all of its ranks (each rank is a
+// separate spellbook entry).
+//
+// Performance rules learned on the Forever client: never walk the whole spellbook on
+// SPELLS_CHANGED or quest turn-in (it froze the client); build the index a few skill lines per
+// frame, and at most once every few seconds.
+import { attempt, attemptMulti, safe } from "../util/safe";
+import { createSignal } from "../util/signal";
+import { contains, spellBookKey } from "../util/text";
+
+const BANKS = [Enum.SpellBookSpellBank.Player, Enum.SpellBookSpellBank.Pet];
+/** Rebuilds that are not forced wait this long after the previous one. */
+const MIN_REBUILD_INTERVAL = 5;
+
+/** Test spells and old versions the client also knows by the same name. */
+export function isJunkSpellName(name: string | undefined): boolean {
+    if (name === undefined) return true;
+    const upper = string.upper(name);
+    return contains(upper, "TEST") || contains(upper, "(OLD)") || contains(upper, "(PT)");
+}
+
+function readBookItem(slot: number, bank: Enum.SpellBookSpellBank): LuaMultiReturn<[name?: string, id?: number]> {
+    const info = attempt(C_SpellBook.GetSpellBookItemInfo, slot, bank);
+    if (info) {
+        // The book also lists spells not learned yet: those are not known
+        if (safe(info.itemType) === Enum.SpellBookItemType.FutureSpell) return $multi();
+        return $multi(safe(info.name), safe(info.spellID));
+    }
+    const [ok, name] = attemptMulti(() => C_SpellBook.GetSpellBookItemName(slot, bank));
+    if (!ok) return $multi();
+    return $multi(safe(name), undefined);
+}
+
+interface Entries {
+    /** First spellbook ID per name key. */
+    byName: LuaMap<string, number>;
+    /** Every learned rank per name key. */
+    ranks: LuaMap<string, number[]>;
+}
+
+export class SpellBookIndex {
+    /** A rebuild finished. */
+    readonly built = createSignal();
+
+    private entries: Entries | undefined;
+    private generation = 0;
+    private building = false;
+    private lastBuildAt = 0;
+
+    isReady(): boolean {
+        return this.entries !== undefined;
+    }
+
+    isBuilding(): boolean {
+        return this.building;
+    }
+
+    /** The first spellbook ID of a spell name (undefined before the index is built). */
+    idFor(name: string): number | undefined {
+        return this.entries?.byName.get(spellBookKey(name));
+    }
+
+    /** Every learned rank of a spell name. */
+    ranksFor(name: string): number[] {
+        return this.entries?.ranks.get(spellBookKey(name)) ?? [];
+    }
+
+    /** Drops the index; a running build is abandoned. */
+    invalidate(): void {
+        this.generation += 1;
+        this.entries = undefined;
+        this.building = false;
+    }
+
+    /**
+     * A spell was just learned: add it to the ranks of its name. The index is not rebuilt on
+     * learning (a full book walk froze the client), so without this a new rank would only show
+     * after a /reload.
+     */
+    noteLearned(id: number, name: string): void {
+        if (!this.entries) return;
+        const key = spellBookKey(name);
+        const ranks = this.entries.ranks.get(key) ?? [];
+        this.entries.ranks.set(key, ranks);
+        if (!ranks.includes(id)) ranks.push(id);
+    }
+
+    /** Rebuilds the index: all at once with `sync`, otherwise a few skill lines per frame. */
+    rebuild(sync: boolean): void {
+        if (this.building && !sync) return;
+        if (!sync && this.entries && GetTime() - this.lastBuildAt < MIN_REBUILD_INTERVAL) return;
+        this.generation += 1;
+        const generation = this.generation;
+        this.entries = undefined;
+        this.building = true;
+        this.lastBuildAt = GetTime();
+        const entries: Entries = { byName: new LuaMap(), ranks: new LuaMap() };
+
+        const readSlot = (slot: number) => {
+            for (const bank of BANKS) {
+                const [name, id] = readBookItem(slot, bank);
+                if (id !== undefined && name !== undefined && name !== "" && !isJunkSpellName(name)) {
+                    const key = spellBookKey(name);
+                    const ranks = entries.ranks.get(key);
+                    if (ranks) ranks.push(id);
+                    else entries.ranks.set(key, [id]);
+                    if (!entries.byName.has(key)) entries.byName.set(key, id);
+                }
+            }
+        };
+
+        const lineCount = attempt(C_SpellBook.GetNumSpellBookSkillLines) ?? 0;
+        let line = 1;
+        let legacySlot = 1;
+        const pump = () => {
+            if (generation !== this.generation) return;
+            if (lineCount > 0) {
+                for (let budget = sync ? 99 : 2; line <= lineCount && budget > 0; line++, budget--) {
+                    const info = attempt(C_SpellBook.GetSpellBookSkillLineInfo, line);
+                    if (info) {
+                        const offset = tonumber(info.itemIndexOffset) ?? 0;
+                        const count = tonumber(info.numSpellBookItems) ?? 0;
+                        for (let slot = offset + 1; slot <= offset + count; slot++) readSlot(slot);
+                    }
+                }
+                if (line <= lineCount) return C_Timer.After(0, pump);
+            } else {
+                // No skill lines reported: read the first 400 slots
+                for (let budget = sync ? 400 : 40; legacySlot <= 400 && budget > 0; legacySlot++, budget--) readSlot(legacySlot);
+                if (legacySlot <= 400) return C_Timer.After(0, pump);
+            }
+            this.entries = entries;
+            this.building = false;
+            this.built.emit();
+        };
+        if (sync) pump();
+        else C_Timer.After(0, pump);
+    }
+}
