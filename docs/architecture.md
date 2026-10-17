@@ -40,8 +40,9 @@ The WoW API typings are generated from Blizzard's own API documentation; the add
 one Lua 5.1 file by TypeScriptToLua (TSTL) and packaged with its TOC.
 
 ```mermaid
-%%{init: {"theme": "base", "themeVariables": {"background": "#ffffff", "lineColor": "#6b7280", "textColor": "#111827", "primaryColor": "#f1f5f9", "primaryTextColor": "#111827", "primaryBorderColor": "#94a3b8", "secondaryColor": "#e2e8f0", "tertiaryColor": "#ffffff", "edgeLabelBackground": "#ffffff", "clusterBkg": "#ffffff", "clusterBorder": "#d1d5db", "actorBkg": "#f1f5f9", "actorTextColor": "#111827", "actorBorder": "#94a3b8", "actorLineColor": "#6b7280", "signalColor": "#374151", "signalTextColor": "#111827", "noteBkgColor": "#fef9c3", "noteTextColor": "#111827"}}}%%
+%%{init: {"theme":"base","themeVariables":{"background":"#ffffff","lineColor":"#6b7280","textColor":"#111827","primaryColor":"#f1f5f9","primaryTextColor":"#111827","primaryBorderColor":"#94a3b8","secondaryColor":"#e2e8f0","tertiaryColor":"#ffffff","mainBkg":"#f1f5f9","nodeBorder":"#94a3b8","nodeTextColor":"#111827","titleColor":"#111827","edgeLabelBackground":"#ffffff","labelBackground":"#ffffff","labelTextColor":"#111827","clusterBkg":"#ffffff","clusterBorder":"#d1d5db","classText":"#111827","actorBkg":"#f1f5f9","actorTextColor":"#111827","actorBorder":"#94a3b8","actorLineColor":"#6b7280","signalColor":"#374151","signalTextColor":"#111827","noteBkgColor":"#fef9c3","noteTextColor":"#111827","noteBorderColor":"#ca8a04"}}}%%
 flowchart LR
+    classDef default fill:#f1f5f9,stroke:#94a3b8,color:#111827
     subgraph PANEL[" "]
         subgraph upstream["Gethe/wow-ui-source (forever branch)"]
             docs["Blizzard_APIDocumentationGenerated/*.lua<br/>642 documentation tables"]
@@ -74,8 +75,9 @@ flowchart LR
 services. An arrow means "uses services of".
 
 ```mermaid
-%%{init: {"theme": "base", "themeVariables": {"background": "#ffffff", "lineColor": "#6b7280", "textColor": "#111827", "primaryColor": "#f1f5f9", "primaryTextColor": "#111827", "primaryBorderColor": "#94a3b8", "secondaryColor": "#e2e8f0", "tertiaryColor": "#ffffff", "edgeLabelBackground": "#ffffff", "clusterBkg": "#ffffff", "clusterBorder": "#d1d5db", "actorBkg": "#f1f5f9", "actorTextColor": "#111827", "actorBorder": "#94a3b8", "actorLineColor": "#6b7280", "signalColor": "#374151", "signalTextColor": "#111827", "noteBkgColor": "#fef9c3", "noteTextColor": "#111827"}}}%%
+%%{init: {"theme":"base","themeVariables":{"background":"#ffffff","lineColor":"#6b7280","textColor":"#111827","primaryColor":"#f1f5f9","primaryTextColor":"#111827","primaryBorderColor":"#94a3b8","secondaryColor":"#e2e8f0","tertiaryColor":"#ffffff","mainBkg":"#f1f5f9","nodeBorder":"#94a3b8","nodeTextColor":"#111827","titleColor":"#111827","edgeLabelBackground":"#ffffff","labelBackground":"#ffffff","labelTextColor":"#111827","clusterBkg":"#ffffff","clusterBorder":"#d1d5db","classText":"#111827","actorBkg":"#f1f5f9","actorTextColor":"#111827","actorBorder":"#94a3b8","actorLineColor":"#6b7280","signalColor":"#374151","signalTextColor":"#111827","noteBkgColor":"#fef9c3","noteTextColor":"#111827","noteBorderColor":"#ca8a04"}}}%%
 flowchart TB
+    classDef default fill:#f1f5f9,stroke:#94a3b8,color:#111827
     subgraph PANEL[" "]
         main["main.ts<br/>startAddon()"] --> wiring["addon.ts<br/>makes every service, in order"]
 
@@ -136,8 +138,9 @@ The code is plain classes, but they follow a few well-known patterns, and the st
 are named. Each colour below is one pattern; a grey box is plain domain code with no pattern of its own.
 
 ```mermaid
-%%{init: {"theme": "base", "themeVariables": {"background": "#ffffff", "lineColor": "#6b7280", "textColor": "#111827", "primaryColor": "#f1f5f9", "primaryTextColor": "#111827", "primaryBorderColor": "#94a3b8", "secondaryColor": "#e2e8f0", "tertiaryColor": "#ffffff", "edgeLabelBackground": "#ffffff", "clusterBkg": "#ffffff", "clusterBorder": "#d1d5db", "actorBkg": "#f1f5f9", "actorTextColor": "#111827", "actorBorder": "#94a3b8", "actorLineColor": "#6b7280", "signalColor": "#374151", "signalTextColor": "#111827", "noteBkgColor": "#fef9c3", "noteTextColor": "#111827"}}}%%
+%%{init: {"theme":"base","themeVariables":{"background":"#ffffff","lineColor":"#6b7280","textColor":"#111827","primaryColor":"#f1f5f9","primaryTextColor":"#111827","primaryBorderColor":"#94a3b8","secondaryColor":"#e2e8f0","tertiaryColor":"#ffffff","mainBkg":"#f1f5f9","nodeBorder":"#94a3b8","nodeTextColor":"#111827","titleColor":"#111827","edgeLabelBackground":"#ffffff","labelBackground":"#ffffff","labelTextColor":"#111827","clusterBkg":"#ffffff","clusterBorder":"#d1d5db","classText":"#111827","actorBkg":"#f1f5f9","actorTextColor":"#111827","actorBorder":"#94a3b8","actorLineColor":"#6b7280","signalColor":"#374151","signalTextColor":"#111827","noteBkgColor":"#fef9c3","noteTextColor":"#111827","noteBorderColor":"#ca8a04"}}}%%
 flowchart TB
+    classDef default fill:#f1f5f9,stroke:#94a3b8,color:#111827
     classDef panel fill:#ffffff,stroke:#d1d5db,color:#111827
     classDef root fill:#e5e7eb,stroke:#4b5563,color:#111827
     classDef facade fill:#dbeafe,stroke:#2563eb,color:#111827
@@ -231,7 +234,7 @@ missing, so the answer is not a plain read. The reminder asks the *reading* serv
 timeline in the *memory* service.
 
 ```mermaid
-%%{init: {"theme": "base", "themeVariables": {"background": "#ffffff", "lineColor": "#6b7280", "textColor": "#111827", "primaryColor": "#f1f5f9", "primaryTextColor": "#111827", "primaryBorderColor": "#94a3b8", "secondaryColor": "#e2e8f0", "tertiaryColor": "#ffffff", "edgeLabelBackground": "#ffffff", "clusterBkg": "#ffffff", "clusterBorder": "#d1d5db", "actorBkg": "#f1f5f9", "actorTextColor": "#111827", "actorBorder": "#94a3b8", "actorLineColor": "#6b7280", "signalColor": "#374151", "signalTextColor": "#111827", "noteBkgColor": "#fef9c3", "noteTextColor": "#111827"}}}%%
+%%{init: {"theme":"base","themeVariables":{"background":"#ffffff","lineColor":"#6b7280","textColor":"#111827","primaryColor":"#f1f5f9","primaryTextColor":"#111827","primaryBorderColor":"#94a3b8","secondaryColor":"#e2e8f0","tertiaryColor":"#ffffff","mainBkg":"#f1f5f9","nodeBorder":"#94a3b8","nodeTextColor":"#111827","titleColor":"#111827","edgeLabelBackground":"#ffffff","labelBackground":"#ffffff","labelTextColor":"#111827","clusterBkg":"#ffffff","clusterBorder":"#d1d5db","classText":"#111827","actorBkg":"#f1f5f9","actorTextColor":"#111827","actorBorder":"#94a3b8","actorLineColor":"#6b7280","signalColor":"#374151","signalTextColor":"#111827","noteBkgColor":"#fef9c3","noteTextColor":"#111827","noteBorderColor":"#ca8a04"}}}%%
 classDiagram
     direction LR
     classDef state fill:#f3e8ff,stroke:#9333ea,color:#111827
@@ -271,7 +274,7 @@ classDiagram
 aura services of `@forever/wow` (blue).
 
 ```mermaid
-%%{init: {"theme": "base", "themeVariables": {"background": "#ffffff", "lineColor": "#6b7280", "textColor": "#111827", "primaryColor": "#f1f5f9", "primaryTextColor": "#111827", "primaryBorderColor": "#94a3b8", "secondaryColor": "#e2e8f0", "tertiaryColor": "#ffffff", "edgeLabelBackground": "#ffffff", "clusterBkg": "#ffffff", "clusterBorder": "#d1d5db", "actorBkg": "#f1f5f9", "actorTextColor": "#111827", "actorBorder": "#94a3b8", "actorLineColor": "#6b7280", "signalColor": "#374151", "signalTextColor": "#111827", "noteBkgColor": "#fef9c3", "noteTextColor": "#111827"}}}%%
+%%{init: {"theme":"base","themeVariables":{"background":"#ffffff","lineColor":"#6b7280","textColor":"#111827","primaryColor":"#f1f5f9","primaryTextColor":"#111827","primaryBorderColor":"#94a3b8","secondaryColor":"#e2e8f0","tertiaryColor":"#ffffff","mainBkg":"#f1f5f9","nodeBorder":"#94a3b8","nodeTextColor":"#111827","titleColor":"#111827","edgeLabelBackground":"#ffffff","labelBackground":"#ffffff","labelTextColor":"#111827","clusterBkg":"#ffffff","clusterBorder":"#d1d5db","classText":"#111827","actorBkg":"#f1f5f9","actorTextColor":"#111827","actorBorder":"#94a3b8","actorLineColor":"#6b7280","signalColor":"#374151","signalTextColor":"#111827","noteBkgColor":"#fef9c3","noteTextColor":"#111827","noteBorderColor":"#ca8a04"}}}%%
 classDiagram
     direction LR
     classDef invert fill:#fee2e2,stroke:#dc2626,color:#111827
@@ -302,8 +305,9 @@ upper one. It emits a named event on the `EventBus` (Nest's EventEmitter) and th
 `@OnEvent("name")`. Each event is declared next to the service that emits it, by adding to `AppEvents`.
 
 ```mermaid
-%%{init: {"theme": "base", "themeVariables": {"background": "#ffffff", "lineColor": "#6b7280", "textColor": "#111827", "primaryColor": "#f1f5f9", "primaryTextColor": "#111827", "primaryBorderColor": "#94a3b8", "secondaryColor": "#e2e8f0", "tertiaryColor": "#ffffff", "edgeLabelBackground": "#ffffff", "clusterBkg": "#ffffff", "clusterBorder": "#d1d5db", "actorBkg": "#f1f5f9", "actorTextColor": "#111827", "actorBorder": "#94a3b8", "actorLineColor": "#6b7280", "signalColor": "#374151", "signalTextColor": "#111827", "noteBkgColor": "#fef9c3", "noteTextColor": "#111827"}}}%%
+%%{init: {"theme":"base","themeVariables":{"background":"#ffffff","lineColor":"#6b7280","textColor":"#111827","primaryColor":"#f1f5f9","primaryTextColor":"#111827","primaryBorderColor":"#94a3b8","secondaryColor":"#e2e8f0","tertiaryColor":"#ffffff","mainBkg":"#f1f5f9","nodeBorder":"#94a3b8","nodeTextColor":"#111827","titleColor":"#111827","edgeLabelBackground":"#ffffff","labelBackground":"#ffffff","labelTextColor":"#111827","clusterBkg":"#ffffff","clusterBorder":"#d1d5db","classText":"#111827","actorBkg":"#f1f5f9","actorTextColor":"#111827","actorBorder":"#94a3b8","actorLineColor":"#6b7280","signalColor":"#374151","signalTextColor":"#111827","noteBkgColor":"#fef9c3","noteTextColor":"#111827","noteBorderColor":"#ca8a04"}}}%%
 flowchart LR
+    classDef default fill:#f1f5f9,stroke:#94a3b8,color:#111827
     subgraph PANEL[" "]
         spellbook["SpellBookService"] -- "spellbook.built" --> spells["SpellsService"]
         spells -- "spells.invalidated" --> auras["AurasService<br/>drops aura scans"]
@@ -330,7 +334,7 @@ and one value passed between them, so the stage that decides never shows anythin
 never decides.
 
 ```mermaid
-%%{init: {"theme": "base", "themeVariables": {"background": "#ffffff", "lineColor": "#6b7280", "textColor": "#111827", "primaryColor": "#f1f5f9", "primaryTextColor": "#111827", "primaryBorderColor": "#94a3b8", "secondaryColor": "#e2e8f0", "tertiaryColor": "#ffffff", "edgeLabelBackground": "#ffffff", "clusterBkg": "#ffffff", "clusterBorder": "#d1d5db", "actorBkg": "#f1f5f9", "actorTextColor": "#111827", "actorBorder": "#94a3b8", "actorLineColor": "#6b7280", "signalColor": "#374151", "signalTextColor": "#111827", "noteBkgColor": "#fef9c3", "noteTextColor": "#111827"}}}%%
+%%{init: {"theme":"base","themeVariables":{"background":"#ffffff","lineColor":"#6b7280","textColor":"#111827","primaryColor":"#f1f5f9","primaryTextColor":"#111827","primaryBorderColor":"#94a3b8","secondaryColor":"#e2e8f0","tertiaryColor":"#ffffff","mainBkg":"#f1f5f9","nodeBorder":"#94a3b8","nodeTextColor":"#111827","titleColor":"#111827","edgeLabelBackground":"#ffffff","labelBackground":"#ffffff","labelTextColor":"#111827","clusterBkg":"#ffffff","clusterBorder":"#d1d5db","classText":"#111827","actorBkg":"#f1f5f9","actorTextColor":"#111827","actorBorder":"#94a3b8","actorLineColor":"#6b7280","signalColor":"#374151","signalTextColor":"#111827","noteBkgColor":"#fef9c3","noteTextColor":"#111827","noteBorderColor":"#ca8a04"}}}%%
 sequenceDiagram
     participant Tick as tick/TickService
     participant Find as tick/FindRemindersService
