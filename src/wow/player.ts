@@ -4,11 +4,11 @@ import { OFF_HAND_SLOT } from "../constants";
 import { attempt, attemptMulti, getReadable, isReadable, tryCall } from "./safe";
 
 export function isInCombat(): boolean {
-    const [didSucceed, combat] = tryCall(UnitAffectingCombat, "player");
+    const [didSucceed, isFighting] = tryCall(UnitAffectingCombat, "player");
     if (!didSucceed) return false;
-    if (isReadable(combat)) return combat === true;
+    if (isReadable(isFighting)) return isFighting === true;
     // A secret answer: only comparing with nil is allowed
-    return combat !== undefined;
+    return isFighting !== undefined;
 }
 
 const EATING_AURAS = new LuaSet<string>();

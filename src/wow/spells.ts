@@ -129,9 +129,9 @@ export function isLearned(spellId: number | undefined): boolean {
  * answer. Battle Shout with 0 rage: false.
  */
 export function isCastable(spellId: number): boolean | undefined {
-    const [didSucceed, usable] = attemptMulti(() => C_Spell.IsSpellUsable(spellId));
-    if (!didSucceed || !isReadable(usable)) return undefined;
-    return usable === true;
+    const [didSucceed, isUsable] = attemptMulti(() => C_Spell.IsSpellUsable(spellId));
+    if (!didSucceed || !isReadable(isUsable)) return undefined;
+    return isUsable === true;
 }
 
 /** The texts of the spell's tooltip; undefined when the client has none. */

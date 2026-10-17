@@ -28,11 +28,11 @@ export function canReceiveBuffs(unit: UnitToken): boolean {
 
 /** Within casting range of the spell; the party range check when the spell cannot tell. */
 export function isInSpellRange(spellId: number, unit: UnitToken): boolean {
-    const inRange = getReadable(attempt(C_Spell.IsSpellInRange, spellId, unit));
-    if (inRange !== undefined) return inRange;
-    const [didSucceed, near, checked] = attemptMulti(() => UnitInRange(unit));
-    if (!didSucceed || !isReadable(checked) || checked !== true) return true;
-    return isReadable(near) && near === true;
+    const isInRange = getReadable(attempt(C_Spell.IsSpellInRange, spellId, unit));
+    if (isInRange !== undefined) return isInRange;
+    const [didSucceed, isNear, wasChecked] = attemptMulti(() => UnitInRange(unit));
+    if (!didSucceed || !isReadable(wasChecked) || wasChecked !== true) return true;
+    return isReadable(isNear) && isNear === true;
 }
 
 export function doesUseMana(unit: UnitToken): boolean {

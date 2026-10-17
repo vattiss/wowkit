@@ -26,8 +26,7 @@ function getReagentName(reagent: Reagent): string {
 }
 
 function doesTooltipNameReagent(spellId: number, reagent: Reagent): boolean {
-    const cached = tooltipNeedsReagent.get(spellId);
-    if (cached !== undefined) return cached;
+    if (tooltipNeedsReagent.has(spellId)) return tooltipNeedsReagent.get(spellId) === true;
     const texts = getSpellTooltipTexts(resolve(spellId) ?? spellId);
     // No tooltip: assume the classic cost
     if (texts === undefined) return true;
