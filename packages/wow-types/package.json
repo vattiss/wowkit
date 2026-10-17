@@ -3,6 +3,6 @@
   "version": "0.1.0",
   "description": "TypeScript types of the World of Warcraft: Forever API, generated from Blizzard's documentation",
   "private": true,
-  "license": "ISC",
+  "license": "MIT",
   "types": "wow-manual.d.ts"
 }

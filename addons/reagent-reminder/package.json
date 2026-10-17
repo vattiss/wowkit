@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "World of Warcraft: Forever addon that names the reagents of your group buffs when they run low, as you arrive in a town or an inn",
   "private": true,
-  "license": "ISC",
+  "license": "MIT",
   "addon": {
     "name": "ReagentReminder"
   },

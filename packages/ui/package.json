@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Settings, texts, chat lines, sounds and Settings panel pages for World of Warcraft: Forever addons written in TypeScript",
   "private": true,
-  "license": "ISC",
+  "license": "MIT",
   "main": "src/index.ts",
   "types": "src/index.ts",
   "dependencies": {

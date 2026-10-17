@@ -9,7 +9,7 @@
     "url": "git+https://github.com/vattiss/wowkit.git"
   },
   "author": "Attila Varga (https://github.com/vattiss)",
-  "license": "ISC",
+  "license": "MIT",
   "engines": {
     "node": ">=24"
   },

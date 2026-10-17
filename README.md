@@ -135,4 +135,4 @@ type), fix it with `SIGNATURE_OVERRIDES` in the generator or extra overloads in 
 
 ## License
 
-[ISC](LICENSE).
+[MIT](LICENSE).
