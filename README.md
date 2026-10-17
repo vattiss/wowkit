@@ -82,7 +82,8 @@ addons/
       character/        what happens to the player (weapons, auras and casts, the party roster, towns, blocked actions)
       options/          the Settings panel pages
       diagnostics/      debug mode and the debug report
-    addon/            static addon files (TOC, logo); the TOC's @version@ is filled from package.json
+    addon/            static addon files (the TOC); its @version@ is filled from package.json
+    assets/           logo.png: the one source of the logo; the build makes the game's icon (images/logo.tga) from it
     test/             the specs: describe / it in TypeScript against the fake game (test/README.md)
 scripts/        build, deploy, type-generation and check scripts
 docs/           architecture, glossary, the game's quirks, decision records

@@ -60,7 +60,7 @@ flowchart LR
         generated --> tstl
         manual --> tstl
         tstl --> lua["dist/ForeverReminders/<br/>ForeverReminders.lua<br/>(in the addon folder)"]
-        toc["addon/ForeverReminders.toc<br/>addon/images"] -- "scripts/package-addon.ts<br/>(@version@)" --> dist["dist/ForeverReminders/"]
+        toc["addon/ForeverReminders.toc<br/>assets/logo.png"] -- "scripts/package-addon.ts<br/>(@version@, logo.png to logo.tga)" --> dist["dist/ForeverReminders/"]
         lua --> dist
         dist -- "pnpm test<br/>tests in TypeScript, run by LuaJIT<br/>against a fake game" --> smoke["tests"]
         dist -- "pnpm --filter forever-reminders deploy:game" --> game["_classic_beta_/Interface/AddOns"]
