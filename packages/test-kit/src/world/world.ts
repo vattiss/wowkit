@@ -43,11 +43,11 @@ function loadAddon(): void {
     const [chunk, error] = loadfile(config.addonPath);
     if (chunk === undefined) throw new Error(`cannot load the addon from "${config.addonPath}": ${error}`);
     // The game runs each addon file with (addonName, addonTable)
-    (chunk as (...args: unknown[]) => unknown)("ForeverReminders", {});
+    (chunk as (...args: unknown[]) => unknown)(config.addonName, {});
 }
 
 export function createWorld(setup: (state: ClientState) => void): World {
-    clearGlobal("ForeverRemindersCharDB");
+    clearGlobal(config.savedVariables);
     const state = createClientState();
     setup(state);
     const clock = createClock();
@@ -65,7 +65,7 @@ export function createWorld(setup: (state: ClientState) => void): World {
     installItems(state, sounds);
 
     loadAddon();
-    frames.fire("ADDON_LOADED", "ForeverReminders", false);
+    frames.fire("ADDON_LOADED", config.addonName, false);
     frames.fire("PLAYER_LOGIN");
     frames.fire("PLAYER_ENTERING_WORLD", true, false);
     clock.advance(1);
@@ -76,7 +76,7 @@ export function createWorld(setup: (state: ClientState) => void): World {
         sounds,
         proxySettings,
         setOption(name, value) {
-            const setting = proxySettings[`ForeverReminders_${name}`];
+            const setting = proxySettings[`${config.addonName}_${name}`];
             if (setting === undefined) throw new Error(`the options page has no setting "${name}"`);
             setting.set(value);
         },
@@ -94,7 +94,7 @@ export function createWorld(setup: (state: ClientState) => void): World {
             const noticeFrame = frames.all.find((frame) => frame.parent === readGlobal("UIParent") && frame.fontStrings.length > 0);
             return noticeFrame?.isShown ? (noticeFrame.fontStrings[0]?.text ?? "") : "";
         },
-        getSavedSettings: () => readGlobal("ForeverRemindersCharDB") as Record<string, unknown> | undefined,
+        getSavedSettings: () => readGlobal(config.savedVariables) as Record<string, unknown> | undefined,
         findFrame: (matches) => frames.all.find((frame) => matches(frame)),
     };
 }

@@ -1,0 +1,27 @@
+{
+  "name": "reagent-reminder",
+  "version": "0.1.0",
+  "description": "World of Warcraft: Forever addon that names the reagents of your group buffs when they run low, as you arrive in a town or an inn",
+  "private": true,
+  "license": "ISC",
+  "addon": {
+    "name": "ReagentReminder"
+  },
+  "scripts": {
+    "build": "tstl -p tsconfig.json && node ../../scripts/package-addon.ts",
+    "watch": "node ../../scripts/package-addon.ts && tstl -p tsconfig.json --watch",
+    "build:tests": "tstl -p tsconfig.test.json",
+    "test:run": "node ../../scripts/smoke-test.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json --noEmit",
+    "deploy:game": "pnpm build && node ../../scripts/deploy.ts"
+  },
+  "dependencies": {
+    "@wowkit/framework": "workspace:*",
+    "@wowkit/ui": "workspace:*",
+    "@wowkit/wow": "workspace:*"
+  },
+  "devDependencies": {
+    "@wowkit/test-kit": "workspace:*",
+    "@wowkit/wow-types": "workspace:*"
+  }
+}

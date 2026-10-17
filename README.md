@@ -1,35 +1,22 @@
-# forever-reminders
+# wowkit
 
-A World of Warcraft: Forever (1.60.x, TOC `16001`) addon written in TypeScript and compiled to Lua with
-[TypeScriptToLua](https://github.com/TypeScriptToLua/TypeScriptToLua). The WoW API typings are generated
-from Blizzard's own API documentation in [Gethe/wow-ui-source](https://github.com/Gethe/wow-ui-source/tree/forever)
+TypeScript packages and addons for World of Warcraft: Forever (1.60.x, TOC `16001`), compiled to Lua with
+[TypeScriptToLua](https://github.com/TypeScriptToLua/TypeScriptToLua). The WoW API typings are generated from
+Blizzard's own API documentation in [Gethe/wow-ui-source](https://github.com/Gethe/wow-ui-source/tree/forever)
 (`forever` branch), so they match the client version exactly.
 
-## In game
+## The addons
 
-Reminds you of what is easy to forget while you level. It never casts anything.
+Three small addons that remind you of what is easy to forget while you level. None of them casts anything; each has its own
+Settings page (*Options > AddOns*) and its own saved settings per character.
 
-- **Missing buffs**: every missing buff of your class list (Fortitude, Mark of the Wild, aspects,
-  paladin auras, armors...) glows on its action button, all at once (one per group). Of a group (one aspect, one aura, one armor)
-  any member counts. In combat, when the client hides auras, buffs you saw or cast are remembered.
-- **Weapon buffs**: shaman imbues, rogue poisons (per hand) and warlock stones glow when missing or
-  about to run out (30 s), with an alarm sound by default.
-- **Not on your bars**: a message names missing buffs you have learned but put on no action bar.
-- **Old ranks**: a message names every spell on your bars that is a lower rank than the one you know.
-- **Party buffs** (party, not raid; out of combat): a message names the members in range who miss
-  one of your buffs (Fortitude, Mark of the Wild, Arcane Intellect for mana users, your blessing),
-  and its button glows. With two or more missing and the reagent in your bags, it suggests the group
-  version (Prayer of Fortitude, Gift of the Wild, Arcane Brilliance; a Greater Blessing per class).
-  A group version on you counts as the buff.
-- **Reagents**: arriving in a town or an inn, a message names the group-buff reagents you have 5 or
-  fewer of (only those your client's spells really use, read from the spell tooltip).
-- Quiet while dead, mounted, on a taxi, eating, or (optionally) resting in town.
+| | Addon | What it reminds you of |
+|---|---|---|
+| <img src="addons/buff-reminder/assets/logo.png" width="48" alt=""> | [Buff Reminder](addons/buff-reminder/README.md) | Missing buffs and weapon buffs (the button glows), buffs that are on no action bar, party members who miss your buff. |
+| <img src="addons/rank-reminder/assets/logo.png" width="48" alt=""> | [Rank Reminder](addons/rank-reminder/README.md) | Spells on your action bars that are a lower rank than the one you know. |
+| <img src="addons/reagent-reminder/assets/logo.png" width="48" alt=""> | [Reagent Reminder](addons/reagent-reminder/README.md) | Reagents of your group buffs that run low, as you arrive in a town or an inn. |
 
-Settings (per character): *Options > AddOns > Forever Reminders*: switches per feature and per
-buff, weapon buff pick, sounds, glow colors, and a debug report for bug reports.
-
-Only Blizzard's own action bars are supported. With Bartender4, Dominos or ElvUI bars the glows are
-not visible, and spells only on those bars count as "not on your action bars".
+Only Blizzard's own action bars are supported. With Bartender4, Dominos or ElvUI bars the glows are not visible.
 
 ## Development
 
@@ -37,15 +24,15 @@ Requires Node.js 24+ (the build scripts are TypeScript run by Node directly), [p
 
 ```sh
 pnpm install
-pnpm build        # -> addons/forever-reminders/dist/ForeverReminders/{ForeverReminders.toc,ForeverReminders.lua}
-pnpm test             # checks, build, then the tests (TypeScript, see addons/forever-reminders/test/README.md); CI runs the same
+pnpm build        # every addon -> addons/<name>/dist/<AddonName>/{<AddonName>.toc,<AddonName>.lua}
+pnpm test         # checks, build, then the tests of every addon (TypeScript, see addons/buff-reminder/test/README.md); CI runs the same
 pnpm typecheck
 pnpm format       # Prettier writes the code layout; pnpm test only checks it
-pnpm --filter forever-reminders watch   # rebuild on change
+pnpm --filter buff-reminder watch   # rebuild on change
 
-# copy the build into the game (then /reload)
-# (the Forever beta installs into _classic_beta_)
-WOW_ADDONS_DIR="C:/Program Files (x86)/World of Warcraft/_classic_beta_/Interface/AddOns" pnpm --filter forever-reminders deploy:game
+# copy one addon's build into the game (then /reload); the Forever beta installs into _classic_beta_
+WOW_ADDONS_DIR="C:/Program Files (x86)/World of Warcraft/_classic_beta_/Interface/AddOns" pnpm --filter buff-reminder deploy:game
+# ... and the same for rank-reminder and reagent-reminder
 ```
 
 ### Layout
@@ -59,44 +46,46 @@ Each folder has a short README.
 
 ```
 packages/       what could serve any Forever addon (packages/README.md); each imports only what it depends on
-  framework/        @forever/framework: Addon (starts the services), lifecycle hooks, EventBus, @OnGameEvent,
+  framework/        @wowkit/framework: Addon (starts the services), lifecycle hooks, EventBus, @OnGameEvent,
                     @OnUnitEvent, @OnEvent, @Interval, text helpers
-  wow/              @forever/wow: the door to the game: spells, auras, action bars, player, party, bags,
+  wow/              @wowkit/wow: the door to the game: spells, auras, action bars, player, party, bags, reagents,
                     clock, glows and notices, saved variables, protected calls
-  wow-types/        @forever/wow-types: the typings of Blizzard's API
+  ui/               @wowkit/ui: settings, texts, chat lines and sounds, the pages of the Settings panel
+  wow-types/        @wowkit/wow-types: the typings of Blizzard's API
     generated/        generated from Blizzard's API docs - do not edit
     wow-manual.d.ts   hand-written typings: script handlers, CreateFrame, string unions
     wow-framexml.d.ts hand-written typings: Settings panel API, action buttons, FrameXML globals
-  test-kit/         @forever/test-kit: describe / it / expect and a fake game
+  test-kit/         @wowkit/test-kit: describe / it / expect, a fake game and its fixtures
 addons/
-  forever-reminders/  this addon
+  buff-reminder/    missing buffs, weapon buffs, party buffs, buffs not on the bars
     src/              the addon's sources; a folder per feature
       main.ts           entry point: startAddon()
       addon.ts          makes every service with `new`, dependencies first; that order is the order of the lifecycle hooks
-      settings/         the saved settings; change() announces
+      settings/         the shape and defaults of the settings, the glow colors
       locale/           the texts
-      messages/         chat lines in the addon's name, alert sounds, the greeting
-      knowledge/        what only this addon knows - buff categories, spell names
-      reminders/        missing buffs, weapon buffs, party buffs, reagents; the buff lists
+      knowledge/        what only this addon knows - buff categories
+      reminders/        missing buffs, weapon buffs, party buffs; the buff lists
       tick/             a tick every 0.2 s - find what is due, show it; when to look sooner
-      character/        what happens to the player (weapons, auras and casts, the party roster, towns, blocked actions)
+      character/        what happens to the player (weapons, auras and casts, the party roster, blocked actions)
       options/          the Settings panel pages
       diagnostics/      debug mode and the debug report
     addon/            static addon files (the TOC); its @version@ is filled from package.json
     assets/           logo.png: the one source of the logo; the build makes the game's icon (images/logo.tga) from it
     test/             the specs: describe / it in TypeScript against the fake game (test/README.md)
+  rank-reminder/    spells on the bars at an old rank (the smallest addon: the template for a new one)
+  reagent-reminder/ low reagents on arriving in a town or an inn
 scripts/        build, deploy, type-generation and check scripts
-docs/           architecture, glossary, the game's quirks, decision records
+docs/           architecture, packages, glossary, the game's quirks, decision records
 ```
 
 ### Rules
 
 - **Only a few folders call the game:** `packages/wow/src/` (what the reminders ask the game),
-  `packages/framework/src/` (events and timers), `addons/forever-reminders/src/options/` (the Settings panel) and `addons/forever-reminders/src/diagnostics/`. Reminder
+  `packages/framework/src/` (events and timers), `addons/buff-reminder/src/options/` (the Settings panel) and `addons/buff-reminder/src/diagnostics/`. Reminder
   logic talks to `packages/wow/src/` in plain terms (`isInCombat()`, `isLearned(spell)`) and never sees secret values,
   protected calls or remapped IDs.
 - **Everything is a service, made once, by hand:** plain classes that take what they need in the constructor,
-  made in `addons/forever-reminders/src/addon.ts`; no inheritance, no container; services are built from other services.
+  made in `addons/buff-reminder/src/addon.ts`; no inheritance, no container; services are built from other services.
 - **The packages do not know the addon:** each package imports only itself and the packages it depends on
   (`pnpm check` enforces it); `addon.ts` passes in what a package asks for (buff categories, spell names).
 - **Names read like English:** functions start with a verb, booleans read as questions (`isFound`).

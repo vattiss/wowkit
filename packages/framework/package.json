@@ -1,5 +1,5 @@
 {
-  "name": "@forever/framework",
+  "name": "@wowkit/framework",
   "version": "0.1.0",
   "description": "Addon, lifecycle hooks, EventBus and event decorators for World of Warcraft: Forever addons written in TypeScript",
   "private": true,
@@ -7,6 +7,6 @@
   "main": "src/index.ts",
   "types": "src/index.ts",
   "devDependencies": {
-    "@forever/wow-types": "workspace:*"
+    "@wowkit/wow-types": "workspace:*"
   }
 }

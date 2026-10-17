@@ -1,6 +1,6 @@
 # test-kit/
 
-`@forever/test-kit`: the tests of an addon are written in TypeScript with `describe` / `it` / `expect`, like Jest, and
+`@wowkit/test-kit`: the tests of an addon are written in TypeScript with `describe` / `it` / `expect`, like Jest, and
 run against a **fake game**. No Lua to read or write.
 
 - **`src/runner.ts`**: `describe`, `it`, `beforeEach`, `expect` (`toBe`, `toEqual`, `toContain`, `not`...), and `runAll`.
@@ -10,4 +10,4 @@ run against a **fake game**. No Lua to read or write.
   loaded and logged in; the test then changes `world.state`, fires events and moves time.
 - **`src/config.ts`**: where the built addon is (set by the addon's `test/run.ts` from the command line).
 
-How a test run works, and how to write a spec: [the addon's test README](../../addons/forever-reminders/test/README.md).
+How a test run works, and how to write a spec: [the addon's test README](../../addons/buff-reminder/test/README.md).

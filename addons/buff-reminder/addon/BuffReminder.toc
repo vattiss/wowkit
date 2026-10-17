@@ -1,0 +1,12 @@
+## Interface: 16001
+## AllowLoadGameType: camelot
+## Title: Buff Reminder
+## Notes: Reminds you of missing buffs and weapon buffs, and of buffs that are missing from your action bars.
+## Author: Attila Varga
+## Version: @version@
+## IconTexture: Interface\AddOns\BuffReminder\images\logo
+## SavedVariablesPerCharacter: BuffReminderCharDB
+## DefaultState: enabled
+## X-Website: https://github.com/vattiss/wowkit
+
+BuffReminder.lua

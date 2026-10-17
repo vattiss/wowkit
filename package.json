@@ -1,12 +1,12 @@
 {
-  "name": "forever-addons",
+  "name": "wowkit",
   "version": "0.1.0",
   "description": "Packages for World of Warcraft: Forever addons written in TypeScript (compiled to Lua with TypeScriptToLua), and the addons built with them",
   "private": true,
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vattiss/forever-reminders.git"
+    "url": "git+https://github.com/vattiss/wowkit.git"
   },
   "author": "Attila Varga",
   "license": "ISC",

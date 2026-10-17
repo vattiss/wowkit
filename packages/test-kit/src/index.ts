@@ -3,3 +3,4 @@ export * from "./config";
 export * from "./runner";
 export * from "./world/client-state";
 export * from "./world/world";
+export * from "./fixtures";

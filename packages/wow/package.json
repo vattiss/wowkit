@@ -1,5 +1,5 @@
 {
-  "name": "@forever/wow",
+  "name": "@wowkit/wow",
   "version": "0.1.0",
   "description": "Services that talk to World of Warcraft: Forever and turn its quirks into plain answers",
   "private": true,
@@ -7,9 +7,9 @@
   "main": "src/index.ts",
   "types": "src/index.ts",
   "dependencies": {
-    "@forever/framework": "workspace:*"
+    "@wowkit/framework": "workspace:*"
   },
   "devDependencies": {
-    "@forever/wow-types": "workspace:*"
+    "@wowkit/wow-types": "workspace:*"
   }
 }

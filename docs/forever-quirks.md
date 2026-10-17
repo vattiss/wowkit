@@ -5,7 +5,7 @@ delays, caches. Each of these exists because of something the Forever client (1.
 page lists them, so that nobody "simplifies" one away by accident.
 
 The knowledge comes from the earlier Lua version of the addon and from the comments that were kept
-in the code; the debug report (Options > Forever Reminders > Debug report) can show what the client
+in the code; the debug report (Options > Buff Reminder > Debug report) can show what the client
 really answers on a given day. When the client changes, a row here may stop being true.
 
 | # | What the game does | What the code does about it | Where |

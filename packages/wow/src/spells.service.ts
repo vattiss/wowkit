@@ -2,7 +2,7 @@
 //
 // Forever remaps many spell IDs, so a spell of the buff lists is resolved to the ID the player
 // knows: by ID, by override, and finally by name through the spellbook index.
-import { type EventBus, OnEvent } from "@forever/framework";
+import { type EventBus, OnEvent, type OnFirstLogin } from "@wowkit/framework";
 import { type SpellBookService, isJunkSpellName } from "./spell-book.service";
 import { attempt, attemptMulti, getReadable, isReadable, tryCall } from "./safe";
 
@@ -11,7 +11,7 @@ export interface SpellNameHints {
     [spellId: number]: string | undefined;
 }
 
-declare module "@forever/framework/event-bus" {
+declare module "@wowkit/framework/event-bus" {
     interface AppEvents {
         /** Spell lookups were invalidated (new spells learned, talents changed). */
         "spells.invalidated": [];
@@ -20,7 +20,7 @@ declare module "@forever/framework/event-bus" {
     }
 }
 
-export class SpellsService {
+export class SpellsService implements OnFirstLogin {
     /** spell ID -> the ID the player knows, or false when not known (cached until invalidated). */
     private readonly resolveCache = new LuaMap<number, number | false>();
 
@@ -29,6 +29,12 @@ export class SpellsService {
         private readonly bus: EventBus,
         private readonly hints: SpellNameHints,
     ) {}
+
+    /** The spells are read once, at the first login. */
+    onFirstLogin(): void {
+        this.invalidateSpells(true);
+        this.rebuildSpellBook(false);
+    }
 
     @OnEvent("spellbook.built")
     noteSpellBookBuilt(): void {

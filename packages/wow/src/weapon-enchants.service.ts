@@ -1,6 +1,6 @@
 // Weapon enchants (temporary enchants and imbues) and weapon tooltips.
 
-import { contains } from "@forever/framework";
+import { contains } from "@wowkit/framework";
 import { isReadable, getReadable, tryCall } from "./safe";
 import { MAIN_HAND_SLOT, NO_EXPIRY, OFF_HAND_SLOT } from "./wow.constants";
 

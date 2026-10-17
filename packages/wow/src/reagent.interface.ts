@@ -1,0 +1,13 @@
+export interface Reagent {
+    itemId: number;
+    name: string;
+    /** The spells that use it. */
+    spells: number[];
+}
+
+/** A reagent and how many of it the player has. */
+export interface ReagentStock {
+    reagent: Reagent;
+    name: string;
+    count: number;
+}

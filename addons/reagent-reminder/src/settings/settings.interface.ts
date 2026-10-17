@@ -1,0 +1,10 @@
+import type { SettingsService } from "@wowkit/ui";
+
+/** The settings of this addon, saved per character. */
+export interface AddonSettings {
+    /** Turns the message off on this character. */
+    isMuted: boolean;
+}
+
+/** The settings service of this addon: a SettingsService that knows the shape of its settings. */
+export type AddonSettingsService = SettingsService<AddonSettings>;

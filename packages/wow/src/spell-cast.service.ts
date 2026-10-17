@@ -1,6 +1,6 @@
 // The player's spell casts, as one event. In combat the client hides the spell's ID, so the name
 // seen at the start of the cast is used to find it.
-import { type EventBus, OnUnitEvent } from "@forever/framework";
+import { type EventBus, OnUnitEvent } from "@wowkit/framework";
 import type { PlayerService } from "./player.service";
 import type { SpellsService } from "./spells.service";
 
@@ -11,7 +11,7 @@ export interface PlayerSpellCast {
     spellName: string | undefined;
 }
 
-declare module "@forever/framework/event-bus" {
+declare module "@wowkit/framework/event-bus" {
     interface AppEvents {
         /** The player finished casting a spell. */
         "player.spell-cast": [cast: PlayerSpellCast];

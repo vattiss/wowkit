@@ -206,41 +206,92 @@ importers:
         specifier: ^1.37.1
         version: 1.37.1(typescript@6.0.2)
 
-  addons/forever-reminders:
+  addons/buff-reminder:
     dependencies:
-      '@forever/framework':
+      '@wowkit/framework':
         specifier: workspace:*
         version: link:../../packages/framework
-      '@forever/wow':
+      '@wowkit/wow':
         specifier: workspace:*
         version: link:../../packages/wow
     devDependencies:
-      '@forever/test-kit':
+      '@wowkit/test-kit':
         specifier: workspace:*
         version: link:../../packages/test-kit
-      '@forever/wow-types':
+      '@wowkit/wow-types':
+        specifier: workspace:*
+        version: link:../../packages/wow-types
+
+  addons/rank-reminder:
+    dependencies:
+      '@wowkit/framework':
+        specifier: workspace:*
+        version: link:../../packages/framework
+      '@wowkit/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      '@wowkit/wow':
+        specifier: workspace:*
+        version: link:../../packages/wow
+    devDependencies:
+      '@wowkit/test-kit':
+        specifier: workspace:*
+        version: link:../../packages/test-kit
+      '@wowkit/wow-types':
+        specifier: workspace:*
+        version: link:../../packages/wow-types
+
+  addons/reagent-reminder:
+    dependencies:
+      '@wowkit/framework':
+        specifier: workspace:*
+        version: link:../../packages/framework
+      '@wowkit/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      '@wowkit/wow':
+        specifier: workspace:*
+        version: link:../../packages/wow
+    devDependencies:
+      '@wowkit/test-kit':
+        specifier: workspace:*
+        version: link:../../packages/test-kit
+      '@wowkit/wow-types':
         specifier: workspace:*
         version: link:../../packages/wow-types
 
   packages/framework:
     devDependencies:
-      '@forever/wow-types':
+      '@wowkit/wow-types':
         specifier: workspace:*
         version: link:../wow-types
 
   packages/test-kit:
     devDependencies:
-      '@forever/wow-types':
+      '@wowkit/wow-types':
+        specifier: workspace:*
+        version: link:../wow-types
+
+  packages/ui:
+    dependencies:
+      '@wowkit/framework':
+        specifier: workspace:*
+        version: link:../framework
+      '@wowkit/wow':
+        specifier: workspace:*
+        version: link:../wow
+    devDependencies:
+      '@wowkit/wow-types':
         specifier: workspace:*
         version: link:../wow-types
 
   packages/wow:
     dependencies:
-      '@forever/framework':
+      '@wowkit/framework':
         specifier: workspace:*
         version: link:../framework
     devDependencies:
-      '@forever/wow-types':
+      '@wowkit/wow-types':
         specifier: workspace:*
         version: link:../wow-types
 

@@ -1,0 +1,26 @@
+{
+  "name": "buff-reminder",
+  "version": "0.1.0",
+  "description": "World of Warcraft: Forever addon reminding of missing buffs, weapon buffs and party buffs, and of buffs missing from the action bars",
+  "private": true,
+  "license": "ISC",
+  "addon": {
+    "name": "BuffReminder"
+  },
+  "scripts": {
+    "build": "tstl -p tsconfig.json && node ../../scripts/package-addon.ts",
+    "watch": "node ../../scripts/package-addon.ts && tstl -p tsconfig.json --watch",
+    "build:tests": "tstl -p tsconfig.test.json",
+    "test:run": "node ../../scripts/smoke-test.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json --noEmit",
+    "deploy:game": "pnpm build && node ../../scripts/deploy.ts"
+  },
+  "dependencies": {
+    "@wowkit/framework": "workspace:*",
+    "@wowkit/wow": "workspace:*"
+  },
+  "devDependencies": {
+    "@wowkit/test-kit": "workspace:*",
+    "@wowkit/wow-types": "workspace:*"
+  }
+}

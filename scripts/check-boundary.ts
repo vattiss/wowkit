@@ -16,8 +16,14 @@ import ts from "typescript";
 import { ROOT, listSourceFolders } from "./lib/paths.ts";
 import { createAddonsProgram } from "./lib/program.ts";
 
-/** Where code may call the game: the two packages, and the options and diagnostics folders of every addon. */
-const ALLOWED_FOLDERS = ["packages/wow/src/", "packages/framework/src/", "addons/*/src/options/", "addons/*/src/diagnostics/"];
+/** Where code may call the game: the game-facing packages, and the options and diagnostics folders of every addon. */
+const ALLOWED_FOLDERS = [
+    "packages/wow/src/",
+    "packages/framework/src/",
+    "packages/ui/src/",
+    "addons/*/src/options/",
+    "addons/*/src/diagnostics/",
+];
 const isAllowed = (file: string) => ALLOWED_FOLDERS.some((folder) => new RegExp(`^${folder.replace("*", "[^/]+")}`).test(file));
 const SOURCE_FOLDERS = listSourceFolders();
 const isSource = (file: string) => SOURCE_FOLDERS.some((folder) => file.startsWith(folder));

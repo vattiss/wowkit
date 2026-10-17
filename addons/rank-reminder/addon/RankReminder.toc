@@ -1,0 +1,12 @@
+## Interface: 16001
+## AllowLoadGameType: camelot
+## Title: Rank Reminder
+## Notes: Names the spells on your action bars that are a lower rank than the one you have learned.
+## Author: Attila Varga
+## Version: @version@
+## IconTexture: Interface\AddOns\RankReminder\images\logo
+## SavedVariablesPerCharacter: RankReminderCharDB
+## DefaultState: enabled
+## X-Website: https://github.com/vattiss/wowkit
+
+RankReminder.lua

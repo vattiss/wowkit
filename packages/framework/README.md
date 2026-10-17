@@ -1,6 +1,6 @@
 # framework/
 
-`@forever/framework`: an `Addon` that starts the services, lifecycle hooks, events and timers. Services are plain
+`@wowkit/framework`: an `Addon` that starts the services, lifecycle hooks, events and timers. Services are plain
 classes that get what they need in their constructor; the framework adds only what the game needs (listening to
 events, running timers). It is platform-aware (it listens to the game's events and runs the timers), a
 package that imports only itself, and knows nothing about reminders. Decisions:
@@ -18,7 +18,7 @@ export class RefreshService {
     scheduleSpellRefresh(): void { ... }
 }
 
-// addons/forever-reminders/src/addon.ts: every service is made by hand, dependencies first, and handed to the addon
+// addons/buff-reminder/src/addon.ts: every service is made by hand, dependencies first, and handed to the addon
 const addon = new Addon(addonName);
 const tick = addon.register(new TickService(findReminders, showReminders));
 addon.register(new RefreshService(tick));

@@ -4,13 +4,13 @@
 // Forever rules: never call C_TooltipInfo.GetAction while mapping the bars (tooltips froze the
 // client when many slots updated after a quest turn-in), and map the bars a few buttons per frame.
 // Only Blizzard's own bars are mapped (no Bartender4, Dominos or ElvUI).
-import { type EventBus, buildButtonKey } from "@forever/framework";
+import { type EventBus, type OnFirstLogin, buildButtonKey } from "@wowkit/framework";
 import type { ClockService } from "./clock.service";
 import { getActionSlot, getButtonAction, getGlobal, getTextureKey, hasAction } from "./action-button";
 import { attempt, attemptMulti, getReadableId, isReadable } from "./safe";
 import type { SpellsService } from "./spells.service";
 
-declare module "@forever/framework/event-bus" {
+declare module "@wowkit/framework/event-bus" {
     interface AppEvents {
         /** The action bars were mapped again. */
         "bars.mapped": [];
@@ -53,7 +53,7 @@ function clear<K extends AnyNotNil, V>(map: LuaMap<K, V>): void {
     for (const [key] of map) map.delete(key);
 }
 
-export class ActionBarsService {
+export class ActionBarsService implements OnFirstLogin {
     private readonly buttonsBySpell = new LuaMap<number, ActionButton[]>();
     private readonly buttonsByName = new LuaMap<string, ActionButton[]>();
     private readonly buttonsByNameKey = new LuaMap<string, ActionButton[]>();
@@ -68,6 +68,11 @@ export class ActionBarsService {
         private readonly spells: SpellsService,
         private readonly bus: EventBus,
     ) {}
+
+    /** The bars are mapped once, at the first login. */
+    onFirstLogin(): void {
+        this.mapBars(true);
+    }
 
     noteBarsChanged(): void {
         this.barsChangedAt = this.clock.getCurrentTime();

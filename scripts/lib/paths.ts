@@ -25,7 +25,7 @@ export interface AddonPackageJson {
     addon: { name: string };
 }
 
-/** Every addon of the repository: the folders under addons/ (as paths from the root, e.g. "addons/forever-reminders"). */
+/** Every addon of the repository: the folders under addons/ (as paths from the root, e.g. "addons/buff-reminder"). */
 export function listAddons(): string[] {
     return readdirSync(`${ROOT}addons`, { withFileTypes: true })
         .filter((entry) => entry.isDirectory() && existsSync(`${ROOT}addons/${entry.name}/package.json`))
@@ -36,7 +36,7 @@ export function listAddons(): string[] {
 export function getAddonDir(): string {
     const dir = process.cwd().replaceAll("\\", "/");
     if (!existsSync(`${dir}/package.json`) || !dir.startsWith(`${ROOT}addons/`)) {
-        console.error(`Run this from an addon folder (e.g. addons/forever-reminders), or with pnpm --filter <addon>. Now in ${dir}`);
+        console.error(`Run this from an addon folder (e.g. addons/buff-reminder), or with pnpm --filter <addon>. Now in ${dir}`);
         process.exit(1);
     }
     return dir;
@@ -48,5 +48,5 @@ export function readAddonPackageJson(addonDir: string): AddonPackageJson {
 
 /** Folders whose files are source code of the project (the packages and the addons), not tests or typings. */
 export function listSourceFolders(): string[] {
-    return ["packages/framework/src/", "packages/wow/src/", ...listAddons().map((addon) => `${addon}/src/`)];
+    return ["packages/framework/src/", "packages/wow/src/", "packages/ui/src/", ...listAddons().map((addon) => `${addon}/src/`)];
 }

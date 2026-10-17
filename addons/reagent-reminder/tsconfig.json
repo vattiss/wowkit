@@ -1,0 +1,43 @@
+{
+  // The addon: compiled to a single Lua file by TypeScriptToLua, together with the packages it uses
+  // (@wowkit/framework and @wowkit/wow are compiled from their sources, see "paths").
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": ["ESNext"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "types": ["lua-types/5.1", "@typescript-to-lua/language-extensions"],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    // Services use method decorators (packages/framework)
+    "experimentalDecorators": true,
+    "paths": {
+      "@wowkit/framework": ["../../packages/framework/src/index.ts"],
+      // The sources of a package by file name: for `declare module` blocks that add an event
+      "@wowkit/framework/*": ["../../packages/framework/src/*"],
+      "@wowkit/wow": ["../../packages/wow/src/index.ts"],
+      "@wowkit/ui": ["../../packages/ui/src/index.ts"]
+    },
+    "rootDir": "../..",
+    "outDir": "dist/ReagentReminder"
+  },
+  "include": [
+    "src/**/*.ts",
+    "../../packages/framework/src/**/*.ts",
+    "../../packages/wow/src/**/*.ts",
+    "../../packages/ui/src/**/*.ts",
+    "../../packages/wow-types/**/*.d.ts"
+  ],
+  "tstl": {
+    // WoW embeds Lua 5.1
+    "luaTarget": "5.1",
+    // One self-contained file; WoW has no `require`
+    "luaBundle": "ReagentReminder.lua",
+    "luaBundleEntry": "src/main.ts",
+    "luaLibImport": "require-minimal",
+    // Plain functions do not take a hidden `self`; methods of interfaces/classes still do (`:` calls)
+    "noImplicitSelf": true,
+    "noHeader": true
+  }
+}

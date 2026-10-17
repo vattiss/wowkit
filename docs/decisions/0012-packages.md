@@ -12,7 +12,7 @@ can be cut out cleanly, and a spike (2026-10-17) showed how TypeScriptToLua take
 
 | Route | Result of the spike |
 |---|---|
-| **A. Sources by path.** The addon's `tsconfig.json` maps `@forever/framework` to the package's `src/index.ts` (`paths`). TypeScriptToLua compiles the package sources together with the addon's. | **Works**, decorators included. No build step for the package; one `tsc` and one bundle. |
+| **A. Sources by path.** The addon's `tsconfig.json` maps `@wowkit/framework` to the package's `src/index.ts` (`paths`). TypeScriptToLua compiles the package sources together with the addon's. | **Works**, decorators included. No build step for the package; one `tsc` and one bundle. |
 | **B. Sources through `node_modules`.** The package is linked there by npm workspaces. | **Fails**: TypeScriptToLua takes anything in `node_modules` for a precompiled Lua library and stops with "Could not resolve lua source files for require path". |
 | **C. A built library.** The package is built with `"buildMode": "library"` and `"declaration": true`; the addon imports it from `node_modules`. | **Works**, decorators included. The route for a published package. |
 
@@ -22,14 +22,14 @@ can be cut out cleanly, and a spike (2026-10-17) showed how TypeScriptToLua take
 
   | Folder | Name | Was |
   |---|---|---|
-  | `packages/framework` | `@forever/framework` | `src/toolkit/framework` and `src/toolkit/util` |
-  | `packages/wow` | `@forever/wow` | `src/toolkit/wow` |
-  | `packages/wow-types` | `@forever/wow-types` | `types/` |
-  | `packages/test-kit` | `@forever/test-kit` | `test/framework.ts`, `test/config.ts`, `test/world/` |
+  | `packages/framework` | `@wowkit/framework` | `src/toolkit/framework` and `src/toolkit/util` |
+  | `packages/wow` | `@wowkit/wow` | `src/toolkit/wow` |
+  | `packages/wow-types` | `@wowkit/wow-types` | `types/` |
+  | `packages/test-kit` | `@wowkit/test-kit` | `test/framework.ts`, `test/config.ts`, `test/world/` |
   | `addons/forever-reminders` | (the addon) | `src/` without `toolkit/`, `addon/`, `test/specs`, the `tsconfig` files |
 
-- **A package has a door:** its `src/index.ts` is what other code imports (`@forever/wow`). The one exception is
-  `declare module "@forever/framework/event-bus"`, which adds an event to `AppEvents`; TypeScript can augment the
+- **A package has a door:** its `src/index.ts` is what other code imports (`@wowkit/wow`). The one exception is
+  `declare module "@wowkit/framework/event-bus"`, which adds an event to `AppEvents`; TypeScript can augment the
   declaring file, not a re-export.
 - **Dependencies are fixed and checked:** `framework` and `test-kit` depend on nothing, `wow` on `framework`.
   `scripts/check-layers.ts` fails on any other import across packages, or out of a package by a relative path.

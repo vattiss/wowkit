@@ -1,5 +1,5 @@
 {
-  "name": "@forever/wow-types",
+  "name": "@wowkit/wow-types",
   "version": "0.1.0",
   "description": "TypeScript types of the World of Warcraft: Forever API, generated from Blizzard's documentation",
   "private": true,

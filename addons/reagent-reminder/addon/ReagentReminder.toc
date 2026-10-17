@@ -1,0 +1,12 @@
+## Interface: 16001
+## AllowLoadGameType: camelot
+## Title: Reagent Reminder
+## Notes: When you arrive in a town or an inn, names the reagents of your group buffs that are running low.
+## Author: Attila Varga
+## Version: @version@
+## IconTexture: Interface\AddOns\ReagentReminder\images\logo
+## SavedVariablesPerCharacter: ReagentReminderCharDB
+## DefaultState: enabled
+## X-Website: https://github.com/vattiss/wowkit
+
+ReagentReminder.lua

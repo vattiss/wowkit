@@ -17,7 +17,7 @@ were fixed to one addon (`forever-reminders`) and the packages had no metadata o
   name the game loads (`addon.name`) and its scripts (`build`, `build:tests`, `test:run`, `typecheck`, `watch`,
   `deploy:game`). The root holds the shared tools, the pinned commit of Blizzard's API documentation and the commands
   that run for everything (`pnpm test`, `pnpm check`, `pnpm build`).
-- **Packages are `workspace:*` dependencies** (the addon on `@forever/framework`, `@forever/wow`; `wow` on
+- **Packages are `workspace:*` dependencies** (the addon on `@wowkit/framework`, `@wowkit/wow`; `wow` on
   `framework`), so the dependency graph is written down. Compiling still uses `paths` to the sources: TypeScriptToLua
   cannot compile sources it finds through the `node_modules` links (route B of 0012).
 - **The shared scripts work on the folder they run in** (`getAddonDir` in `scripts/lib/paths.ts`), so pnpm's

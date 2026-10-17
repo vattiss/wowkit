@@ -16,7 +16,7 @@ The words used in the code and in these docs, in plain terms. One word means one
 | **party buff** | A class buff the player can also cast on other party members. | `party` in `ClassBuff`, `reminders/party-buffs.service.ts` |
 | **weapon buff** | A buff that sits on a weapon: a shaman imbue, a rogue poison, a warlock stone. It has its own timing rules, so it has its own reminder. | `WeaponBuff`, `reminders/weapon/weapon-*.service.ts` |
 | **picked weapon buff** | The weapon buff the reminder keeps up (the player's choice, or the best one learned) together with its highest learned rank. | `PickedWeaponBuff` |
-| **reagent** | An item a group version uses up when cast. | `reminders/reagents.constants.ts`, `reminders/reagents.service.ts` |
+| **reagent** | An item a group version uses up when cast. | `packages/wow/src/reagents.constants.ts`, `reagents.service.ts` |
 
 ## The game's side
 
@@ -36,7 +36,7 @@ The words used in the code and in these docs, in plain terms. One word means one
 | **reminder** | Anything the addon wants the player to notice right now. | `Reminders` |
 | **tick** | One look at the game, every 0.2 seconds and sooner when something happens. | `tick/tick.service.ts` |
 | **service** | A class that does one job; it gets the services it needs in its constructor. Most also say which game events they react to. | `*.service.ts` |
-| **wiring** | `addons/forever-reminders/src/addon.ts`: where every service is made with `new`, dependencies first. The order of its lines is the order of the lifecycle hooks. | `addon.ts` |
+| **wiring** | `addons/buff-reminder/src/addon.ts`: where every service is made with `new`, dependencies first. The order of its lines is the order of the lifecycle hooks. | `addon.ts` |
 | **lifecycle hook** | A method a service has to be told of a moment of the addon's life: `onAddonLoaded`, `onFirstLogin`, `onLogin`, `onReady`, `onLogout`. | `packages/framework/src/README.md` |
 | **EventBus** | The addon's own events: a service emits a named event, others listen with `@OnEvent`. | `packages/framework/src/event-bus.ts` |
 | **stage** | One half of a tick: *find* what is due, then *show* it. | `tick/find-reminders.service.ts`, `tick/show-reminders.service.ts` |
