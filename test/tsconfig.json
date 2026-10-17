@@ -1,0 +1,6 @@
+{
+  // For the editor: files in test/ belong to the test project (../tsconfig.test.json). The build and
+  // `npm run typecheck` use that file directly.
+  "extends": "../tsconfig.test.json",
+  "include": ["./**/*.ts", "../types/**/*.d.ts"]
+}
