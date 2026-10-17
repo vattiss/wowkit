@@ -1,0 +1,15 @@
+{
+  "name": "@forever/wow",
+  "version": "0.1.0",
+  "description": "Services that talk to World of Warcraft: Forever and turn its quirks into plain answers",
+  "private": true,
+  "license": "ISC",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "dependencies": {
+    "@forever/framework": "workspace:*"
+  },
+  "devDependencies": {
+    "@forever/wow-types": "workspace:*"
+  }
+}

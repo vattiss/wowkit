@@ -1,0 +1,9 @@
+# Generated, built, fetched or hand-aligned: left as they are
+dist/
+dist-test/
+.cache/
+node_modules/
+packages/wow-types/
+addons/*/addon/
+pnpm-lock.yaml
+*.md

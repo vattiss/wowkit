@@ -1,10 +1,12 @@
-// Copies the static addon files (TOC, images, ...) from addon/ to dist/<AddonName>/, filling in
+// Copies the static addon files (TOC, images, ...) from the addon's addon/ to its dist/<AddonName>/, filling in
 // @version@ in the TOC.
 import { cpSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
-import { ADDON_DIR, DIST_DIR, readPackageJson } from "./lib/paths.ts";
+import { getAddonDir, readAddonPackageJson } from "./lib/paths.ts";
 
-const pkg = readPackageJson();
-const outDir = `${DIST_DIR}/${pkg.addon.name}`;
+const addonDir = getAddonDir();
+const ADDON_DIR = `${addonDir}/addon`;
+const pkg = readAddonPackageJson(addonDir);
+const outDir = `${addonDir}/dist/${pkg.addon.name}`;
 cpSync(ADDON_DIR, outDir, { recursive: true });
 
 for (const file of readdirSync(ADDON_DIR).filter((f) => f.endsWith(".toc"))) {

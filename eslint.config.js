@@ -2,7 +2,7 @@
 // `npm run check` runs it; `npm run lint -- --fix` fixes what can be fixed by itself.
 //
 // What it does not check (scripts/check-names.ts and scripts/check-boundary.ts do): that a function
-// name starts with a verb, and that only src/wow/ and src/ui/ touch the Blizzard API.
+// name starts with a verb, and that only the game-facing folders touch the Blizzard API.
 import js from "@eslint/js";
 import { defineConfig } from "eslint/config";
 import tseslint from "typescript-eslint";
@@ -11,13 +11,17 @@ import tseslint from "typescript-eslint";
 const QUESTION_WORDS = ["is", "has", "can", "should", "does", "did", "was", "will", "are", "had", "show", "hide"];
 
 export default defineConfig(
-    { ignores: ["dist/**", "dist-test/**", ".cache/**", "node_modules/**", "types/**"] },
+    { ignores: ["dist/**", "dist-test/**", ".cache/**", "node_modules/**", "packages/wow-types/**"] },
     {
-        files: ["src/**/*.ts", "scripts/**/*.ts", "test/**/*.ts"],
+        files: ["packages/*/src/**/*.ts", "addons/*/src/**/*.ts", "addons/*/test/**/*.ts", "scripts/**/*.ts"],
         extends: [js.configs.recommended, tseslint.configs.recommended, tseslint.configs.stylistic],
         languageOptions: {
             parserOptions: {
-                project: ["./tsconfig.json", "./tsconfig.scripts.json", "./tsconfig.test.json"],
+                project: [
+                    "./addons/forever-reminders/tsconfig.json",
+                    "./addons/forever-reminders/tsconfig.test.json",
+                    "./tsconfig.scripts.json",
+                ],
                 tsconfigRootDir: import.meta.dirname,
             },
         },
@@ -28,17 +32,16 @@ export default defineConfig(
             // The Lua tables of this addon are index signatures and `{ [key: string]: T }` reads fine
             "@typescript-eslint/consistent-indexed-object-style": "off",
 
-            // Size limits. They warn for now: a few functions are still longer than the target and
-            // are on the list to be split (the event list, the weapon reminder, the spellbook rebuild).
-            "max-lines": ["warn", { max: 300, skipBlankLines: true, skipComments: true }],
-            "max-lines-per-function": ["warn", { max: 60, skipBlankLines: true, skipComments: true }],
-            complexity: ["warn", 12],
+            // Size limits: a file, a function and the number of branches in a function stay small
+            "max-lines": ["error", { max: 300, skipBlankLines: true, skipComments: true }],
+            "max-lines-per-function": ["error", { max: 60, skipBlankLines: true, skipComments: true }],
+            complexity: ["error", 12],
         },
     },
     {
-        // The names in src/ are ours. The scripts mirror Blizzard's data and Node's option names.
+        // The names in the packages and the addons are ours (the test kit mirrors the game, so it is left out). The scripts mirror Blizzard's data and Node's option names.
         // Object literal properties are left out for the same reason (`{ recursive: true }`).
-        files: ["src/**/*.ts"],
+        files: ["packages/framework/src/**/*.ts", "packages/wow/src/**/*.ts", "addons/*/src/**/*.ts"],
         rules: {
             "@typescript-eslint/naming-convention": [
                 "error",
@@ -54,7 +57,7 @@ export default defineConfig(
     {
         // A describe block holds all the tests of a topic, so it is long by nature. The fake game
         // takes the game's loosely typed callbacks (scripts, event handlers) as they are.
-        files: ["test/**/*.ts"],
+        files: ["addons/*/test/**/*.ts", "packages/test-kit/src/**/*.ts"],
         rules: {
             "max-lines-per-function": "off",
             "@typescript-eslint/no-explicit-any": "off",

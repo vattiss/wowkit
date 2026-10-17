@@ -1,7 +1,7 @@
 // Turns the data-only Lua files of Blizzard_APIDocumentationGenerated into plain JS values.
 // Each file looks like `local X = { ... }; APIDocumentation:AddDocumentationTable(X);`.
 import luaparse from "luaparse";
-import type { Expression } from "luaparse";
+import type { Expression, TableConstructorExpression, UnaryExpression } from "luaparse";
 
 export type LuaValue = string | number | boolean | null | LuaExpression | LuaValue[] | { [key: string]: LuaValue };
 
@@ -37,27 +37,36 @@ function toValue(node: Expression, source: string): LuaValue {
         case "NilLiteral":
             return null;
         case "UnaryExpression":
-            if (node.operator === "-" && node.argument.type === "NumericLiteral") return -node.argument.value;
-            return expression(node, source);
+            return convertUnary(node, source);
         case "Identifier":
         case "MemberExpression":
         case "BinaryExpression":
             return expression(node, source);
-        case "TableConstructorExpression": {
-            const list: LuaValue[] = [];
-            const record: { [key: string]: LuaValue } = {};
-            for (const field of node.fields) {
-                if (field.type === "TableValue") list.push(toValue(field.value, source));
-                else if (field.type === "TableKeyString") record[field.key.name] = toValue(field.value, source);
-                else throw new Error("computed table keys are not supported");
-            }
-            if (Object.keys(record).length === 0) return list;
-            if (list.length > 0) throw new Error("mixed array/record tables are not supported");
-            return record;
-        }
+        case "TableConstructorExpression":
+            return convertTable(node, source);
         default:
             throw new Error(`unsupported expression type ${node.type}`);
     }
+}
+
+/** A negative number is a literal; any other unary expression is kept as text. */
+function convertUnary(node: UnaryExpression, source: string): LuaValue {
+    if (node.operator === "-" && node.argument.type === "NumericLiteral") return -node.argument.value;
+    return expression(node, source);
+}
+
+/** A Lua table is a list or a record in the documentation, never both. */
+function convertTable(node: TableConstructorExpression, source: string): LuaValue[] | { [key: string]: LuaValue } {
+    const list: LuaValue[] = [];
+    const record: { [key: string]: LuaValue } = {};
+    for (const field of node.fields) {
+        if (field.type === "TableValue") list.push(toValue(field.value, source));
+        else if (field.type === "TableKeyString") record[field.key.name] = toValue(field.value, source);
+        else throw new Error("computed table keys are not supported");
+    }
+    if (Object.keys(record).length === 0) return list;
+    if (list.length > 0) throw new Error("mixed array/record tables are not supported");
+    return record;
 }
 
 function expression(node: Expression, source: string): LuaExpression {

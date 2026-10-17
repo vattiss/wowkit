@@ -33,69 +33,87 @@ not visible, and spells only on those bars count as "not on your action bars".
 
 ## Development
 
-Requires Node.js 24+ (the build scripts are TypeScript run by Node directly) and, for tests, LuaJIT or another Lua 5.1.
+Requires Node.js 24+ (the build scripts are TypeScript run by Node directly), [pnpm](https://pnpm.io) (`npm install -g pnpm`) and, for tests, LuaJIT or another Lua 5.1.
 
 ```sh
-npm install
-npm run build        # -> dist/ForeverReminders/{ForeverReminders.toc,ForeverReminders.lua}
-npm test             # checks, build, then the tests (TypeScript, see test/README.md)
-npm run typecheck
-npm run watch        # rebuild on change
+pnpm install
+pnpm build        # -> addons/forever-reminders/dist/ForeverReminders/{ForeverReminders.toc,ForeverReminders.lua}
+pnpm test             # checks, build, then the tests (TypeScript, see addons/forever-reminders/test/README.md); CI runs the same
+pnpm typecheck
+pnpm format       # Prettier writes the code layout; pnpm test only checks it
+pnpm --filter forever-reminders watch   # rebuild on change
 
 # copy the build into the game (then /reload)
 # (the Forever beta installs into _classic_beta_)
-WOW_ADDONS_DIR="C:/Program Files (x86)/World of Warcraft/_classic_beta_/Interface/AddOns" npm run deploy
+WOW_ADDONS_DIR="C:/Program Files (x86)/World of Warcraft/_classic_beta_/Interface/AddOns" pnpm --filter forever-reminders deploy:game
 ```
 
 ### Layout
 
-Diagrams of the build pipeline, the layers and the signals: [docs/architecture.md](docs/architecture.md).
+Diagrams of the build pipeline, the features and the events: [docs/architecture.md](docs/architecture.md).
 The words used in the code (buff, aura, buff category, group version...): [docs/glossary.md](docs/glossary.md).
 Why the code is so defensive (the game's quirks): [docs/forever-quirks.md](docs/forever-quirks.md).
-Each folder under `src/` has a short README.
+Why the project is built the way it is (decision records): [docs/decisions/](docs/decisions/README.md).
+How the code is split into packages, and what a second addon would take: [docs/packages.md](docs/packages.md).
+Each folder has a short README.
 
 ```
-src/            addon sources, bundled into one Lua file
-  main.ts            entry point; wires the modules together
-  core/              the reminder loop: game-events.ts (which event does what), refresh.ts (when to
-                     look again), tick.ts, then two stages: find-reminders.ts and show-reminders.ts
-  reminders/         what to remind about: missing buffs, weapon buffs, party buffs, reagents
-  wow/               the only code that calls the game: spells, auras, action bars, player, party,
-                     bags, clock, events, glows and notices, saved data, protected calls
-  ui/options/        the Settings panel pages: landing, reminders (with the weapon section), debug
-                     report; the controls and widgets they are built from
-  ui/diagnostics/    debug mode: what to sample, the recorder, the report text (may call the game too)
-  settings.ts        saved settings; changes go through changeSetting() and settingChanged
-  data/              buff lists, weapon buffs, aura families, reagents, spell IDs
-  util/              text helpers, signals
-addon/          static addon files (TOC, logo); the TOC's @version@ is filled from package.json
-types/
-  wow-manual.d.ts   hand-written typings: script handlers, CreateFrame, string unions
-  wow-framexml.d.ts hand-written typings: Settings panel API, action buttons, FrameXML globals
-  generated/        generated from Blizzard's API docs - do not edit
-scripts/        build, deploy, test, type-generation and check scripts
-test/           the tests: describe / it specs in TypeScript against a fake game (test/README.md)
+packages/       what could serve any Forever addon (packages/README.md); each imports only what it depends on
+  framework/        @forever/framework: Addon (starts the services), lifecycle hooks, EventBus, @OnGameEvent,
+                    @OnUnitEvent, @OnEvent, @Interval, text helpers
+  wow/              @forever/wow: the door to the game: spells, auras, action bars, player, party, bags,
+                    clock, glows and notices, saved variables, protected calls
+  wow-types/        @forever/wow-types: the typings of Blizzard's API
+    generated/        generated from Blizzard's API docs - do not edit
+    wow-manual.d.ts   hand-written typings: script handlers, CreateFrame, string unions
+    wow-framexml.d.ts hand-written typings: Settings panel API, action buttons, FrameXML globals
+  test-kit/         @forever/test-kit: describe / it / expect and a fake game
+addons/
+  forever-reminders/  this addon
+    src/              the addon's sources; a folder per feature
+      main.ts           entry point: startAddon()
+      addon.ts          makes every service with `new`, dependencies first; that order is the order of the lifecycle hooks
+      settings/         the saved settings; change() announces
+      locale/           the texts
+      messages/         chat lines in the addon's name, alert sounds, the greeting
+      knowledge/        what only this addon knows - buff categories, spell names
+      reminders/        missing buffs, weapon buffs, party buffs, reagents; the buff lists
+      tick/             a tick every 0.2 s - find what is due, show it; when to look sooner
+      character/        what happens to the player (weapons, auras and casts, the party roster, towns, blocked actions)
+      options/          the Settings panel pages
+      diagnostics/      debug mode and the debug report
+    addon/            static addon files (TOC, logo); the TOC's @version@ is filled from package.json
+    test/             the specs: describe / it in TypeScript against the fake game (test/README.md)
+scripts/        build, deploy, type-generation and check scripts
+docs/           architecture, glossary, the game's quirks, decision records
 ```
 
 ### Rules
 
-- **Only `src/wow/` and `src/ui/` call the game.** Reminder logic talks to `wow/` in plain terms
-  (`isInCombat()`, `isLearned(spell)`) and never sees secret values, protected calls or remapped IDs.
+- **Only a few folders call the game:** `packages/wow/src/` (what the reminders ask the game),
+  `packages/framework/src/` (events and timers), `addons/forever-reminders/src/options/` (the Settings panel) and `addons/forever-reminders/src/diagnostics/`. Reminder
+  logic talks to `packages/wow/src/` in plain terms (`isInCombat()`, `isLearned(spell)`) and never sees secret values,
+  protected calls or remapped IDs.
+- **Everything is a service, made once, by hand:** plain classes that take what they need in the constructor,
+  made in `addons/forever-reminders/src/addon.ts`; no inheritance, no container; services are built from other services.
+- **The packages do not know the addon:** each package imports only itself and the packages it depends on
+  (`pnpm check` enforces it); `addon.ts` passes in what a package asks for (buff categories, spell names).
 - **Names read like English:** functions start with a verb, booleans read as questions (`isFound`).
 
-`npm run check` enforces both and is part of `npm test`.
+`pnpm check` enforces the folder and naming rules, the compiler checks the wiring in `addon.ts`;
+`pnpm test` runs both.
 
 ### WoW API typings
 
-`types/generated/` is committed, so a normal build needs no network access. To move to a newer client build:
+`packages/wow-types/generated/` is committed, so a normal build needs no network access. To move to a newer client build:
 
 ```sh
-npm run fetch:wow-ui:latest   # sparse-clones the API docs into .cache/ and pins the new commit in package.json
-npm run gen:types             # regenerates types/generated/*.d.ts
-npm run typecheck
+pnpm fetch:wow-ui:latest   # sparse-clones the API docs into .cache/ and pins the new commit in package.json
+pnpm gen:types             # regenerates packages/wow-types/generated/*.d.ts
+pnpm typecheck
 ```
 
-(`npm run fetch:wow-ui` re-fetches the commit that is already pinned.)
+(`pnpm fetch:wow-ui` re-fetches the commit that is already pinned.)
 
 What gets generated from `Blizzard_APIDocumentationGenerated`:
 
@@ -104,7 +122,7 @@ What gets generated from `Blizzard_APIDocumentationGenerated`:
 - `WowEventPayloads` / `WowEvent`: every event with its payload types (`wow-events.d.ts`)
 - widget interfaces (`Frame`, `Button`, `Texture`, ...) with methods called as `obj:Method()` (`wow-widgets.d.ts`)
 - `wow-unresolved.d.ts`: names the docs use but never define, typed `any` - declare them in
-  `wow-manual.d.ts` or map them in `PRIMITIVES` in `scripts/generate-wow-types.ts` to tighten them up
+  `wow-manual.d.ts` or map them in `PRIMITIVES` in `scripts/generate-types/knowledge.ts` to tighten them up
 
 Where the docs are wrong or incomplete (overloads such as `SetPoint("CENTER")`, `C_Timer.NewTicker`'s return
 type), fix it with `SIGNATURE_OVERRIDES` in the generator or extra overloads in `wow-manual.d.ts`.
@@ -113,7 +131,7 @@ type), fix it with `SIGNATURE_OVERRIDES` in the generator or extra overloads in 
 
 - `noImplicitSelf` is on: plain functions and namespace functions are called with `.`, interface methods with `:`.
   Script handlers get the widget as an explicit first parameter: `frame.SetScript("OnEvent", (self, event, ...args) => ...)`.
-- Use `onEvent("EVENT_NAME", handler)` from `src/wow/events.ts` for typed event payloads.
+- Use `@OnGameEvent("EVENT_NAME")` on a method for typed event payloads (a handler with the wrong parameters does not compile).
 - No `RegExp`: use Lua patterns via `string.match` / `string.gsub` / `string.gmatch`.
 - A function-valued property called through `?.` (`setting?.set(x)`) is compiled as a method call and gets
   an extra `self`. Declare it with `this: void` (`set: (this: void, x: unknown) => void`) or call it without `?.`.
@@ -121,5 +139,7 @@ type), fix it with `SIGNATURE_OVERRIDES` in the generator or extra overloads in 
 - Arrays are Lua sequences (1-based in Lua, 0-based in TS - TSTL translates the indices).
 - Globals such as SavedVariables are declared with `declare global { var Name: Type }`.
 - Classes work (methods are called with `:`); pass methods as callbacks wrapped in an arrow function.
-- No import cycles: the bundle's `require` does not support them. Lower layers notify upper ones
-  through signals (`util/signal.ts`); `wow/`, `data/` and `util/` import nothing from the layers above.
+- No import cycles: the bundle's `require` does not support them. Lower services notify upper ones
+  with events on the `EventBus` (`@OnEvent`); the packages import nothing from the addon.
+- Decorators (`@OnGameEvent`, `@Interval`...) need `experimentalDecorators`; a method is called as
+  `instance[name](instance, ...)`. See `packages/framework/README.md`.

@@ -1,0 +1,6 @@
+{
+  // For the editor: the sources of this package belong to the addon project, which compiles them
+  // (../../addons/forever-reminders/tsconfig.json). The build and `pnpm typecheck` use that file directly.
+  "extends": "../../addons/forever-reminders/tsconfig.json",
+  "include": ["./src/**/*.ts", "../wow-types/**/*.d.ts"]
+}

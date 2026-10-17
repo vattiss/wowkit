@@ -3,7 +3,7 @@
 //   node scripts/fetch-wow-ui-source.ts --latest   -> move the pin to the tip of the branch
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { CACHE_DIR, PACKAGE_JSON, readPackageJson } from "./lib/paths.ts";
+import { CACHE_DIR, ROOT_PACKAGE_JSON, readWowUiSource } from "./lib/paths.ts";
 
 const SPARSE_PATHS = [
     "/version.txt",
@@ -15,8 +15,7 @@ function git(...args: string[]): string {
     return execFileSync("git", args, { cwd: existsSync(CACHE_DIR) ? CACHE_DIR : undefined, encoding: "utf8" }).trim();
 }
 
-const pkg = readPackageJson();
-const source = pkg.wowUiSource;
+const source = readWowUiSource();
 
 if (!existsSync(CACHE_DIR)) {
     execFileSync("git", ["clone", "--filter=blob:none", "--no-checkout", "--branch", source.branch, source.repository, CACHE_DIR], {
@@ -39,7 +38,7 @@ console.log(`wow-ui-source ${source.branch} @ ${commit.slice(0, 10)} (game versi
 
 if (commit !== source.commit) {
     // Rewrite only the pinned commit so the rest of package.json keeps its formatting
-    const text = readFileSync(PACKAGE_JSON, "utf8").replace(source.commit, commit);
-    writeFileSync(PACKAGE_JSON, text);
-    console.log(`Pinned commit updated in package.json; run "npm run gen:types" to regenerate the declarations.`);
+    const text = readFileSync(ROOT_PACKAGE_JSON, "utf8").replace(source.commit, commit);
+    writeFileSync(ROOT_PACKAGE_JSON, text);
+    console.log(`Pinned commit updated in package.json; run "pnpm gen:types" to regenerate the declarations.`);
 }

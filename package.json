@@ -1,7 +1,7 @@
 {
-  "name": "forever-reminders",
+  "name": "forever-addons",
   "version": "0.1.0",
-  "description": "World of Warcraft: Forever addon reminding of missing buffs, weapon buffs, spells missing from the action bars and old spell ranks; written in TypeScript and compiled to Lua with TypeScriptToLua",
+  "description": "Packages for World of Warcraft: Forever addons written in TypeScript (compiled to Lua with TypeScriptToLua), and the addons built with them",
   "private": true,
   "type": "module",
   "repository": {
@@ -10,9 +10,10 @@
   },
   "author": "Attila Varga",
   "license": "ISC",
-  "addon": {
-    "name": "ForeverReminders"
+  "engines": {
+    "node": ">=24"
   },
+  "packageManager": "pnpm@12.14.0",
   "wowUiSource": {
     "repository": "https://github.com/Gethe/wow-ui-source.git",
     "branch": "forever",
@@ -22,14 +23,13 @@
     "fetch:wow-ui": "node scripts/fetch-wow-ui-source.ts",
     "fetch:wow-ui:latest": "node scripts/fetch-wow-ui-source.ts --latest",
     "gen:types": "node scripts/generate-wow-types.ts",
-    "build": "tstl -p tsconfig.json && node scripts/package-addon.ts",
-    "watch": "node scripts/package-addon.ts && tstl -p tsconfig.json --watch",
-    "deploy": "npm run build && node scripts/deploy.ts",
-    "build:tests": "tstl -p tsconfig.test.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json --noEmit && tsc -p tsconfig.scripts.json",
+    "build": "pnpm -r --workspace-concurrency=1 build",
+    "build:tests": "pnpm -r --workspace-concurrency=1 build:tests",
+    "typecheck": "pnpm -r typecheck && tsc -p tsconfig.scripts.json",
     "lint": "eslint .",
-    "check": "node scripts/check-boundary.ts && node scripts/check-names.ts && eslint .",
-    "test": "npm run check && npm run build && npm run build:tests && node scripts/smoke-test.ts"
+    "format": "prettier --write .",
+    "check": "node scripts/check-boundary.ts && node scripts/check-layers.ts && node scripts/check-wiring.ts && node scripts/check-names.ts && eslint . && prettier --check .",
+    "test": "pnpm check && pnpm build && pnpm build:tests && pnpm -r --workspace-concurrency=1 test:run"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -39,6 +39,7 @@
     "eslint": "^10.13.0",
     "lua-types": "^2.14.1",
     "luaparse": "^0.3.1",
+    "prettier": "^3.9.10",
     "typescript": "6.0.2",
     "typescript-eslint": "^8.71.2",
     "typescript-to-lua": "^1.37.1"

@@ -1,0 +1,12 @@
+{
+  "name": "@forever/test-kit",
+  "version": "0.1.0",
+  "description": "describe / it / expect and a fake World of Warcraft: Forever for testing addons written in TypeScript",
+  "private": true,
+  "license": "ISC",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "devDependencies": {
+    "@forever/wow-types": "workspace:*"
+  }
+}

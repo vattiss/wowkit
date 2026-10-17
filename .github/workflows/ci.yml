@@ -1,0 +1,34 @@
+# Checks every push to main and every pull request: types, the rule checks, lint, build and the tests.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The pnpm version is the "packageManager" field of package.json
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      # The tests are Lua, run by LuaJIT against the built addon
+      - name: Install LuaJIT
+        run: sudo apt-get update && sudo apt-get install -y luajit
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Types
+        run: pnpm typecheck
+
+      # Rule checks, lint, build, build the tests, run them
+      - name: Test
+        run: pnpm test

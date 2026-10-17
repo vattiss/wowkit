@@ -1,6 +1,6 @@
 {
   // For the editor: files in scripts/ belong to the scripts project (../tsconfig.scripts.json). The
-  // build and `npm run typecheck` use that file directly.
+  // build and `pnpm typecheck` use that file directly.
   "extends": "../tsconfig.scripts.json",
   "include": ["./**/*.ts"]
 }
