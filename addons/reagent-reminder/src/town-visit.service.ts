@@ -28,11 +28,13 @@ export class TownVisitService implements OnReady {
         const hasArrived = isRestingNow && !this.wasResting;
         this.wasResting = isRestingNow;
         if (!hasArrived || this.settings.get("isMuted")) return;
-        const low = this.reagents.findLowReagents();
+        const reagentOn = this.settings.get("reagentOn");
+        const low = this.reagents.findLowReagents((reagent) => reagentOn[String(reagent.itemId)] !== false);
         if (low.length === 0) return;
         const names = low.map((stock) => `${stock.name} (${stock.count})`).join(", ");
         const message = string.format(this.locale.getText("NOTICE_REAGENTS_LOW"), names);
         this.messages.say(message);
         this.notice.showNotice(message);
+        this.messages.playAlertSound(this.settings.get("sound"));
     }
 }

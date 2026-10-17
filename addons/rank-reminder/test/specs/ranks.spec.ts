@@ -68,3 +68,21 @@ describe("a priest resting in a town", () => {
         expect(world.notice()).toContain("Smite: Rank 1");
     });
 });
+
+describe("the sound of the message", () => {
+    it("is not played unless the player picked one", () => {
+        const world = createWorld((state) => setUpPriest(state, false));
+        world.advance(3);
+        expect(world.sounds.length).toBe(0);
+    });
+
+    it("is played each time the message appears", () => {
+        const world = createWorld((state) => setUpPriest(state, false));
+        world.setOption("sound", "ping");
+        // choosing a sound plays it once as a preview
+        expect(world.sounds.length).toBe(1);
+        // the same message is shown again after 30 seconds
+        world.advance(35);
+        expect(world.sounds.length).toBe(2);
+    });
+});

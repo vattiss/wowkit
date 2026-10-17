@@ -109,7 +109,8 @@ the links pnpm makes in `node_modules`: TypeScriptToLua cannot compile sources f
 
 1. Copy `addons/rank-reminder` (the smallest one that has a Settings page and a notice) to `addons/<name>`, and
    rename it in `package.json` (`name`, `addon.name`), in the `tsconfig` files (the bundle name and `outDir`), in the
-   TOC and in `src/main.ts`.
+   TOC and in `src/main.ts`. Keep `## Category: Reminders` in the TOC if it is a reminder: the game groups addons of one
+   category under a collapsible header in its addon list.
 2. Write its settings (`settings.interface.ts`, `settings.constants.ts`), its texts and its services; make them in
    `src/addon.ts`, dependencies first.
 3. Draw `assets/logo.png` (square, a multiple of 128 px): the build makes the game's TGA icon from it.

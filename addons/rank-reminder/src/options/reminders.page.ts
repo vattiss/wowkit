@@ -1,11 +1,12 @@
 // The Reminders page: what this addon does, per character.
 import type { ControlsService, OptionsPage } from "@wowkit/ui";
 import type { AddonLocale } from "../locale/locale.interface";
-import type { AddonSettings } from "../settings/settings.interface";
+import type { AddonSettings, AddonSettingsService } from "../settings/settings.interface";
 
 export class RemindersPage implements OptionsPage {
     constructor(
         private readonly locale: AddonLocale,
+        private readonly settings: AddonSettingsService,
         private readonly controls: ControlsService<AddonSettings>,
     ) {}
 
@@ -19,6 +20,14 @@ export class RemindersPage implements OptionsPage {
             "hideResting",
             this.locale.getText("OPT_HIDE_RESTING"),
             this.locale.getText("TIP_HIDE_RESTING"),
+        );
+        this.controls.addSoundDropdown(
+            category,
+            "sound",
+            this.locale.getText("OPT_SOUND"),
+            this.locale.getText("TIP_SOUND"),
+            () => this.settings.get("sound"),
+            (sound) => this.settings.change("sound", sound),
         );
         return category;
     }

@@ -49,7 +49,7 @@ export function startAddon(addonName: string): void {
     addon.register(new GreetingService(messages, locale.getText("INIT")));
 
     // What the addon does
-    addon.register(new RankNoticeService(actionBars, clock, notice, player, settings, locale));
+    addon.register(new RankNoticeService(actionBars, clock, notice, player, settings, locale, messages));
 
     // The Settings panel
     const controls = addon.register(new ControlsService<AddonSettings>(settings, messages, addonName));
@@ -69,7 +69,7 @@ export function startAddon(addonName: string): void {
             "https://github.com/vattiss/wowkit",
         ),
     );
-    const remindersPage = addon.register(new RemindersPage(locale, controls));
+    const remindersPage = addon.register(new RemindersPage(locale, settings, controls));
     addon.register(new OptionsService(messages, [homePage, remindersPage]));
     addon.start();
 }

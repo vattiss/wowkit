@@ -1,5 +1,6 @@
 // The notice at the top of the screen that names the spells on the bars at an old rank.
 import { Interval } from "@wowkit/framework";
+import type { MessagesService } from "@wowkit/ui";
 import type { ActionBarsService, ClockService, NoticeService, PlayerService } from "@wowkit/wow";
 import type { AddonLocale } from "./locale/locale.interface";
 import type { AddonSettingsService } from "./settings/settings.interface";
@@ -21,6 +22,7 @@ export class RankNoticeService {
         private readonly player: PlayerService,
         private readonly settings: AddonSettingsService,
         private readonly locale: AddonLocale,
+        private readonly messages: MessagesService,
     ) {}
 
     /** Shows the notice when its content is new, or when it has been a while since it was shown. */
@@ -41,5 +43,6 @@ export class RankNoticeService {
         this.lastShownAt = now;
         const lines = ranks.map((rank) => string.format(this.locale.getText("NOTICE_OLD_RANK"), rank.name, rank.onBar, rank.best));
         this.notice.showNotice(lines.join("\n"));
+        this.messages.playAlertSound(this.settings.get("sound"));
     }
 }

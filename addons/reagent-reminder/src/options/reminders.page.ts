@@ -1,5 +1,6 @@
-// The Reminders page: the one switch of this addon, per character.
+// The Reminders page: the switch, the sound, and a switch for each reagent of the player's class.
 import type { ControlsService, OptionsPage } from "@wowkit/ui";
+import type { PlayerService, Reagent, ReagentsService } from "@wowkit/wow";
 import type { AddonLocale } from "../locale/locale.interface";
 import type { AddonSettings, AddonSettingsService } from "../settings/settings.interface";
 
@@ -8,6 +9,8 @@ export class RemindersPage implements OptionsPage {
         private readonly locale: AddonLocale,
         private readonly settings: AddonSettingsService,
         private readonly controls: ControlsService<AddonSettings>,
+        private readonly reagents: ReagentsService,
+        private readonly player: PlayerService,
     ) {}
 
     registerPage(root: SettingsCategory | undefined): SettingsCategory {
@@ -23,6 +26,44 @@ export class RemindersPage implements OptionsPage {
             () => this.settings.get("isMuted"),
             (isChecked) => this.settings.change("isMuted", isChecked),
         );
+        this.controls.addSoundDropdown(
+            category,
+            "sound",
+            this.locale.getText("OPT_SOUND"),
+            this.locale.getText("TIP_SOUND"),
+            () => this.settings.get("sound"),
+            (sound) => this.settings.change("sound", sound),
+        );
+        this.addReagentCheckboxes(category, layout);
         return category;
+    }
+
+    /** One checkbox per reagent of the player's class, labeled with the item's name; a class without reagents gets none. */
+    private addReagentCheckboxes(category: SettingsCategory, layout: SettingsLayout): void {
+        const reagents = this.reagents.getReagentsOfClass(this.player.getClassToken());
+        if (reagents.length === 0) return;
+        this.controls.addHeader(layout, this.locale.getText("HDR_REAGENTS"));
+        for (const reagent of reagents) {
+            this.controls.addCheckbox(
+                category,
+                `reagent_${reagent.itemId}`,
+                this.reagents.getReagentName(reagent),
+                this.locale.getText("TIP_REAGENT_ONE"),
+                true,
+                () => this.isReagentOn(reagent),
+                (isChecked) => this.setReagentOn(reagent, isChecked),
+            );
+        }
+    }
+
+    private isReagentOn(reagent: Reagent): boolean {
+        return this.settings.get("reagentOn")[String(reagent.itemId)] !== false;
+    }
+
+    /** Switches one reagent on or off; the default (on) is not stored. */
+    private setReagentOn(reagent: Reagent, isOn: boolean): void {
+        const reagentOn = { ...this.settings.get("reagentOn") };
+        reagentOn[String(reagent.itemId)] = isOn ? undefined : false;
+        this.settings.change("reagentOn", reagentOn);
     }
 }

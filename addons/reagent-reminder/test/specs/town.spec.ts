@@ -66,3 +66,51 @@ describe("a priest who is not in a town", () => {
         expect(world.chat.join("\n")).not.toContain("Reagents running low");
     });
 });
+
+describe("the sound of the message", () => {
+    it("is not played unless the player picked one", () => {
+        const world = createWorld((state) => setUpPriest(state, true));
+        expect(world.sounds.length).toBe(0);
+    });
+
+    it("is played when the message appears", () => {
+        const world = createWorld((state) => setUpPriest(state, false));
+        world.setOption("sound", "ping");
+        // choosing a sound plays it once as a preview
+        expect(world.sounds.length).toBe(1);
+        world.state.isResting = true;
+        world.fire("PLAYER_UPDATE_RESTING");
+        expect(world.sounds.length).toBe(2);
+    });
+});
+
+describe("the reagents of a priest on the options page", () => {
+    function arriveInTown(world: World): void {
+        world.state.isResting = true;
+        world.fire("PLAYER_UPDATE_RESTING");
+    }
+
+    it("have a switch each, and none for another class's reagents", () => {
+        const world = createWorld((state) => setUpPriest(state, false));
+        expect(world.proxySettings["ReagentReminder_reagent_17028"]).toBeDefined();
+        expect(world.proxySettings["ReagentReminder_reagent_17029"]).toBeDefined();
+        expect(world.proxySettings["ReagentReminder_reagent_17021"]).toBeUndefined();
+    });
+
+    it("silence the message of a reagent that is switched off", () => {
+        const world = createWorld((state) => setUpPriest(state, false));
+        world.setOption("reagent_17028", false);
+        arriveInTown(world);
+        expect(world.chat.join("\n")).not.toContain("Reagents running low");
+    });
+
+    it("are stored only where they differ from the default", () => {
+        const world = createWorld((state) => setUpPriest(state, false));
+        world.setOption("reagent_17028", false);
+        const reagentOn = world.getSavedSettings()?.reagentOn as Record<string, boolean | undefined>;
+        expect(reagentOn["17028"]).toBe(false);
+        world.setOption("reagent_17028", true);
+        const afterwards = world.getSavedSettings()?.reagentOn as Record<string, boolean | undefined>;
+        expect(afterwards["17028"]).toBeUndefined();
+    });
+});

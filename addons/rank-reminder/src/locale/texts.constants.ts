@@ -18,6 +18,9 @@ export const TEXTS = {
     OPT_HIDE_RESTING: "Stay quiet in towns and inns",
     TIP_HIDE_RESTING: "No message while you are resting in a town or an inn and not in combat. Switch it off to get it there too.",
 
+    OPT_SOUND: "Sound",
+    TIP_SOUND: "Plays when the message appears. Choosing a sound plays it once as a preview.",
+
     NOTICE_OLD_RANK: "%s: Rank %d is on your action bar, but you know Rank %d.",
 };
 

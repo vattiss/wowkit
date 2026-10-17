@@ -30,10 +30,19 @@ export class ReagentsService {
         return reagent === undefined || this.getReagentCount(reagent) > 0;
     }
 
-    /** Reagents of spells the player knows, with REAGENT_LOW or fewer in the bags. */
-    findLowReagents(): ReagentStock[] {
+    /** The reagents the group buffs of a class use ("PRIEST"), in list order. */
+    getReagentsOfClass(classToken: string | undefined): Reagent[] {
+        return REAGENTS.filter((reagent) => reagent.classToken === classToken);
+    }
+
+    /**
+     * Reagents of spells the player knows, with REAGENT_LOW or fewer in the bags. `isWanted` leaves out the reagents
+     * the player does not want to hear about.
+     */
+    findLowReagents(isWanted: (reagent: Reagent) => boolean = () => true): ReagentStock[] {
         const low: ReagentStock[] = [];
         for (const reagent of REAGENTS) {
+            if (!isWanted(reagent)) continue;
             const usedBy = reagent.spells.find((spellId) => this.spells.isLearned(spellId) && this.findReagentFor(spellId) !== undefined);
             const count = usedBy !== undefined ? this.getReagentCount(reagent) : REAGENT_LOW + 1;
             if (count <= REAGENT_LOW) low.push({ reagent, name: this.getReagentName(reagent), count });
@@ -41,7 +50,8 @@ export class ReagentsService {
         return low;
     }
 
-    private getReagentName(reagent: Reagent): string {
+    /** The name of the item (the client's, else the English one). */
+    getReagentName(reagent: Reagent): string {
         return this.bags.getItemName(reagent.itemId) ?? reagent.name;
     }
 

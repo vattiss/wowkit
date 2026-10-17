@@ -2,6 +2,7 @@
 ## AllowLoadGameType: camelot
 ## Title: Reagent Reminder
 ## Notes: When you arrive in a town or an inn, names the reagents of your group buffs that are running low.
+## Category: Reminders
 ## Author: Attila Varga
 ## Version: @version@
 ## IconTexture: Interface\AddOns\ReagentReminder\images\logo

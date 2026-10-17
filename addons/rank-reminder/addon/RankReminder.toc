@@ -2,6 +2,7 @@
 ## AllowLoadGameType: camelot
 ## Title: Rank Reminder
 ## Notes: Names the spells on your action bars that are a lower rank than the one you have learned.
+## Category: Reminders
 ## Author: Attila Varga
 ## Version: @version@
 ## IconTexture: Interface\AddOns\RankReminder\images\logo

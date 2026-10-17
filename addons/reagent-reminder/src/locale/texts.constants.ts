@@ -16,6 +16,11 @@ export const TEXTS = {
     OPT_MUTE: "Disable on this character",
     TIP_MUTE: "Turns the message off on this character only. Your other characters keep their settings.",
 
+    OPT_SOUND: "Sound",
+    TIP_SOUND: "Plays when the message appears. Choosing a sound plays it once as a preview.",
+    HDR_REAGENTS: "Reagents",
+    TIP_REAGENT_ONE: "Tell me when I run low on this reagent.",
+
     NOTICE_REAGENTS_LOW: "Reagents running low: %s",
 };
 

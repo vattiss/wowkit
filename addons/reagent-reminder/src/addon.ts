@@ -69,7 +69,7 @@ export function startAddon(addonName: string): void {
             "https://github.com/vattiss/wowkit",
         ),
     );
-    const remindersPage = addon.register(new RemindersPage(locale, settings, controls));
+    const remindersPage = addon.register(new RemindersPage(locale, settings, controls, reagents, player));
     addon.register(new OptionsService(messages, [homePage, remindersPage]));
     addon.start();
 }

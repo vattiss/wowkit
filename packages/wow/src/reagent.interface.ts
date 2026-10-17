@@ -1,6 +1,8 @@
 export interface Reagent {
     itemId: number;
     name: string;
+    /** The class whose group buffs use it ("PRIEST"). */
+    classToken: string;
     /** The spells that use it. */
     spells: number[];
 }

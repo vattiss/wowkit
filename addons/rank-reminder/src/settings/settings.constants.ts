@@ -4,5 +4,5 @@ import type { AddonSettings } from "./settings.interface";
 export const SAVED_VARIABLES_NAME = "RankReminderCharDB";
 
 export function createDefaultSettings(): AddonSettings {
-    return { isMuted: false, hideResting: true };
+    return { isMuted: false, hideResting: true, sound: "none" };
 }
