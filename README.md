@@ -38,7 +38,7 @@ Requires Node.js 24+ (the build scripts are TypeScript run by Node directly) and
 ```sh
 npm install
 npm run build        # -> dist/ForeverReminders/{ForeverReminders.toc,ForeverReminders.lua}
-npm test             # build + run test/smoke_test.lua against a mocked WoW API
+npm test             # checks, build, then the tests (TypeScript, see test/README.md)
 npm run typecheck
 npm run watch        # rebuild on change
 
@@ -74,7 +74,7 @@ types/
   wow-framexml.d.ts hand-written typings: Settings panel API, action buttons, FrameXML globals
   generated/        generated from Blizzard's API docs - do not edit
 scripts/        build, deploy, test, type-generation and check scripts
-test/           Lua smoke test against a mocked client (mock_wow.lua)
+test/           the tests: describe / it specs in TypeScript against a fake game (test/README.md)
 ```
 
 ### Rules
@@ -115,6 +115,9 @@ type), fix it with `SIGNATURE_OVERRIDES` in the generator or extra overloads in 
   Script handlers get the widget as an explicit first parameter: `frame.SetScript("OnEvent", (self, event, ...args) => ...)`.
 - Use `onEvent("EVENT_NAME", handler)` from `src/wow/events.ts` for typed event payloads.
 - No `RegExp`: use Lua patterns via `string.match` / `string.gsub` / `string.gmatch`.
+- A function-valued property called through `?.` (`setting?.set(x)`) is compiled as a method call and gets
+  an extra `self`. Declare it with `this: void` (`set: (this: void, x: unknown) => void`) or call it without `?.`.
+- A closure only sees variables declared before it; declare a variable before the function that uses it.
 - Arrays are Lua sequences (1-based in Lua, 0-based in TS - TSTL translates the indices).
 - Globals such as SavedVariables are declared with `declare global { var Name: Type }`.
 - Classes work (methods are called with `:`); pass methods as callbacks wrapped in an arrow function.

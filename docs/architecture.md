@@ -45,7 +45,7 @@ flowchart LR
     tstl --> lua["dist/ForeverReminders/<br/>ForeverReminders.lua"]
     toc["addon/ForeverReminders.toc<br/>addon/images"] -- "scripts/package-addon.ts<br/>(@version@)" --> dist["dist/ForeverReminders/"]
     lua --> dist
-    dist -- "npm test<br/>LuaJIT + test/mock_wow.lua" --> smoke["smoke test"]
+    dist -- "npm test<br/>tests in TypeScript, run by LuaJIT<br/>against a fake game" --> smoke["tests"]
     dist -- "npm run deploy" --> game["_classic_beta_/Interface/AddOns"]
 ```
 

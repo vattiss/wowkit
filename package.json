@@ -25,10 +25,11 @@
     "build": "tstl -p tsconfig.json && node scripts/package-addon.ts",
     "watch": "node scripts/package-addon.ts && tstl -p tsconfig.json --watch",
     "deploy": "npm run build && node scripts/deploy.ts",
-    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.scripts.json",
+    "build:tests": "tstl -p tsconfig.test.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json --noEmit && tsc -p tsconfig.scripts.json",
     "lint": "eslint .",
     "check": "node scripts/check-boundary.ts && node scripts/check-names.ts && eslint .",
-    "test": "npm run check && npm run build && node scripts/smoke-test.ts"
+    "test": "npm run check && npm run build && npm run build:tests && node scripts/smoke-test.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

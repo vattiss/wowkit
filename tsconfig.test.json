@@ -1,0 +1,25 @@
+{
+  // The tests: TypeScript compiled by TypeScriptToLua into one Lua file, which LuaJIT runs against the
+  // built addon (scripts/smoke-test.ts). The fake game in test/world is checked against the real API types.
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": ["ESNext"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "types": ["lua-types/5.1", "@typescript-to-lua/language-extensions"],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "rootDir": ".",
+    "outDir": "dist-test"
+  },
+  "include": ["test/**/*.ts", "types/**/*.d.ts"],
+  "tstl": {
+    "luaTarget": "5.1",
+    "luaBundle": "tests.lua",
+    "luaBundleEntry": "test/run.ts",
+    "luaLibImport": "require-minimal",
+    "noImplicitSelf": true,
+    "noHeader": true
+  }
+}

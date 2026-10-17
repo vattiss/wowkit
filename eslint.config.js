@@ -11,13 +11,13 @@ import tseslint from "typescript-eslint";
 const QUESTION_WORDS = ["is", "has", "can", "should", "does", "did", "was", "will", "are", "had", "show", "hide"];
 
 export default defineConfig(
-    { ignores: ["dist/**", ".cache/**", "node_modules/**", "types/**", "test/**"] },
+    { ignores: ["dist/**", "dist-test/**", ".cache/**", "node_modules/**", "types/**"] },
     {
-        files: ["src/**/*.ts", "scripts/**/*.ts"],
+        files: ["src/**/*.ts", "scripts/**/*.ts", "test/**/*.ts"],
         extends: [js.configs.recommended, tseslint.configs.recommended, tseslint.configs.stylistic],
         languageOptions: {
             parserOptions: {
-                project: ["./tsconfig.json", "./tsconfig.scripts.json"],
+                project: ["./tsconfig.json", "./tsconfig.scripts.json", "./tsconfig.test.json"],
                 tsconfigRootDir: import.meta.dirname,
             },
         },
@@ -49,6 +49,15 @@ export default defineConfig(
                     prefix: QUESTION_WORDS,
                 },
             ],
+        },
+    },
+    {
+        // A describe block holds all the tests of a topic, so it is long by nature. The fake game
+        // takes the game's loosely typed callbacks (scripts, event handlers) as they are.
+        files: ["test/**/*.ts"],
+        rules: {
+            "max-lines-per-function": "off",
+            "@typescript-eslint/no-explicit-any": "off",
         },
     },
 );

@@ -1,0 +1,29 @@
+// Items: weapon enchants (imbues, poisons), the bags and the sounds the addon plays.
+import type { ClientState } from "./client-state";
+import { defineNamespace, defineValues, fake } from "./define";
+
+export function installItems(state: ClientState, sounds: number[]): void {
+    defineNamespace<typeof C_PaperDollInfo>("C_PaperDollInfo", {
+        GetTemporaryEnchantmentInfo: (slot) => {
+            const enchant = state.enchants[slot];
+            return enchant ? fake<TemporaryItemEnchantInfo>({ ...enchant, chargesRemaining: 0, hasExpirationTime: true }) : undefined;
+        },
+    });
+
+    defineNamespace<typeof C_Item>("C_Item", {
+        GetWeaponEnchantInfo: () => [],
+        // Every equipped item is a one-handed mace: item class 2 is a weapon
+        GetItemInfoInstant: (item) => $multi(item as number, "Weapon", "Mace", "INVTYPE_WEAPON", 0, 2, 4),
+        GetItemSpell: () => $multi(undefined, undefined),
+        GetItemCount: (item) => state.bags[item as number] ?? 0,
+        GetItemNameByID: () => undefined,
+    });
+
+    defineNamespace<typeof C_Sound>("C_Sound", {
+        PlaySound: (soundKitId) => {
+            sounds.push(soundKitId);
+            return $multi(true, sounds.length);
+        },
+    });
+    defineValues({ SOUNDKIT: { ALARM_CLOCK_WARNING_3: 12889, RAID_WARNING: 8959 } });
+}
