@@ -8,7 +8,7 @@
     "type": "git",
     "url": "git+https://github.com/vattiss/wowkit.git"
   },
-  "author": "Attila Varga",
+  "author": "Attila Varga (https://github.com/vattiss)",
   "license": "ISC",
   "engines": {
     "node": ">=24"

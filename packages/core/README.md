@@ -3,12 +3,8 @@
 `@wowkit/core`: an `Addon` that starts the services, lifecycle hooks, events and timers. Services are plain
 classes that get what they need in their constructor; the core adds only what the game needs (listening to
 events, running timers). It is platform-aware (it listens to the game's events and runs the timers), a
-package that imports only itself, and knows nothing about reminders. Decisions:
-[0007](../../docs/decisions/0007-services-modules-and-decorators.md),
-[0009](../../docs/decisions/0009-everything-is-a-provider.md),
-[0010](../../docs/decisions/0010-providers-lists-instead-of-modules.md),
-[0011](../../docs/decisions/0011-hand-wired-classes.md),
-[0012](../../docs/decisions/0012-packages.md).
+package that imports only itself, and knows nothing about reminders. Why it is built this way:
+[docs/architecture.md](../../docs/architecture.md#architecture-decision-records-adr).
 
 ```ts
 export class RefreshService {
@@ -31,7 +27,7 @@ addon.start();
 | `decorators.ts` | What a method listens to: `@OnGameEvent`, `@OnUnitEvent`, `@OnEvent`, `@Interval`. A decorator accepts only a method that fits what it listens to, so a handler with the wrong parameters does not compile. |
 | `addon.ts` | `Addon`: takes the services (`add`), then `start` connects the listeners, runs the hooks, starts and stops the intervals. |
 | `event-bus.ts` | `EventBus` (Nest's EventEmitter) and `AppEvents`, the map of event names to what they carry. `addon.events` is the addon's one bus. |
-| `game-events.ts` | The game's events and timers on one hidden frame; only `addon.ts` uses it. |
+| `game-events.ts` | `GameEvents`: the game's events on one hidden frame per `Addon` (no state outside the object, so a test can make as many as it needs), and `runInterval`; only `addon.ts` uses it. |
 | `metadata.ts`, `types.ts` | What the decorators write down; the words of the core. |
 
 ## Services

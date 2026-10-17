@@ -358,3 +358,35 @@ The triggers are separate: each service says with decorators which game event it
 (`@OnGameEvent`, `@OnUnitEvent`), and `tick/refresh.service.ts` merges and delays the requests (event bursts froze
 Forever once), then calls `tick`. The first read of the game, the options page, the greeting and logout are
 lifecycle hooks (`onFirstLogin`, `onLogin`, `onLogout`).
+
+## Architecture decision records (ADR)
+
+The choices that shaped the project, and the reason each was made, one record each. When one of them stops being true,
+change its record here.
+
+- **Forever only, with its own typings.** The addons are for World of Warcraft: Forever (1.60.x) and nothing else, so
+  there is no compatibility layer. The typings are generated from Blizzard's own API documentation for that client, and
+  the raw API stays reachable: a package wraps it in plain answers, it never hides it.
+- **The packages are compiled into each addon.** Each addon is one Lua file that carries what it uses of the packages.
+  There is no shared addon to install, so no load order, no version clash, and an addon works without the others.
+- **Our own `describe` / `it` runner on LuaJIT** (`@wowkit/test-kit`), against a fake game whose functions are checked
+  against the real API types. The tests are TypeScript, run the built Lua, and need no game.
+- **Plain classes, wired by hand.** A service takes what it needs in its constructor, and `addon.ts` makes every service
+  with `new`, dependencies first. There is no container and no `@Inject`: TypeScriptToLua has no `emitDecoratorMetadata`,
+  so a container made every dependency be written twice, and a mistake showed only when the addon started. The compiler
+  checks the wiring now, and a cycle cannot be written. Decorators remain only for what a method listens to
+  (`@OnGameEvent`, `@OnEvent`, `@Interval`) and the lifecycle hooks are methods of a fixed name.
+- **The packages do not know the addons.** What only an addon knows (its buff lists, its texts, the shape of its settings)
+  reaches a package as a constructor or type parameter. `pnpm check` fails on an import that goes the wrong way.
+- **Packages and addons in one pnpm workspace, compiled from sources.** TypeScriptToLua cannot compile sources it finds
+  through `node_modules` (it takes them for precompiled Lua), so the `tsconfig` `paths` point at the package sources.
+  Publishing would need library builds; it is not done and not needed until another repository wants the packages.
+- **Three small addons, not one.** The reminders share infrastructure but not a purpose, and a player may want only one.
+  The shared parts are packages (`ui` for the settings and the Settings page, `wow` for the game's door).
+- **One page per addon, and no debug report.** The addons are small; a landing page with sub pages only added clicks. The
+  debug report was built to find out what the client answers while the first addon was written, and was never needed since.
+- **State belongs to an object, not to a module.** A package that keeps its state in module variables cannot be tested
+  (every test shares it), so the event frame belongs to an `Addon`, and a package reads the game's API when a service needs it,
+  not when the file is loaded.
+- **`@wowkit/core` stays small:** `Addon`, the events and timers, the lifecycle hooks and the text helpers. Anything that talks
+  to the game's API belongs in `@wowkit/wow`, and anything for the Settings panel in `@wowkit/ui`.

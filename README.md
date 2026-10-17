@@ -16,7 +16,7 @@ Settings page (*Options > AddOns*) and its own saved settings per character.
 | <img src="addons/rank-reminder/assets/logo.png" width="48" alt=""> | [Rank Reminder](addons/rank-reminder/README.md) | Spells on your action bars that are a lower rank than the one you know. |
 | <img src="addons/reagent-reminder/assets/logo.png" width="48" alt=""> | [Reagent Reminder](addons/reagent-reminder/README.md) | Reagents of your group buffs that run low, as you arrive in a town or an inn. |
 
-Only Blizzard's own action bars are supported. With Bartender4, Dominos or ElvUI bars the glows are not visible.
+Only Blizzard's own action bars are supported.
 
 ## Development
 
@@ -25,7 +25,7 @@ Requires Node.js 24+ (the build scripts are TypeScript run by Node directly), [p
 ```sh
 pnpm install
 pnpm build        # every addon -> addons/<name>/dist/<AddonName>/{<AddonName>.toc,<AddonName>.lua}
-pnpm test         # checks, build, then the tests of every addon (TypeScript, see addons/buff-reminder/test/README.md); CI runs the same
+pnpm test         # checks, build, then the tests of every addon and of the core and wow packages (TypeScript, see addons/buff-reminder/test/README.md); CI runs the same
 pnpm typecheck
 pnpm format       # Prettier writes the code layout; pnpm test only checks it
 pnpm --filter buff-reminder watch   # rebuild on change
@@ -40,7 +40,7 @@ WOW_ADDONS_DIR="C:/Program Files (x86)/World of Warcraft/_classic_beta_/Interfac
 Diagrams of the build pipeline, the features and the events: [docs/architecture.md](docs/architecture.md).
 The words used in the code (buff, aura, buff category, group version...): [docs/glossary.md](docs/glossary.md).
 Why the code is so defensive (the game's quirks): [docs/forever-quirks.md](docs/forever-quirks.md).
-Why the project is built the way it is (decision records): [docs/decisions/](docs/decisions/README.md).
+Why the project is built the way it is (the architecture decision records, ADR): [docs/architecture.md](docs/architecture.md#architecture-decision-records-adr).
 How the code is split into packages, and what a second addon would take: [docs/packages.md](docs/packages.md).
 Each folder has a short README.
 
@@ -74,7 +74,7 @@ addons/
   rank-reminder/    spells on the bars at an old rank (the smallest addon: the template for a new one)
   reagent-reminder/ low reagents on arriving in a town or an inn
 scripts/        build, deploy, type-generation and check scripts
-docs/           architecture, packages, glossary, the game's quirks, decision records
+docs/           architecture (with the reasons), packages, glossary, the game's quirks
 ```
 
 ### Rules
@@ -132,3 +132,7 @@ type), fix it with `SIGNATURE_OVERRIDES` in the generator or extra overloads in 
   with events on the `EventBus` (`@OnEvent`); the packages import nothing from the addon.
 - Decorators (`@OnGameEvent`, `@Interval`...) need `experimentalDecorators`; a method is called as
   `instance[name](instance, ...)`. See `packages/core/README.md`.
+
+## License
+
+[ISC](LICENSE).

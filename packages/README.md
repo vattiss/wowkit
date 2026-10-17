@@ -1,8 +1,8 @@
 # packages/
 
 What could serve any Forever addon. Each package knows the game or how to start services, not what this addon
-reminds about, and may import only itself and the packages it depends on (`pnpm check` enforces it, decision
-[0008](../docs/decisions/0008-toolkit-folders-do-not-know-the-addon.md) and [0012](../docs/decisions/0012-packages.md)).
+reminds about, and may import only itself and the packages it depends on (`pnpm check` enforces it; see
+[why](../docs/architecture.md#architecture-decision-records-adr)).
 What only the addon knows is a constructor parameter, which the addon's `addon.ts` passes in.
 
 | Package | Name | What it is | Depends on |
@@ -17,8 +17,7 @@ The addons that use them are in [../addons/](../addons).
 
 ## How a package is used today
 
-The packages are **compiled from their sources together with the addon** (route A of
-[0012](../docs/decisions/0012-packages.md)): an addon's `tsconfig.json` maps `@wowkit/core` and `@wowkit/wow`
+The packages are **compiled from their sources together with the addon** (see [why](../docs/architecture.md#architecture-decision-records-adr)): an addon's `tsconfig.json` maps `@wowkit/core` and `@wowkit/wow`
 to the sources under `paths`, so there is one `tsc`, one TypeScriptToLua run and one Lua file per addon, and nothing
 to build or publish first. A package is not yet something you install from npm; that comes with a published
-build (route C, see the same record).
+build.

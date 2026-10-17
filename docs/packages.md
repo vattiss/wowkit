@@ -1,9 +1,7 @@
 # Packages and addons
 
 The repository holds **packages** (what could serve any Forever addon) and **addons** (what uses them). Why it is
-split this way, and what was tried: [0012](decisions/0012-packages.md), [0013](decisions/0013-pnpm-workspace.md) and
-[0014](decisions/0014-three-addons-and-the-ui-package.md). How an addon itself is built:
-[architecture.md](architecture.md).
+split this way: [architecture.md](architecture.md#architecture-decision-records-adr), which also describes how an addon itself is built.
 
 ```
 packages/
@@ -90,7 +88,7 @@ The tests have their own project (`tsconfig.test.json`) with `@wowkit/test-kit`.
 
 ## The workspace
 
-The repository is a **pnpm workspace** ([0013](decisions/0013-pnpm-workspace.md)): `pnpm-workspace.yaml` lists
+The repository is a **pnpm workspace** (see [why](architecture.md#architecture-decision-records-adr)): `pnpm-workspace.yaml` lists
 `packages/*` and `addons/*`, and each has its own `package.json`. The tools (TypeScript, TypeScriptToLua, ESLint,
 Prettier) are installed once, at the root.
 
@@ -126,17 +124,19 @@ Not done, and not needed until another repository wants the packages. It takes:
 - the `private` flag off in each package's `package.json`, `peerDependencies` on `@wowkit/core` for `wow` and
   `ui` (so two copies of the core's notes never end up in one bundle), and a license;
 - library builds (`"buildMode": "library"`, `"declaration": true`) so an addon imports the built Lua from
-  `node_modules` (route C of [0012](decisions/0012-packages.md));
+  `node_modules` (the route that works from `node_modules`);
 - the typings package listed in the consumer's `tsconfig.json` `types`;
-- a license, semantic versions, a changelog, and answers to issues ([0006](decisions/0006-tooling.md)).
+- a license, semantic versions, a changelog, and answers to issues.
 
 ## Open questions
 
 - **Does the Lua bundle repeat TypeScriptToLua's helper functions per library build?** Not measured; with route A
   there is one bundle and no repetition.
-- **Tests of the packages themselves.** Today all tests are specs of the addons, run against the fake game. The
-  `Addon` class (hook order, intervals), the `EventBus`, `SpellRefreshService` and `BarRefreshService` have no tests of
-  their own; a tiny test addon per package would give them.
+- **Tests of the other packages.** `core` and `wow` have specs of their own (`packages/*/test`), made with the
+  `createBasicGame` of the test kit and stubs for what a service asks of its neighbours (a service takes its
+  dependencies in the constructor, so a stub can stand in). `ui` has none of its own yet: its pages and controls are
+  tested through the addons.
 - **Several addons, one client.** Each addon reads the spells and the action bars for itself. An addon that maps the
   bars (buff-reminder, rank-reminder) does the same work as the other; the mapping is throttled and done a few buttons
-  per frame, so two at once have not shown a problem, but it has not been measured with all three in the game.
+  per frame, so two at once have not shown a problem, but it has not been measured with all three in the game. The
+  on-screen notice is the one thing the addons share: one frame, a block of lines per addon (see `packages/wow`).

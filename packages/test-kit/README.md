@@ -8,6 +8,7 @@ run against a **fake game**. No Lua to read or write.
   [../wow-types/](../wow-types), so a fake that no longer matches the game does not compile. One `install-*.ts` file per
   area (units, spells, bars and auras, items, ui, clock). `createWorld(setup)` gives a fresh game with the addon
   loaded and logged in; the test then changes `world.state`, fires events and moves time.
+- **`src/world/basic-game.ts`**: `createBasicGame()`, a game with only a clock, frames and the chat, for the tests of a package (see `packages/core/test` and `packages/wow/test`); no addon needs to be loaded.
 - **`src/config.ts`**: where the built addon is (set by the addon's `test/run.ts` from the command line).
 
 How a test run works, and how to write a spec: [the addon's test README](../../addons/buff-reminder/test/README.md).

@@ -3,7 +3,7 @@
 ## Title: Buff Reminder
 ## Notes: Reminds you of missing buffs and weapon buffs, and of buffs that are missing from your action bars.
 ## Category: Reminders
-## Author: Attila Varga
+## Author: Attila Varga (vattiss)
 ## Version: @version@
 ## IconTexture: Interface\AddOns\BuffReminder\images\logo
 ## SavedVariablesPerCharacter: BuffReminderCharDB

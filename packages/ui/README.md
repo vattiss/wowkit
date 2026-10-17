@@ -6,9 +6,9 @@ reminds about. The shape of the settings and the texts are the addon's, given as
 
 | Service | What it does |
 |---|---|
-| `settings.service.ts` | The per-character settings, saved by the game: `get`, `change` (announces `setting.changed` on the EventBus), `getDefault`. Loads the saved values in `onAddonLoaded`. |
+| `settings.service.ts` | The per-character settings, saved by the game: `get`, `change` (announces `setting.changed` on the EventBus), `getDefault`. Loads the saved values in `onAddonLoaded`, then lets the addon repair them (an optional `repair` function: a saved choice that has gone from a list, such as a sound, becomes the default again). |
 | `locale.service.ts` | The addon's texts, `getText(key)`; a misspelled key does not compile. |
-| `messages.service.ts`, `sounds.constants.ts` | A chat line in the addon's name; the alert sounds the player can pick. |
+| `messages.service.ts`, `sounds.constants.ts` | A chat line in the addon's name; the alert sounds the player can pick (`isSoundKey` tells whether a saved choice is still in the list). |
 | `greeting.service.ts` | One line in the chat at login (`onLogin`: not after a reload). |
 | `options.service.ts` | Adds the addon's one page (an `OptionsPage` that fills a vertical layout) to the Settings panel at the first login. |
 | `about.section.ts` | The Help section at the bottom of the page: a button each that puts the GitHub link and the issues link in the chat box, ready to copy. |
@@ -19,4 +19,3 @@ An addon makes these in its `addon.ts` and gives them its own words and types, f
 
 - It may call the game (the Settings panel and the chat are the game's) and imports only `@wowkit/core` and
   `@wowkit/wow` (`pnpm check` enforces it).
-- Decisions: [0014](../../docs/decisions/0014-three-addons-and-the-ui-package.md).

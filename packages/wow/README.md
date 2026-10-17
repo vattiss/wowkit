@@ -17,7 +17,7 @@ quirks (secret values, hidden auras, protected calls, remapped IDs) into plain a
 | `reagents.service.ts` (+ `reagents.constants.ts`) | Does a spell need a reagent (read from its tooltip), is there one in the bags, which run low. |
 | `spell-ids.constants.ts`, `spell-name-hints.constants.ts` | The spell IDs of the buffs and group buffs of the 1.60.x client, and English names for IDs the client does not name. |
 | `weapon-enchants.service.ts` | Weapon enchants and imbues, and the weapon tooltips. |
-| `glow.service.ts`, `notice.service.ts` | The glow on action buttons; sounds, chat lines, the notice. |
+| `glow.service.ts`, `notice.service.ts` | The glow on action buttons; sounds, chat lines, the notice. The notice is one frame shared by every addon that uses the service (`NoticeService(addonName)`): each addon owns a block of lines in it, and two messages stack instead of drawing over each other. |
 | `clock.service.ts` | The game's clock and timers. |
 | `saved-variables.service.ts` | The saved data of the character. |
 
