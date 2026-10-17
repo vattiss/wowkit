@@ -4,7 +4,7 @@ import type { AddonLocale } from "../locale/locale.interface";
 import type { ClassBuffsService } from "../reminders/class-buffs.service";
 import type { AddonSettingsService, AddonSettings } from "../settings/settings.interface";
 import type { SpellsService } from "@wowkit/wow";
-import type { ControlsService, OptionsPage } from "@wowkit/ui";
+import type { AboutSection, ControlsService, OptionsPage } from "@wowkit/ui";
 import type { ReminderControlsService } from "./reminder-controls.service";
 import type { WeaponSection } from "./weapon.section";
 
@@ -17,11 +17,10 @@ export class RemindersPage implements OptionsPage {
         private readonly controls: ControlsService<AddonSettings>,
         private readonly reminderControls: ReminderControlsService,
         private readonly weaponSection: WeaponSection,
+        private readonly about: AboutSection,
     ) {}
 
-    registerPage(root: SettingsCategory | undefined): SettingsCategory {
-        if (root === undefined) throw new Error("the reminders page goes under the home page");
-        const [category, layout] = Settings.RegisterVerticalLayoutSubcategory(root, this.locale.getText("TAB_REMINDERS"));
+    buildPage(category: SettingsCategory, layout: SettingsLayout): void {
         const buffs = this.classBuffs.getClassBuffs();
 
         this.reminderControls.addHeader(layout, "HDR_CHARACTER");
@@ -51,17 +50,7 @@ export class RemindersPage implements OptionsPage {
         this.reminderControls.addHeader(layout, "HDR_MESSAGES");
         this.reminderControls.addSwitch(category, "showBarNotice", "OPT_BAR_NOTICE", "TIP_BAR_NOTICE");
 
-        this.reminderControls.addHeader(layout, "HDR_DEBUG");
-        this.controls.addCheckbox(
-            category,
-            "isDebugMode",
-            this.locale.getText("OPT_DEBUG"),
-            this.locale.getText("TIP_DEBUG"),
-            false,
-            () => this.settings.get("isDebugMode"),
-            (isChecked) => this.settings.change("isDebugMode", isChecked),
-        );
-        return category;
+        this.about.addAboutSection(layout);
     }
 
     /** One checkbox per buff of the class list, labeled with the spell's name. */

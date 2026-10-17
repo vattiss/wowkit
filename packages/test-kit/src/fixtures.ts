@@ -36,4 +36,4 @@ export const HOLY_CANDLE = 17028;
 export const SYMBOL_OF_KINGS = 21177;
 
 /** The sound the addon plays for a missing weapon buff by default (the alarm clock). */
-export const ALARM_SOUND = 12889;
+export const ALARM_SOUND = 12867;

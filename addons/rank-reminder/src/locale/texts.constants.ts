@@ -2,11 +2,8 @@
 export const TEXTS = {
     TITLE: "Rank Reminder",
     INIT: "Initialized",
-    TAB_REMINDERS: "Reminders",
 
-    OPT_HOME_TEXT:
-        "A message names every spell on your action bars that is a lower rank than the one you know, so a new rank never stays unused on a bar by accident. It never casts anything.",
-    OPT_HOME_HELP: "To report a problem, open an issue on GitHub with the link below and say what you saw.",
+    HDR_ABOUT: "Help",
     INFO_GITHUB: "GitHub",
     INFO_ISSUES: "Report an issue",
     INFO_COPY: "Copy",

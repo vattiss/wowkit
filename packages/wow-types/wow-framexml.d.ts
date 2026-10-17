@@ -116,6 +116,7 @@ interface SettingsControlTextContainer {
 
 declare namespace Settings {
     const VarType: { Boolean: "boolean"; Number: "number"; String: "string" };
+    function RegisterVerticalLayoutCategory(name: string): LuaMultiReturn<[SettingsCategory, SettingsLayout]>;
     function RegisterCanvasLayoutCategory(frame: Frame, name: string): SettingsCategory;
     function RegisterCanvasLayoutSubcategory(parent: SettingsCategory, frame: Frame, name: string): SettingsCategory;
     function RegisterVerticalLayoutSubcategory(parent: SettingsCategory, name: string): LuaMultiReturn<[SettingsCategory, SettingsLayout]>;
@@ -145,3 +146,11 @@ declare namespace Settings {
 }
 
 declare function CreateSettingsListSectionHeaderInitializer(name: string, tooltip?: string): SettingsInitializer;
+/** A row with a label and a button; `addSearchTags` makes the row show up in the panel's search. */
+declare function CreateSettingsButtonInitializer(
+    name: string,
+    buttonText: string,
+    buttonClick: () => void,
+    tooltip: string | undefined,
+    addSearchTags: boolean,
+): SettingsInitializer;

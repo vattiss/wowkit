@@ -6,6 +6,5 @@ import "./mage.spec";
 import "./warrior.spec";
 import "./druid.spec";
 import "./hunter.spec";
-import "./debug-report.spec";
 import "./shaman.spec";
 import "./rogue.spec";

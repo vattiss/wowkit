@@ -1,8 +1,7 @@
 // Per-character settings, saved by the game as the global the TOC names (## SavedVariablesPerCharacter).
 //
 // Player choices are changed through change(), which announces the change ("setting.changed"), so the
-// options page never has to know who reacts to it. Diagnostic data is written directly with write():
-// nobody reacts to it. The shape of the settings is the addon's: `SettingsService<MySettings>`.
+// options page never has to know who reacts to it. The shape of the settings is the addon's: `SettingsService<MySettings>`.
 import type { EventBus, OnAddonLoaded } from "@wowkit/framework";
 import type { SavedVariablesService } from "@wowkit/wow";
 
@@ -52,10 +51,5 @@ export class SettingsService<T extends object> implements OnAddonLoaded {
     change<K extends keyof T>(key: K, value: T[K]): void {
         this.values[key] = value;
         this.bus.emit("setting.changed", key as string);
-    }
-
-    /** Writes diagnostic data; nothing is announced. */
-    write<K extends keyof T>(key: K, value: T[K]): void {
-        this.values[key] = value;
     }
 }

@@ -1,8 +1,8 @@
 // Fails when code outside the game-facing folders touches the Blizzard API.
 //
-// The addon talks to the game in four places only: packages/wow/ (what the reminders ask the game),
+// The addon talks to the game in three places only: packages/wow/ (what the reminders ask the game),
 // packages/framework/ (game events and timers, for the decorators and the lifecycle), the addon's options/ (the
-// Settings panel) and diagnostics/ (the debug mode, which probes what the game answers).
+// Settings panel).
 // Everything else speaks in the addon's own terms, so it reads like plain code and never has to
 // know about secret values, protected calls or remapped IDs.
 //
@@ -16,14 +16,8 @@ import ts from "typescript";
 import { ROOT, listSourceFolders } from "./lib/paths.ts";
 import { createAddonsProgram } from "./lib/program.ts";
 
-/** Where code may call the game: the game-facing packages, and the options and diagnostics folders of every addon. */
-const ALLOWED_FOLDERS = [
-    "packages/wow/src/",
-    "packages/framework/src/",
-    "packages/ui/src/",
-    "addons/*/src/options/",
-    "addons/*/src/diagnostics/",
-];
+/** Where code may call the game: the game-facing packages, and the options folder of every addon. */
+const ALLOWED_FOLDERS = ["packages/wow/src/", "packages/framework/src/", "packages/ui/src/", "addons/*/src/options/"];
 const isAllowed = (file: string) => ALLOWED_FOLDERS.some((folder) => new RegExp(`^${folder.replace("*", "[^/]+")}`).test(file));
 const SOURCE_FOLDERS = listSourceFolders();
 const isSource = (file: string) => SOURCE_FOLDERS.some((folder) => file.startsWith(folder));

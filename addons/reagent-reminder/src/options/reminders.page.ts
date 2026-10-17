@@ -1,5 +1,5 @@
-// The Reminders page: the switch, the sound, and a switch for each reagent of the player's class.
-import type { ControlsService, OptionsPage } from "@wowkit/ui";
+// The page of this addon in the Settings panel: the switch, the sound, and a switch for each reagent of the player's class.
+import type { AboutSection, ControlsService, OptionsPage } from "@wowkit/ui";
 import type { PlayerService, Reagent, ReagentsService } from "@wowkit/wow";
 import type { AddonLocale } from "../locale/locale.interface";
 import type { AddonSettings, AddonSettingsService } from "../settings/settings.interface";
@@ -11,11 +11,10 @@ export class RemindersPage implements OptionsPage {
         private readonly controls: ControlsService<AddonSettings>,
         private readonly reagents: ReagentsService,
         private readonly player: PlayerService,
+        private readonly about: AboutSection,
     ) {}
 
-    registerPage(root: SettingsCategory | undefined): SettingsCategory {
-        if (root === undefined) throw new Error("the reminders page goes under the home page");
-        const [category, layout] = Settings.RegisterVerticalLayoutSubcategory(root, this.locale.getText("TAB_REMINDERS"));
+    buildPage(category: SettingsCategory, layout: SettingsLayout): void {
         this.controls.addHeader(layout, this.locale.getText("HDR_CHARACTER"));
         this.controls.addCheckbox(
             category,
@@ -35,7 +34,7 @@ export class RemindersPage implements OptionsPage {
             (sound) => this.settings.change("sound", sound),
         );
         this.addReagentCheckboxes(category, layout);
-        return category;
+        this.about.addAboutSection(layout);
     }
 
     /** One checkbox per reagent of the player's class, labeled with the item's name; a class without reagents gets none. */

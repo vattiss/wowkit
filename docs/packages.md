@@ -58,7 +58,7 @@ flowchart LR
 - An addon may use every package. What only an addon knows (its buff lists, its texts, the shape of its settings) reaches
   a package as a constructor parameter or a type parameter, passed in by the addon's `addon.ts`.
 - `pnpm check` enforces it: `scripts/check-layers.ts` (imports), `scripts/check-boundary.ts` (only `packages/wow`,
-  `packages/framework`, `packages/ui` and the `options/` and `diagnostics/` folders of the addons call the game) and
+  `packages/framework`, `packages/ui` and the `options/` folders of the addons call the game) and
   `scripts/check-wiring.ts` (every service of an addon is made in its `addon.ts`).
 
 ## What is in the packages
@@ -67,7 +67,7 @@ flowchart LR
 |---|---|
 | `@wowkit/framework` | `Addon` (registers the services, starts them), `@OnGameEvent`, `@OnUnitEvent`, `@OnEvent`, `@Interval`, the lifecycle hooks, the `EventBus`. |
 | `@wowkit/wow` | The game's door: player, party, bags, spells and the spell book, auras, action bars, weapon enchants, glows, notices, saved variables, the clock; `ReagentsService` and the spell IDs; `SpellRefreshService` and `BarRefreshService` keep the spells and the bars fresh. |
-| `@wowkit/ui` | `SettingsService<T>` (the shape is the addon's), `LocaleService<K>`, `MessagesService` and the sounds, `GreetingService`, and for the Settings panel `OptionsService`, `HomePage`, `ControlsService<T>` and `WidgetsService`. |
+| `@wowkit/ui` | `SettingsService<T>` (the shape is the addon's), `LocaleService<K>`, `MessagesService` and the sounds, `GreetingService`, and for the Settings panel `OptionsService` (one main page), `AboutSection` (the Help section), `ControlsService<T>` and `WidgetsService`. |
 | `@wowkit/test-kit` | `describe` / `it` / `expect`, `createWorld` (a fake game), and fixtures: the classes and spells the specs use. |
 
 ## How an addon uses them

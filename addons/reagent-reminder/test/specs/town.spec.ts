@@ -75,7 +75,7 @@ describe("the sound of the message", () => {
 
     it("is played when the message appears", () => {
         const world = createWorld((state) => setUpPriest(state, false));
-        world.setOption("sound", "ping");
+        world.setOption("sound", "raidwarning");
         // choosing a sound plays it once as a preview
         expect(world.sounds.length).toBe(1);
         world.state.isResting = true;

@@ -39,10 +39,12 @@ export function installUi(frames: FrameRegistry, chat: string[], proxySettings: 
             chat.push(args.map((arg) => tostring(arg)).join(" "));
         },
         CreateSettingsListSectionHeaderInitializer: () => createInertObject<SettingsInitializer>(),
+        CreateSettingsButtonInitializer: () => createInertObject<SettingsInitializer>(),
     });
 
     defineNamespace<typeof Settings>("Settings", {
         VarType: { Boolean: "boolean", Number: "number", String: "string" },
+        RegisterVerticalLayoutCategory: () => $multi(createInertObject<SettingsCategory>(), createInertObject<SettingsLayout>()),
         RegisterCanvasLayoutCategory: () => createInertObject<SettingsCategory>(),
         RegisterCanvasLayoutSubcategory: () => createInertObject<SettingsCategory>(),
         RegisterVerticalLayoutSubcategory: () => $multi(createInertObject<SettingsCategory>(), createInertObject<SettingsLayout>()),

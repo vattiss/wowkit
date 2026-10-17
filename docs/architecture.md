@@ -13,8 +13,8 @@ spell IDs that Forever remaps, `multiple, return, values`. All of that stays ins
 turns it into plain answers in the addon's own words (`isInCombat()`, `isLearned(spell)`,
 `getItemCount(item)`). The reminder logic in `addons/buff-reminder/src/reminders/` never sees a Blizzard function, so it reads
 like plain code. A few more places may call the game because that is their job: `packages/framework/src/` (game events and timers for
-the decorators), `packages/ui/src/` (the Settings panel and the chat) and the `options/` and `diagnostics/` folders of the
-addons (their own pages, and the debug mode, which probes what the game answers).
+the decorators), `packages/ui/src/` (the Settings panel and the chat) and the `options/` folders of the addons (their
+own page).
 
 **2. Everything is a service, made once, by hand.**
 Code that keeps state, talks to the game or uses other services is a class with its dependencies in the
@@ -92,7 +92,6 @@ flowchart TB
             tick["tick/<br/>a tick every 0.2 s: find what is due,<br/>show it; when to look sooner"]
             character["character/<br/>weapons, auras and casts,<br/>party roster, blocked actions"]
             options["options/<br/>the Settings panel pages"]
-            diagnostics["diagnostics/<br/>debug mode and report"]
             reminders["reminders/<br/>missing buffs, weapon buff,<br/>party buffs"]
         end
 
@@ -116,12 +115,9 @@ flowchart TB
         character --> tick
         character --> reminders
         character --> wow
-        options --> diagnostics
         options --> reminders
         options --> ui
         options --> wow
-        diagnostics --> reminders
-        diagnostics --> wow
         knowledge --> reminders
         reminders --> wow
         settings --> ui
@@ -174,7 +170,7 @@ flowchart TB
 
         subgraph OBSERVER["Observer / Pub-Sub"]
             bus["EventBus + @OnGameEvent, @OnUnitEvent,<br/>@OnEvent, @Interval"]
-            handlers["Listeners: AuraWatch, Equipment, Roster,<br/>BlockedAction, Display, DebugMode,<br/>RefreshService, SpellRefresh, BarRefresh"]
+            handlers["Listeners: AuraWatch, Equipment, Roster,<br/>BlockedAction, Display,<br/>RefreshService, SpellRefresh, BarRefresh"]
         end
 
         subgraph PIPELINE["Pipeline: find, then show"]
@@ -194,8 +190,8 @@ flowchart TB
             shared["SettingsService, LocaleService,<br/>MessagesService"]
         end
 
-        subgraph SCREEN["Settings panel and debug tools"]
-            screen["Options pages, ControlsService (control factory),<br/>WidgetsService<br/>Recorder, Samples, Report, DebugMode"]
+        subgraph SCREEN["The Settings page"]
+            screen["Options pages, ControlsService (control factory),<br/>WidgetsService, AboutSection"]
         end
 
         game[("WoW client")]
@@ -324,16 +320,11 @@ flowchart LR
         spells -- "spellbook.indexed" --> display["tick/DisplayService<br/>ticks again"]
         actionBars["ActionBarsService"] -- "bars.mapped" --> display
         settings["SettingsService"] -- "setting.changed" --> display
-        settings -- "setting.changed" --> debug["DebugModeService"]
         cast["SpellCastService"] -- "player.spell-cast" --> watch["character/AuraWatchService"]
-        safe["packages/wow/src/safe.ts<br/>(plain functions)"] -- "listenToSwallowedErrors" --> debug
     end
     classDef panel fill:#ffffff,stroke:#d1d5db,color:#111827
     class PANEL panel
 ```
-
-The helpers in `packages/wow/src/safe.ts` are plain functions and cannot be injected, so they report swallowed errors to a
-listener (`listenToSwallowedErrors`) that `DebugModeService` registers.
 
 ## One tick: a two-stage pipeline
 

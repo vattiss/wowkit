@@ -17,13 +17,13 @@ export class BuffReminderService {
     /** Is this buff worth asking for now? */
     checkBuff(classBuff: ClassBuff): BuffCheck {
         const id = this.spells.resolve(classBuff.id);
-        if (id === undefined || !this.spells.isLearned(id)) return { isWanted: false, why: "not learned yet" };
-        if (classBuff.isSwimmingOnly && !this.player.isSwimming()) return { isWanted: false, why: "only while swimming" };
+        if (id === undefined || !this.spells.isLearned(id)) return { isWanted: false };
+        if (classBuff.isSwimmingOnly && !this.player.isSwimming()) return { isWanted: false };
         for (const other of classBuff.categoryMembers ?? []) {
-            if (this.auras.hasAura(other)) return { isWanted: false, why: "a buff from the same category is already up" };
+            if (this.auras.hasAura(other)) return { isWanted: false };
         }
         // hasAura reads the aura, and falls back on what was seen or cast while the client hides auras
-        if (this.auras.hasAura(id)) return { isWanted: false, why: "already active" };
+        if (this.auras.hasAura(id)) return { isWanted: false };
         return { isWanted: true };
     }
 

@@ -68,7 +68,6 @@ addons/
       tick/             a tick every 0.2 s - find what is due, show it; when to look sooner
       character/        what happens to the player (weapons, auras and casts, the party roster, blocked actions)
       options/          the Settings panel pages
-      diagnostics/      debug mode and the debug report
     addon/            static addon files (the TOC); its @version@ is filled from package.json
     assets/           logo.png: the one source of the logo; the build makes the game's icon (images/logo.tga) from it
     test/             the specs: describe / it in TypeScript against the fake game (test/README.md)
@@ -81,7 +80,7 @@ docs/           architecture, packages, glossary, the game's quirks, decision re
 ### Rules
 
 - **Only a few folders call the game:** `packages/wow/src/` (what the reminders ask the game),
-  `packages/framework/src/` (events and timers), `addons/buff-reminder/src/options/` (the Settings panel) and `addons/buff-reminder/src/diagnostics/`. Reminder
+  `packages/framework/src/` (events and timers), and `addons/buff-reminder/src/options/` (the Settings panel). Reminder
   logic talks to `packages/wow/src/` in plain terms (`isInCombat()`, `isLearned(spell)`) and never sees secret values,
   protected calls or remapped IDs.
 - **Everything is a service, made once, by hand:** plain classes that take what they need in the constructor,

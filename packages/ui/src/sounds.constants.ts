@@ -1,4 +1,4 @@
-export type SoundKey = "none" | "ping" | "ready" | "raidwarning" | "alarm" | "whisper" | "quest" | "toast" | "click";
+export type SoundKey = "none" | "raidwarning" | "battlegroundstart" | "rolecheck" | "alarm1" | "alarm2" | "alarm3";
 
 export interface SoundChoice {
     key: SoundKey;
@@ -11,12 +11,10 @@ export interface SoundChoice {
 /** The sounds the player can pick. The first entry is "no sound". */
 export const SOUNDS: SoundChoice[] = [
     { key: "none", label: "No sound" },
-    { key: "ping", label: "Map ping", kit: "MAP_PING", id: 3175 },
-    { key: "ready", label: "Ready check", kit: "READY_CHECK", id: 8960 },
     { key: "raidwarning", label: "Raid warning", kit: "RAID_WARNING", id: 8959 },
-    { key: "alarm", label: "Alarm clock", kit: "ALARM_CLOCK_WARNING_3", id: 12889 },
-    { key: "whisper", label: "Whisper", kit: "TELL_MESSAGE", id: 3081 },
-    { key: "quest", label: "Quest complete", kit: "IG_QUEST_LIST_COMPLETE", id: 878 },
-    { key: "toast", label: "Toast", kit: "UI_BNET_TOAST", id: 18019 },
-    { key: "click", label: "Click", kit: "IG_MAINMENU_OPTION_CHECKBOX_ON", id: 856 },
+    { key: "battlegroundstart", label: "Battleground start", kit: "UI_BATTLEGROUND_COUNTDOWN_FINISHED", id: 25478 },
+    { key: "rolecheck", label: "Role check", kit: "LFG_ROLE_CHECK", id: 17317 },
+    { key: "alarm1", label: "Alarm clock 1", kit: "ALARM_CLOCK_WARNING_1", id: 18871 },
+    { key: "alarm2", label: "Alarm clock 2", kit: "ALARM_CLOCK_WARNING_2", id: 12867 },
+    { key: "alarm3", label: "Alarm clock 3", kit: "ALARM_CLOCK_WARNING_3", id: 12889 },
 ];

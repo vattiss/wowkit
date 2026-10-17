@@ -16,7 +16,7 @@ It never casts anything.
 - Quiet while dead, mounted, on a taxi, eating, or (optionally) resting in town.
 
 Settings (per character): *Options > AddOns > Buff Reminder*: switches per feature and per buff, weapon buff pick, sounds,
-glow colors, and a debug report for bug reports. Only Blizzard's own action bars are supported: with Bartender4, Dominos
+glow colors, and a Help section with links to report problems. It is one page. Only Blizzard's own action bars are supported: with Bartender4, Dominos
 or ElvUI bars the glows are not visible, and spells only on those bars count as "not on your action bars".
 
 The old ranks and the low reagents are the jobs of [Rank Reminder](../rank-reminder/README.md) and

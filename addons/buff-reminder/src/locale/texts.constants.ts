@@ -2,13 +2,8 @@
 export const TEXTS = {
     TITLE: "Buff Reminder",
     INIT: "Initialized",
-    TAB_REMINDERS: "Reminders",
-    TAB_DEBUG: "Debug report",
 
-    OPT_HOME_TEXT:
-        "Reminds you of what is easy to forget while you level: a missing buff or weapon buff glows on its action button, and a message tells you when one of those buffs is not on your action bars or when a party member misses your buff. It never casts anything.",
-    OPT_HOME_HELP:
-        "To report a problem, switch on Reminders > Collect debug data, play until it happens, then press Debug report on the Debug report page, copy the text and paste it into the issue link below.",
+    HDR_ABOUT: "Help",
     INFO_GITHUB: "GitHub",
     INFO_ISSUES: "Report an issue",
     INFO_COPY: "Copy",
@@ -50,17 +45,7 @@ export const TEXTS = {
     NOTICE_NOT_ON_BAR: "Missing buff, not on your action bars: %s",
     NOTICE_PARTY: "%s missing on: %s",
 
-    HDR_DEBUG: "Debug",
-    OPT_DEBUG: "Collect debug data",
-    TIP_DEBUG:
-        "Samples what the game really answers (secret, empty, a value) once a second. Turn it on while testing, then press Debug report on the Debug report page and send the text. Off by default; it costs a little CPU.",
-    OPT_DEBUG_HINT:
-        "Press Debug report, then copy the text with Ctrl+C and paste it into your issue. The report holds no character name, realm or chat.",
-    OPT_DEBUG_REPORT: "Debug report",
-    OPT_DEBUG_CLEAR: "Clear debug data",
-    OPT_DEBUG_CLEARED: "Debug data cleared.",
-
-    BLOCKED_ACTION: "The game blocked an action of this addon (%s). Please report it with the debug report.",
+    BLOCKED_ACTION: "The game blocked an action of this addon (%s). Please report it.",
 };
 
 export type TextKey = keyof typeof TEXTS;

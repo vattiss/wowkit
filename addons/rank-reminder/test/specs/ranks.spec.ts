@@ -70,19 +70,29 @@ describe("a priest resting in a town", () => {
 });
 
 describe("the sound of the message", () => {
-    it("is not played unless the player picked one", () => {
+    it("is the alarm clock 1 unless the player picked another", () => {
         const world = createWorld((state) => setUpPriest(state, false));
+        world.advance(3);
+        expect(world.sounds).toEqual([18871]);
+    });
+
+    it("is not played when the player picked none", () => {
+        const world = createWorld((state) => setUpPriest(state, true));
+        world.setOption("hideResting", false);
+        world.setOption("sound", "none");
         world.advance(3);
         expect(world.sounds.length).toBe(0);
     });
 
     it("is played each time the message appears", () => {
         const world = createWorld((state) => setUpPriest(state, false));
-        world.setOption("sound", "ping");
-        // choosing a sound plays it once as a preview
+        // the message at login played the default
         expect(world.sounds.length).toBe(1);
+        world.setOption("sound", "raidwarning");
+        // choosing a sound plays it once as a preview
+        expect(world.sounds.length).toBe(2);
         // the same message is shown again after 30 seconds
         world.advance(35);
-        expect(world.sounds.length).toBe(2);
+        expect(world.sounds).toEqual([18871, 8959, 8959]);
     });
 });

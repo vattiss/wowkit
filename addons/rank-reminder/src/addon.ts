@@ -3,8 +3,8 @@
 import { Addon } from "@wowkit/framework";
 import {
     ControlsService,
+    AboutSection,
     GreetingService,
-    HomePage,
     LocaleService,
     MessagesService,
     OptionsService,
@@ -56,20 +56,18 @@ export function startAddon(addonName: string): void {
     const widgets = addon.register(
         new WidgetsService(messages, { copy: locale.getText("INFO_COPY"), copied: locale.getText("INFO_COPIED") }),
     );
-    const homePage = addon.register(
-        new HomePage(
+    const about = addon.register(
+        new AboutSection(
             widgets,
             {
-                title: locale.getText("TITLE"),
-                text: locale.getText("OPT_HOME_TEXT"),
-                help: locale.getText("OPT_HOME_HELP"),
+                header: locale.getText("HDR_ABOUT"),
                 githubLabel: locale.getText("INFO_GITHUB"),
                 issuesLabel: locale.getText("INFO_ISSUES"),
             },
             "https://github.com/vattiss/wowkit",
         ),
     );
-    const remindersPage = addon.register(new RemindersPage(locale, settings, controls));
-    addon.register(new OptionsService(messages, [homePage, remindersPage]));
+    const remindersPage = addon.register(new RemindersPage(locale, settings, controls, about));
+    addon.register(new OptionsService(messages, locale.getText("TITLE"), remindersPage));
     addon.start();
 }

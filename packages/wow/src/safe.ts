@@ -4,16 +4,7 @@
 // read, compare or do math with; doing so raises an error, so values are checked before use.
 //
 // Protected calls: client functions can raise errors on odd input or state. The addon calls them
-// in protected mode and carries on; every error swallowed that way is reported through
-// the function given to `listenToSwallowedErrors`, so the debug report can count them instead of hiding our
-// own bugs.
-let reportSwallowedError: ((this: void, message: string) => void) | undefined;
-
-/** Calls `listener` with the message of every error a protected call swallows (one listener at a time). */
-export function listenToSwallowedErrors(listener: (this: void, message: string) => void): void {
-    reportSwallowedError = listener;
-}
-
+// in protected mode and carries on.
 /** A value addon code may look at: not nil, not secret, and accessible from this code. */
 export function isReadable(value: unknown): boolean {
     // Comparing with nil is allowed on secret values; anything else is not
@@ -34,21 +25,13 @@ export function getReadableId(value: unknown): number | undefined {
     return n !== undefined && n > 0 ? n : undefined;
 }
 
-function reportError(this: void, error: unknown): unknown {
-    reportSwallowedError?.(tostring(error));
-    return error;
-}
-
 /** Calls `fn` in protected mode: whether it succeeded, and its result. */
 export function tryCall<A extends unknown[], R>(
     fn: (this: void, ...args: A) => R,
     ...args: A
 ): LuaMultiReturn<[didSucceed: boolean, result: R | undefined]> {
     const [didSucceed, result] = pcall(fn, ...args);
-    if (!didSucceed) {
-        reportError(result);
-        return $multi(false, undefined);
-    }
+    if (!didSucceed) return $multi(false, undefined);
     return $multi(true, result as R);
 }
 
@@ -62,5 +45,5 @@ export function attempt<A extends unknown[], R>(fn: (this: void, ...args: A) => 
 export function attemptMulti<R extends unknown[]>(
     fn: (this: void) => LuaMultiReturn<R>,
 ): LuaMultiReturn<[didSucceed: boolean, ...results: Partial<R>]> {
-    return xpcall(fn, reportError) as unknown as LuaMultiReturn<[didSucceed: boolean, ...results: Partial<R>]>;
+    return pcall(fn) as unknown as LuaMultiReturn<[didSucceed: boolean, ...results: Partial<R>]>;
 }

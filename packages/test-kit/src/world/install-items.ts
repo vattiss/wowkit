@@ -29,5 +29,5 @@ export function installItems(state: ClientState, sounds: number[]): void {
             return $multi(true, sounds.length);
         },
     });
-    defineValues({ SOUNDKIT: { ALARM_CLOCK_WARNING_3: 12889, RAID_WARNING: 8959 } });
+    defineValues({ SOUNDKIT: { ALARM_CLOCK_WARNING_2: 12867, ALARM_CLOCK_WARNING_3: 12889, RAID_WARNING: 8959 } });
 }

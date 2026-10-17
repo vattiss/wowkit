@@ -19,3 +19,4 @@ A record is *accepted* when the owner has decided it, *proposed* when it is only
 | [0012](0012-packages.md) | The code is split into packages (framework, wow, wow-types, test-kit) and addons, compiled from sources | accepted |
 | [0013](0013-pnpm-workspace.md) | pnpm workspace: a package.json per package and addon, shared tools at the root | accepted |
 | [0014](0014-three-addons-and-the-ui-package.md) | Three addons (buff, rank, reagent), the ui package and the new names (wowkit) | accepted |
+| [0015](0015-one-page-and-no-debug-report.md) | One main page per addon, and the debug report is gone | accepted |

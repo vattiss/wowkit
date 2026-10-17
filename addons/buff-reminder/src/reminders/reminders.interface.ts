@@ -3,8 +3,6 @@ import type { WeaponBuff } from "./weapon/weapon-buff.interface";
 
 export interface BuffCheck {
     isWanted: boolean;
-    /** Why the buff is not asked for (shown in the debug report). */
-    why?: string;
 }
 
 export interface MissingBuffs {

@@ -6,12 +6,7 @@ import { AuraWatchService } from "./character/aura-watch.service";
 import { BlockedActionService } from "./character/blocked-action.service";
 import { EquipmentService } from "./character/equipment.service";
 import { RosterService } from "./character/roster.service";
-import { DebugModeService } from "./diagnostics/debug-mode.service";
-import { RecorderService } from "./diagnostics/recorder.service";
-import { ReportService } from "./diagnostics/report.service";
-import { SamplesService } from "./diagnostics/samples.service";
 import { BuffKnowledgeService } from "./knowledge/buff-knowledge.service";
-import { DebugPage } from "./options/debug.page";
 import { RemindersPage } from "./options/reminders.page";
 import { WeaponSection } from "./options/weapon.section";
 import { BuffReminderService } from "./reminders/buff-reminder.service";
@@ -47,8 +42,8 @@ import { SAVED_VARIABLES_NAME, createDefaultSettings } from "./settings/settings
 import type { AddonSettings } from "./settings/settings.interface";
 import {
     ControlsService,
+    AboutSection,
     GreetingService,
-    HomePage,
     LocaleService,
     MessagesService,
     OptionsService,
@@ -115,28 +110,7 @@ export function startAddon(addonName: string): void {
     addon.register(new EquipmentService(refresh, player, weaponEnchants, weaponReminder));
     addon.register(new AuraWatchService(refresh, auras, weaponReminder));
     addon.register(new RosterService(refresh, partyBuffs));
-    addon.register(new BlockedActionService(addonName, player, settings, messages, locale));
-
-    // Debug mode and the debug report
-    const recorder = addon.register(new RecorderService(settings, player));
-    const samples = addon.register(
-        new SamplesService(
-            recorder,
-            actionBars,
-            party,
-            player,
-            spells,
-            weaponEnchants,
-            buffReminder,
-            classBuffs,
-            partyBuffs,
-            reagents,
-            weaponChoice,
-            weaponReminder,
-        ),
-    );
-    const report = addon.register(new ReportService(settings, recorder));
-    addon.register(new DebugModeService(addonName, settings, clock, player, recorder, samples));
+    addon.register(new BlockedActionService(addonName, player, messages, locale));
 
     // The Settings panel
     const controls = addon.register(new ControlsService<AddonSettings>(settings, messages, addonName));
@@ -145,13 +119,11 @@ export function startAddon(addonName: string): void {
     );
     const reminderControls = addon.register(new ReminderControlsService(controls, settings, locale));
     const weaponSection = addon.register(new WeaponSection(locale, spells, weaponChoice, settings, controls, reminderControls));
-    const homePage = addon.register(
-        new HomePage(
+    const about = addon.register(
+        new AboutSection(
             widgets,
             {
-                title: locale.getText("TITLE"),
-                text: locale.getText("OPT_HOME_TEXT"),
-                help: locale.getText("OPT_HOME_HELP"),
+                header: locale.getText("HDR_ABOUT"),
                 githubLabel: locale.getText("INFO_GITHUB"),
                 issuesLabel: locale.getText("INFO_ISSUES"),
             },
@@ -159,9 +131,8 @@ export function startAddon(addonName: string): void {
         ),
     );
     const remindersPage = addon.register(
-        new RemindersPage(locale, spells, classBuffs, settings, controls, reminderControls, weaponSection),
+        new RemindersPage(locale, spells, classBuffs, settings, controls, reminderControls, weaponSection, about),
     );
-    const debugPage = addon.register(new DebugPage(locale, messages, recorder, report, widgets));
-    addon.register(new OptionsService(messages, [homePage, remindersPage, debugPage]));
+    addon.register(new OptionsService(messages, locale.getText("TITLE"), remindersPage));
     addon.start();
 }

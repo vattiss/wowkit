@@ -13,10 +13,9 @@ export function createDefaultSettings(): AddonSettings {
         showBarNotice: true,
         showPartyBuffs: true,
         soundBuff: "none",
-        soundWeapon: "alarm",
+        soundWeapon: "alarm2",
         colors: {},
         buffOn: {},
-        isDebugMode: false,
     };
 }
 

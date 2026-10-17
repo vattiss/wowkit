@@ -158,11 +158,6 @@ export class ActionBarsService implements OnFirstLogin {
         return this.findButtonsOf(spellId).length > 0;
     }
 
-    /** Names of the buttons a spell sits on (for the debug report). */
-    getButtonNamesOf(spellId: number | undefined): string[] {
-        return this.findButtonsOf(spellId).map((button) => button.GetName() ?? "unnamed");
-    }
-
     /** Every spell on the bars at a lower rank than the highest learned one, sorted by name. */
     findOutdatedRanks(): OutdatedRank[] {
         const byName = new LuaMap<string, { id: number; rank: number }>();
