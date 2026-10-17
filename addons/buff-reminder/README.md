@@ -1,7 +1,6 @@
 # Buff Reminder
 
 A World of Warcraft: Forever addon (TOC `16001`) that reminds you of the buffs that are easy to forget while you level.
-It never casts anything.
 
 - **Missing buffs**: every missing buff of your class list (Fortitude, Mark of the Wild, aspects, paladin auras,
   armors...) glows on its action button, all at once (one per group). Of a group (one aspect, one aura, one armor) any

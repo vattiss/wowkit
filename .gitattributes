@@ -2,3 +2,4 @@
 # warning about LF and CRLF on Windows.
 * text=auto eol=lf
 *.tga binary
+eslint.config.js linguist-vendored
