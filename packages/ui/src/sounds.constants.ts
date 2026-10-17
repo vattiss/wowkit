@@ -8,6 +8,11 @@ export interface SoundChoice {
     id?: number;
 }
 
+/** Is this a sound of the list? A saved choice may be from a time the list was longer. */
+export function isSoundKey(value: unknown): value is SoundKey {
+    return SOUNDS.some((sound) => sound.key === value);
+}
+
 /** The sounds the player can pick. The first entry is "no sound". */
 export const SOUNDS: SoundChoice[] = [
     { key: "none", label: "No sound" },

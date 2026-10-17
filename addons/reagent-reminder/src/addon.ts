@@ -25,7 +25,7 @@ import {
 } from "@wowkit/wow";
 import { TEXTS } from "./locale/texts.constants";
 import { RemindersPage } from "./options/reminders.page";
-import { SAVED_VARIABLES_NAME, createDefaultSettings } from "./settings/settings.constants";
+import { SAVED_VARIABLES_NAME, createDefaultSettings, repairSettings } from "./settings/settings.constants";
 import type { AddonSettings } from "./settings/settings.interface";
 import { TownVisitService } from "./town-visit.service";
 
@@ -40,10 +40,12 @@ export function startAddon(addonName: string): void {
     const spells = addon.register(new SpellsService(spellBook, addon.events, SPELL_NAME_HINT));
     addon.register(new SpellRefreshService(spells, clock, addon.events));
     const reagents = addon.register(new ReagentsService(bags, spells));
-    const notice = addon.register(new NoticeService());
+    const notice = addon.register(new NoticeService(addonName));
 
     // Settings, texts and messages
-    const settings = addon.register(new SettingsService<AddonSettings>(savedVariables, addon.events, createDefaultSettings));
+    const settings = addon.register(
+        new SettingsService<AddonSettings>(savedVariables, addon.events, createDefaultSettings, repairSettings),
+    );
     const locale = addon.register(new LocaleService(TEXTS));
     const messages = addon.register(new MessagesService(notice, locale.getText("TITLE")));
     addon.register(new GreetingService(messages, locale.getText("INIT")));

@@ -21,6 +21,8 @@ export class SettingsService<T extends object> implements OnAddonLoaded {
         private readonly bus: EventBus,
         /** Makes the settings of a player who has none saved yet. */
         private readonly createDefaults: () => T,
+        /** Puts right what a saved value got wrong (a choice that has gone from a list), once the values are loaded. */
+        private readonly repair?: (values: T) => void,
     ) {
         this.values = createDefaults();
     }
@@ -33,6 +35,7 @@ export class SettingsService<T extends object> implements OnAddonLoaded {
                 (this.values as Record<string, unknown>)[key as string] = value;
             }
         }
+        this.repair?.(this.values);
         this.savedVariables.bindTable(this.values);
     }
 

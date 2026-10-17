@@ -10,6 +10,12 @@
     "@wowkit/core": "workspace:*"
   },
   "devDependencies": {
-    "@wowkit/wow-types": "workspace:*"
+    "@wowkit/wow-types": "workspace:*",
+    "@wowkit/test-kit": "workspace:*"
+  },
+  "scripts": {
+    "build:tests": "tstl -p tsconfig.test.json",
+    "test:run": "node ../../scripts/run-package-tests.ts",
+    "typecheck": "tsc -p tsconfig.test.json --noEmit"
   }
 }

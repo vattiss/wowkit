@@ -26,7 +26,7 @@ import {
 import { TEXTS } from "./locale/texts.constants";
 import { RankNoticeService } from "./rank-notice.service";
 import { RemindersPage } from "./options/reminders.page";
-import { SAVED_VARIABLES_NAME, createDefaultSettings } from "./settings/settings.constants";
+import { SAVED_VARIABLES_NAME, createDefaultSettings, repairSettings } from "./settings/settings.constants";
 import type { AddonSettings } from "./settings/settings.interface";
 
 export function startAddon(addonName: string): void {
@@ -40,10 +40,12 @@ export function startAddon(addonName: string): void {
     addon.register(new SpellRefreshService(spells, clock, addon.events));
     const actionBars = addon.register(new ActionBarsService(clock, spells, addon.events));
     addon.register(new BarRefreshService(actionBars, clock));
-    const notice = addon.register(new NoticeService());
+    const notice = addon.register(new NoticeService(addonName));
 
     // Settings, texts and messages
-    const settings = addon.register(new SettingsService<AddonSettings>(savedVariables, addon.events, createDefaultSettings));
+    const settings = addon.register(
+        new SettingsService<AddonSettings>(savedVariables, addon.events, createDefaultSettings, repairSettings),
+    );
     const locale = addon.register(new LocaleService(TEXTS));
     const messages = addon.register(new MessagesService(notice, locale.getText("TITLE")));
     addon.register(new GreetingService(messages, locale.getText("INIT")));

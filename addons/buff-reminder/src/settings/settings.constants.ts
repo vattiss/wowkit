@@ -1,3 +1,4 @@
+import { isSoundKey } from "@wowkit/ui";
 import type { Rgb } from "@wowkit/wow";
 import type { AddonSettings, ColorKey } from "./settings.interface";
 
@@ -23,3 +24,10 @@ export const COLOR_DEFAULTS: { [key in ColorKey]: Rgb } = {
     buff: [0.2, 0.55, 1],
     weapon: [1, 0.12, 0.08],
 };
+
+/** A saved sound that is no longer in the list is the default again. */
+export function repairSettings(values: AddonSettings): void {
+    const defaults = createDefaultSettings();
+    if (!isSoundKey(values.soundBuff)) values.soundBuff = defaults.soundBuff;
+    if (!isSoundKey(values.soundWeapon)) values.soundWeapon = defaults.soundWeapon;
+}

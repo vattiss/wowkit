@@ -26,7 +26,7 @@ const VERBS = new Set(
         "observe off on open parse pick play prepend print probe push queue read rebuild record refresh register reject release " +
         "reload remember remove render replace report request reset resolve restore revoke run sample save say scan schedule " +
         "select set should show skip sort split start stop subscribe sync take toggle track trigger try unbind unlock unwrap " +
-        "update use validate verify wait warn wipe wrap trim identify detect tick redraw list judge expect react write connect"
+        "update use validate verify wait warn wipe wrap trim identify detect tick redraw list judge expect react write connect repair"
     ).split(" "),
 );
 const QUESTION_WORDS = ["is", "has", "can", "should", "does", "did", "was", "will", "are", "had", "show", "hide"];

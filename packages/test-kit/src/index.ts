@@ -4,3 +4,4 @@ export * from "./runner";
 export * from "./world/client-state";
 export * from "./world/world";
 export * from "./fixtures";
+export * from "./world/basic-game";

@@ -7,13 +7,14 @@ import {
     playAs,
     createWorld,
     type World,
-    ALARM_SOUND,
     LIGHTNING_SHIELD,
     ROCKBITER_WEAPON,
     SHAMAN,
 } from "@wowkit/test-kit";
 
 const MAIN_HAND = 16;
+/** The sound of the weapon buff by default: alarm clock 2. */
+const ALARM_SOUND = 12867;
 const ONE_HOUR_MS = 3600 * 1000;
 
 describe("a shaman", () => {
@@ -172,5 +173,12 @@ describe("a shaman", () => {
             world.advance(0.3);
             expect(world.glowsOn(3)).toBe(1);
         });
+    });
+});
+
+describe("a shaman whose saved weapon sound has gone from the list", () => {
+    it("gets the default weapon sound again", () => {
+        const world = createWorld((state) => playAs(state, SHAMAN), { soundWeapon: "ping" });
+        expect(world.getSavedSettings()?.soundWeapon).toBe("alarm2");
     });
 });

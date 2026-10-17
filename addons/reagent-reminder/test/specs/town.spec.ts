@@ -114,3 +114,10 @@ describe("the reagents of a priest on the options page", () => {
         expect(afterwards["17028"]).toBeUndefined();
     });
 });
+
+describe("a character whose saved sound has gone from the list", () => {
+    it("gets the default sound again", () => {
+        const world = createWorld((state) => setUpPriest(state, true), { sound: "coin" });
+        expect(world.getSavedSettings()?.sound).toBe("none");
+    });
+});

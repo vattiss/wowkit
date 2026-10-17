@@ -14,7 +14,10 @@ declare module "@wowkit/core/event-bus" {
     }
 }
 
-const BANKS = [Enum.SpellBookSpellBank.Player, Enum.SpellBookSpellBank.Pet];
+/** The banks of the spell book, read when needed: the package must load without the game's API (in its tests). */
+function listBanks(): Enum.SpellBookSpellBank[] {
+    return [Enum.SpellBookSpellBank.Player, Enum.SpellBookSpellBank.Pet];
+}
 /** Rebuilds that are not forced wait this long after the previous one. */
 const MIN_REBUILD_INTERVAL = 5;
 
@@ -102,7 +105,7 @@ export class SpellBookService {
         const entries: Entries = { byName: new LuaMap(), ranks: new LuaMap() };
 
         const readSlot = (slot: number) => {
-            for (const bank of BANKS) {
+            for (const bank of listBanks()) {
                 const [name, id] = readBookItem(slot, bank);
                 if (id !== undefined && name !== undefined && name !== "" && !isJunkSpellName(name)) {
                     const key = buildSpellBookKey(name);

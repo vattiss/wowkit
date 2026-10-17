@@ -13,11 +13,16 @@ const QUESTION_WORDS = ["is", "has", "can", "should", "does", "did", "was", "wil
 export default defineConfig(
     { ignores: ["dist/**", "dist-test/**", ".cache/**", "node_modules/**", "packages/wow-types/**"] },
     {
-        files: ["packages/*/src/**/*.ts", "addons/*/src/**/*.ts", "addons/*/test/**/*.ts", "scripts/**/*.ts"],
+        files: ["packages/*/src/**/*.ts", "packages/*/test/**/*.ts", "addons/*/src/**/*.ts", "addons/*/test/**/*.ts", "scripts/**/*.ts"],
         extends: [js.configs.recommended, tseslint.configs.recommended, tseslint.configs.stylistic],
         languageOptions: {
             parserOptions: {
-                project: ["./addons/*/tsconfig.json", "./addons/*/tsconfig.test.json", "./tsconfig.scripts.json"],
+                project: [
+                    "./addons/*/tsconfig.json",
+                    "./addons/*/tsconfig.test.json",
+                    "./packages/*/tsconfig.test.json",
+                    "./tsconfig.scripts.json",
+                ],
                 tsconfigRootDir: import.meta.dirname,
             },
         },
@@ -55,7 +60,7 @@ export default defineConfig(
     {
         // A describe block holds all the tests of a topic, so it is long by nature. The fake game
         // takes the game's loosely typed callbacks (scripts, event handlers) as they are.
-        files: ["addons/*/test/**/*.ts", "packages/test-kit/src/**/*.ts"],
+        files: ["addons/*/test/**/*.ts", "packages/*/test/**/*.ts", "packages/test-kit/src/**/*.ts"],
         rules: {
             "max-lines-per-function": "off",
             "@typescript-eslint/no-explicit-any": "off",

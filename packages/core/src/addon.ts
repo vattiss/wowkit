@@ -1,6 +1,6 @@
 // Starting an addon: connect what the services listen to, and run their lifecycle hooks.
 import { EventBus } from "./event-bus";
-import { listenToGameEvent, listenToUnitEvent, runInterval } from "./game-events";
+import { GameEvents, runInterval } from "./game-events";
 import { listeners, type ListenerSpec } from "./metadata";
 import type { Class, HookName } from "./types";
 
@@ -36,6 +36,7 @@ interface Interval {
 export class Addon {
     /** The addon's own events; services that emit or listen are given this one. */
     readonly events = new EventBus();
+    private readonly gameEvents = new GameEvents();
     private readonly services: Instance[] = [];
     private readonly intervals: Interval[] = [];
     private stoppers: (() => void)[] = [];
@@ -51,21 +52,21 @@ export class Addon {
 
     start(): void {
         for (const instance of this.services) this.connectListeners(instance);
-        const stopWaiting = listenToGameEvent("ADDON_LOADED", (loaded) => {
+        const stopWaiting = this.gameEvents.listen("ADDON_LOADED", (loaded) => {
             if (loaded !== this.addonName) return;
             stopWaiting();
             this.runHook("onAddonLoaded");
         });
-        listenToGameEvent("PLAYER_LOGIN", () => {
+        this.gameEvents.listen("PLAYER_LOGIN", () => {
             this.runFirstLogin();
             this.runHook("onLogin");
             this.runHook("onReady");
         });
-        listenToGameEvent("PLAYER_ENTERING_WORLD", () => {
+        this.gameEvents.listen("PLAYER_ENTERING_WORLD", () => {
             this.runFirstLogin();
             this.runHook("onReady");
         });
-        listenToGameEvent("PLAYER_LOGOUT", () => this.stopWork());
+        this.gameEvents.listen("PLAYER_LOGOUT", () => this.stopWork());
     }
 
     /** Connects the methods of a service to the events and timers they listen to. */
@@ -74,8 +75,8 @@ export class Addon {
         const specs: ListenerSpec[] = listeners.get(implementation.prototype) ?? [];
         for (const spec of specs) {
             const handle = (...payload: unknown[]) => callMethod(instance, spec.method, ...payload);
-            if (spec.kind === "game") listenToGameEvent(spec.name as WowEvent, handle);
-            else if (spec.kind === "unit") listenToUnitEvent(spec.name as WowEvent, handle);
+            if (spec.kind === "game") this.gameEvents.listen(spec.name as WowEvent, handle);
+            else if (spec.kind === "unit") this.gameEvents.listenToUnit(spec.name as WowEvent, handle);
             else if (spec.kind === "event") this.events.on(spec.name as never, handle as never);
             else this.intervals.push({ instance, seconds: spec.seconds!, method: spec.method });
         }

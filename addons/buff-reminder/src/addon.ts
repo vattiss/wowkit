@@ -38,7 +38,7 @@ import { WeaponReadingService } from "./reminders/weapon/weapon-reading.service"
 import { WeaponReminderService } from "./reminders/weapon/weapon-reminder.service";
 import { TEXTS } from "./locale/texts.constants";
 import { ReminderControlsService } from "./options/reminder-controls.service";
-import { SAVED_VARIABLES_NAME, createDefaultSettings } from "./settings/settings.constants";
+import { SAVED_VARIABLES_NAME, createDefaultSettings, repairSettings } from "./settings/settings.constants";
 import type { AddonSettings } from "./settings/settings.interface";
 import {
     ControlsService,
@@ -68,7 +68,9 @@ export function startAddon(addonName: string): void {
     const spellBook = addon.register(new SpellBookService(addon.events));
     const spells = addon.register(new SpellsService(spellBook, addon.events, SPELL_NAME_HINT));
     addon.register(new SpellCastService(player, spells, addon.events));
-    const settings = addon.register(new SettingsService<AddonSettings>(savedVariables, addon.events, createDefaultSettings));
+    const settings = addon.register(
+        new SettingsService<AddonSettings>(savedVariables, addon.events, createDefaultSettings, repairSettings),
+    );
     const classBuffs = addon.register(new ClassBuffsService(player, spells, settings));
     const buffKnowledge = addon.register(new BuffKnowledgeService(classBuffs));
 
@@ -80,7 +82,7 @@ export function startAddon(addonName: string): void {
     const barRefresh = addon.register(new BarRefreshService(actionBars, clock));
     const weaponEnchants = addon.register(new WeaponEnchantsService());
     const glow = addon.register(new GlowService(actionBars));
-    const notice = addon.register(new NoticeService());
+    const notice = addon.register(new NoticeService(addonName));
 
     // Texts and messages
     const locale = addon.register(new LocaleService(TEXTS));

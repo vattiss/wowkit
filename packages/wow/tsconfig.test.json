@@ -1,0 +1,38 @@
+{
+  // The tests of this package: TypeScript compiled by TypeScriptToLua into one Lua file, which LuaJIT runs against the fake game of @wowkit/test-kit (scripts/run-package-tests.ts).
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": ["ESNext"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "types": ["lua-types/5.1", "@typescript-to-lua/language-extensions"],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "experimentalDecorators": true,
+    "paths": {
+      "@wowkit/core": ["../core/src/index.ts"],
+      "@wowkit/core/*": ["../core/src/*"],
+      "@wowkit/wow": ["../wow/src/index.ts"],
+      "@wowkit/test-kit": ["../test-kit/src/index.ts"]
+    },
+    "rootDir": "..",
+    "outDir": "dist-test"
+  },
+  "include": [
+    "test/**/*.ts",
+    "src/**/*.ts",
+    "../core/src/**/*.ts",
+    "../wow/src/**/*.ts",
+    "../test-kit/src/**/*.ts",
+    "../wow-types/**/*.d.ts"
+  ],
+  "tstl": {
+    "luaTarget": "5.1",
+    "luaBundle": "tests.lua",
+    "luaBundleEntry": "test/run.ts",
+    "luaLibImport": "require-minimal",
+    "noImplicitSelf": true,
+    "noHeader": true
+  }
+}

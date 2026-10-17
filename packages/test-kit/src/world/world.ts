@@ -3,7 +3,7 @@
 import { config } from "../config";
 import { createClock } from "./clock";
 import { createClientState, type ClientState, type FakeAura } from "./client-state";
-import { clearGlobal, readGlobal } from "./define";
+import { clearGlobal, readGlobal, defineValues } from "./define";
 import { createFrameRegistry, type FakeFrame } from "./frames";
 import { installClock } from "./install-clock";
 import { installActionBars, installAuras } from "./install-bars-and-auras";
@@ -46,8 +46,12 @@ function loadAddon(): void {
     (chunk as (...args: unknown[]) => unknown)(config.addonName, {});
 }
 
-export function createWorld(setup: (state: ClientState) => void): World {
+export function createWorld(setup: (state: ClientState) => void, savedSettings?: Record<string, unknown>): World {
     clearGlobal(config.savedVariables);
+    // The notice area of the earlier world is gone with its frames
+    clearGlobal("WowkitNotices");
+    // What the game loaded from the character's file before the addon started: a character that played before
+    if (savedSettings !== undefined) defineValues({ [config.savedVariables]: savedSettings });
     const state = createClientState();
     setup(state);
     const clock = createClock();

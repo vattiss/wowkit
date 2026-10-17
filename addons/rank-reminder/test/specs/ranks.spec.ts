@@ -96,3 +96,19 @@ describe("the sound of the message", () => {
         expect(world.sounds).toEqual([18871, 8959, 8959]);
     });
 });
+
+describe("a character whose saved sound has gone from the list", () => {
+    it("gets the default sound again", () => {
+        const world = createWorld((state) => setUpPriest(state, false), { sound: "ping" });
+        world.advance(3);
+        expect(world.getSavedSettings()?.sound).toBe("alarm1");
+        expect(world.sounds).toEqual([18871]);
+    });
+
+    it("keeps a saved sound that is still in the list", () => {
+        const world = createWorld((state) => setUpPriest(state, false), { sound: "raidwarning" });
+        world.advance(3);
+        expect(world.getSavedSettings()?.sound).toBe("raidwarning");
+        expect(world.sounds).toEqual([8959]);
+    });
+});
