@@ -1,5 +1,5 @@
 {
-  "name": "rank-reminder",
+  "name": "@forever-reminders/rank-reminder",
   "version": "0.1.0",
   "description": "World of Warcraft: Forever addon that names the spells on your action bars that are a lower rank than the one you know",
   "private": true,

@@ -64,7 +64,7 @@ flowchart LR
         toc["addon/BuffReminder.toc<br/>assets/logo.png"] -- "scripts/package-addon.ts<br/>(@version@, logo.png to logo.tga)" --> dist["dist/BuffReminder/"]
         lua --> dist
         dist -- "pnpm test<br/>tests in TypeScript, run by LuaJIT<br/>against a fake game" --> smoke["tests"]
-        dist -- "pnpm --filter buff-reminder deploy:game" --> game["_classic_beta_/Interface/AddOns"]
+        dist -- "pnpm --filter @forever-reminders/buff-reminder deploy:game" --> game["_classic_beta_/Interface/AddOns"]
     end
     classDef panel fill:#ffffff,stroke:#d1d5db,color:#111827
     class PANEL panel

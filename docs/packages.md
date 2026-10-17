@@ -95,8 +95,8 @@ Prettier) are installed once, at the root.
 ```sh
 pnpm install                                    # once
 pnpm test                                       # checks, then build, build the tests and run them, for every addon
-pnpm --filter buff-reminder build               # one addon
-pnpm --filter buff-reminder deploy:game         # build it and copy it into the game (WOW_ADDONS_DIR)
+pnpm --filter @forever-reminders/buff-reminder build               # one addon
+pnpm --filter @forever-reminders/buff-reminder deploy:game         # build it and copy it into the game (WOW_ADDONS_DIR)
 ```
 
 The packages are listed as `workspace:*` dependencies, which records who depends on whom. Compiling does not use

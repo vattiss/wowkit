@@ -28,10 +28,10 @@ pnpm build        # every addon -> addons/<name>/dist/<AddonName>/{<AddonName>.t
 pnpm test         # checks, build, then the tests of every addon and of the core and wow packages (TypeScript, see addons/buff-reminder/test/README.md); CI runs the same
 pnpm typecheck
 pnpm format       # Prettier writes the code layout; pnpm test only checks it
-pnpm --filter buff-reminder watch   # rebuild on change
+pnpm --filter @forever-reminders/buff-reminder watch   # rebuild on change
 
 # copy one addon's build into the game (then /reload); the Forever beta installs into _classic_beta_
-WOW_ADDONS_DIR="C:/Program Files (x86)/World of Warcraft/_classic_beta_/Interface/AddOns" pnpm --filter buff-reminder deploy:game
+WOW_ADDONS_DIR="C:/Program Files (x86)/World of Warcraft/_classic_beta_/Interface/AddOns" pnpm --filter @forever-reminders/buff-reminder deploy:game
 # ... and the same for rank-reminder and reagent-reminder
 ```
 
