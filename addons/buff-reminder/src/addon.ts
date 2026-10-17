@@ -72,7 +72,7 @@ export function startAddon(addonName: string): void {
         new SettingsService<AddonSettings>(savedVariables, addon.events, createDefaultSettings, repairSettings),
     );
     const classBuffs = addon.register(new ClassBuffsService(player, spells, settings));
-    const buffKnowledge = addon.register(new BuffKnowledgeService(classBuffs));
+    const buffKnowledge = addon.register(new BuffKnowledgeService(classBuffs, spells));
 
     // Reading the player's buffs and the action bars
     const auraMemory = addon.register(new AuraMemoryService(spells, buffKnowledge));

@@ -22,7 +22,7 @@ in the code. When the client changes, a row here may stop being true.
 | 11 | **Events come in bursts.** | Every request to look again is merged with the ones around it and delayed a little. Aura events do not force a tick at all; the regular 0.2 second tick reads the auras again. | `tick/refresh.service.ts` |
 | 12 | **Any call into the game can raise an error** on unusual input or state. | Calls are made in protected mode, and the addon carries on. | `attempt`, `tryCall` in `packages/wow/src/safe.ts` |
 | 13 | **The game blocks some actions of addons**, and its popup does not say which. | `ADDON_ACTION_BLOCKED` / `ADDON_ACTION_FORBIDDEN` are printed in the chat (with the combat state), to be reported. | `noteBlockedAction` in `character/blocked-action.service.ts` |
-| 14 | **A group version on you is a different spell** (Prayer of Fortitude is not Power Word: Fortitude). | Buffs that replace each other are one *buff category*, matched by name. | `knowledge/buff-categories.constants.ts` |
+| 14 | **A group version on you is a different spell** (Prayer of Fortitude is not Power Word: Fortitude). | Buffs that replace each other are one *buff category*, listed by spell ID and matched by name (the client's own, so it holds in any language). | `knowledge/buff-categories.constants.ts` |
 | 15 | **Blizzard adds its own functions to Lua's `string`, `math` and `table`** (`string.trim`, `math.round`...). | The boundary check treats those as the game's, not as plain Lua. | `scripts/check-boundary.ts` |
 
 ## Not the game's fault, but just as easy to break

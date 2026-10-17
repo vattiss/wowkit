@@ -109,4 +109,34 @@ describe("a priest alone", () => {
         });
         expect(world.glowsOn(1)).toBe(0);
     });
+
+    // The client names spells in the player's language; the buffs that count for each other must not depend on English
+    describe("on a Spanish client", () => {
+        const FORTITUDE_ES = { ...FORTITUDE, name: "Palabra de poder: Entereza" };
+        const PRAYER_OF_FORTITUDE_ES = { ...PRAYER_OF_FORTITUDE, name: "Rezo de entereza" };
+
+        function createSpanishPriest(hasPrayer: boolean): World {
+            return createWorld((state) => {
+                playAs(state, PRIEST);
+                learnSpell(state, FORTITUDE_ES);
+                state.spells[PRAYER_OF_FORTITUDE_ES.id] = PRAYER_OF_FORTITUDE_ES;
+                state.bars[1] = FORTITUDE_ES.id;
+                if (hasPrayer) {
+                    state.auras.push({
+                        name: PRAYER_OF_FORTITUDE_ES.name,
+                        spellId: PRAYER_OF_FORTITUDE_ES.id,
+                        expirationTime: 1000 + 3600,
+                    });
+                }
+            });
+        }
+
+        it("counts the group version as the single buff", () => {
+            expect(createSpanishPriest(true).glowsOn(1)).toBe(0);
+        });
+
+        it("still asks for the buff when neither is up", () => {
+            expect(createSpanishPriest(false).glowsOn(1)).toBe(1);
+        });
+    });
 });

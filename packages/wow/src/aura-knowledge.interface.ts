@@ -8,7 +8,7 @@ export interface AuraCategory {
 }
 
 export interface AuraKnowledge {
-    /** The category a buff belongs to, found by its name. */
+    /** The category a buff belongs to, found by its name (in the client's language). */
     findCategory(name: string | undefined): AuraCategory | undefined;
     /** How long a seen or cast buff lasts (seconds), for buffs outside the categories. */
     getSeconds(spellId: number | undefined, name: string): number;
