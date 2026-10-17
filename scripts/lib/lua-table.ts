@@ -1,7 +1,6 @@
 // Turns the data-only Lua files of Blizzard_APIDocumentationGenerated into plain JS values.
 // Each file looks like `local X = { ... }; APIDocumentation:AddDocumentationTable(X);`.
-import luaparse from "luaparse";
-import type { Expression, TableConstructorExpression, UnaryExpression } from "luaparse";
+import luaparse, { type Expression, type TableConstructorExpression, type UnaryExpression } from "luaparse";
 
 export type LuaValue = string | number | boolean | null | LuaExpression | LuaValue[] | { [key: string]: LuaValue };
 

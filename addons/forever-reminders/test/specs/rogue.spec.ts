@@ -1,6 +1,4 @@
-import { beforeEach, describe, expect, it } from "@forever/test-kit";
-import { learnSpell, playAs } from "@forever/test-kit";
-import { createWorld, type World } from "@forever/test-kit";
+import { beforeEach, describe, expect, it, learnSpell, playAs, createWorld, type World } from "@forever/test-kit";
 import { DEADLY_POISON, INSTANT_POISON, ROGUE } from "./fixtures";
 
 const MAIN_HAND = 16;

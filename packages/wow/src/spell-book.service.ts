@@ -4,8 +4,7 @@
 // Performance rules learned on the Forever client: never walk the whole spellbook on
 // SPELLS_CHANGED or quest turn-in (it froze the client); build the index a few skill lines per
 // frame, and at most once every few seconds.
-import type { EventBus } from "@forever/framework";
-import { buildSpellBookKey, contains } from "@forever/framework";
+import { type EventBus, buildSpellBookKey, contains } from "@forever/framework";
 import { attempt, attemptMulti, getReadable } from "./safe";
 
 declare module "@forever/framework/event-bus" {

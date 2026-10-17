@@ -3,8 +3,7 @@
 import { OnEvent, OnUnitEvent } from "@forever/framework";
 import type { WeaponReminderService } from "../reminders/weapon/weapon-reminder.service";
 import type { RefreshService } from "../tick/refresh.service";
-import type { AurasService } from "@forever/wow";
-import type { PlayerSpellCast } from "@forever/wow";
+import type { AurasService, PlayerSpellCast } from "@forever/wow";
 
 export class AuraWatchService {
     constructor(

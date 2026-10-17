@@ -1,7 +1,6 @@
 // Reads the spells and the action bars once, at the first login.
 import { type OnFirstLogin } from "@forever/framework";
-import type { ActionBarsService } from "@forever/wow";
-import type { SpellsService } from "@forever/wow";
+import type { ActionBarsService, SpellsService } from "@forever/wow";
 
 export class GameDataService implements OnFirstLogin {
     constructor(

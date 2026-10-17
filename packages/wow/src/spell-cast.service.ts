@@ -1,7 +1,6 @@
 // The player's spell casts, as one event. In combat the client hides the spell's ID, so the name
 // seen at the start of the cast is used to find it.
-import type { EventBus } from "@forever/framework";
-import { OnUnitEvent } from "@forever/framework";
+import { type EventBus, OnUnitEvent } from "@forever/framework";
 import type { PlayerService } from "./player.service";
 import type { SpellsService } from "./spells.service";
 

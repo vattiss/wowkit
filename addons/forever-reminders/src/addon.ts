@@ -40,20 +40,22 @@ import { NoticesService } from "./tick/notices.service";
 import { RefreshService } from "./tick/refresh.service";
 import { ShowRemindersService } from "./tick/show-reminders.service";
 import { TickService } from "./tick/tick.service";
-import { ActionBarsService } from "@forever/wow";
-import { AuraMemoryService } from "@forever/wow";
-import { AurasService } from "@forever/wow";
-import { BagsService } from "@forever/wow";
-import { ClockService } from "@forever/wow";
-import { GlowService } from "@forever/wow";
-import { NoticeService } from "@forever/wow";
-import { PartyService } from "@forever/wow";
-import { PlayerService } from "@forever/wow";
-import { SavedVariablesService } from "@forever/wow";
-import { SpellBookService } from "@forever/wow";
-import { SpellCastService } from "@forever/wow";
-import { SpellsService } from "@forever/wow";
-import { WeaponEnchantsService } from "@forever/wow";
+import {
+    ActionBarsService,
+    AuraMemoryService,
+    AurasService,
+    BagsService,
+    ClockService,
+    GlowService,
+    NoticeService,
+    PartyService,
+    PlayerService,
+    SavedVariablesService,
+    SpellBookService,
+    SpellCastService,
+    SpellsService,
+    WeaponEnchantsService,
+} from "@forever/wow";
 
 export function startAddon(addonName: string): void {
     const addon = new Addon(addonName);

@@ -2,10 +2,8 @@
 //
 // Forever remaps many spell IDs, so a spell of the buff lists is resolved to the ID the player
 // knows: by ID, by override, and finally by name through the spellbook index.
-import type { EventBus } from "@forever/framework";
-import { OnEvent } from "@forever/framework";
-import type { SpellBookService } from "./spell-book.service";
-import { isJunkSpellName } from "./spell-book.service";
+import { type EventBus, OnEvent } from "@forever/framework";
+import { type SpellBookService, isJunkSpellName } from "./spell-book.service";
 import { attempt, attemptMulti, getReadable, isReadable, tryCall } from "./safe";
 
 /** English spellbook names for spell IDs the client does not name; the addon knows them, the toolkit asks for them. */

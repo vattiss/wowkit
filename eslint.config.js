@@ -27,6 +27,8 @@ export default defineConfig(
         },
         rules: {
             eqeqeq: "error",
+            // One import per module: the type and the value names of a module go in the same statement
+            "no-duplicate-imports": "error",
             "@typescript-eslint/consistent-type-imports": "error",
             "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
             // The Lua tables of this addon are index signatures and `{ [key: string]: T }` reads fine

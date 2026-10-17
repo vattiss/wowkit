@@ -1,6 +1,4 @@
-import { beforeEach, describe, expect, it } from "@forever/test-kit";
-import { learnSpell, playAs } from "@forever/test-kit";
-import { createWorld, type World } from "@forever/test-kit";
+import { beforeEach, describe, expect, it, learnSpell, playAs, createWorld, type World } from "@forever/test-kit";
 import { FORTITUDE, INNER_FIRE, PRIEST, SMITE_RANK_1, SMITE_RANK_2 } from "./fixtures";
 
 describe("a priest", () => {

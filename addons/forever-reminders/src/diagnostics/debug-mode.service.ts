@@ -2,10 +2,7 @@
 // the game really sends are counted (see samples.service.ts and recorder.service.ts).
 import { OnEvent, type OnFirstLogin } from "@forever/framework";
 import type { SettingsService } from "../settings/settings.service";
-import type { ClockService } from "@forever/wow";
-import { type RepeatingTimer } from "@forever/wow";
-import type { PlayerService } from "@forever/wow";
-import { attempt, listenToSwallowedErrors } from "@forever/wow";
+import { type ClockService, type RepeatingTimer, type PlayerService, attempt, listenToSwallowedErrors } from "@forever/wow";
 import type { RecorderService } from "./recorder.service";
 import type { SamplesService } from "./samples.service";
 

@@ -1,8 +1,7 @@
 // The buff list of the player's class and the per-character switch of each buff.
 
 import type { SettingsService } from "../settings/settings.service";
-import type { PlayerService } from "@forever/wow";
-import type { SpellsService } from "@forever/wow";
+import type { PlayerService, SpellsService } from "@forever/wow";
 import type { ClassBuff } from "./class-buff.interface";
 import { BUFF_LISTS } from "./class-buffs.constants";
 

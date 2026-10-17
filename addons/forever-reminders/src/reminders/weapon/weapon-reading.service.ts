@@ -1,9 +1,6 @@
 // What the game says about the weapon buff right now: on a hand, as an aura, or in a tooltip.
 
-import type { AurasService } from "@forever/wow";
-import { type AuraRead } from "@forever/wow";
-import type { WeaponEnchantsService } from "@forever/wow";
-import { NO_EXPIRY } from "@forever/wow";
+import { type AurasService, type AuraRead, type WeaponEnchantsService, NO_EXPIRY } from "@forever/wow";
 import type { WeaponBuff } from "./weapon-buff.interface";
 import { WEAPON_BUFF_BY_ENCHANT } from "./weapon-buffs.constants";
 import type { WeaponChoiceService } from "./weapon-choice.service";

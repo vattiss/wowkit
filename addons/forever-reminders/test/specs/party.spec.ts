@@ -1,6 +1,4 @@
-import { beforeEach, describe, expect, it } from "@forever/test-kit";
-import { learnSpell, playAs, POWER, type ClientState } from "@forever/test-kit";
-import { createWorld, type World } from "@forever/test-kit";
+import { beforeEach, describe, expect, it, learnSpell, playAs, POWER, type ClientState, createWorld, type World } from "@forever/test-kit";
 import { FORTITUDE, HOLY_CANDLE, PRAYER_OF_FORTITUDE, PRIEST } from "./fixtures";
 
 /** A priest with Fortitude on button 1 and Prayer of Fortitude on button 2, in a party of three. */

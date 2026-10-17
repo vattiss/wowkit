@@ -3,8 +3,7 @@
 
 import type { SettingsService } from "../settings/settings.service";
 import type { DebugStore } from "../settings/settings.interface";
-import type { PlayerService } from "@forever/wow";
-import { isReadable } from "@forever/wow";
+import { type PlayerService, isReadable } from "@forever/wow";
 
 /** Different probe results kept; a full store drops new ones (and debug mode starts over). */
 const MAX_KEYS = 700;

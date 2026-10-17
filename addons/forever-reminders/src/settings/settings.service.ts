@@ -3,10 +3,8 @@
 // Player choices are changed through change(), which announces the change ("setting.changed"), so
 // the options page never has to know who reacts to it. Diagnostic data (debug, blockedAction) is
 // written directly with write(): nobody reacts to it.
-import type { EventBus } from "@forever/framework";
-import { type OnAddonLoaded } from "@forever/framework";
-import type { Rgb } from "@forever/wow";
-import type { SavedVariablesService } from "@forever/wow";
+import type { EventBus, OnAddonLoaded } from "@forever/framework";
+import type { Rgb, SavedVariablesService } from "@forever/wow";
 import { COLOR_DEFAULTS, createDefaultSettings } from "./settings.constants";
 import type { AddonSettings, ColorKey } from "./settings.interface";
 

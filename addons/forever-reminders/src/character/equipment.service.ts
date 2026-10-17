@@ -2,9 +2,7 @@
 import { OnGameEvent, OnUnitEvent, type OnReady } from "@forever/framework";
 import type { WeaponReminderService } from "../reminders/weapon/weapon-reminder.service";
 import type { RefreshService } from "../tick/refresh.service";
-import type { PlayerService } from "@forever/wow";
-import type { WeaponEnchantsService } from "@forever/wow";
-import { MAIN_HAND_SLOT, OFF_HAND_SLOT } from "@forever/wow";
+import { type PlayerService, type WeaponEnchantsService, MAIN_HAND_SLOT, OFF_HAND_SLOT } from "@forever/wow";
 
 export class EquipmentService implements OnReady {
     private mainHandItem: number | undefined;

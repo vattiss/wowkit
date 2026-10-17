@@ -4,8 +4,7 @@ import type { LocaleService } from "../locale/locale.service";
 import type { MessagesService } from "../messages/messages.service";
 import type { ReagentsService } from "../reminders/reagents.service";
 import type { SettingsService } from "../settings/settings.service";
-import type { NoticeService } from "@forever/wow";
-import type { PlayerService } from "@forever/wow";
+import type { NoticeService, PlayerService } from "@forever/wow";
 
 export class TownVisitService implements OnReady {
     private wasResting = false;

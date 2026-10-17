@@ -8,9 +8,7 @@ import type { PartyBuffsService } from "../reminders/party-buffs.service";
 import type { MissingBuffs, PartySuggestion } from "../reminders/reminders.interface";
 import type { WeaponReminderService } from "../reminders/weapon/weapon-reminder.service";
 import type { SettingsService } from "../settings/settings.service";
-import type { ActionBarsService } from "@forever/wow";
-import type { PlayerService } from "@forever/wow";
-import type { SpellsService } from "@forever/wow";
+import type { ActionBarsService, PlayerService, SpellsService } from "@forever/wow";
 import type { Reminders } from "./tick.interface";
 
 function createEmptyReminders(): Reminders {

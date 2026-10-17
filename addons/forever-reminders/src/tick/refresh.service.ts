@@ -2,10 +2,7 @@
 // once, and Forever froze when the addon rebuilt things on every one), so each request is merged
 // with the ones around it and delayed a little.
 import { OnGameEvent } from "@forever/framework";
-import type { ActionBarsService } from "@forever/wow";
-import type { AurasService } from "@forever/wow";
-import type { ClockService } from "@forever/wow";
-import type { SpellsService } from "@forever/wow";
+import type { ActionBarsService, AurasService, ClockService, SpellsService } from "@forever/wow";
 import type { ShowRemindersService } from "./show-reminders.service";
 import type { TickService } from "./tick.service";
 

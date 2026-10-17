@@ -1,10 +1,8 @@
 // Which weapon buff the player should keep up: the player's pick if learned, else the best one
 // already learned.
-import { OnEvent } from "@forever/framework";
+import { OnEvent, contains } from "@forever/framework";
 import type { SettingsService } from "../../settings/settings.service";
-import { contains } from "@forever/framework";
-import type { PlayerService } from "@forever/wow";
-import type { SpellsService } from "@forever/wow";
+import type { PlayerService, SpellsService } from "@forever/wow";
 import type { PickedWeaponBuff } from "../reminders.interface";
 import type { WeaponBuff } from "./weapon-buff.interface";
 import { OFFHAND_PRIORITY, WEAPON_BUFF_BY_SPELL, WEAPON_BUFFS, WEAPON_PRIORITY } from "./weapon-buffs.constants";

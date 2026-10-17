@@ -1,9 +1,6 @@
 // Which buffs of the class list are missing.
 
-import type { ActionBarsService } from "@forever/wow";
-import type { AurasService } from "@forever/wow";
-import type { PlayerService } from "@forever/wow";
-import type { SpellsService } from "@forever/wow";
+import type { ActionBarsService, AurasService, PlayerService, SpellsService } from "@forever/wow";
 import type { ClassBuff } from "./class-buff.interface";
 import type { ClassBuffsService } from "./class-buffs.service";
 import type { BuffCheck, MissingBuffs } from "./reminders.interface";

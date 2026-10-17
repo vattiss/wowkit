@@ -1,10 +1,9 @@
 // The game blocked something this addon did. The client's popup does not say which protected
 // function was called; the event does.
-import { OnGameEvent } from "@forever/framework";
+import { OnGameEvent, contains } from "@forever/framework";
 import type { LocaleService } from "../locale/locale.service";
 import type { MessagesService } from "../messages/messages.service";
 import type { SettingsService } from "../settings/settings.service";
-import { contains } from "@forever/framework";
 import type { PlayerService } from "@forever/wow";
 
 export class BlockedActionService {

@@ -1,6 +1,4 @@
-import { beforeEach, describe, expect, it } from "@forever/test-kit";
-import { learnSpell, playAs, POWER } from "@forever/test-kit";
-import { createWorld, type World } from "@forever/test-kit";
+import { beforeEach, describe, expect, it, learnSpell, playAs, POWER, createWorld, type World } from "@forever/test-kit";
 import { BLESSING_OF_KINGS, GREATER_BLESSING_OF_KINGS, PALADIN, SYMBOL_OF_KINGS } from "./fixtures";
 
 const BLESSING_OF_MIGHT_ID = 19740;

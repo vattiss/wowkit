@@ -4,8 +4,7 @@
 
 import type { MessagesService } from "../messages/messages.service";
 import type { SettingsService } from "../settings/settings.service";
-import type { GlowService } from "@forever/wow";
-import { type ReminderGlow } from "@forever/wow";
+import type { GlowService, ReminderGlow } from "@forever/wow";
 import type { NoticesService } from "./notices.service";
 import type { Reminders } from "./tick.interface";
 

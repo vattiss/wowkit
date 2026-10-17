@@ -1,6 +1,4 @@
-import { beforeEach, describe, expect, it } from "@forever/test-kit";
-import { learnSpell, playAs, POWER } from "@forever/test-kit";
-import { createWorld, type World } from "@forever/test-kit";
+import { beforeEach, describe, expect, it, learnSpell, playAs, POWER, createWorld, type World } from "@forever/test-kit";
 import { ARCANE_INTELLECT, MAGE } from "./fixtures";
 
 describe("a mage in a party", () => {

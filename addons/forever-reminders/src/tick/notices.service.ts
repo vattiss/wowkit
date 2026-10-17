@@ -2,10 +2,7 @@
 // reading (missing buffs on no bar, party members missing a buff, spells at an old rank).
 
 import type { LocaleService } from "../locale/locale.service";
-import type { ActionBarsService } from "@forever/wow";
-import type { ClockService } from "@forever/wow";
-import type { NoticeService } from "@forever/wow";
-import type { SpellsService } from "@forever/wow";
+import type { ActionBarsService, ClockService, NoticeService, SpellsService } from "@forever/wow";
 import type { Reminders } from "./tick.interface";
 
 /** The same message is shown again only after this long. */

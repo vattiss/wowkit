@@ -1,10 +1,8 @@
 // Reagents of the group buffs: whether a spell needs one, whether there is one in the bags, and
 // which are running low. Whether a spell needs a reagent is read from its tooltip, so a client
 // that dropped the reagent cost never nags about it.
-import { OnEvent } from "@forever/framework";
-import { contains } from "@forever/framework";
-import type { BagsService } from "@forever/wow";
-import type { SpellsService } from "@forever/wow";
+import { OnEvent, contains } from "@forever/framework";
+import type { BagsService, SpellsService } from "@forever/wow";
 import type { Reagent } from "./reagent.interface";
 import { REAGENT_LOW, REAGENTS } from "./reagents.constants";
 import type { ReagentStock } from "./reminders.interface";

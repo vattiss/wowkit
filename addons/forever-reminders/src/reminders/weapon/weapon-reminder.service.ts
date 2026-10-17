@@ -3,12 +3,10 @@
 // (weapon-reading.service.ts), the timeline the reminder remembers (weapon-memory.service.ts) and
 // what to do with a reading (weapon-reactions.ts).
 
-import type { ClockService } from "@forever/wow";
-import type { WeaponEnchantsService } from "@forever/wow";
+import type { ClockService, WeaponEnchantsService } from "@forever/wow";
 import type { WeaponCheck } from "../reminders.interface";
 import type { WeaponChoiceService } from "./weapon-choice.service";
-import type { WeaponMemoryService } from "./weapon-memory.service";
-import { type Hand } from "./weapon-memory.service";
+import type { WeaponMemoryService, Hand } from "./weapon-memory.service";
 import { isAboutToExpire, MISSING_CONFIRM, reactToReading } from "./weapon-reactions";
 import type { WeaponReadingService } from "./weapon-reading.service";
 

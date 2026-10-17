@@ -4,11 +4,7 @@
 // group version is suggested.
 
 import type { SettingsService } from "../settings/settings.service";
-import type { AurasService } from "@forever/wow";
-import type { ClockService } from "@forever/wow";
-import type { PartyService } from "@forever/wow";
-import type { PlayerService } from "@forever/wow";
-import type { SpellsService } from "@forever/wow";
+import type { AurasService, ClockService, PartyService, PlayerService, SpellsService } from "@forever/wow";
 import type { ClassBuff } from "./class-buff.interface";
 import type { ClassBuffsService } from "./class-buffs.service";
 import type { ReagentsService } from "./reagents.service";

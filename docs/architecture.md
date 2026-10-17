@@ -40,27 +40,32 @@ The WoW API typings are generated from Blizzard's own API documentation; the add
 one Lua 5.1 file by TypeScriptToLua (TSTL) and packaged with its TOC.
 
 ```mermaid
+%%{init: {"theme": "base", "themeVariables": {"background": "#ffffff", "lineColor": "#6b7280", "textColor": "#111827", "primaryColor": "#f1f5f9", "primaryTextColor": "#111827", "primaryBorderColor": "#94a3b8", "secondaryColor": "#e2e8f0", "tertiaryColor": "#ffffff", "edgeLabelBackground": "#ffffff", "clusterBkg": "#ffffff", "clusterBorder": "#d1d5db", "actorBkg": "#f1f5f9", "actorTextColor": "#111827", "actorBorder": "#94a3b8", "actorLineColor": "#6b7280", "signalColor": "#374151", "signalTextColor": "#111827", "noteBkgColor": "#fef9c3", "noteTextColor": "#111827"}}}%%
 flowchart LR
-    subgraph upstream["Gethe/wow-ui-source (forever branch)"]
-        docs["Blizzard_APIDocumentationGenerated/*.lua<br/>642 documentation tables"]
+    subgraph PANEL[" "]
+        subgraph upstream["Gethe/wow-ui-source (forever branch)"]
+            docs["Blizzard_APIDocumentationGenerated/*.lua<br/>642 documentation tables"]
+        end
+
+        subgraph typings["packages/wow-types/"]
+            generated["generated/*.d.ts<br/>C_* namespaces, Enum, structures,<br/>events, widgets"]
+            manual["wow-manual.d.ts, wow-framexml.d.ts<br/>script handlers, CreateFrame,<br/>Settings API, FrameXML globals"]
+        end
+
+        docs -- "pnpm fetch:wow-ui<br/>(sparse clone, pinned commit)" --> cache[".cache/wow-ui-source"]
+        cache -- "pnpm gen:types<br/>scripts/generate-wow-types.ts" --> generated
+
+        src["packages/*/src and<br/>addons/*/src"] --> tstl["TSTL<br/>luaTarget 5.1, luaBundle,<br/>noImplicitSelf"]
+        generated --> tstl
+        manual --> tstl
+        tstl --> lua["dist/ForeverReminders/<br/>ForeverReminders.lua<br/>(in the addon folder)"]
+        toc["addon/ForeverReminders.toc<br/>addon/images"] -- "scripts/package-addon.ts<br/>(@version@)" --> dist["dist/ForeverReminders/"]
+        lua --> dist
+        dist -- "pnpm test<br/>tests in TypeScript, run by LuaJIT<br/>against a fake game" --> smoke["tests"]
+        dist -- "pnpm --filter forever-reminders deploy:game" --> game["_classic_beta_/Interface/AddOns"]
     end
-
-    subgraph typings["types/"]
-        generated["generated/*.d.ts<br/>C_* namespaces, Enum, structures,<br/>events, widgets"]
-        manual["wow-manual.d.ts, wow-framexml.d.ts<br/>script handlers, CreateFrame,<br/>Settings API, FrameXML globals"]
-    end
-
-    docs -- "pnpm fetch:wow-ui<br/>(sparse clone, pinned commit)" --> cache[".cache/wow-ui-source"]
-    cache -- "pnpm gen:types<br/>scripts/generate-wow-types.ts" --> generated
-
-    src["src/**/*.ts"] --> tstl["TSTL<br/>luaTarget 5.1, luaBundle,<br/>noImplicitSelf"]
-    generated --> tstl
-    manual --> tstl
-    tstl --> lua["dist/ForeverReminders/<br/>ForeverReminders.lua<br/>(in the addon folder)"]
-    toc["addon/ForeverReminders.toc<br/>addon/images"] -- "scripts/package-addon.ts<br/>(@version@)" --> dist["dist/ForeverReminders/"]
-    lua --> dist
-    dist -- "pnpm test<br/>tests in TypeScript, run by LuaJIT<br/>against a fake game" --> smoke["tests"]
-    dist -- "pnpm --filter forever-reminders deploy:game" --> game["_classic_beta_/Interface/AddOns"]
+    classDef panel fill:#ffffff,stroke:#d1d5db,color:#111827
+    class PANEL panel
 ```
 
 ## Code layout
@@ -69,211 +74,225 @@ flowchart LR
 services. An arrow means "uses services of".
 
 ```mermaid
+%%{init: {"theme": "base", "themeVariables": {"background": "#ffffff", "lineColor": "#6b7280", "textColor": "#111827", "primaryColor": "#f1f5f9", "primaryTextColor": "#111827", "primaryBorderColor": "#94a3b8", "secondaryColor": "#e2e8f0", "tertiaryColor": "#ffffff", "edgeLabelBackground": "#ffffff", "clusterBkg": "#ffffff", "clusterBorder": "#d1d5db", "actorBkg": "#f1f5f9", "actorTextColor": "#111827", "actorBorder": "#94a3b8", "actorLineColor": "#6b7280", "signalColor": "#374151", "signalTextColor": "#111827", "noteBkgColor": "#fef9c3", "noteTextColor": "#111827"}}}%%
 flowchart TB
-    main["main.ts<br/>startAddon()"] --> wiring["addon.ts<br/>makes every service, in order"]
+    subgraph PANEL[" "]
+        main["main.ts<br/>startAddon()"] --> wiring["addon.ts<br/>makes every service, in order"]
 
-    subgraph global["used by every feature"]
-        settings["settings/<br/>SettingsService: the saved settings,<br/>change() announces"]
-        locale["locale/<br/>LocaleService: the texts"]
-        messages["messages/<br/>MessagesService: say, alert sounds,<br/>the greeting"]
-        knowledge["knowledge/<br/>what only this addon knows:<br/>buff categories, spell names"]
+        subgraph global["used by every feature"]
+            settings["settings/<br/>SettingsService: the saved settings,<br/>change() announces"]
+            locale["locale/<br/>LocaleService: the texts"]
+            messages["messages/<br/>MessagesService: say, alert sounds,<br/>the greeting"]
+            knowledge["knowledge/<br/>what only this addon knows:<br/>buff categories, spell names"]
+        end
+
+        subgraph features["features (the addon)"]
+            tick["tick/<br/>a tick every 0.2 s: find what is due,<br/>show it; when to look sooner"]
+            character["character/<br/>weapons, auras and casts,<br/>party roster, towns, blocked actions"]
+            options["options/<br/>the Settings panel pages"]
+            diagnostics["diagnostics/<br/>debug mode and report"]
+            reminders["reminders/<br/>missing buffs, weapon buff,<br/>party buffs, reagents"]
+        end
+
+        subgraph toolkit["packages (could serve any Forever addon)"]
+            wow["packages/wow/src/<br/>the only code that calls the game<br/>spells, auras, action bars, player, party, bags,<br/>glows, notices, saved variables"]
+            framework["packages/framework/src/<br/>Addon, lifecycle hooks, EventBus,<br/>@OnGameEvent, @Interval"]
+        end
+
+        game[("WoW client<br/>C_* APIs, frames, events")]
+
+        wiring --> global
+        wiring --> features
+        tick --> reminders
+        tick --> wow
+        character --> tick
+        character --> reminders
+        character --> wow
+        options --> diagnostics
+        options --> reminders
+        options --> wow
+        diagnostics --> reminders
+        diagnostics --> wow
+        knowledge --> reminders
+        reminders --> wow
+        settings --> wow
+        messages --> wow
+        wow --> game
+        wow --> framework
+        framework --> game
+        features --> framework
     end
-
-    subgraph features["features (the addon)"]
-        tick["tick/<br/>a tick every 0.2 s: find what is due,<br/>show it; when to look sooner"]
-        character["character/<br/>weapons, auras and casts,<br/>party roster, towns, blocked actions"]
-        options["options/<br/>the Settings panel pages"]
-        diagnostics["diagnostics/<br/>debug mode and report"]
-        reminders["reminders/<br/>missing buffs, weapon buff,<br/>party buffs, reagents"]
-    end
-
-    subgraph toolkit["packages (could serve any Forever addon)"]
-        wow["packages/wow/src/<br/>the only code that calls the game<br/>spells, auras, action bars, player, party, bags,<br/>glows, notices, saved variables"]
-        framework["packages/framework/src/<br/>Addon, lifecycle hooks, EventBus,<br/>@OnGameEvent, @Interval"]
-    end
-
-    game[("WoW client<br/>C_* APIs, frames, events")]
-
-    wiring --> global
-    wiring --> features
-    tick --> reminders
-    tick --> wow
-    character --> tick
-    character --> reminders
-    character --> wow
-    options --> diagnostics
-    options --> reminders
-    options --> wow
-    diagnostics --> reminders
-    diagnostics --> wow
-    knowledge --> reminders
-    reminders --> wow
-    settings --> wow
-    messages --> wow
-    wow --> game
-    wow --> framework
-    framework --> game
-    features --> framework
+    classDef panel fill:#ffffff,stroke:#d1d5db,color:#111827
+    class PANEL panel
 ```
 
 The packages ask the addon for three things as constructor parameters, and `addon.ts` passes them: the buff
 knowledge (`BuffKnowledgeService` from `knowledge/`), the spell name hints (`knowledge/`) and the name of the saved
 variable (`settings/`).
 
-## Classes
+## Design patterns
 
-Every service as a box, grouped by folder; an arrow means "takes it in its constructor" (generated from
-`addons/forever-reminders/src/addon.ts`). To keep the picture readable, the arrows to the services nearly everyone takes are left out:
-`SettingsService`, `LocaleService`, `MessagesService`, `PlayerService`, `SpellsService` and `ClockService`.
+The code is plain classes, but they follow a few well-known patterns, and the structure is easier to see when they
+are named. Each colour below is one pattern; a grey box is plain domain code with no pattern of its own.
 
 ```mermaid
+%%{init: {"theme": "base", "themeVariables": {"background": "#ffffff", "lineColor": "#6b7280", "textColor": "#111827", "primaryColor": "#f1f5f9", "primaryTextColor": "#111827", "primaryBorderColor": "#94a3b8", "secondaryColor": "#e2e8f0", "tertiaryColor": "#ffffff", "edgeLabelBackground": "#ffffff", "clusterBkg": "#ffffff", "clusterBorder": "#d1d5db", "actorBkg": "#f1f5f9", "actorTextColor": "#111827", "actorBorder": "#94a3b8", "actorLineColor": "#6b7280", "signalColor": "#374151", "signalTextColor": "#111827", "noteBkgColor": "#fef9c3", "noteTextColor": "#111827"}}}%%
+flowchart TB
+    classDef panel fill:#ffffff,stroke:#d1d5db,color:#111827
+    classDef root fill:#e5e7eb,stroke:#4b5563,color:#111827
+    classDef facade fill:#dbeafe,stroke:#2563eb,color:#111827
+    classDef observer fill:#ffedd5,stroke:#ea580c,color:#111827
+    classDef pipeline fill:#dcfce7,stroke:#16a34a,color:#111827
+    classDef state fill:#f3e8ff,stroke:#9333ea,color:#111827
+    classDef invert fill:#fee2e2,stroke:#dc2626,color:#111827
+    classDef plain fill:#f8fafc,stroke:#94a3b8,color:#111827
+
+    subgraph PANEL[" "]
+        subgraph ROOT["Composition root + lifecycle hooks"]
+            wiring["addon.ts<br/>makes every service with new,<br/>dependencies first"]
+            addon["Addon (framework)<br/>register(), start(),<br/>onAddonLoaded ... onLogout"]
+        end
+
+        subgraph FACADE["Facade + Adapter over Blizzard's API (@forever/wow)"]
+            wow["PlayerService, SpellsService, AurasService,<br/>ActionBarsService, PartyService, BagsService,<br/>WeaponEnchantsService, ClockService,<br/>GlowService, NoticeService, SavedVariablesService<br/>safe.ts, action-button.ts"]
+        end
+
+        subgraph INVERT["Dependency inversion"]
+            knowledge["AuraKnowledge (interface in @forever/wow)<br/>implemented by BuffKnowledgeService (addon)<br/>spell name hints, saved variable name"]
+        end
+
+        subgraph OBSERVER["Observer / Pub-Sub"]
+            bus["EventBus + @OnGameEvent, @OnUnitEvent,<br/>@OnEvent, @Interval"]
+            handlers["Listeners: AuraWatch, Equipment, Roster,<br/>TownVisit, BlockedAction, Display,<br/>DebugMode, RefreshService"]
+        end
+
+        subgraph PIPELINE["Pipeline: find, then show"]
+            tick["TickService (every 0.2 s)"] --> find["FindRemindersService"] --> show["ShowRemindersService<br/>NoticesService"]
+            refresh["RefreshService<br/>merges and delays requests<br/>(debounce)"] -.-> tick
+        end
+
+        subgraph STATE["State by reading + memory (weapon reminder)"]
+            weapon["WeaponReminderService<br/>WeaponReadingService<br/>weapon-reactions (one reaction per status)<br/>WeaponMemoryService"]
+        end
+
+        subgraph RULES["Domain services: the rules"]
+            rules["ClassBuffsService, BuffReminderService,<br/>PartyBuffsService, ReagentsService,<br/>WeaponChoiceService"]
+        end
+
+        subgraph SHARED["Shared services"]
+            shared["SettingsService, LocaleService,<br/>MessagesService"]
+        end
+
+        subgraph SCREEN["Settings panel and debug tools"]
+            screen["Options pages, ControlsService (control factory),<br/>WidgetsService<br/>Recorder, Samples, Report, DebugMode"]
+        end
+
+        game[("WoW client")]
+
+        wiring --> addon
+        wow --> game
+        rules -->|asks the game through| wow
+        weapon -->|reads enchants and auras through| wow
+        find -->|asks what is due| rules
+        find -->|asks| weapon
+        knowledge -.->|passed in by addon.ts| wow
+        wow -.->|announces events| bus
+        shared -.->|announces setting.changed| bus
+        bus -.->|calls| handlers
+        handlers -.->|ask to look again| refresh
+        screen --> shared
+        screen --> rules
+    end
+
+    class PANEL panel
+    class ROOT,wiring,addon root
+    class FACADE,wow facade
+    class INVERT,knowledge invert
+    class OBSERVER,bus,handlers observer
+    class PIPELINE,tick,find,show,refresh pipeline
+    class STATE,weapon state
+    class RULES,rules,SHARED,shared,SCREEN,screen,game plain
+```
+
+| Colour | Pattern | Where | What it gives |
+|---|---|---|---|
+| ⬜ | **Composition root**, lifecycle hooks (Template Method) | `addon.ts`, `Addon` | One file shows what depends on what; a service only says *when* it wants to run (`onLogin`...). |
+| 🟦 | **Facade** + **Adapter** | `@forever/wow`, `safe.ts`, `action-button.ts` | The rest of the code never sees secret values, protected calls or remapped IDs, only `isInCombat()`. |
+| 🟧 | **Observer** (publish / subscribe) | `EventBus`, the event decorators | Lower code announces ("spells.invalidated"), upper code listens; no import cycles (the Lua bundle cannot have them). |
+| 🟩 | **Pipeline** (+ **debounce**) | `tick/` | *Find* has no side effects and *show* remembers only what it showed; a burst of events becomes one tick. |
+| 🟪 | **State** by reading, **Memento** | `reminders/weapon/` | The game's answer (up, missing, unknown) picks one small reaction function; a timeline remembers what the client lags on. |
+| 🟥 | **Dependency inversion** | `AuraKnowledge` and friends | `@forever/wow` asks for knowledge only the addon has, without importing the addon. |
+
+Two of these in more detail.
+
+**State by reading (the weapon reminder).** The client's weapon-enchant answers lag behind casts and are sometimes
+missing, so the answer is not a plain read. The reminder asks the *reading* service what the game says (`up`,
+`missing` or `unknown`), hands that reading to one reaction function chosen by the status, and keeps its own
+timeline in the *memory* service.
+
+```mermaid
+%%{init: {"theme": "base", "themeVariables": {"background": "#ffffff", "lineColor": "#6b7280", "textColor": "#111827", "primaryColor": "#f1f5f9", "primaryTextColor": "#111827", "primaryBorderColor": "#94a3b8", "secondaryColor": "#e2e8f0", "tertiaryColor": "#ffffff", "edgeLabelBackground": "#ffffff", "clusterBkg": "#ffffff", "clusterBorder": "#d1d5db", "actorBkg": "#f1f5f9", "actorTextColor": "#111827", "actorBorder": "#94a3b8", "actorLineColor": "#6b7280", "signalColor": "#374151", "signalTextColor": "#111827", "noteBkgColor": "#fef9c3", "noteTextColor": "#111827"}}}%%
 classDiagram
     direction LR
-    namespace Package_wow {
-        class ClockService
-        class PlayerService
-        class PartyService
-        class BagsService
-        class SavedVariablesService
-        class SpellBookService
-        class SpellsService
-        class SpellCastService
-        class AuraMemoryService
+    classDef state fill:#f3e8ff,stroke:#9333ea,color:#111827
+    namespace Weapon_reminder {
+        class WeaponReminderService {
+            check() WeaponCheck
+            noteCast()
+            noteEnchantChanged()
+        }
+        class WeaponReadingService {
+            readWeaponBuff() BuffReading
+        }
+        class BuffReading {
+            <<status: up, missing, unknown>>
+        }
+        class WeaponReactions {
+            <<functions>>
+            reactToReading()
+            isAboutToExpire()
+        }
+        class WeaponMemoryService {
+            rememberApply()
+            noteMissing()
+            isInGrace()
+        }
+    }
+    WeaponReminderService --> WeaponReadingService : 1. what does the game say
+    WeaponReadingService ..> BuffReading : returns
+    WeaponReminderService --> WeaponReactions : 2. what to do with it
+    WeaponReactions --> WeaponMemoryService : reads the timeline
+    WeaponReminderService --> WeaponMemoryService : 3. remembers casts
+    cssClass "WeaponReminderService,WeaponReadingService,BuffReading,WeaponReactions,WeaponMemoryService" state
+```
+
+**Dependency inversion (what only the addon knows).** `@forever/wow` declares the interface it needs (red, in
+`@forever/wow`); the addon implements it (red, `BuffKnowledgeService`) and `addon.ts` passes the one instance to the two
+aura services of `@forever/wow` (blue).
+
+```mermaid
+%%{init: {"theme": "base", "themeVariables": {"background": "#ffffff", "lineColor": "#6b7280", "textColor": "#111827", "primaryColor": "#f1f5f9", "primaryTextColor": "#111827", "primaryBorderColor": "#94a3b8", "secondaryColor": "#e2e8f0", "tertiaryColor": "#ffffff", "edgeLabelBackground": "#ffffff", "clusterBkg": "#ffffff", "clusterBorder": "#d1d5db", "actorBkg": "#f1f5f9", "actorTextColor": "#111827", "actorBorder": "#94a3b8", "actorLineColor": "#6b7280", "signalColor": "#374151", "signalTextColor": "#111827", "noteBkgColor": "#fef9c3", "noteTextColor": "#111827"}}}%%
+classDiagram
+    direction LR
+    classDef invert fill:#fee2e2,stroke:#dc2626,color:#111827
+    classDef facade fill:#dbeafe,stroke:#2563eb,color:#111827
+    namespace Dependency_inversion {
+        class AuraKnowledge {
+            <<interface>>
+            findCategory()
+            getSeconds()
+        }
         class AurasService
-        class ActionBarsService
-        class WeaponEnchantsService
-        class GlowService
-        class NoticeService
-    }
-    namespace Settings {
-        class SettingsService
-    }
-    namespace Locale {
-        class LocaleService
-    }
-    namespace Messages {
-        class MessagesService
-        class GreetingService
-    }
-    namespace Knowledge {
+        class AuraMemoryService
         class BuffKnowledgeService
-    }
-    namespace Reminders {
         class ClassBuffsService
-        class BuffReminderService
-        class ReagentsService
-        class PartyBuffsService
-        class WeaponChoiceService
-        class WeaponMemoryService
-        class WeaponReadingService
-        class WeaponReminderService
     }
-    namespace Tick {
-        class GameDataService
-        class FindRemindersService
-        class NoticesService
-        class ShowRemindersService
-        class TickService
-        class RefreshService
-        class DisplayService
-    }
-    namespace Character {
-        class EquipmentService
-        class AuraWatchService
-        class RosterService
-        class TownVisitService
-        class BlockedActionService
-    }
-    namespace Diagnostics {
-        class RecorderService
-        class SamplesService
-        class ReportService
-        class DebugModeService
-    }
-    namespace Options {
-        class ControlsService
-        class WidgetsService
-        class WeaponSection
-        class HomePage
-        class RemindersPage
-        class DebugPage
-        class OptionsService
-    }
-    SpellsService --> SpellBookService
-    SettingsService --> SavedVariablesService
-    BuffKnowledgeService --> ClassBuffsService
-    AuraMemoryService --> BuffKnowledgeService
-    AurasService --> AuraMemoryService
-    AurasService --> BuffKnowledgeService
-    GlowService --> ActionBarsService
-    MessagesService --> NoticeService
-    BuffReminderService --> AurasService
-    BuffReminderService --> ActionBarsService
-    BuffReminderService --> ClassBuffsService
-    ReagentsService --> BagsService
-    PartyBuffsService --> AurasService
-    PartyBuffsService --> PartyService
-    PartyBuffsService --> ClassBuffsService
-    PartyBuffsService --> ReagentsService
-    WeaponReadingService --> AurasService
-    WeaponReadingService --> WeaponEnchantsService
-    WeaponReadingService --> WeaponChoiceService
-    WeaponReminderService --> WeaponEnchantsService
-    WeaponReminderService --> WeaponChoiceService
-    WeaponReminderService --> WeaponMemoryService
-    WeaponReminderService --> WeaponReadingService
-    GameDataService --> ActionBarsService
-    FindRemindersService --> ActionBarsService
-    FindRemindersService --> BuffReminderService
-    FindRemindersService --> PartyBuffsService
-    FindRemindersService --> WeaponReminderService
-    NoticesService --> ActionBarsService
-    NoticesService --> NoticeService
-    ShowRemindersService --> GlowService
-    ShowRemindersService --> NoticesService
-    TickService --> FindRemindersService
-    TickService --> ShowRemindersService
-    RefreshService --> TickService
-    RefreshService --> ShowRemindersService
-    RefreshService --> ActionBarsService
-    RefreshService --> AurasService
-    DisplayService --> ShowRemindersService
-    DisplayService --> TickService
-    EquipmentService --> RefreshService
-    EquipmentService --> WeaponEnchantsService
-    EquipmentService --> WeaponReminderService
-    AuraWatchService --> RefreshService
-    AuraWatchService --> AurasService
-    AuraWatchService --> WeaponReminderService
-    RosterService --> RefreshService
-    RosterService --> PartyBuffsService
-    TownVisitService --> ReagentsService
-    TownVisitService --> NoticeService
-    SamplesService --> RecorderService
-    SamplesService --> ActionBarsService
-    SamplesService --> PartyService
-    SamplesService --> WeaponEnchantsService
-    SamplesService --> BuffReminderService
-    SamplesService --> ClassBuffsService
-    SamplesService --> PartyBuffsService
-    SamplesService --> ReagentsService
-    SamplesService --> WeaponChoiceService
-    SamplesService --> WeaponReminderService
-    ReportService --> RecorderService
-    DebugModeService --> RecorderService
-    DebugModeService --> SamplesService
-    WeaponSection --> WeaponChoiceService
-    WeaponSection --> ControlsService
-    HomePage --> WidgetsService
-    RemindersPage --> ClassBuffsService
-    RemindersPage --> ControlsService
-    RemindersPage --> WeaponSection
-    DebugPage --> RecorderService
-    DebugPage --> ReportService
-    DebugPage --> WidgetsService
-    OptionsService --> HomePage
-    OptionsService --> RemindersPage
-    OptionsService --> DebugPage
+    AurasService --> AuraKnowledge
+    AuraMemoryService --> AuraKnowledge
+    BuffKnowledgeService ..|> AuraKnowledge
+    BuffKnowledgeService --> ClassBuffsService : buff lists
+    cssClass "AuraKnowledge,BuffKnowledgeService" invert
+    cssClass "AurasService,AuraMemoryService" facade
 ```
 
 ## Events (notifications upwards)
@@ -283,17 +302,22 @@ upper one. It emits a named event on the `EventBus` (Nest's EventEmitter) and th
 `@OnEvent("name")`. Each event is declared next to the service that emits it, by adding to `AppEvents`.
 
 ```mermaid
+%%{init: {"theme": "base", "themeVariables": {"background": "#ffffff", "lineColor": "#6b7280", "textColor": "#111827", "primaryColor": "#f1f5f9", "primaryTextColor": "#111827", "primaryBorderColor": "#94a3b8", "secondaryColor": "#e2e8f0", "tertiaryColor": "#ffffff", "edgeLabelBackground": "#ffffff", "clusterBkg": "#ffffff", "clusterBorder": "#d1d5db", "actorBkg": "#f1f5f9", "actorTextColor": "#111827", "actorBorder": "#94a3b8", "actorLineColor": "#6b7280", "signalColor": "#374151", "signalTextColor": "#111827", "noteBkgColor": "#fef9c3", "noteTextColor": "#111827"}}}%%
 flowchart LR
-    spellbook["SpellBookService"] -- "spellbook.built" --> spells["SpellsService"]
-    spells -- "spells.invalidated" --> auras["AurasService<br/>drops aura scans"]
-    spells -- "spells.invalidated" --> weaponChoice["WeaponChoiceService<br/>drops name caches"]
-    spells -- "spells.invalidated" --> reagents["ReagentsService<br/>drops tooltip answers"]
-    spells -- "spellbook.indexed" --> display["tick/DisplayService<br/>ticks again"]
-    actionBars["ActionBarsService"] -- "bars.mapped" --> display
-    settings["SettingsService"] -- "setting.changed" --> display
-    settings -- "setting.changed" --> debug["DebugModeService"]
-    cast["SpellCastService"] -- "player.spell-cast" --> watch["character/AuraWatchService"]
-    safe["packages/wow/src/safe.ts<br/>(plain functions)"] -- "listenToSwallowedErrors" --> debug
+    subgraph PANEL[" "]
+        spellbook["SpellBookService"] -- "spellbook.built" --> spells["SpellsService"]
+        spells -- "spells.invalidated" --> auras["AurasService<br/>drops aura scans"]
+        spells -- "spells.invalidated" --> weaponChoice["WeaponChoiceService<br/>drops name caches"]
+        spells -- "spells.invalidated" --> reagents["ReagentsService<br/>drops tooltip answers"]
+        spells -- "spellbook.indexed" --> display["tick/DisplayService<br/>ticks again"]
+        actionBars["ActionBarsService"] -- "bars.mapped" --> display
+        settings["SettingsService"] -- "setting.changed" --> display
+        settings -- "setting.changed" --> debug["DebugModeService"]
+        cast["SpellCastService"] -- "player.spell-cast" --> watch["character/AuraWatchService"]
+        safe["packages/wow/src/safe.ts<br/>(plain functions)"] -- "listenToSwallowedErrors" --> debug
+    end
+    classDef panel fill:#ffffff,stroke:#d1d5db,color:#111827
+    class PANEL panel
 ```
 
 The helpers in `packages/wow/src/safe.ts` are plain functions and cannot be injected, so they report swallowed errors to a
@@ -306,6 +330,7 @@ and one value passed between them, so the stage that decides never shows anythin
 never decides.
 
 ```mermaid
+%%{init: {"theme": "base", "themeVariables": {"background": "#ffffff", "lineColor": "#6b7280", "textColor": "#111827", "primaryColor": "#f1f5f9", "primaryTextColor": "#111827", "primaryBorderColor": "#94a3b8", "secondaryColor": "#e2e8f0", "tertiaryColor": "#ffffff", "edgeLabelBackground": "#ffffff", "clusterBkg": "#ffffff", "clusterBorder": "#d1d5db", "actorBkg": "#f1f5f9", "actorTextColor": "#111827", "actorBorder": "#94a3b8", "actorLineColor": "#6b7280", "signalColor": "#374151", "signalTextColor": "#111827", "noteBkgColor": "#fef9c3", "noteTextColor": "#111827"}}}%%
 sequenceDiagram
     participant Tick as tick/TickService
     participant Find as tick/FindRemindersService
@@ -313,15 +338,17 @@ sequenceDiagram
     participant Show as tick/ShowRemindersService
     participant Screen as packages/wow/src/GlowService, NoticeService
 
-    Tick->>Find: findReminders()
-    Find->>Logic: rememberSelfBuffs() (out of combat)
-    Note over Find: idle or muted: nothing is due
-    Find->>Logic: findMissingBuffs(), findPartyBuffSuggestions(), weaponReminder.check()
-    Find-->>Tick: Reminders (buffsToCast, weaponSpell, buffsNotOnBars, partySuggestions, outdatedRanks)
-    Tick->>Show: showReminders(reminders)
-    Show->>Screen: playAlertSound() for what is new
-    Show->>Screen: showNotice(lines) (the same message not again within 30 s)
-    Show->>Screen: glow.show(spells, color) (only when the set changed)
+    rect rgb(255, 255, 255)
+        Tick->>Find: findReminders()
+        Find->>Logic: rememberSelfBuffs() (out of combat)
+        Note over Find: idle or muted: nothing is due
+        Find->>Logic: findMissingBuffs(), findPartyBuffSuggestions(), weaponReminder.check()
+        Find-->>Tick: Reminders (buffsToCast, weaponSpell, buffsNotOnBars, partySuggestions, outdatedRanks)
+        Tick->>Show: showReminders(reminders)
+        Show->>Screen: playAlertSound() for what is new
+        Show->>Screen: showNotice(lines) (the same message not again within 30 s)
+        Show->>Screen: glow.show(spells, color) (only when the set changed)
+    end
 ```
 
 The triggers are separate: each service says with decorators which game event it reacts to

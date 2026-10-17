@@ -4,8 +4,7 @@
 // Forever rules: never call C_TooltipInfo.GetAction while mapping the bars (tooltips froze the
 // client when many slots updated after a quest turn-in), and map the bars a few buttons per frame.
 // Only Blizzard's own bars are mapped (no Bartender4, Dominos or ElvUI).
-import type { EventBus } from "@forever/framework";
-import { buildButtonKey } from "@forever/framework";
+import { type EventBus, buildButtonKey } from "@forever/framework";
 import type { ClockService } from "./clock.service";
 import { getActionSlot, getButtonAction, getGlobal, getTextureKey, hasAction } from "./action-button";
 import { attempt, attemptMulti, getReadableId, isReadable } from "./safe";

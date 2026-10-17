@@ -1,6 +1,4 @@
-import { beforeEach, describe, expect, it } from "@forever/test-kit";
-import { learnSpell, playAs } from "@forever/test-kit";
-import { createWorld, type World } from "@forever/test-kit";
+import { beforeEach, describe, expect, it, learnSpell, playAs, createWorld, type World } from "@forever/test-kit";
 import { ASPECT_OF_THE_HAWK, ASPECT_OF_THE_MONKEY, ASPECT_OF_THE_WILD, HUNTER } from "./fixtures";
 
 describe("a hunter with three aspects on the bars", () => {

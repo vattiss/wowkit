@@ -7,13 +7,18 @@ import type { PartyBuffsService } from "../reminders/party-buffs.service";
 import type { ReagentsService } from "../reminders/reagents.service";
 import type { WeaponChoiceService } from "../reminders/weapon/weapon-choice.service";
 import type { WeaponReminderService } from "../reminders/weapon/weapon-reminder.service";
-import type { ActionBarsService } from "@forever/wow";
-import type { PartyService } from "@forever/wow";
-import type { PlayerService } from "@forever/wow";
-import { attempt, attemptMulti, isReadable } from "@forever/wow";
-import type { SpellsService } from "@forever/wow";
-import type { WeaponEnchantsService } from "@forever/wow";
-import { MAIN_HAND_SLOT, OFF_HAND_SLOT } from "@forever/wow";
+import {
+    type ActionBarsService,
+    type PartyService,
+    type PlayerService,
+    attempt,
+    attemptMulti,
+    isReadable,
+    type SpellsService,
+    type WeaponEnchantsService,
+    MAIN_HAND_SLOT,
+    OFF_HAND_SLOT,
+} from "@forever/wow";
 import type { RecorderService } from "./recorder.service";
 
 /** The spellbook item type of a spell (1 = spell, 2 = not learned yet), "none" or "?". */
