@@ -20,7 +20,7 @@ const FORBIDDEN_LUA_NAMES = new Set(["pcall", "xpcall", "print", "_G"]);
 
 const toPosix = (path: string) => relative(ROOT, path).replaceAll("\\", "/");
 
-const configFile = ts.getParsedCommandLineOfConfigFile(`${ROOT}tsconfig.json`, {}, { ...ts.sys, onUnRecoverableConfigFileDiagnostic: () => {} });
+const configFile = ts.getParsedCommandLineOfConfigFile(`${ROOT}tsconfig.json`, {}, { ...ts.sys, onUnRecoverableConfigFileDiagnostic: () => undefined });
 if (!configFile) throw new Error("tsconfig.json not found");
 const program = ts.createProgram(configFile.fileNames, configFile.options);
 const checker = program.getTypeChecker();

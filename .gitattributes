@@ -1,0 +1,4 @@
+# One line ending everywhere, so the files are the same on every machine and git stops
+# warning about LF and CRLF on Windows.
+* text=auto eol=lf
+*.tga binary

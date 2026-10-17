@@ -26,16 +26,20 @@
     "watch": "node scripts/package-addon.ts && tstl -p tsconfig.json --watch",
     "deploy": "npm run build && node scripts/deploy.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.scripts.json",
-    "check": "node scripts/check-boundary.ts && node scripts/check-names.ts",
+    "lint": "eslint .",
+    "check": "node scripts/check-boundary.ts && node scripts/check-names.ts && eslint .",
     "test": "npm run check && npm run build && node scripts/smoke-test.ts"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/luaparse": "^0.2.13",
     "@types/node": "^26.6.5",
     "@typescript-to-lua/language-extensions": "^1.19.0",
+    "eslint": "^10.13.0",
     "lua-types": "^2.14.1",
     "luaparse": "^0.3.1",
     "typescript": "6.0.2",
+    "typescript-eslint": "^8.71.2",
     "typescript-to-lua": "^1.37.1"
   }
 }

@@ -39,7 +39,7 @@ function startsWithWord(name: string, words: Iterable<string>): boolean {
     return [...words].includes(word) && (rest === "" || /^[A-Z0-9]/.test(rest));
 }
 
-const configFile = ts.getParsedCommandLineOfConfigFile(`${ROOT}tsconfig.json`, {}, { ...ts.sys, onUnRecoverableConfigFileDiagnostic: () => {} });
+const configFile = ts.getParsedCommandLineOfConfigFile(`${ROOT}tsconfig.json`, {}, { ...ts.sys, onUnRecoverableConfigFileDiagnostic: () => undefined });
 if (!configFile) throw new Error("tsconfig.json not found");
 const program = ts.createProgram(configFile.fileNames, configFile.options);
 const checker = program.getTypeChecker();

@@ -239,7 +239,7 @@ for (const file of readdirSync(DOCS_DIR).filter((f) => f.endsWith(".lua")).sort(
     try {
         systems.push(parseDocumentationFile(readFileSync(`${DOCS_DIR}/${file}`, "utf8")) as unknown as DocSystem);
     } catch (error) {
-        throw new Error(`${file}: ${(error as Error).message}`);
+        throw new Error(`${file}: ${(error as Error).message}`, { cause: error });
     }
 }
 
