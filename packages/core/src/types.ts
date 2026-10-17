@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- classes, factories and handlers of every shape are described here */
-// The words of the framework: classes and lifecycle hooks.
+// The words of the core: classes and lifecycle hooks.
 
-/** A class (its constructor). Services are classes; the framework reads the decorators on their prototype. */
+/** A class (its constructor). Services are classes; the core reads the decorators on their prototype. */
 export type Class<T = object> = new (...args: any[]) => T;
 
 // ---------------------------------------------------------------------------------------------

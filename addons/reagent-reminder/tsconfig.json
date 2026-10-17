@@ -1,6 +1,6 @@
 {
   // The addon: compiled to a single Lua file by TypeScriptToLua, together with the packages it uses
-  // (@wowkit/framework and @wowkit/wow are compiled from their sources, see "paths").
+  // (@wowkit/core and @wowkit/wow are compiled from their sources, see "paths").
   "compilerOptions": {
     "target": "ESNext",
     "lib": ["ESNext"],
@@ -10,12 +10,12 @@
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
-    // Services use method decorators (packages/framework)
+    // Services use method decorators (packages/core)
     "experimentalDecorators": true,
     "paths": {
-      "@wowkit/framework": ["../../packages/framework/src/index.ts"],
+      "@wowkit/core": ["../../packages/core/src/index.ts"],
       // The sources of a package by file name: for `declare module` blocks that add an event
-      "@wowkit/framework/*": ["../../packages/framework/src/*"],
+      "@wowkit/core/*": ["../../packages/core/src/*"],
       "@wowkit/wow": ["../../packages/wow/src/index.ts"],
       "@wowkit/ui": ["../../packages/ui/src/index.ts"]
     },
@@ -24,7 +24,7 @@
   },
   "include": [
     "src/**/*.ts",
-    "../../packages/framework/src/**/*.ts",
+    "../../packages/core/src/**/*.ts",
     "../../packages/wow/src/**/*.ts",
     "../../packages/ui/src/**/*.ts",
     "../../packages/wow-types/**/*.d.ts"

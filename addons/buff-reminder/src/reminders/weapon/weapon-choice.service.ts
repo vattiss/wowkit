@@ -1,6 +1,6 @@
 // Which weapon buff the player should keep up: the player's pick if learned, else the best one
 // already learned.
-import { OnEvent, contains } from "@wowkit/framework";
+import { OnEvent, contains } from "@wowkit/core";
 import type { AddonSettingsService } from "../../settings/settings.interface";
 import type { PlayerService, SpellsService } from "@wowkit/wow";
 import type { PickedWeaponBuff } from "../reminders.interface";

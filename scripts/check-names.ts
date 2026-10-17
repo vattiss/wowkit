@@ -3,7 +3,7 @@
 //   functions:  getSpellName, findMissingBuffs, showNotice       (not: spellName, missingBuffs)
 //   booleans:   isFound, hasArrived, shouldRecheckDrop           (not: found, arrived, recheck)
 //
-// Decorators (packages/framework/src/decorators.ts) are the exception: they are written in PascalCase and read as
+// Decorators (packages/core/src/decorators.ts) are the exception: they are written in PascalCase and read as
 // annotations (@OnEvent, @Every), so their names are not checked.
 //
 // What counts as a function: declarations, methods, and properties or variables holding a function.
@@ -82,7 +82,7 @@ function isValueDeclaration(node: ts.Node): boolean {
 function checkDeclaration(source: ts.SourceFile, node: ts.Node, name: ts.Identifier): void {
     const text = name.text;
     const isFunction = isFunctionLike(node);
-    const isDecorator = toPosix(source.fileName) === "packages/framework/src/decorators.ts" && /^[A-Z]/.test(text);
+    const isDecorator = toPosix(source.fileName) === "packages/core/src/decorators.ts" && /^[A-Z]/.test(text);
     if (isFunction && !isDecorator && !startsWithWord(text, VERBS)) {
         report(source, name, `function "${text}" should start with a verb`);
     }

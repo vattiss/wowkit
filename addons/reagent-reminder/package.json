@@ -16,7 +16,7 @@
     "deploy:game": "pnpm build && node ../../scripts/deploy.ts"
   },
   "dependencies": {
-    "@wowkit/framework": "workspace:*",
+    "@wowkit/core": "workspace:*",
     "@wowkit/ui": "workspace:*",
     "@wowkit/wow": "workspace:*"
   },

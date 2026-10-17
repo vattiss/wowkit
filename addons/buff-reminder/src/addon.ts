@@ -1,7 +1,7 @@
 // Putting the addon together: every service is made here, with the services it needs, dependencies first.
 // The order of the lines is also the order the lifecycle hooks run in.
 /* eslint-disable max-lines-per-function -- the wiring is a list of `new` lines read top to bottom, not logic */
-import { Addon } from "@wowkit/framework";
+import { Addon } from "@wowkit/core";
 import { AuraWatchService } from "./character/aura-watch.service";
 import { BlockedActionService } from "./character/blocked-action.service";
 import { EquipmentService } from "./character/equipment.service";

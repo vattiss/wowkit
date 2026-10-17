@@ -1,7 +1,7 @@
 // Reagents of the group buffs: whether a spell needs one, whether there is one in the bags, and
 // which are running low. Whether a spell needs a reagent is read from its tooltip, so a client
 // that dropped the reagent cost never nags about it.
-import { OnEvent, contains } from "@wowkit/framework";
+import { OnEvent, contains } from "@wowkit/core";
 import type { BagsService } from "./bags.service";
 import type { Reagent, ReagentStock } from "./reagent.interface";
 import { REAGENT_LOW, REAGENTS } from "./reagents.constants";

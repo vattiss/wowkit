@@ -39,7 +39,7 @@ export default defineConfig(
     {
         // The names in the packages and the addons are ours (the test kit mirrors the game, so it is left out). The scripts mirror Blizzard's data and Node's option names.
         // Object literal properties are left out for the same reason (`{ recursive: true }`).
-        files: ["packages/framework/src/**/*.ts", "packages/wow/src/**/*.ts", "packages/ui/src/**/*.ts", "addons/*/src/**/*.ts"],
+        files: ["packages/core/src/**/*.ts", "packages/wow/src/**/*.ts", "packages/ui/src/**/*.ts", "addons/*/src/**/*.ts"],
         rules: {
             "@typescript-eslint/naming-convention": [
                 "error",

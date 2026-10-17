@@ -1,5 +1,5 @@
 // Arriving in a town or an inn, where reagents are sold: name the ones that are running low.
-import { OnGameEvent, type OnReady } from "@wowkit/framework";
+import { OnGameEvent, type OnReady } from "@wowkit/core";
 import type { MessagesService } from "@wowkit/ui";
 import type { NoticeService, PlayerService, ReagentsService } from "@wowkit/wow";
 import type { AddonLocale } from "./locale/locale.interface";

@@ -1,5 +1,5 @@
 {
-  "name": "@wowkit/framework",
+  "name": "@wowkit/core",
   "version": "0.1.0",
   "description": "Addon, lifecycle hooks, EventBus and event decorators for World of Warcraft: Forever addons written in TypeScript",
   "private": true,

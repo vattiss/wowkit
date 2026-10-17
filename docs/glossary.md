@@ -37,8 +37,8 @@ The words used in the code and in these docs, in plain terms. One word means one
 | **tick** | One look at the game, every 0.2 seconds and sooner when something happens. | `tick/tick.service.ts` |
 | **service** | A class that does one job; it gets the services it needs in its constructor. Most also say which game events they react to. | `*.service.ts` |
 | **wiring** | `addons/buff-reminder/src/addon.ts`: where every service is made with `new`, dependencies first. The order of its lines is the order of the lifecycle hooks. | `addon.ts` |
-| **lifecycle hook** | A method a service has to be told of a moment of the addon's life: `onAddonLoaded`, `onFirstLogin`, `onLogin`, `onReady`, `onLogout`. | `packages/framework/src/README.md` |
-| **EventBus** | The addon's own events: a service emits a named event, others listen with `@OnEvent`. | `packages/framework/src/event-bus.ts` |
+| **lifecycle hook** | A method a service has to be told of a moment of the addon's life: `onAddonLoaded`, `onFirstLogin`, `onLogin`, `onReady`, `onLogout`. | `packages/core/src/README.md` |
+| **EventBus** | The addon's own events: a service emits a named event, others listen with `@OnEvent`. | `packages/core/src/event-bus.ts` |
 | **stage** | One half of a tick: *find* what is due, then *show* it. | `tick/find-reminders.service.ts`, `tick/show-reminders.service.ts` |
 | **glow** | The highlight on an action button. | `packages/wow/src/glow.service.ts` |
 | **notice** | The message at the top of the screen. | `tick/notices.service.ts` |

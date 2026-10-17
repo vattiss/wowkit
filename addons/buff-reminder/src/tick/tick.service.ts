@@ -1,6 +1,6 @@
 // One tick: look at the game, then show what is due. Runs every 0.2 seconds, and sooner when
 // something happens (RefreshService asks for it).
-import { Interval, type OnFirstLogin, type OnLogout, type OnReady } from "@wowkit/framework";
+import { Interval, type OnFirstLogin, type OnLogout, type OnReady } from "@wowkit/core";
 import type { FindRemindersService } from "./find-reminders.service";
 import type { ShowRemindersService } from "./show-reminders.service";
 

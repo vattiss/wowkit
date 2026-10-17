@@ -18,7 +18,7 @@ asked for smaller addons without the word "Forever" in their names.
 - **A new package, `@wowkit/ui`**, takes what every addon needs besides the game's door, made generic so each addon
   gives its own types and words: `SettingsService<T>`, `LocaleService<K>`, `MessagesService` (the title is a
   parameter), the sounds, `GreetingService`, and for the Settings panel `OptionsService`, `HomePage`,
-  `ControlsService<T>` and `WidgetsService`. It imports `@wowkit/framework` and `@wowkit/wow`.
+  `ControlsService<T>` and `WidgetsService`. It imports `@wowkit/core` and `@wowkit/wow`.
 - **`@wowkit/wow` takes the game data and the upkeep that more than one addon needs:** `ReagentsService`, the spell IDs
   and the spell name hints, `SpellRefreshService` and `BarRefreshService` (the spells and the map of the bars refresh
   themselves after a burst of events and announce `spells.refreshed` and `bars.mapped`), and the first read of the

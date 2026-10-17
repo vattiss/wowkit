@@ -1,6 +1,6 @@
 // Keeps the map of the action bars fresh. The bars change in bursts (a form, a stance, a page, a slot), so they are
 // mapped again once the changes settle.
-import { OnEvent, OnGameEvent } from "@wowkit/framework";
+import { OnEvent, OnGameEvent } from "@wowkit/core";
 import type { ActionBarsService } from "./action-bars.service";
 import type { ClockService } from "./clock.service";
 

@@ -1,6 +1,6 @@
 // Buffs on the player: reading them (by ID, by name, by a full scan), with AuraMemoryService filling
 // in while the client hides them.
-import { OnEvent, buildAuraKey } from "@wowkit/framework";
+import { OnEvent, buildAuraKey } from "@wowkit/core";
 import type { AuraKnowledge } from "./aura-knowledge.interface";
 import type { AuraMemoryService } from "./aura-memory.service";
 import type { PlayerService } from "./player.service";

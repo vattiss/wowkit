@@ -4,13 +4,13 @@
 // Forever rules: never call C_TooltipInfo.GetAction while mapping the bars (tooltips froze the
 // client when many slots updated after a quest turn-in), and map the bars a few buttons per frame.
 // Only Blizzard's own bars are mapped (no Bartender4, Dominos or ElvUI).
-import { type EventBus, type OnFirstLogin, buildButtonKey } from "@wowkit/framework";
+import { type EventBus, type OnFirstLogin, buildButtonKey } from "@wowkit/core";
 import type { ClockService } from "./clock.service";
 import { getActionSlot, getButtonAction, getGlobal, getTextureKey, hasAction } from "./action-button";
 import { attempt, attemptMulti, getReadableId, isReadable } from "./safe";
 import type { SpellsService } from "./spells.service";
 
-declare module "@wowkit/framework/event-bus" {
+declare module "@wowkit/core/event-bus" {
     interface AppEvents {
         /** The action bars were mapped again. */
         "bars.mapped": [];

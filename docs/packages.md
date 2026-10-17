@@ -7,7 +7,7 @@ split this way, and what was tried: [0012](decisions/0012-packages.md), [0013](d
 
 ```
 packages/
-  framework/   @wowkit/framework    Addon, decorators, EventBus, lifecycle hooks, text helpers
+  core/        @wowkit/core    Addon, decorators, EventBus, lifecycle hooks, text helpers
   wow/         @wowkit/wow          the services that talk to the game
   ui/          @wowkit/ui           settings, texts, chat lines, sounds and the Settings panel pages
   wow-types/   @wowkit/wow-types    Blizzard's API as TypeScript types (generated + hand-written)
@@ -35,37 +35,37 @@ flowchart LR
         buff --> wow["@wowkit/wow"]
         rank --> wow
         reagent --> wow
-        buff --> framework["@wowkit/framework"]
-        rank --> framework
-        reagent --> framework
+        buff --> core["@wowkit/core"]
+        rank --> core
+        reagent --> core
         ui --> wow
-        ui --> framework
-        wow --> framework
+        ui --> core
+        wow --> core
         buff -. "tests" .-> testkit["@wowkit/test-kit"]
         rank -. "tests" .-> testkit
         reagent -. "tests" .-> testkit
         wow -. "types only" .-> types["@wowkit/wow-types"]
         ui -. "types only" .-> types
-        framework -. "types only" .-> types
+        core -. "types only" .-> types
         testkit -. "types only" .-> types
     end
     classDef panel fill:#ffffff,stroke:#d1d5db,color:#111827
     class PANEL panel
 ```
 
-- A package imports **only itself and the packages it depends on**: `framework` and `test-kit` depend on nothing,
-  `wow` on `framework`, `ui` on both. The typings are not imported at all; they are global types the compiler includes.
+- A package imports **only itself and the packages it depends on**: `core` and `test-kit` depend on nothing,
+  `wow` on `core`, `ui` on both. The typings are not imported at all; they are global types the compiler includes.
 - An addon may use every package. What only an addon knows (its buff lists, its texts, the shape of its settings) reaches
   a package as a constructor parameter or a type parameter, passed in by the addon's `addon.ts`.
 - `pnpm check` enforces it: `scripts/check-layers.ts` (imports), `scripts/check-boundary.ts` (only `packages/wow`,
-  `packages/framework`, `packages/ui` and the `options/` folders of the addons call the game) and
+  `packages/core`, `packages/ui` and the `options/` folders of the addons call the game) and
   `scripts/check-wiring.ts` (every service of an addon is made in its `addon.ts`).
 
 ## What is in the packages
 
 | Package | What an addon gets |
 |---|---|
-| `@wowkit/framework` | `Addon` (registers the services, starts them), `@OnGameEvent`, `@OnUnitEvent`, `@OnEvent`, `@Interval`, the lifecycle hooks, the `EventBus`. |
+| `@wowkit/core` | `Addon` (registers the services, starts them), `@OnGameEvent`, `@OnUnitEvent`, `@OnEvent`, `@Interval`, the lifecycle hooks, the `EventBus`. |
 | `@wowkit/wow` | The game's door: player, party, bags, spells and the spell book, auras, action bars, weapon enchants, glows, notices, saved variables, the clock; `ReagentsService` and the spell IDs; `SpellRefreshService` and `BarRefreshService` keep the spells and the bars fresh. |
 | `@wowkit/ui` | `SettingsService<T>` (the shape is the addon's), `LocaleService<K>`, `MessagesService` and the sounds, `GreetingService`, and for the Settings panel `OptionsService` (one main page), `AboutSection` (the Help section), `ControlsService<T>` and `WidgetsService`. |
 | `@wowkit/test-kit` | `describe` / `it` / `expect`, `createWorld` (a fake game), and fixtures: the classes and spells the specs use. |
@@ -77,8 +77,8 @@ with the addon into one Lua file:
 
 ```jsonc
 "paths": {
-  "@wowkit/framework": ["../../packages/framework/src/index.ts"],
-  "@wowkit/framework/*": ["../../packages/framework/src/*"],   // only for `declare module` blocks that add an event
+  "@wowkit/core": ["../../packages/core/src/index.ts"],
+  "@wowkit/core/*": ["../../packages/core/src/*"],   // only for `declare module` blocks that add an event
   "@wowkit/wow": ["../../packages/wow/src/index.ts"],
   "@wowkit/ui": ["../../packages/ui/src/index.ts"]
 },
@@ -123,8 +123,8 @@ The shared scripts work on the folder they are started in, and the checks look a
 
 Not done, and not needed until another repository wants the packages. It takes:
 
-- the `private` flag off in each package's `package.json`, `peerDependencies` on `@wowkit/framework` for `wow` and
-  `ui` (so two copies of the framework's notes never end up in one bundle), and a license;
+- the `private` flag off in each package's `package.json`, `peerDependencies` on `@wowkit/core` for `wow` and
+  `ui` (so two copies of the core's notes never end up in one bundle), and a license;
 - library builds (`"buildMode": "library"`, `"declaration": true`) so an addon imports the built Lua from
   `node_modules` (route C of [0012](decisions/0012-packages.md));
 - the typings package listed in the consumer's `tsconfig.json` `types`;

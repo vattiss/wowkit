@@ -1,5 +1,5 @@
 // What the addon itself announces makes the glows and notices redraw.
-import { OnEvent } from "@wowkit/framework";
+import { OnEvent } from "@wowkit/core";
 import type { ShowRemindersService } from "./show-reminders.service";
 import type { TickService } from "./tick.service";
 

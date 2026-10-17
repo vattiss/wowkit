@@ -2,7 +2,7 @@
 // (the buff categories), and how long a buff lasts. The toolkit's aura services are given it in their constructors.
 
 import type { ClassBuffsService } from "../reminders/class-buffs.service";
-import { buildAuraKey, contains } from "@wowkit/framework";
+import { buildAuraKey, contains } from "@wowkit/core";
 import type { AuraCategory, AuraKnowledge } from "@wowkit/wow";
 import { BUFF_CATEGORIES } from "./buff-categories.constants";
 

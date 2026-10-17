@@ -2,7 +2,7 @@
 // once, and Forever froze when the addon rebuilt things on every one), so each request is merged
 // with the ones around it and delayed a little. The spells and the bars keep themselves fresh
 // (@wowkit/wow); this only asks for a tick when they say they changed.
-import { OnEvent, OnGameEvent } from "@wowkit/framework";
+import { OnEvent, OnGameEvent } from "@wowkit/core";
 import type { AurasService, BarRefreshService, ClockService } from "@wowkit/wow";
 import type { ShowRemindersService } from "./show-reminders.service";
 import type { TickService } from "./tick.service";

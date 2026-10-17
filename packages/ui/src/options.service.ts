@@ -1,6 +1,6 @@
 // The addon's page in the game's Settings panel: one main page, a list of controls. The page only reads and changes
 // settings (SettingsService.change); whoever cares reacts to "setting.changed".
-import type { OnFirstLogin } from "@wowkit/framework";
+import type { OnFirstLogin } from "@wowkit/core";
 import type { MessagesService } from "./messages.service";
 
 /** The page of an addon: it adds its controls to the layout. */

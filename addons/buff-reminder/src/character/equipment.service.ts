@@ -1,5 +1,5 @@
 // Weapons and what the weapon reminder remembered about them.
-import { OnGameEvent, OnUnitEvent, type OnReady } from "@wowkit/framework";
+import { OnGameEvent, OnUnitEvent, type OnReady } from "@wowkit/core";
 import type { WeaponReminderService } from "../reminders/weapon/weapon-reminder.service";
 import type { RefreshService } from "../tick/refresh.service";
 import { type PlayerService, type WeaponEnchantsService, MAIN_HAND_SLOT, OFF_HAND_SLOT } from "@wowkit/wow";

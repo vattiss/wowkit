@@ -12,7 +12,7 @@ Blizzard's API is full of quirks: values that are secret in combat, calls that c
 spell IDs that Forever remaps, `multiple, return, values`. All of that stays inside `packages/wow/src/`, which
 turns it into plain answers in the addon's own words (`isInCombat()`, `isLearned(spell)`,
 `getItemCount(item)`). The reminder logic in `addons/buff-reminder/src/reminders/` never sees a Blizzard function, so it reads
-like plain code. A few more places may call the game because that is their job: `packages/framework/src/` (game events and timers for
+like plain code. A few more places may call the game because that is their job: `packages/core/src/` (game events and timers for
 the decorators), `packages/ui/src/` (the Settings panel and the chat) and the `options/` folders of the addons (their
 own page).
 
@@ -21,10 +21,10 @@ Code that keeps state, talks to the game or uses other services is a class with 
 constructor. `addons/buff-reminder/src/addon.ts` makes each one with `new`, dependencies first, so there is one instance of each; there
 is no inheritance and no container (a service is built from the services it is given). Pure data is a
 `*.constants.ts` file, a shape is a `*.interface.ts` file, and a pure function of its arguments stays a function
-(`packages/framework/src/text.ts`, `packages/wow/src/safe.ts`, `reminders/weapon/weapon-reactions.ts`).
+(`packages/core/src/text.ts`, `packages/wow/src/safe.ts`, `reminders/weapon/weapon-reactions.ts`).
 
 **3. The packages do not know the addon.**
-`packages/` (framework, wow, ui, test-kit and the typings) could serve any Forever addon, so each imports only itself
+`packages/` (core, wow, ui, test-kit and the typings) could serve any Forever addon, so each imports only itself
 and the packages it depends on. What only an addon knows (the buff knowledge, the shape of its settings, its texts, the name of
 the saved variable) is a constructor or type parameter, passed in by the addon's `addon.ts`. See [packages.md](packages.md).
 
@@ -32,7 +32,7 @@ the saved variable) is a constructor or type parameter, passed in by the addon's
 Functions start with a verb (`getSpellName`, `findMissingBuffs`, `showNotice`). Booleans read as
 questions (`isFound`, `hasArrived`, `shouldRecheckDrop`).
 
-All four rules are checked by `pnpm check` (part of `pnpm test`) or by the framework when the addon starts, so
+All four rules are checked by `pnpm check` (part of `pnpm test`) or by the compiler, so
 they cannot creep back in.
 
 ## Build pipeline
@@ -100,7 +100,7 @@ flowchart TB
         subgraph toolkit["packages (could serve any Forever addon)"]
             ui["packages/ui/src/<br/>settings, texts, chat lines, sounds,<br/>the Settings panel pages"]
             wow["packages/wow/src/<br/>the only code that calls the game<br/>spells, auras, action bars, player, party, bags,<br/>reagents, glows, notices, saved variables"]
-            framework["packages/framework/src/<br/>Addon, lifecycle hooks, EventBus,<br/>@OnGameEvent, @Interval"]
+            core["packages/core/src/<br/>Addon, lifecycle hooks, EventBus,<br/>@OnGameEvent, @Interval"]
         end
 
         game[("WoW client<br/>C_* APIs, frames, events")]
@@ -123,10 +123,10 @@ flowchart TB
         settings --> ui
         ui --> wow
         wow --> game
-        wow --> framework
-        ui --> framework
-        framework --> game
-        features --> framework
+        wow --> core
+        ui --> core
+        core --> game
+        features --> core
     end
     classDef panel fill:#ffffff,stroke:#d1d5db,color:#111827
     class PANEL panel
@@ -157,7 +157,7 @@ flowchart TB
     subgraph PANEL[" "]
         subgraph ROOT["Composition root + lifecycle hooks"]
             wiring["addon.ts<br/>makes every service with new,<br/>dependencies first"]
-            addon["Addon (framework)<br/>register(), start(),<br/>onAddonLoaded ... onLogout"]
+            addon["Addon (core)<br/>register(), start(),<br/>onAddonLoaded ... onLogout"]
         end
 
         subgraph FACADE["Facade + Adapter over Blizzard's API (@wowkit/wow)"]

@@ -1,6 +1,6 @@
 // The game blocked something this addon did. The client's popup does not say which protected
 // function was called; the event does.
-import { OnGameEvent, contains } from "@wowkit/framework";
+import { OnGameEvent, contains } from "@wowkit/core";
 import type { AddonLocale } from "../locale/locale.interface";
 import type { MessagesService } from "@wowkit/ui";
 import type { PlayerService } from "@wowkit/wow";

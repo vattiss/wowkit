@@ -1,5 +1,5 @@
 // The notice at the top of the screen that names the spells on the bars at an old rank.
-import { Interval } from "@wowkit/framework";
+import { Interval } from "@wowkit/core";
 import type { MessagesService } from "@wowkit/ui";
 import type { ActionBarsService, ClockService, NoticeService, PlayerService } from "@wowkit/wow";
 import type { AddonLocale } from "./locale/locale.interface";

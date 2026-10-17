@@ -48,5 +48,5 @@ export function readAddonPackageJson(addonDir: string): AddonPackageJson {
 
 /** Folders whose files are source code of the project (the packages and the addons), not tests or typings. */
 export function listSourceFolders(): string[] {
-    return ["packages/framework/src/", "packages/wow/src/", "packages/ui/src/", ...listAddons().map((addon) => `${addon}/src/`)];
+    return ["packages/core/src/", "packages/wow/src/", "packages/ui/src/", ...listAddons().map((addon) => `${addon}/src/`)];
 }

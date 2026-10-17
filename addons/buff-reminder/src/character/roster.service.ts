@@ -1,5 +1,5 @@
 // Party members who are missing the player's buffs: the roster changed, read the party again.
-import { OnGameEvent } from "@wowkit/framework";
+import { OnGameEvent } from "@wowkit/core";
 import type { PartyBuffsService } from "../reminders/party-buffs.service";
 import type { RefreshService } from "../tick/refresh.service";
 

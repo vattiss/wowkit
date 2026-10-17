@@ -2,10 +2,10 @@
 //
 // Player choices are changed through change(), which announces the change ("setting.changed"), so the
 // options page never has to know who reacts to it. The shape of the settings is the addon's: `SettingsService<MySettings>`.
-import type { EventBus, OnAddonLoaded } from "@wowkit/framework";
+import type { EventBus, OnAddonLoaded } from "@wowkit/core";
 import type { SavedVariablesService } from "@wowkit/wow";
 
-declare module "@wowkit/framework/event-bus" {
+declare module "@wowkit/core/event-bus" {
     interface AppEvents {
         /** A player choice changed (the key of the setting). */
         "setting.changed": [key: string];

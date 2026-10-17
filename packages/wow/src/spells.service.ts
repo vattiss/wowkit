@@ -2,7 +2,7 @@
 //
 // Forever remaps many spell IDs, so a spell of the buff lists is resolved to the ID the player
 // knows: by ID, by override, and finally by name through the spellbook index.
-import { type EventBus, OnEvent, type OnFirstLogin } from "@wowkit/framework";
+import { type EventBus, OnEvent, type OnFirstLogin } from "@wowkit/core";
 import { type SpellBookService, isJunkSpellName } from "./spell-book.service";
 import { attempt, attemptMulti, getReadable, isReadable, tryCall } from "./safe";
 
@@ -11,7 +11,7 @@ export interface SpellNameHints {
     [spellId: number]: string | undefined;
 }
 
-declare module "@wowkit/framework/event-bus" {
+declare module "@wowkit/core/event-bus" {
     interface AppEvents {
         /** Spell lookups were invalidated (new spells learned, talents changed). */
         "spells.invalidated": [];

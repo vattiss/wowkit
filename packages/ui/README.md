@@ -17,6 +17,6 @@ reminds about. The shape of the settings and the texts are the addon's, given as
 An addon makes these in its `addon.ts` and gives them its own words and types, for example
 `new SettingsService<AddonSettings>(savedVariables, addon.events, createDefaultSettings)`.
 
-- It may call the game (the Settings panel and the chat are the game's) and imports only `@wowkit/framework` and
+- It may call the game (the Settings panel and the chat are the game's) and imports only `@wowkit/core` and
   `@wowkit/wow` (`pnpm check` enforces it).
 - Decisions: [0014](../../docs/decisions/0014-three-addons-and-the-ui-package.md).

@@ -46,7 +46,7 @@ Each folder has a short README.
 
 ```
 packages/       what could serve any Forever addon (packages/README.md); each imports only what it depends on
-  framework/        @wowkit/framework: Addon (starts the services), lifecycle hooks, EventBus, @OnGameEvent,
+  core/             @wowkit/core: Addon (starts the services), lifecycle hooks, EventBus, @OnGameEvent,
                     @OnUnitEvent, @OnEvent, @Interval, text helpers
   wow/              @wowkit/wow: the door to the game: spells, auras, action bars, player, party, bags, reagents,
                     clock, glows and notices, saved variables, protected calls
@@ -80,7 +80,7 @@ docs/           architecture, packages, glossary, the game's quirks, decision re
 ### Rules
 
 - **Only a few folders call the game:** `packages/wow/src/` (what the reminders ask the game),
-  `packages/framework/src/` (events and timers), and `addons/buff-reminder/src/options/` (the Settings panel). Reminder
+  `packages/core/src/` (events and timers), and `addons/buff-reminder/src/options/` (the Settings panel). Reminder
   logic talks to `packages/wow/src/` in plain terms (`isInCombat()`, `isLearned(spell)`) and never sees secret values,
   protected calls or remapped IDs.
 - **Everything is a service, made once, by hand:** plain classes that take what they need in the constructor,
@@ -131,4 +131,4 @@ type), fix it with `SIGNATURE_OVERRIDES` in the generator or extra overloads in 
 - No import cycles: the bundle's `require` does not support them. Lower services notify upper ones
   with events on the `EventBus` (`@OnEvent`); the packages import nothing from the addon.
 - Decorators (`@OnGameEvent`, `@Interval`...) need `experimentalDecorators`; a method is called as
-  `instance[name](instance, ...)`. See `packages/framework/README.md`.
+  `instance[name](instance, ...)`. See `packages/core/README.md`.

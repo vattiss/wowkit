@@ -14,4 +14,4 @@ The reminder loop. A *tick* looks at the game and shows what is due, in two stag
 The order in `addon.ts` is the order the lifecycle hooks run in (the spells and the action bars of `@wowkit/wow` read
 the game at the first login, before a tick may run). Other features only use `RefreshService`, to ask the
 tick to look sooner. Services say with decorators which game events they react to (see
-[framework/](../../../../packages/framework/README.md)); search for an event name to find who reacts.
+[core/](../../../../packages/core/README.md)); search for an event name to find who reacts.

@@ -1,7 +1,7 @@
-# framework/
+# core/
 
-`@wowkit/framework`: an `Addon` that starts the services, lifecycle hooks, events and timers. Services are plain
-classes that get what they need in their constructor; the framework adds only what the game needs (listening to
+`@wowkit/core`: an `Addon` that starts the services, lifecycle hooks, events and timers. Services are plain
+classes that get what they need in their constructor; the core adds only what the game needs (listening to
 events, running timers). It is platform-aware (it listens to the game's events and runs the timers), a
 package that imports only itself, and knows nothing about reminders. Decisions:
 [0007](../../docs/decisions/0007-services-modules-and-decorators.md),
@@ -32,7 +32,7 @@ addon.start();
 | `addon.ts` | `Addon`: takes the services (`add`), then `start` connects the listeners, runs the hooks, starts and stops the intervals. |
 | `event-bus.ts` | `EventBus` (Nest's EventEmitter) and `AppEvents`, the map of event names to what they carry. `addon.events` is the addon's one bus. |
 | `game-events.ts` | The game's events and timers on one hidden frame; only `addon.ts` uses it. |
-| `metadata.ts`, `types.ts` | What the decorators write down; the words of the framework. |
+| `metadata.ts`, `types.ts` | What the decorators write down; the words of the core. |
 
 ## Services
 
@@ -51,7 +51,7 @@ The addon's own events go through the `EventBus`: a service calls `bus.emit("spe
 listen with `@OnEvent("spells.invalidated")`. Each event is declared next to the service that emits it:
 
 ```ts
-declare module "../framework/event-bus" {
+declare module "@wowkit/core/event-bus" {
     interface AppEvents {
         "spells.invalidated": [];
     }

@@ -1,4 +1,4 @@
-// The game's events and timers, on one hidden frame. The framework's decorators and lifecycle sit
+// The game's events and timers, on one hidden frame. The core's decorators and lifecycle sit
 // on this; services never call it (they use @OnGameEvent, @OnUnitEvent and @Interval).
 type Handler = (this: void, ...payload: unknown[]) => void;
 

@@ -27,6 +27,6 @@ knowledge, the spell name hints, the name of the saved variable) is a constructo
 
 - Reminder logic never calls the game; it asks these services. `pnpm check` enforces it.
 - Nothing here imports reminder logic, settings or texts: the folder is part of the toolkit and imports only
-  itself and `@wowkit/framework` (`pnpm check` enforces it). What the addon knows arrives as constructor parameters.
+  itself and `@wowkit/core` (`pnpm check` enforces it). What the addon knows arrives as constructor parameters.
   News for the code above goes out as an event on the `EventBus`.
 - Why the code is defensive: [../../docs/forever-quirks.md](../../docs/forever-quirks.md).

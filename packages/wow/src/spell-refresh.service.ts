@@ -1,10 +1,10 @@
 // Keeps the spell lookups fresh. Spells are learned and levels gained in bursts, so the lookups are cleared once things
 // settle. Announces "spells.refreshed" when it did.
-import { type EventBus, OnGameEvent } from "@wowkit/framework";
+import { type EventBus, OnGameEvent } from "@wowkit/core";
 import type { ClockService } from "./clock.service";
 import type { SpellsService } from "./spells.service";
 
-declare module "@wowkit/framework/event-bus" {
+declare module "@wowkit/core/event-bus" {
     interface AppEvents {
         /** The spell lookups were cleared after spells were learned or a level was gained. */
         "spells.refreshed": [];

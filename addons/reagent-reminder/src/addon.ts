@@ -1,6 +1,6 @@
 // Putting the addon together: every service is made here, with the services it needs, dependencies first.
 // The order of the lines is also the order the lifecycle hooks run in.
-import { Addon } from "@wowkit/framework";
+import { Addon } from "@wowkit/core";
 import {
     ControlsService,
     AboutSection,

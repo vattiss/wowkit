@@ -2,7 +2,7 @@
 // auras at all, or auras whose name and ID are secret, so a buff seen or cast a moment ago counts
 // as up until its usual duration runs out.
 
-import { buildAuraKey } from "@wowkit/framework";
+import { buildAuraKey } from "@wowkit/core";
 import type { AuraKnowledge } from "./aura-knowledge.interface";
 import type { SpellsService } from "./spells.service";
 import { hasKnownExpiry } from "./wow.constants";
