@@ -302,6 +302,51 @@ classDiagram
     cssClass "AurasService,AuraMemoryService" facade
 ```
 
+## Lifecycle: when a service runs
+
+A service does not listen to the game's start-up events itself. It has a method of a fixed name, and `Addon.start()`
+calls it at the right moment. Each hook runs on every service that has it, **in the order the services were registered**
+in `addon.ts`, so a service is registered after the ones it needs.
+
+```mermaid
+%%{init: {"theme":"base","themeVariables":{"background":"#ffffff","lineColor":"#6b7280","textColor":"#111827","primaryColor":"#f1f5f9","primaryTextColor":"#111827","primaryBorderColor":"#94a3b8","secondaryColor":"#e2e8f0","tertiaryColor":"#ffffff","mainBkg":"#f1f5f9","nodeBorder":"#94a3b8","nodeTextColor":"#111827","titleColor":"#111827","edgeLabelBackground":"#ffffff","labelBackground":"#ffffff","labelTextColor":"#111827","clusterBkg":"#ffffff","clusterBorder":"#d1d5db","classText":"#111827","actorBkg":"#f1f5f9","actorTextColor":"#111827","actorBorder":"#94a3b8","actorLineColor":"#6b7280","signalColor":"#374151","signalTextColor":"#111827","noteBkgColor":"#fef9c3","noteTextColor":"#111827","noteBorderColor":"#ca8a04"}}}%%
+sequenceDiagram
+    participant Game as the game
+    participant Addon as Addon (core)
+    participant Services as the services, in registration order
+
+    rect rgb(255, 255, 255)
+        Note over Addon: start(): connect @OnGameEvent, @OnUnitEvent, @OnEvent and @Interval
+        Game->>Addon: ADDON_LOADED (this addon)
+        Addon->>Services: onAddonLoaded()
+        Note right of Services: the saved data is there: SettingsService loads it
+        Game->>Addon: PLAYER_LOGIN
+        Addon->>Services: onFirstLogin() (once)
+        Note right of Services: the game is readable: SpellsService, ActionBarsService, the options page, TickService
+        Addon->>Addon: start the @Interval timers
+        Addon->>Services: onLogin()
+        Note right of Services: the greeting
+        Addon->>Services: onReady()
+        Game->>Addon: PLAYER_ENTERING_WORLD (login, portal, loading screen)
+        Addon->>Services: onFirstLogin() only if PLAYER_LOGIN did not come first
+        Addon->>Services: onReady() (every time)
+        Note right of Services: the world changed: look again (TickService, EquipmentService, the town visit)
+        Game->>Addon: PLAYER_LOGOUT
+        Addon->>Addon: stop the @Interval timers
+        Addon->>Services: onLogout()
+    end
+```
+
+| Hook | When | How often |
+|---|---|---|
+| `onAddonLoaded` | `ADDON_LOADED` of this addon: the saved variables exist | once |
+| `onFirstLogin` | the first `PLAYER_LOGIN` or `PLAYER_ENTERING_WORLD`: the game can be read | once |
+| `onLogin` | `PLAYER_LOGIN` only (not a loading screen) | once per session |
+| `onReady` | after `PLAYER_LOGIN` and after every `PLAYER_ENTERING_WORLD` | many times |
+| `onLogout` | `PLAYER_LOGOUT`, after the timers stopped | once |
+
+The hooks are the interfaces `OnAddonLoaded` ... `OnLogout` in `packages/core/src/types.ts`; the code that calls them is `packages/core/src/addon.ts`.
+
 ## Events (notifications upwards)
 
 TSTL bundles modules with `require`, which cannot resolve import cycles, so a lower service never imports an
