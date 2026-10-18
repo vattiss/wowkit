@@ -1,14 +1,22 @@
 // What the addon knows about buffs that the game does not say: which buffs count for each other
-// (the buff categories), and how long a buff lasts. The toolkit's aura services are given it in their constructors.
+// (the buff categories), which are shapeshift forms, and how long a buff lasts. The names come from the client by
+// spell ID, so they hold in every language.
 
 import type { ClassBuffsService } from "../reminders/class-buffs.service";
-import { OnEvent, buildAuraKey } from "@wowkit/core";
-import type { AuraCategory, AuraKnowledge, SpellsService } from "@wowkit/wow";
+import { OnEvent } from "@wowkit/core";
+import { buildAuraKey } from "./aura-key.utils";
+import type { SpellsService } from "@wowkit/wow";
+import { Druid } from "@wowkit/wow-data";
 import { BUFF_CATEGORIES, type BuffCategory } from "./buff-categories.constants";
 
-export class BuffKnowledgeService implements AuraKnowledge {
+/** The shapeshift forms: they have no end, and change only with a shapeshift. */
+const FORMS = [Druid.BearForm, Druid.DireBearForm, Druid.CatForm, Druid.TravelForm, Druid.AquaticForm, Druid.Moonkin];
+
+export class BuffKnowledgeService {
     /** Aura key (the name in the client's language) -> its category; built from the spell IDs when first asked. */
     private categoryByName: LuaMap<string, BuffCategory> | undefined;
+    /** The aura keys of the shapeshift forms, in the client's language. */
+    private formKeys: LuaSet<string> | undefined;
 
     constructor(
         private readonly classBuffs: ClassBuffsService,
@@ -16,15 +24,29 @@ export class BuffKnowledgeService implements AuraKnowledge {
     ) {}
 
     @OnEvent("spells.invalidated")
-    forgetCategoryNames(): void {
+    forgetNames(): void {
         this.categoryByName = undefined;
+        this.formKeys = undefined;
     }
 
-    findCategory(name: string | undefined): AuraCategory | undefined {
+    /** The category a buff belongs to, found by its name (in the client's language). */
+    findCategory(name: string | undefined): BuffCategory | undefined {
         if (name === undefined || name === "") return undefined;
         return this.getCategoryNames().get(buildAuraKey(name));
     }
 
+    /** Is this aura key (buildAuraKey of a name) a shapeshift form? */
+    isFormKey(key: string): boolean {
+        if (!this.formKeys) {
+            this.formKeys = new LuaSet();
+            for (const spellId of FORMS) {
+                for (const name of this.listNames(spellId)) this.formKeys.add(buildAuraKey(name));
+            }
+        }
+        return this.formKeys.has(key);
+    }
+
+    /** How long a seen or cast buff lasts (seconds), for buffs outside the categories. */
     getSeconds(spellId: number | undefined, name: string): number {
         return this.classBuffs.getBuffSeconds(spellId, name);
     }
@@ -34,16 +56,20 @@ export class BuffKnowledgeService implements AuraKnowledge {
         const names = new LuaMap<string, BuffCategory>();
         for (const category of BUFF_CATEGORIES) {
             for (const spellId of category.members) {
-                // The client's name first; the English hint is for an ID the client does not name
-                this.addName(names, this.spells.getSpellName(spellId), category);
-                this.addName(names, this.spells.getHintName(spellId), category);
+                for (const name of this.listNames(spellId)) names.set(buildAuraKey(name), category);
             }
         }
         this.categoryByName = names;
         return names;
     }
 
-    private addName(names: LuaMap<string, BuffCategory>, name: string | undefined, category: BuffCategory): void {
-        if (name !== undefined && name !== "") names.set(buildAuraKey(name), category);
+    /** The client's name of a spell, and the English hint for an ID the client does not name. */
+    private listNames(spellId: number): string[] {
+        const names: string[] = [];
+        const clientName = this.spells.getSpellName(spellId);
+        const hintName = this.spells.getHintName(spellId);
+        if (clientName !== undefined && clientName !== "") names.push(clientName);
+        if (hintName !== undefined && hintName !== "") names.push(hintName);
+        return names;
     }
 }

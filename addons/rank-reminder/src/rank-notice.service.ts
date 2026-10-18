@@ -1,8 +1,10 @@
 // The notice at the top of the screen that names the spells on the bars at an old rank.
 import { Interval } from "@wowkit/core";
 import type { MessagesService } from "@wowkit/ui";
-import type { ActionBarsService, ClockService, NoticeService, PlayerService } from "@wowkit/wow";
+import type { IdleService } from "@forever-reminders/shared";
+import type { ActionBarsService, ClockService, NoticeService } from "@wowkit/wow";
 import type { AddonLocale } from "./locale/locale.interface";
+import type { OutdatedRanksService } from "./outdated-ranks.service";
 import type { AddonSettingsService } from "./settings/settings.interface";
 
 /** The same message is shown again only after this long. */
@@ -17,9 +19,10 @@ export class RankNoticeService {
 
     constructor(
         private readonly actionBars: ActionBarsService,
+        private readonly outdatedRanks: OutdatedRanksService,
         private readonly clock: ClockService,
         private readonly notice: NoticeService,
-        private readonly player: PlayerService,
+        private readonly idle: IdleService,
         private readonly settings: AddonSettingsService,
         private readonly locale: AddonLocale,
         private readonly messages: MessagesService,
@@ -29,8 +32,8 @@ export class RankNoticeService {
     @Interval(1000)
     showNoticeIfNew(): void {
         // Nothing while dead, mounted, eating or resting in town, or when the player muted the addon
-        const isIdle = this.player.shouldStayIdle(this.settings.get("hideResting")) || this.settings.get("isMuted");
-        const ranks = isIdle ? [] : this.actionBars.findOutdatedRanks();
+        const isIdle = this.idle.shouldStayIdle(this.settings.get("hideResting")) || this.settings.get("isMuted");
+        const ranks = isIdle ? [] : this.outdatedRanks.findOutdatedRanks();
         if (ranks.length === 0) {
             this.lastKey = undefined;
             return;

@@ -1,0 +1,10 @@
+{
+  "name": "@wowkit/wow-data",
+  "version": "0.1.0",
+  "description": "Data of the World of Warcraft: Forever client that the API does not describe: the spell and item IDs the addons use, and what the client said of them",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "main": "src/index.ts",
+  "types": "src/index.ts"
+}

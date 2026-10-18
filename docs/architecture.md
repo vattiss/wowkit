@@ -9,23 +9,26 @@ as the example), how the code is organised, and the rules that keep it readable.
 
 **1. Only a few folders talk to the game.**
 Blizzard's API is full of quirks: values that are secret in combat, calls that can raise errors,
-spell IDs that Forever remaps, `multiple, return, values`. All of that stays inside `packages/wow/src/`, which
+spell IDs that Forever remaps, `multiple, return, values`. All of that stays inside `packages/@wowkit/wow/src/`, which
 turns it into plain answers in the addon's own words (`isInCombat()`, `isLearned(spell)`,
 `getItemCount(item)`). The reminder logic in `addons/buff-reminder/src/reminders/` never sees a Blizzard function, so it reads
-like plain code. A few more places may call the game because that is their job: `packages/core/src/` (game events and timers for
-the decorators), `packages/ui/src/` (the Settings panel and the chat) and the `options/` folders of the addons (their
+like plain code. A few more places may call the game because that is their job: `packages/@wowkit/core/src/` (game events and timers for
+the decorators), `packages/@wowkit/ui/src/` (the Settings panel and the chat) and the `options/` folders of the addons (their
 own page).
 
 **2. Everything is a service, made once, by hand.**
 Code that keeps state, talks to the game or uses other services is a class with its dependencies in the
 constructor. `addons/buff-reminder/src/addon.ts` makes each one with `new`, dependencies first, so there is one instance of each; there
 is no inheritance and no container (a service is built from the services it is given). Pure data is a
-`*.constants.ts` file, a shape is a `*.interface.ts` file, and a pure function of its arguments stays a function
-(`packages/core/src/text.ts`, `packages/wow/src/safe.ts`, `reminders/weapon/weapon-reactions.ts`).
+`*.constants.ts` file, a shape is a `*.interface.ts` file, and a helper only one class uses is a private method of that class. Only
+helpers that several files share stay plain functions, in a file of their own (`packages/@wowkit/core/src/utils/text.utils.ts`,
+`packages/@wowkit/wow/src/utils/protected-call.utils.ts`, `packages/@wowkit/wow/src/utils/secret-value.utils.ts`,
+`reminders/weapon/weapon-reactions.ts`).
 
 **3. The packages do not know the addon.**
-`packages/` (core, wow, ui, test-kit and the typings) could serve any Forever addon, so each imports only itself
-and the packages it depends on. What only an addon knows (the buff knowledge, the shape of its settings, its texts, the name of
+`packages/@wowkit/` (core, wow, ui, wow-data, test-kit and the typings) could serve any Forever addon, and
+`packages/@forever-reminders/shared` holds what the reminders share, so each imports only itself and the packages it
+depends on. What only an addon knows (the buff knowledge, the shape of its settings, its texts, the name of
 the saved variable) is a constructor or type parameter, passed in by the addon's `addon.ts`. See [packages.md](packages.md).
 
 **4. Names read like English.**
@@ -49,7 +52,7 @@ flowchart LR
             docs["Blizzard_APIDocumentationGenerated/*.lua<br/>642 documentation tables"]
         end
 
-        subgraph typings["packages/wow-types/"]
+        subgraph typings["packages/@wowkit/wow-types/"]
             generated["generated/*.d.ts<br/>C_* namespaces, Enum, structures,<br/>events, widgets"]
             manual["wow-manual.d.ts, wow-framexml.d.ts<br/>script handlers, CreateFrame,<br/>Settings API, FrameXML globals"]
         end
@@ -69,6 +72,38 @@ flowchart LR
     classDef panel fill:#ffffff,stroke:#d1d5db,color:#111827
     class PANEL panel
 ```
+
+## The IDs of spells and items
+
+The spell and item IDs the addons use are written **once**, by category, in `@wowkit/wow-data`
+(`src/spells.ts`: `Paladin.BlessingMight`, `Shaman.Windfury`; `src/items.ts`: `Reagents.HolyCandle`), and the code imports them
+from there. Blizzard's API documentation does not say which spell is which ID, so the game is asked: the developer
+addon `wowkit-check` (not released) goes through the same tables with `/wowkit check` and saves what the client says, and
+`pnpm check` compares the tables with that answer, so a wrong or remapped ID fails without the game.
+
+```mermaid
+%%{init: {"theme":"base","themeVariables":{"background":"#ffffff","lineColor":"#6b7280","textColor":"#111827","primaryColor":"#f1f5f9","primaryTextColor":"#111827","primaryBorderColor":"#94a3b8","secondaryColor":"#e2e8f0","tertiaryColor":"#ffffff","mainBkg":"#f1f5f9","nodeBorder":"#94a3b8","nodeTextColor":"#111827","titleColor":"#111827","edgeLabelBackground":"#ffffff","labelBackground":"#ffffff","labelTextColor":"#111827","clusterBkg":"#ffffff","clusterBorder":"#d1d5db","classText":"#111827","actorBkg":"#f1f5f9","actorTextColor":"#111827","actorBorder":"#94a3b8","actorLineColor":"#6b7280","signalColor":"#374151","signalTextColor":"#111827","noteBkgColor":"#fef9c3","noteTextColor":"#111827","noteBorderColor":"#ca8a04"}}}%%
+flowchart LR
+    classDef default fill:#f1f5f9,stroke:#94a3b8,color:#111827
+    subgraph PANEL[" "]
+        data["wow-data/src<br/>spells.ts, items.ts<br/>(written by hand)"]
+        code["addons and shared<br/>import the IDs"]
+        checker["wowkit-check<br/>/wowkit check"]
+        saved[("saved variable<br/>after /reload")]
+        ids["wow-data/data/ids.json<br/>what the client said"]
+        check["pnpm check<br/>scripts/check-ids.ts"]
+        data --> code
+        data --> checker
+        checker --> saved
+        saved -- "pnpm gen:data" --> ids
+        data --> check
+        ids --> check
+    end
+    classDef panel fill:#ffffff,stroke:#d1d5db,color:#111827
+    class PANEL panel
+```
+
+See [wowkit-check](../addons/wowkit-check/README.md) and [wow-data](../packages/@wowkit/wow-data/README.md).
 
 ## Code layout
 
@@ -98,9 +133,11 @@ flowchart TB
         others["rank-reminder, reagent-reminder<br/>small addons of the same shape"]
 
         subgraph toolkit["packages (could serve any Forever addon)"]
-            ui["packages/ui/src/<br/>settings, texts, chat lines, sounds,<br/>the Settings panel pages"]
-            wow["packages/wow/src/<br/>the only code that calls the game<br/>spells, auras, action bars, player, party, bags,<br/>reagents, glows, notices, saved variables"]
-            core["packages/core/src/<br/>Addon, lifecycle hooks, EventBus,<br/>@OnGameEvent, @Interval"]
+            ui["packages/@wowkit/ui/src/<br/>settings, texts, chat lines, sounds,<br/>the Settings panel pages"]
+            wow["packages/@wowkit/wow/src/<br/>the only code that calls the game<br/>spells, auras, action bars, player, party, bags,<br/>glows, notices, saved variables"]
+            shared["packages/@forever-reminders/shared/src/<br/>reagents, when to keep quiet"]
+            wowdata["packages/@wowkit/wow-data/src/<br/>spell and item IDs<br/>by category"]
+            core["packages/@wowkit/core/src/<br/>Addon, lifecycle hooks, EventBus,<br/>@OnGameEvent, @Interval"]
         end
 
         game[("WoW client<br/>C_* APIs, frames, events")]
@@ -110,6 +147,13 @@ flowchart TB
         wiring --> others
         others --> ui
         others --> wow
+        others --> shared
+        reminders --> shared
+        shared --> wow
+        shared --> core
+        shared --> wowdata
+        wow --> wowdata
+        reminders --> wowdata
         tick --> reminders
         tick --> wow
         character --> tick
@@ -161,11 +205,11 @@ flowchart TB
         end
 
         subgraph FACADE["Facade + Adapter over Blizzard's API (@wowkit/wow)"]
-            wow["PlayerService, SpellsService, AurasService,<br/>ActionBarsService, PartyService, BagsService,<br/>ReagentsService, WeaponEnchantsService, ClockService,<br/>GlowService, NoticeService, SavedVariablesService<br/>safe.ts, action-button.ts"]
+            wow["PlayerService, SpellsService, AurasService,<br/>ActionBarsService, PartyService, BagsService,<br/>WeaponEnchantsService, ClockService,<br/>GlowService, NoticeService, SavedVariablesService<br/>protected-call.utils.ts, secret-value.utils.ts"]
         end
 
         subgraph INVERT["Dependency inversion"]
-            knowledge["AuraKnowledge (interface in @wowkit/wow)<br/>implemented by BuffKnowledgeService (addon)<br/>spell name hints, saved variable name"]
+            knowledge["SettingsService&lt;T&gt;, LocaleService&lt;K&gt;<br/>the shape of the settings, the texts,<br/>the saved variable name"]
         end
 
         subgraph OBSERVER["Observer / Pub-Sub"]
@@ -224,11 +268,11 @@ flowchart TB
 | Colour | Pattern | Where | What it gives |
 |---|---|---|---|
 | ⬜ | **Composition root**, lifecycle hooks (Template Method) | `addon.ts`, `Addon` | One file shows what depends on what; a service only says *when* it wants to run (`onLogin`...). |
-| 🟦 | **Facade** + **Adapter** | `@wowkit/wow`, `safe.ts`, `action-button.ts` | The rest of the code never sees secret values, protected calls or remapped IDs, only `isInCombat()`. |
+| 🟦 | **Facade** + **Adapter** | `@wowkit/wow`, `protected-call.utils.ts`, `secret-value.utils.ts` | The rest of the code never sees secret values, protected calls or remapped IDs, only `isInCombat()`. |
 | 🟧 | **Observer** (publish / subscribe) | `EventBus`, the event decorators | Lower code announces ("spells.invalidated"), upper code listens; no import cycles (the Lua bundle cannot have them). |
 | 🟩 | **Pipeline** (+ **debounce**) | `tick/` | *Find* has no side effects and *show* remembers only what it showed; a burst of events becomes one tick. |
 | 🟪 | **State** by reading, **Memento** | `reminders/weapon/` | The game's answer (up, missing, unknown) picks one small reaction function; a timeline remembers what the client lags on. |
-| 🟥 | **Dependency inversion** | `AuraKnowledge` and friends | `@wowkit/wow` asks for knowledge only the addon has, without importing the addon. |
+| 🟥 | **Dependency inversion** | `SettingsService<T>`, `LocaleService<K>` | A package asks for what only the addon knows (the shape of its settings, its texts, the name of its saved variable), without importing the addon. |
 
 Two of these in more detail.
 
@@ -273,33 +317,44 @@ classDiagram
     cssClass "WeaponReminderService,WeaponReadingService,BuffReading,WeaponReactions,WeaponMemoryService" state
 ```
 
-**Dependency inversion (what only the addon knows).** `@wowkit/wow` declares the interface it needs (red, in
-`@wowkit/wow`); the addon implements it (red, `BuffKnowledgeService`) and `addon.ts` passes the one instance to the two
-aura services of `@wowkit/wow` (blue).
+**A facade under the addon's rules (the buffs).** `AurasService` of `@wowkit/wow` (blue) only says what the game
+shows: the player's aura of a spell, or the list of a unit's auras, and which of them the client hid. What that means
+is Buff Reminder's (purple): `BuffStateService` puts it together with the buff categories (`BuffKnowledgeService`: any
+aspect counts for an aspect, a group version for the single buff) and the memory that fills in while the client hides
+the auras in combat (`BuffMemoryService`).
 
 ```mermaid
 %%{init: {"theme":"base","themeVariables":{"background":"#ffffff","lineColor":"#6b7280","textColor":"#111827","primaryColor":"#f1f5f9","primaryTextColor":"#111827","primaryBorderColor":"#94a3b8","secondaryColor":"#e2e8f0","tertiaryColor":"#ffffff","mainBkg":"#f1f5f9","nodeBorder":"#94a3b8","nodeTextColor":"#111827","titleColor":"#111827","edgeLabelBackground":"#ffffff","labelBackground":"#ffffff","labelTextColor":"#111827","clusterBkg":"#ffffff","clusterBorder":"#d1d5db","classText":"#111827","actorBkg":"#f1f5f9","actorTextColor":"#111827","actorBorder":"#94a3b8","actorLineColor":"#6b7280","signalColor":"#374151","signalTextColor":"#111827","noteBkgColor":"#fef9c3","noteTextColor":"#111827","noteBorderColor":"#ca8a04"}}}%%
 classDiagram
     direction LR
-    classDef invert fill:#fee2e2,stroke:#dc2626,color:#111827
     classDef facade fill:#dbeafe,stroke:#2563eb,color:#111827
-    namespace Dependency_inversion {
-        class AuraKnowledge {
-            <<interface>>
-            findCategory()
-            getSeconds()
+    classDef state fill:#f3e8ff,stroke:#9333ea,color:#111827
+    namespace Buffs {
+        class AurasService {
+            readPlayerAura() AuraRead
+            scanAuras() AuraScan
         }
-        class AurasService
-        class AuraMemoryService
-        class BuffKnowledgeService
-        class ClassBuffsService
+        class BuffStateService {
+            hasAura()
+            findAura()
+            getUnitBuffState()
+        }
+        class BuffMemoryService {
+            remember()
+            isRemembered()
+            forgetForms()
+        }
+        class BuffKnowledgeService {
+            findCategory()
+            isFormKey()
+        }
     }
-    AurasService --> AuraKnowledge
-    AuraMemoryService --> AuraKnowledge
-    BuffKnowledgeService ..|> AuraKnowledge
-    BuffKnowledgeService --> ClassBuffsService : buff lists
-    cssClass "AuraKnowledge,BuffKnowledgeService" invert
-    cssClass "AurasService,AuraMemoryService" facade
+    BuffStateService --> AurasService : what the game shows
+    BuffStateService --> BuffMemoryService : what was seen or cast
+    BuffStateService --> BuffKnowledgeService : which buffs count for each other
+    BuffMemoryService --> BuffKnowledgeService
+    cssClass "AurasService" facade
+    cssClass "BuffStateService,BuffMemoryService,BuffKnowledgeService" state
 ```
 
 ## Lifecycle: when a service runs
@@ -345,7 +400,7 @@ sequenceDiagram
 | `onReady` | after `PLAYER_LOGIN` and after every `PLAYER_ENTERING_WORLD` | many times |
 | `onLogout` | `PLAYER_LOGOUT`, after the timers stopped | once |
 
-The hooks are the interfaces `OnAddonLoaded` ... `OnLogout` in `packages/core/src/types.ts`; the code that calls them is `packages/core/src/addon.ts`.
+The hooks are the interfaces `OnAddonLoaded` ... `OnLogout` in `packages/@wowkit/core/src/types.ts`; the code that calls them is `packages/@wowkit/core/src/addon.ts`.
 
 ## Events (notifications upwards)
 
@@ -384,7 +439,7 @@ sequenceDiagram
     participant Find as tick/FindRemindersService
     participant Logic as reminders/*
     participant Show as tick/ShowRemindersService
-    participant Screen as packages/wow/src/GlowService, NoticeService
+    participant Screen as packages/@wowkit/wow/src/GlowService, NoticeService
 
     rect rgb(255, 255, 255)
         Tick->>Find: findReminders()
@@ -427,11 +482,16 @@ change its record here.
   through `node_modules` (it takes them for precompiled Lua), so the `tsconfig` `paths` point at the package sources.
   Publishing would need library builds; it is not done and not needed until another repository wants the packages.
 - **Three small addons, not one.** The reminders share infrastructure but not a purpose, and a player may want only one.
-  The shared parts are packages (`ui` for the settings and the Settings page, `wow` for the game's door).
+  The shared parts are packages (`ui` for the settings and the Settings page, `wow` for the game's door, `shared` for what only
+  the reminders have in common).
 - **One page per addon, and no debug report.** The addons are small; a landing page with sub pages only added clicks. The
   debug report was built to find out what the client answers while the first addon was written, and was never needed since.
 - **State belongs to an object, not to a module.** A package that keeps its state in module variables cannot be tested
   (every test shares it), so the event frame belongs to an `Addon`, and a package reads the game's API when a service needs it,
   not when the file is loaded.
+- **`@wowkit/wow` is the game's door and nothing else.** Logic about what the reminders remind of does not live there: the spell and
+  item IDs are written once in `@wowkit/wow-data`, what two addons share (the reagents of the group buffs) is in
+  `@forever-reminders/shared`, and what one addon needs is in that addon. Reading the auras is a facade too: `AurasService` says what the game shows, and Buff Reminder's `BuffStateService` decides
+  what it means (the memory while the client hides the auras, the buff categories).
 - **`@wowkit/core` stays small:** `Addon`, the events and timers, the lifecycle hooks and the text helpers. Anything that talks
   to the game's API belongs in `@wowkit/wow`, and anything for the Settings panel in `@wowkit/ui`.

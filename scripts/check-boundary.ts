@@ -1,12 +1,12 @@
 // Fails when code outside the game-facing folders touches the Blizzard API.
 //
-// The addon talks to the game in three places only: packages/wow/ (what the reminders ask the game),
-// packages/core/ (game events and timers, for the decorators and the lifecycle), the addon's options/ (the
+// The addon talks to the game in three places only: packages/@wowkit/wow/ (what the reminders ask the game),
+// packages/@wowkit/core/ (game events and timers, for the decorators and the lifecycle), the addon's options/ (the
 // Settings panel).
 // Everything else speaks in the addon's own terms, so it reads like plain code and never has to
 // know about secret values, protected calls or remapped IDs.
 //
-// A thing belongs to Blizzard when its declaration is in packages/wow-types/ (generated from Blizzard's API
+// A thing belongs to Blizzard when its declaration is in packages/@wowkit/wow-types/ (generated from Blizzard's API
 // documentation, or the hand-written FrameXML typings). Using such a type in a type position is
 // fine; using such a value (a function, a constant, a method, a field) is not.
 //
@@ -17,7 +17,7 @@ import { ROOT, listSourceFolders } from "./lib/paths.ts";
 import { createAddonsProgram } from "./lib/program.ts";
 
 /** Where code may call the game: the game-facing packages, and the options folder of every addon. */
-const ALLOWED_FOLDERS = ["packages/wow/src/", "packages/core/src/", "packages/ui/src/", "addons/*/src/options/"];
+const ALLOWED_FOLDERS = ["packages/@wowkit/wow/src/", "packages/@wowkit/core/src/", "packages/@wowkit/ui/src/", "addons/*/src/options/"];
 const isAllowed = (file: string) => ALLOWED_FOLDERS.some((folder) => new RegExp(`^${folder.replace("*", "[^/]+")}`).test(file));
 const SOURCE_FOLDERS = listSourceFolders();
 const isSource = (file: string) => SOURCE_FOLDERS.some((folder) => file.startsWith(folder));
@@ -35,7 +35,7 @@ function isBlizzardValue(symbol: ts.Symbol | undefined): boolean {
     const declarations = symbol.declarations ?? [];
     return (
         declarations.length > 0 &&
-        declarations.every((declaration) => toPosix(declaration.getSourceFile().fileName).startsWith("packages/wow-types/"))
+        declarations.every((declaration) => toPosix(declaration.getSourceFile().fileName).startsWith("packages/@wowkit/wow-types/"))
     );
 }
 

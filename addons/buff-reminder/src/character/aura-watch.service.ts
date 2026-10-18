@@ -1,14 +1,15 @@
 // Auras and casts. No forced tick on auras: aura storms would feel like input lag; the regular
 // tick reads them again.
+import type { BuffStateService } from "./buff-state.service";
 import { OnEvent, OnUnitEvent } from "@wowkit/core";
 import type { WeaponReminderService } from "../reminders/weapon/weapon-reminder.service";
 import type { RefreshService } from "../tick/refresh.service";
-import type { AurasService, PlayerSpellCast } from "@wowkit/wow";
+import type { PlayerSpellCast } from "@wowkit/wow";
 
 export class AuraWatchService {
     constructor(
         private readonly refresh: RefreshService,
-        private readonly auras: AurasService,
+        private readonly auras: BuffStateService,
         private readonly weaponReminder: WeaponReminderService,
     ) {}
 

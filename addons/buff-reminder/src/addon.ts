@@ -1,11 +1,14 @@
 // Putting the addon together: every service is made here, with the services it needs, dependencies first.
 // The order of the lines is also the order the lifecycle hooks run in.
 /* eslint-disable max-lines-per-function -- the wiring is a list of `new` lines read top to bottom, not logic */
+import { IdleService, ReagentsService } from "@forever-reminders/shared";
 import { Addon } from "@wowkit/core";
 import { AuraWatchService } from "./character/aura-watch.service";
 import { BlockedActionService } from "./character/blocked-action.service";
 import { EquipmentService } from "./character/equipment.service";
 import { RosterService } from "./character/roster.service";
+import { BuffMemoryService } from "./character/buff-memory.service";
+import { BuffStateService } from "./character/buff-state.service";
 import { BuffKnowledgeService } from "./knowledge/buff-knowledge.service";
 import { RemindersPage } from "./options/reminders.page";
 import { WeaponSection } from "./options/weapon.section";
@@ -13,12 +16,9 @@ import { BuffReminderService } from "./reminders/buff-reminder.service";
 import { ClassBuffsService } from "./reminders/class-buffs.service";
 import { PartyBuffsService } from "./reminders/party-buffs.service";
 import {
-    ReagentsService,
     BarRefreshService,
-    SPELL_NAME_HINT,
     SpellRefreshService,
     ActionBarsService,
-    AuraMemoryService,
     AurasService,
     BagsService,
     ClockService,
@@ -62,11 +62,12 @@ export function startAddon(addonName: string): void {
     // The game's door, the settings, and what only this addon knows (the toolkit asks for these)
     const clock = addon.register(new ClockService());
     const player = addon.register(new PlayerService());
+    const idle = addon.register(new IdleService(player));
     const party = addon.register(new PartyService());
     const bags = addon.register(new BagsService());
     const savedVariables = addon.register(new SavedVariablesService(SAVED_VARIABLES_NAME));
     const spellBook = addon.register(new SpellBookService(addon.events));
-    const spells = addon.register(new SpellsService(spellBook, addon.events, SPELL_NAME_HINT));
+    const spells = addon.register(new SpellsService(spellBook, addon.events));
     addon.register(new SpellCastService(player, spells, addon.events));
     const settings = addon.register(
         new SettingsService<AddonSettings>(savedVariables, addon.events, createDefaultSettings, repairSettings),
@@ -75,8 +76,9 @@ export function startAddon(addonName: string): void {
     const buffKnowledge = addon.register(new BuffKnowledgeService(classBuffs, spells));
 
     // Reading the player's buffs and the action bars
-    const auraMemory = addon.register(new AuraMemoryService(spells, buffKnowledge));
-    const auras = addon.register(new AurasService(spells, player, auraMemory, buffKnowledge));
+    const auras = addon.register(new AurasService(spells));
+    const buffMemory = addon.register(new BuffMemoryService(spells, clock, buffKnowledge));
+    const buffState = addon.register(new BuffStateService(auras, spells, player, buffMemory, buffKnowledge));
     const actionBars = addon.register(new ActionBarsService(clock, spells, addon.events));
     addon.register(new SpellRefreshService(spells, clock, addon.events));
     const barRefresh = addon.register(new BarRefreshService(actionBars, clock));
@@ -90,27 +92,27 @@ export function startAddon(addonName: string): void {
     addon.register(new GreetingService(messages, locale.getText("INIT")));
 
     // What the addon reminds about
-    const buffReminder = addon.register(new BuffReminderService(auras, spells, player, actionBars, classBuffs));
+    const buffReminder = addon.register(new BuffReminderService(buffState, spells, player, actionBars, classBuffs));
     const reagents = addon.register(new ReagentsService(bags, spells));
-    const partyBuffs = addon.register(new PartyBuffsService(auras, spells, clock, party, player, classBuffs, reagents, settings));
+    const partyBuffs = addon.register(new PartyBuffsService(buffState, spells, clock, party, player, classBuffs, reagents, settings));
     const weaponChoice = addon.register(new WeaponChoiceService(player, spells, settings));
     const weaponMemory = addon.register(new WeaponMemoryService());
-    const weaponReading = addon.register(new WeaponReadingService(auras, weaponEnchants, weaponChoice));
+    const weaponReading = addon.register(new WeaponReadingService(buffState, weaponEnchants, weaponChoice));
     const weaponReminder = addon.register(new WeaponReminderService(clock, weaponEnchants, weaponChoice, weaponMemory, weaponReading));
 
     // The tick: find what is due, show it, look again sooner when something changed
     const findReminders = addon.register(
-        new FindRemindersService(actionBars, player, spells, buffReminder, partyBuffs, weaponReminder, settings),
+        new FindRemindersService(actionBars, idle, spells, buffReminder, partyBuffs, weaponReminder, settings),
     );
     const notices = addon.register(new NoticesService(actionBars, clock, notice, spells, locale));
     const showReminders = addon.register(new ShowRemindersService(glow, messages, settings, notices));
     const tick = addon.register(new TickService(findReminders, showReminders));
-    const refresh = addon.register(new RefreshService(tick, showReminders, auras, clock, barRefresh));
+    const refresh = addon.register(new RefreshService(tick, showReminders, buffState, clock, barRefresh));
     addon.register(new DisplayService(showReminders, tick));
 
     // What happens to the player
     addon.register(new EquipmentService(refresh, player, weaponEnchants, weaponReminder));
-    addon.register(new AuraWatchService(refresh, auras, weaponReminder));
+    addon.register(new AuraWatchService(refresh, buffState, weaponReminder));
     addon.register(new RosterService(refresh, partyBuffs));
     addon.register(new BlockedActionService(addonName, player, messages, locale));
 

@@ -208,59 +208,112 @@ importers:
 
   addons/buff-reminder:
     dependencies:
+      '@forever-reminders/shared':
+        specifier: workspace:*
+        version: link:../../packages/@forever-reminders/shared
       '@wowkit/core':
         specifier: workspace:*
-        version: link:../../packages/core
+        version: link:../../packages/@wowkit/core
+      '@wowkit/ui':
+        specifier: workspace:*
+        version: link:../../packages/@wowkit/ui
       '@wowkit/wow':
         specifier: workspace:*
-        version: link:../../packages/wow
+        version: link:../../packages/@wowkit/wow
+      '@wowkit/wow-data':
+        specifier: workspace:*
+        version: link:../../packages/@wowkit/wow-data
     devDependencies:
       '@wowkit/test-kit':
         specifier: workspace:*
-        version: link:../../packages/test-kit
+        version: link:../../packages/@wowkit/test-kit
       '@wowkit/wow-types':
         specifier: workspace:*
-        version: link:../../packages/wow-types
+        version: link:../../packages/@wowkit/wow-types
 
   addons/rank-reminder:
     dependencies:
+      '@forever-reminders/shared':
+        specifier: workspace:*
+        version: link:../../packages/@forever-reminders/shared
       '@wowkit/core':
         specifier: workspace:*
-        version: link:../../packages/core
+        version: link:../../packages/@wowkit/core
       '@wowkit/ui':
         specifier: workspace:*
-        version: link:../../packages/ui
+        version: link:../../packages/@wowkit/ui
       '@wowkit/wow':
         specifier: workspace:*
-        version: link:../../packages/wow
+        version: link:../../packages/@wowkit/wow
     devDependencies:
       '@wowkit/test-kit':
         specifier: workspace:*
-        version: link:../../packages/test-kit
+        version: link:../../packages/@wowkit/test-kit
       '@wowkit/wow-types':
         specifier: workspace:*
-        version: link:../../packages/wow-types
+        version: link:../../packages/@wowkit/wow-types
 
   addons/reagent-reminder:
     dependencies:
+      '@forever-reminders/shared':
+        specifier: workspace:*
+        version: link:../../packages/@forever-reminders/shared
       '@wowkit/core':
         specifier: workspace:*
-        version: link:../../packages/core
+        version: link:../../packages/@wowkit/core
       '@wowkit/ui':
         specifier: workspace:*
-        version: link:../../packages/ui
+        version: link:../../packages/@wowkit/ui
       '@wowkit/wow':
         specifier: workspace:*
-        version: link:../../packages/wow
+        version: link:../../packages/@wowkit/wow
     devDependencies:
       '@wowkit/test-kit':
         specifier: workspace:*
-        version: link:../../packages/test-kit
+        version: link:../../packages/@wowkit/test-kit
       '@wowkit/wow-types':
         specifier: workspace:*
-        version: link:../../packages/wow-types
+        version: link:../../packages/@wowkit/wow-types
 
-  packages/core:
+  addons/wowkit-check:
+    dependencies:
+      '@wowkit/core':
+        specifier: workspace:*
+        version: link:../../packages/@wowkit/core
+      '@wowkit/ui':
+        specifier: workspace:*
+        version: link:../../packages/@wowkit/ui
+      '@wowkit/wow':
+        specifier: workspace:*
+        version: link:../../packages/@wowkit/wow
+      '@wowkit/wow-data':
+        specifier: workspace:*
+        version: link:../../packages/@wowkit/wow-data
+    devDependencies:
+      '@wowkit/test-kit':
+        specifier: workspace:*
+        version: link:../../packages/@wowkit/test-kit
+      '@wowkit/wow-types':
+        specifier: workspace:*
+        version: link:../../packages/@wowkit/wow-types
+
+  packages/@forever-reminders/shared:
+    dependencies:
+      '@wowkit/core':
+        specifier: workspace:*
+        version: link:../../@wowkit/core
+      '@wowkit/wow':
+        specifier: workspace:*
+        version: link:../../@wowkit/wow
+      '@wowkit/wow-data':
+        specifier: workspace:*
+        version: link:../../@wowkit/wow-data
+    devDependencies:
+      '@wowkit/wow-types':
+        specifier: workspace:*
+        version: link:../../@wowkit/wow-types
+
+  packages/@wowkit/core:
     devDependencies:
       '@wowkit/test-kit':
         specifier: workspace:*
@@ -269,13 +322,13 @@ importers:
         specifier: workspace:*
         version: link:../wow-types
 
-  packages/test-kit:
+  packages/@wowkit/test-kit:
     devDependencies:
       '@wowkit/wow-types':
         specifier: workspace:*
         version: link:../wow-types
 
-  packages/ui:
+  packages/@wowkit/ui:
     dependencies:
       '@wowkit/core':
         specifier: workspace:*
@@ -288,11 +341,14 @@ importers:
         specifier: workspace:*
         version: link:../wow-types
 
-  packages/wow:
+  packages/@wowkit/wow:
     dependencies:
       '@wowkit/core':
         specifier: workspace:*
         version: link:../core
+      '@wowkit/wow-data':
+        specifier: workspace:*
+        version: link:../wow-data
     devDependencies:
       '@wowkit/test-kit':
         specifier: workspace:*
@@ -301,7 +357,9 @@ importers:
         specifier: workspace:*
         version: link:../wow-types
 
-  packages/wow-types: {}
+  packages/@wowkit/wow-data: {}
+
+  packages/@wowkit/wow-types: {}
 
 packages:
 

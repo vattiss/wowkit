@@ -17,8 +17,11 @@
     "zip": "pnpm build && node ../../scripts/zip-addon.ts"
   },
   "dependencies": {
+    "@forever-reminders/shared": "workspace:*",
     "@wowkit/core": "workspace:*",
-    "@wowkit/wow": "workspace:*"
+    "@wowkit/ui": "workspace:*",
+    "@wowkit/wow": "workspace:*",
+    "@wowkit/wow-data": "workspace:*"
   },
   "devDependencies": {
     "@wowkit/test-kit": "workspace:*",

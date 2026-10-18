@@ -3,7 +3,7 @@
 //   functions:  getSpellName, findMissingBuffs, showNotice       (not: spellName, missingBuffs)
 //   booleans:   isFound, hasArrived, shouldRecheckDrop           (not: found, arrived, recheck)
 //
-// Decorators (packages/core/src/decorators.ts) are the exception: they are written in PascalCase and read as
+// Decorators (packages/@wowkit/core/src/decorators.ts) are the exception: they are written in PascalCase and read as
 // annotations (@OnEvent, @Every), so their names are not checked.
 //
 // What counts as a function: declarations, methods, and properties or variables holding a function.
@@ -26,7 +26,7 @@ const VERBS = new Set(
         "observe off on open parse pick play prepend print probe push queue read rebuild record refresh register reject release " +
         "reload remember remove render replace report request reset resolve restore revoke run sample save say scan schedule " +
         "select set should show skip sort split start stop subscribe sync take toggle track trigger try unbind unlock unwrap " +
-        "update use validate verify wait warn wipe wrap trim identify detect tick redraw list judge expect react write connect repair"
+        "update use validate verify wait warn wipe wrap trim identify detect tick redraw list judge expect react write connect repair pause resume"
     ).split(" "),
 );
 const QUESTION_WORDS = ["is", "has", "can", "should", "does", "did", "was", "will", "are", "had", "show", "hide"];
@@ -82,7 +82,7 @@ function isValueDeclaration(node: ts.Node): boolean {
 function checkDeclaration(source: ts.SourceFile, node: ts.Node, name: ts.Identifier): void {
     const text = name.text;
     const isFunction = isFunctionLike(node);
-    const isDecorator = toPosix(source.fileName) === "packages/core/src/decorators.ts" && /^[A-Z]/.test(text);
+    const isDecorator = toPosix(source.fileName) === "packages/@wowkit/core/src/decorators.ts" && /^[A-Z]/.test(text);
     if (isFunction && !isDecorator && !startsWithWord(text, VERBS)) {
         report(source, name, `function "${text}" should start with a verb`);
     }

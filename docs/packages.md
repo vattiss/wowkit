@@ -5,15 +5,20 @@ split this way: [architecture.md](architecture.md#architecture-decision-records-
 
 ```
 packages/
-  core/        @wowkit/core    Addon, decorators, EventBus, lifecycle hooks, text helpers
-  wow/         @wowkit/wow          the services that talk to the game
-  ui/          @wowkit/ui           settings, texts, chat lines, sounds and the Settings panel pages
-  wow-types/   @wowkit/wow-types    Blizzard's API as TypeScript types (generated + hand-written)
-  test-kit/    @wowkit/test-kit     describe / it / expect, the fake game and its fixtures
+  @wowkit/                       the toolkit, for any Forever addon
+    core/        Addon, decorators, EventBus, lifecycle hooks, text helpers
+    wow/         the services that talk to the game
+    ui/          settings, texts, chat lines, sounds and the Settings panel pages
+    wow-types/   Blizzard's API as TypeScript types (generated + hand-written)
+    wow-data/    the spell and item IDs the addons use, by category, and what the client said of them
+    test-kit/    describe / it / expect, the fake game and its fixtures
+  @forever-reminders/            what the reminder addons share
+    shared/      the reagents of the group buffs, when the reminders keep quiet
 addons/
   buff-reminder/     BuffReminder      missing buffs, weapon buffs, party buffs, buffs not on the bars
   rank-reminder/     RankReminder      spells on the bars at an old rank
   reagent-reminder/  ReagentReminder   low reagents on arriving in a town or an inn
+  wowkit-check/       WowkitCheck        developer tool, not released: checks the IDs of wow-data against the client
 scripts/                               build, deploy, type generation, the rule checks
 ```
 
@@ -30,6 +35,15 @@ flowchart LR
         buff["addons/buff-reminder"] --> ui["@wowkit/ui"]
         rank["addons/rank-reminder"] --> ui
         reagent["addons/reagent-reminder"] --> ui
+        buff --> shared["@forever-reminders/shared"]
+        rank --> shared
+        reagent --> shared
+        shared --> wow
+        shared --> core
+        shared --> data["@wowkit/wow-data"]
+        wow --> data
+        buff --> data
+        checker["addons/wowkit-check"] --> data
         buff --> wow["@wowkit/wow"]
         rank --> wow
         reagent --> wow
@@ -44,6 +58,7 @@ flowchart LR
         reagent -. "tests" .-> testkit
         wow -. "types only" .-> types["@wowkit/wow-types"]
         ui -. "types only" .-> types
+        shared -. "types only" .-> types
         core -. "types only" .-> types
         testkit -. "types only" .-> types
     end
@@ -52,11 +67,11 @@ flowchart LR
 ```
 
 - A package imports **only itself and the packages it depends on**: `core` and `test-kit` depend on nothing,
-  `wow` on `core`, `ui` on both. The typings are not imported at all; they are global types the compiler includes.
+  `wow` on `core` and `wow-data`, `ui` on `core` and `wow`, `shared` on `core`, `wow` and `wow-data`. The typings are not imported at all; they are global types the compiler includes.
 - An addon may use every package. What only an addon knows (its buff lists, its texts, the shape of its settings) reaches
   a package as a constructor parameter or a type parameter, passed in by the addon's `addon.ts`.
-- `pnpm check` enforces it: `scripts/check-layers.ts` (imports), `scripts/check-boundary.ts` (only `packages/wow`,
-  `packages/core`, `packages/ui` and the `options/` folders of the addons call the game) and
+- `pnpm check` enforces it: `scripts/check-layers.ts` (imports), `scripts/check-boundary.ts` (only `packages/@wowkit/wow`,
+  `packages/@wowkit/core`, `packages/@wowkit/ui` and the `options/` folders of the addons call the game) and
   `scripts/check-wiring.ts` (every service of an addon is made in its `addon.ts`).
 
 ## What is in the packages
@@ -64,7 +79,9 @@ flowchart LR
 | Package | What an addon gets |
 |---|---|
 | `@wowkit/core` | `Addon` (registers the services, starts them), `@OnGameEvent`, `@OnUnitEvent`, `@OnEvent`, `@Interval`, the lifecycle hooks, the `EventBus`. |
-| `@wowkit/wow` | The game's door: player, party, bags, spells and the spell book, auras, action bars, weapon enchants, glows, notices, saved variables, the clock; `ReagentsService` and the spell IDs; `SpellRefreshService` and `BarRefreshService` keep the spells and the bars fresh. |
+| `@wowkit/wow` | The game's door and nothing else: player, party, bags, spells and the spell book, auras, action bars, weapon enchants, glows, notices, saved variables, the clock; `SpellRefreshService` and `BarRefreshService` keep the spells and the bars fresh. |
+| `@wowkit/wow-data` | The spell and item IDs the addons use, by category, written in one place (`Paladin`, `Shaman`, `Priest`, `Reagents`...), and what the client said of them. |
+| `@forever-reminders/shared` | What the reminder addons share: `ReagentsService` and the reagent list, `IdleService` (when the reminders keep quiet). |
 | `@wowkit/ui` | `SettingsService<T>` (the shape is the addon's), `LocaleService<K>`, `MessagesService` and the sounds, `GreetingService`, and for the Settings panel `OptionsService` (one main page), `AboutSection` (the Help section), `ControlsService<T>` and `WidgetsService`. |
 | `@wowkit/test-kit` | `describe` / `it` / `expect`, `createWorld` (a fake game), and fixtures: the classes and spells the specs use. |
 
@@ -75,12 +92,14 @@ with the addon into one Lua file:
 
 ```jsonc
 "paths": {
-  "@wowkit/core": ["../../packages/core/src/index.ts"],
-  "@wowkit/core/*": ["../../packages/core/src/*"],   // only for `declare module` blocks that add an event
-  "@wowkit/wow": ["../../packages/wow/src/index.ts"],
-  "@wowkit/ui": ["../../packages/ui/src/index.ts"]
+  "@wowkit/core": ["../../packages/@wowkit/core/src/index.ts"],
+  "@wowkit/core/*": ["../../packages/@wowkit/core/src/*"],   // only for `declare module` blocks that add an event
+  "@wowkit/wow": ["../../packages/@wowkit/wow/src/index.ts"],
+  "@wowkit/ui": ["../../packages/@wowkit/ui/src/index.ts"],
+  "@wowkit/wow-data": ["../../packages/@wowkit/wow-data/src/index.ts"],
+  "@forever-reminders/shared": ["../../packages/@forever-reminders/shared/src/index.ts"]
 },
-"include": ["src/**/*.ts", "../../packages/*/src/**/*.ts", "../../packages/wow-types/**/*.d.ts"]
+"include": ["src/**/*.ts", "../../packages/@*/*/src/**/*.ts", "../../packages/@wowkit/wow-types/**/*.d.ts"]
 ```
 
 The tests have their own project (`tsconfig.test.json`) with `@wowkit/test-kit`. Each package also has a small
@@ -139,4 +158,4 @@ Not done, and not needed until another repository wants the packages. It takes:
 - **Several addons, one client.** Each addon reads the spells and the action bars for itself. An addon that maps the
   bars (buff-reminder, rank-reminder) does the same work as the other; the mapping is throttled and done a few buttons
   per frame, so two at once have not shown a problem, but it has not been measured with all three in the game. The
-  on-screen notice is the one thing the addons share: one frame, a block of lines per addon (see `packages/wow`).
+  on-screen notice is the one thing the addons share: one frame, a block of lines per addon (see `packages/@wowkit/wow`).

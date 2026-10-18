@@ -5,7 +5,7 @@ export const ROOT = fileURLToPath(new URL("../../", import.meta.url)).replaceAll
 export const ROOT_PACKAGE_JSON = `${ROOT}package.json`;
 export const CACHE_DIR = `${ROOT}.cache/wow-ui-source`;
 export const DOCS_DIR = `${CACHE_DIR}/Interface/AddOns/Blizzard_APIDocumentationGenerated`;
-export const MANUAL_TYPES_DIR = `${ROOT}packages/wow-types`;
+export const MANUAL_TYPES_DIR = `${ROOT}packages/@wowkit/wow-types`;
 export const GENERATED_TYPES_DIR = `${MANUAL_TYPES_DIR}/generated`;
 
 export interface WowUiSource {
@@ -48,5 +48,12 @@ export function readAddonPackageJson(addonDir: string): AddonPackageJson {
 
 /** Folders whose files are source code of the project (the packages and the addons), not tests or typings. */
 export function listSourceFolders(): string[] {
-    return ["packages/core/src/", "packages/wow/src/", "packages/ui/src/", ...listAddons().map((addon) => `${addon}/src/`)];
+    return [
+        "packages/@wowkit/core/src/",
+        "packages/@wowkit/wow/src/",
+        "packages/@wowkit/ui/src/",
+        "packages/@forever-reminders/shared/src/",
+        "packages/@wowkit/wow-data/src/",
+        ...listAddons().map((addon) => `${addon}/src/`),
+    ];
 }

@@ -1,0 +1,22 @@
+{
+  "name": "@wowkit/wow",
+  "version": "0.1.0",
+  "description": "Services that talk to World of Warcraft: Forever and turn its quirks into plain answers",
+  "private": true,
+  "license": "MIT",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "dependencies": {
+    "@wowkit/core": "workspace:*",
+    "@wowkit/wow-data": "workspace:*"
+  },
+  "devDependencies": {
+    "@wowkit/wow-types": "workspace:*",
+    "@wowkit/test-kit": "workspace:*"
+  },
+  "scripts": {
+    "build:tests": "tstl -p tsconfig.test.json",
+    "test:run": "node ../../../scripts/run-package-tests.ts",
+    "typecheck": "tsc -p tsconfig.test.json --noEmit"
+  }
+}

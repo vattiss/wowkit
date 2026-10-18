@@ -1,5 +1,6 @@
 // Putting the addon together: every service is made here, with the services it needs, dependencies first.
 // The order of the lines is also the order the lifecycle hooks run in.
+import { IdleService } from "@forever-reminders/shared";
 import { Addon } from "@wowkit/core";
 import {
     ControlsService,
@@ -17,13 +18,13 @@ import {
     ClockService,
     NoticeService,
     PlayerService,
-    SPELL_NAME_HINT,
     SavedVariablesService,
     SpellBookService,
     SpellRefreshService,
     SpellsService,
 } from "@wowkit/wow";
 import { TEXTS } from "./locale/texts.constants";
+import { OutdatedRanksService } from "./outdated-ranks.service";
 import { RankNoticeService } from "./rank-notice.service";
 import { RemindersPage } from "./options/reminders.page";
 import { SAVED_VARIABLES_NAME, createDefaultSettings, repairSettings } from "./settings/settings.constants";
@@ -36,7 +37,7 @@ export function startAddon(addonName: string): void {
     const player = addon.register(new PlayerService());
     const savedVariables = addon.register(new SavedVariablesService(SAVED_VARIABLES_NAME));
     const spellBook = addon.register(new SpellBookService(addon.events));
-    const spells = addon.register(new SpellsService(spellBook, addon.events, SPELL_NAME_HINT));
+    const spells = addon.register(new SpellsService(spellBook, addon.events));
     addon.register(new SpellRefreshService(spells, clock, addon.events));
     const actionBars = addon.register(new ActionBarsService(clock, spells, addon.events));
     addon.register(new BarRefreshService(actionBars, clock));
@@ -51,7 +52,9 @@ export function startAddon(addonName: string): void {
     addon.register(new GreetingService(messages, locale.getText("INIT")));
 
     // What the addon does
-    addon.register(new RankNoticeService(actionBars, clock, notice, player, settings, locale, messages));
+    const idle = addon.register(new IdleService(player));
+    const outdatedRanks = addon.register(new OutdatedRanksService(actionBars, spells));
+    addon.register(new RankNoticeService(actionBars, outdatedRanks, clock, notice, idle, settings, locale, messages));
 
     // The Settings panel
     const controls = addon.register(new ControlsService<AddonSettings>(settings, messages, addonName));

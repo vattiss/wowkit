@@ -3,8 +3,10 @@
 // more miss a buff (of one class, for Greater Blessings) and the reagent is in the bags, the
 // group version is suggested.
 
+import type { BuffStateService } from "../character/buff-state.service";
 import type { AddonSettingsService } from "../settings/settings.interface";
-import type { AurasService, ClockService, PartyService, PlayerService, SpellsService, ReagentsService } from "@wowkit/wow";
+import type { ReagentsService } from "@forever-reminders/shared";
+import type { ClockService, PartyService, PlayerService, SpellsService } from "@wowkit/wow";
 import type { ClassBuff } from "./class-buff.interface";
 import type { ClassBuffsService } from "./class-buffs.service";
 import type { PartySuggestion } from "./reminders.interface";
@@ -25,7 +27,7 @@ export class PartyBuffsService {
     private cached: PartySuggestion[] = [];
 
     constructor(
-        private readonly auras: AurasService,
+        private readonly auras: BuffStateService,
         private readonly spells: SpellsService,
         private readonly clock: ClockService,
         private readonly party: PartyService,
@@ -37,13 +39,13 @@ export class PartyBuffsService {
 
     /** What to cast on whom; empty in combat, in raids, or when the feature is off. */
     findPartyBuffSuggestions(): PartySuggestion[] {
-        if (!this.settings.get("showPartyBuffs") || this.player.isInCombat()) return [];
+        if (!this.settings.get("showPartyBuffs") || this.player.isInCombat() || this.party.isInRaid()) return [];
         const now = this.clock.getCurrentTime();
         if (now - this.cachedAt < REFRESH_SECONDS) return this.cached;
         this.cachedAt = now;
         const members: Member[] = this.party
             .getPartyUnits()
-            .filter((unit) => this.party.canReceiveBuffs(unit))
+            .filter((unit) => this.party.isReachable(unit))
             .map((unit) => ({ unit, ...this.party.getUnitIdentity(unit) }));
         this.cached = members.length === 0 ? [] : this.getPartyBuffs().flatMap((classBuff) => this.buildSuggestionsFor(classBuff, members));
         return this.cached;

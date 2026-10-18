@@ -1,7 +1,7 @@
 # settings/
 
 The addon's per-character settings, saved by the game as `BuffReminderCharDB`. The service is the generic
-`SettingsService<T>` of `@wowkit/ui` ([ui/](../../../../packages/ui/README.md)): `get`, `change` (announces
+`SettingsService<T>` of `@wowkit/ui` ([ui/](../../../../packages/@wowkit/ui/README.md)): `get`, `change` (announces
 `setting.changed`), Only the shape is this addon's:
 
 - `settings.interface.ts`: `AddonSettings` (the shape), `AddonSettingsService` (the service typed with it).

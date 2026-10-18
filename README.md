@@ -46,17 +46,21 @@ How an addon is released to CurseForge: [docs/releasing.md](docs/releasing.md).
 Each folder has a short README.
 
 ```
-packages/       what could serve any Forever addon (packages/README.md); each imports only what it depends on
-  core/             @wowkit/core: Addon (starts the services), lifecycle hooks, EventBus, @OnGameEvent,
-                    @OnUnitEvent, @OnEvent, @Interval, text helpers
-  wow/              @wowkit/wow: the door to the game: spells, auras, action bars, player, party, bags, reagents,
-                    clock, glows and notices, saved variables, protected calls
-  ui/               @wowkit/ui: settings, texts, chat lines and sounds, the pages of the Settings panel
-  wow-types/        @wowkit/wow-types: the typings of Blizzard's API
-    generated/        generated from Blizzard's API docs - do not edit
-    wow-manual.d.ts   hand-written typings: script handlers, CreateFrame, string unions
-    wow-framexml.d.ts hand-written typings: Settings panel API, action buttons, FrameXML globals
-  test-kit/         @wowkit/test-kit: describe / it / expect, a fake game and its fixtures
+packages/       a folder per scope, then per package (packages/README.md); each imports only what it depends on
+  @wowkit/          the toolkit, for any Forever addon
+    core/             Addon (starts the services), lifecycle hooks, EventBus, @OnGameEvent,
+                      @OnUnitEvent, @OnEvent, @Interval, text helpers
+    wow/              the door to the game: spells, auras, action bars, player, party, bags,
+                      clock, glows and notices, saved variables, protected calls
+    ui/               settings, texts, chat lines and sounds, the pages of the Settings panel
+    wow-types/        the typings of Blizzard's API
+    wow-data/         the spell and item IDs the addons use, by category, and what the client said of them
+      generated/        generated from Blizzard's API docs - do not edit
+      wow-manual.d.ts   hand-written typings: script handlers, CreateFrame, string unions
+      wow-framexml.d.ts hand-written typings: Settings panel API, action buttons, FrameXML globals
+    test-kit/         describe / it / expect, a fake game and its fixtures
+  @forever-reminders/ what the reminder addons share
+    shared/           the reagents of the group buffs, and when the reminders keep quiet
 addons/
   buff-reminder/    missing buffs, weapon buffs, party buffs, buffs not on the bars
     src/              the addon's sources; a folder per feature
@@ -74,15 +78,16 @@ addons/
     test/             the specs: describe / it in TypeScript against the fake game (test/README.md)
   rank-reminder/    spells on the bars at an old rank (the smallest addon: the template for a new one)
   reagent-reminder/ low reagents on arriving in a town or an inn
+  wowkit-check/      developer tool, not released: asks the client about the IDs in wow-data (/wowkit check)
 scripts/        build, deploy, zip, type-generation and check scripts
 docs/           architecture (with the reasons), packages, releasing, glossary, the game's quirks
 ```
 
 ### Rules
 
-- **Only a few folders call the game:** `packages/wow/src/` (what the reminders ask the game),
-  `packages/core/src/` (events and timers), and `addons/buff-reminder/src/options/` (the Settings panel). Reminder
-  logic talks to `packages/wow/src/` in plain terms (`isInCombat()`, `isLearned(spell)`) and never sees secret values,
+- **Only a few folders call the game:** `packages/@wowkit/wow/src/` (what the reminders ask the game),
+  `packages/@wowkit/core/src/` (events and timers), and `addons/buff-reminder/src/options/` (the Settings panel). Reminder
+  logic talks to `packages/@wowkit/wow/src/` in plain terms (`isInCombat()`, `isLearned(spell)`) and never sees secret values,
   protected calls or remapped IDs.
 - **Everything is a service, made once, by hand:** plain classes that take what they need in the constructor,
   made in `addons/buff-reminder/src/addon.ts`; no inheritance, no container; services are built from other services.
@@ -95,11 +100,11 @@ docs/           architecture (with the reasons), packages, releasing, glossary, 
 
 ### WoW API typings
 
-`packages/wow-types/generated/` is committed, so a normal build needs no network access. To move to a newer client build:
+`packages/@wowkit/wow-types/generated/` is committed, so a normal build needs no network access. To move to a newer client build:
 
 ```sh
 pnpm fetch:wow-ui:latest   # sparse-clones the API docs into .cache/ and pins the new commit in package.json
-pnpm gen:types             # regenerates packages/wow-types/generated/*.d.ts
+pnpm gen:types             # regenerates packages/@wowkit/wow-types/generated/*.d.ts
 pnpm typecheck
 ```
 
@@ -132,7 +137,7 @@ type), fix it with `SIGNATURE_OVERRIDES` in the generator or extra overloads in 
 - No import cycles: the bundle's `require` does not support them. Lower services notify upper ones
   with events on the `EventBus` (`@OnEvent`); the packages import nothing from the addon.
 - Decorators (`@OnGameEvent`, `@Interval`...) need `experimentalDecorators`; a method is called as
-  `instance[name](instance, ...)`. See `packages/core/README.md`.
+  `instance[name](instance, ...)`. See `packages/@wowkit/core/README.md`.
 
 ## License
 

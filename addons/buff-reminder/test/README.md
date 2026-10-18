@@ -1,7 +1,7 @@
 # test/
 
 The specs of this addon, written in TypeScript with `describe` / `it` / `expect` from
-[@wowkit/test-kit](../../../packages/test-kit/README.md). No Lua to read or write.
+[@wowkit/test-kit](../../../packages/@wowkit/test-kit/README.md). No Lua to read or write.
 
 ```
 pnpm test            # checks, builds the addon, builds the tests, runs them

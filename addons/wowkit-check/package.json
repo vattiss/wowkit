@@ -1,0 +1,28 @@
+{
+  "name": "@forever-reminders/wowkit-check",
+  "version": "0.1.0",
+  "description": "Developer tool, not released: scans the spell and item data of the World of Warcraft: Forever client into a saved variable, for the repository's scripts to read",
+  "private": true,
+  "license": "MIT",
+  "addon": {
+    "name": "WowkitCheck"
+  },
+  "scripts": {
+    "build": "tstl -p tsconfig.json && node ../../scripts/package-addon.ts",
+    "watch": "node ../../scripts/package-addon.ts && tstl -p tsconfig.json --watch",
+    "build:tests": "tstl -p tsconfig.test.json",
+    "test:run": "node ../../scripts/smoke-test.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json --noEmit",
+    "deploy:game": "pnpm build && node ../../scripts/deploy.ts"
+  },
+  "dependencies": {
+    "@wowkit/core": "workspace:*",
+    "@wowkit/ui": "workspace:*",
+    "@wowkit/wow": "workspace:*",
+    "@wowkit/wow-data": "workspace:*"
+  },
+  "devDependencies": {
+    "@wowkit/test-kit": "workspace:*",
+    "@wowkit/wow-types": "workspace:*"
+  }
+}

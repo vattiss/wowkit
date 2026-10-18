@@ -10,24 +10,28 @@
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
-    // Services use method decorators (packages/core)
+    // Services use method decorators (packages/@wowkit/core)
     "experimentalDecorators": true,
     "paths": {
-      "@wowkit/core": ["../../packages/core/src/index.ts"],
+      "@wowkit/core": ["../../packages/@wowkit/core/src/index.ts"],
       // The sources of a package by file name: for `declare module` blocks that add an event
-      "@wowkit/core/*": ["../../packages/core/src/*"],
-      "@wowkit/wow": ["../../packages/wow/src/index.ts"],
-      "@wowkit/ui": ["../../packages/ui/src/index.ts"]
+      "@wowkit/core/*": ["../../packages/@wowkit/core/src/*"],
+      "@wowkit/wow": ["../../packages/@wowkit/wow/src/index.ts"],
+      "@wowkit/ui": ["../../packages/@wowkit/ui/src/index.ts"],
+      "@wowkit/wow-data": ["../../packages/@wowkit/wow-data/src/index.ts"],
+      "@forever-reminders/shared": ["../../packages/@forever-reminders/shared/src/index.ts"]
     },
     "rootDir": "../..",
     "outDir": "dist/RankReminder"
   },
   "include": [
     "src/**/*.ts",
-    "../../packages/core/src/**/*.ts",
-    "../../packages/wow/src/**/*.ts",
-    "../../packages/ui/src/**/*.ts",
-    "../../packages/wow-types/**/*.d.ts"
+    "../../packages/@wowkit/core/src/**/*.ts",
+    "../../packages/@wowkit/wow/src/**/*.ts",
+    "../../packages/@wowkit/ui/src/**/*.ts",
+    "../../packages/@wowkit/wow-data/src/**/*.ts",
+    "../../packages/@forever-reminders/shared/src/**/*.ts",
+    "../../packages/@wowkit/wow-types/**/*.d.ts"
   ],
   "tstl": {
     // WoW embeds Lua 5.1

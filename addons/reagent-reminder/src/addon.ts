@@ -1,5 +1,6 @@
 // Putting the addon together: every service is made here, with the services it needs, dependencies first.
 // The order of the lines is also the order the lifecycle hooks run in.
+import { ReagentsService } from "@forever-reminders/shared";
 import { Addon } from "@wowkit/core";
 import {
     ControlsService,
@@ -16,8 +17,6 @@ import {
     ClockService,
     NoticeService,
     PlayerService,
-    ReagentsService,
-    SPELL_NAME_HINT,
     SavedVariablesService,
     SpellBookService,
     SpellRefreshService,
@@ -37,7 +36,7 @@ export function startAddon(addonName: string): void {
     const bags = addon.register(new BagsService());
     const savedVariables = addon.register(new SavedVariablesService(SAVED_VARIABLES_NAME));
     const spellBook = addon.register(new SpellBookService(addon.events));
-    const spells = addon.register(new SpellsService(spellBook, addon.events, SPELL_NAME_HINT));
+    const spells = addon.register(new SpellsService(spellBook, addon.events));
     addon.register(new SpellRefreshService(spells, clock, addon.events));
     const reagents = addon.register(new ReagentsService(bags, spells));
     const notice = addon.register(new NoticeService(addonName));

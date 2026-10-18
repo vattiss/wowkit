@@ -1,15 +1,5 @@
 // The buffs the addon reminds about, per class (UnitClass token).
-import {
-    Druid as D,
-    Group as G,
-    Hunter as H,
-    Mage as M,
-    Paladin as P,
-    Priest as Pr,
-    Shaman as Sh,
-    Warlock as L,
-    Warrior as W,
-} from "@wowkit/wow";
+import { Druid as D, Hunter as H, Mage as M, Paladin as P, Priest as Pr, Shaman as Sh, Warlock as L, Warrior as W } from "@wowkit/wow-data";
 import type { ClassBuff, PartyBuff } from "./class-buff.interface";
 
 function createClassBuff(
@@ -38,13 +28,13 @@ const palaAuras = [
     P.FrostResistAura,
     P.ShadowResistAura,
 ];
-const palaBlessings = [P.BlessingMight, P.BlessingKings, P.BlessingWisdom, P.BlessingSalvation, P.BlessingLight, P.BlessingSanctuary];
+const palaBlessings = [P.BlessingMight, P.BlessingKings, P.BlessingWisdom, P.BlessingSalvation, P.BlessingLight];
 const hunterAspects = [H.AspectHawk, H.AspectMonkey, H.AspectWild, H.AspectCheetah, H.AspectPack, H.AspectBeast];
 
 /** In list order: of a category, the first one that is learned and on the bars is the one asked for. */
 export const BUFF_LISTS: { [classToken: string]: ClassBuff[] | undefined } = {
     DRUID: [
-        createClassBuff("MarkoftheWild", D.MarkOfTheWild, { last: 1800, party: { groupIds: G.GiftOfTheWild } }),
+        createClassBuff("MarkoftheWild", D.MarkOfTheWild, { last: 1800, party: { groupIds: D.GiftOfTheWild } }),
         createClassBuff("Thorns", D.Thorns, { last: 600 }),
         createClassBuff("Moonkin", D.Moonkin, {}, false),
     ],
@@ -58,15 +48,15 @@ export const BUFF_LISTS: { [classToken: string]: ClassBuff[] | undefined } = {
         createClassBuff("ShadowResistAura", P.ShadowResistAura, { categoryMembers: palaAuras }),
         createClassBuff("BlessingMight", P.BlessingMight, {
             categoryMembers: palaBlessings,
-            party: createBlessing(G.GreaterBlessingMight),
+            party: createBlessing(P.GreaterBlessingMight),
         }),
         createClassBuff("BlessingKings", P.BlessingKings, {
             categoryMembers: palaBlessings,
-            party: createBlessing(G.GreaterBlessingKings),
+            party: createBlessing(P.GreaterBlessingKings),
         }),
         createClassBuff("BlessingWisdom", P.BlessingWisdom, {
             categoryMembers: palaBlessings,
-            party: createBlessing(G.GreaterBlessingWisdom),
+            party: createBlessing(P.GreaterBlessingWisdom),
         }),
         createClassBuff("RighteousFury", P.RighteousFury, { last: 1800 }, false),
     ],
@@ -80,9 +70,9 @@ export const BUFF_LISTS: { [classToken: string]: ClassBuff[] | undefined } = {
     ROGUE: [],
     PRIEST: [
         createClassBuff("InnerFire", Pr.InnerFire, { last: 600 }),
-        createClassBuff("PowerWordFortitude", Pr.PowerWordFortitude, { last: 1800, party: { groupIds: G.PrayerOfFortitude } }),
-        createClassBuff("DivineSpirit", Pr.DivineSpirit, { last: 1800, party: { groupIds: G.PrayerOfSpirit } }),
-        createClassBuff("ShadowProtection", Pr.ShadowProtection, { last: 600, party: { groupIds: G.PrayerOfShadowProtection } }),
+        createClassBuff("PowerWordFortitude", Pr.PowerWordFortitude, { last: 1800, party: { groupIds: Pr.PrayerOfFortitude } }),
+        createClassBuff("DivineSpirit", Pr.DivineSpirit, { last: 1800, party: { groupIds: Pr.PrayerOfSpirit } }),
+        createClassBuff("ShadowProtection", Pr.ShadowProtection, { last: 600, party: { groupIds: Pr.PrayerOfShadowProtection } }),
         createClassBuff("Shadowform", Pr.Shadowform, { last: 1800 }),
     ],
     SHAMAN: [
@@ -90,7 +80,7 @@ export const BUFF_LISTS: { [classToken: string]: ClassBuff[] | undefined } = {
         createClassBuff("WaterShield", Sh.WaterShield, { categoryMembers: shamanShields, last: 600 }),
     ],
     MAGE: [
-        createClassBuff("ArcaneIntellect", M.ArcaneIntellect, { last: 1800, party: { groupIds: G.ArcaneBrilliance, isManaOnly: true } }),
+        createClassBuff("ArcaneIntellect", M.ArcaneIntellect, { last: 1800, party: { groupIds: M.ArcaneBrilliance, isManaOnly: true } }),
         createClassBuff("MageArmor", M.MageArmor, { categoryMembers: mageArmors }),
         createClassBuff("IceArmor", M.IceArmor, { categoryMembers: mageArmors }),
         createClassBuff("FrostArmor", M.FrostArmor, { categoryMembers: mageArmors }),

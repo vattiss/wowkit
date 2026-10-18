@@ -8,17 +8,14 @@ import type { PartyBuffsService } from "../reminders/party-buffs.service";
 import type { MissingBuffs, PartySuggestion } from "../reminders/reminders.interface";
 import type { WeaponReminderService } from "../reminders/weapon/weapon-reminder.service";
 import type { AddonSettingsService } from "../settings/settings.interface";
-import type { ActionBarsService, PlayerService, SpellsService } from "@wowkit/wow";
+import type { IdleService } from "@forever-reminders/shared";
+import type { ActionBarsService, SpellsService } from "@wowkit/wow";
 import type { Reminders } from "./tick.interface";
-
-function createEmptyReminders(): Reminders {
-    return { buffsToCast: [], weaponSpell: undefined, buffsNotOnBars: [], partySuggestions: [] };
-}
 
 export class FindRemindersService {
     constructor(
         private readonly actionBars: ActionBarsService,
-        private readonly player: PlayerService,
+        private readonly idle: IdleService,
         private readonly spells: SpellsService,
         private readonly buffReminder: BuffReminderService,
         private readonly partyBuffs: PartyBuffsService,
@@ -31,8 +28,8 @@ export class FindRemindersService {
         this.buffReminder.rememberSelfBuffs();
 
         // Nothing while dead, mounted, eating or resting in town, or when the player muted the addon
-        const isIdle = this.player.shouldStayIdle(this.settings.get("hideResting")) || this.settings.get("isMuted");
-        if (isIdle) return createEmptyReminders();
+        const isIdle = this.idle.shouldStayIdle(this.settings.get("hideResting")) || this.settings.get("isMuted");
+        if (isIdle) return this.createEmptyReminders();
 
         const showBuff = this.settings.get("showBuff");
         const missingBuffs: MissingBuffs = showBuff ? this.buffReminder.findMissingBuffs() : { glow: [], notOnBars: [] };
@@ -59,5 +56,9 @@ export class FindRemindersService {
             }
         }
         return buffs;
+    }
+
+    private createEmptyReminders(): Reminders {
+        return { buffsToCast: [], weaponSpell: undefined, buffsNotOnBars: [], partySuggestions: [] };
     }
 }

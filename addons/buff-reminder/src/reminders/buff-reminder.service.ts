@@ -1,13 +1,14 @@
 // Which buffs of the class list are missing.
 
-import type { ActionBarsService, AurasService, PlayerService, SpellsService } from "@wowkit/wow";
+import type { BuffStateService } from "../character/buff-state.service";
+import type { ActionBarsService, PlayerService, SpellsService } from "@wowkit/wow";
 import type { ClassBuff } from "./class-buff.interface";
 import type { ClassBuffsService } from "./class-buffs.service";
 import type { BuffCheck, MissingBuffs } from "./reminders.interface";
 
 export class BuffReminderService {
     constructor(
-        private readonly auras: AurasService,
+        private readonly auras: BuffStateService,
         private readonly spells: SpellsService,
         private readonly player: PlayerService,
         private readonly actionBars: ActionBarsService,

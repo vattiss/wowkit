@@ -1,6 +1,7 @@
 // What the game says about the weapon buff right now: on a hand, as an aura, or in a tooltip.
 
-import { type AurasService, type AuraRead, type WeaponEnchantsService, NO_EXPIRY } from "@wowkit/wow";
+import type { BuffStateService } from "../../character/buff-state.service";
+import { type AuraRead, type WeaponEnchantsService, NO_EXPIRY } from "@wowkit/wow";
 import type { WeaponBuff } from "./weapon-buff.interface";
 import { WEAPON_BUFF_BY_ENCHANT } from "./weapon-buffs.constants";
 import type { WeaponChoiceService } from "./weapon-choice.service";
@@ -21,13 +22,9 @@ export interface BuffReading {
     remain: number;
 }
 
-function isGone(state: HandState): boolean {
-    return state === "no" || state === "other";
-}
-
 export class WeaponReadingService {
     constructor(
-        private readonly auras: AurasService,
+        private readonly auras: BuffStateService,
         private readonly enchants: WeaponEnchantsService,
         private readonly choice: WeaponChoiceService,
     ) {}
@@ -61,7 +58,7 @@ export class WeaponReadingService {
         if (off.state === "up") return { status: "up", remain: off.remain };
         if (this.enchants.hasWeaponTooltipText(this.choice.getWeaponMatchTokens(entry))) return { status: "up", remain: NO_EXPIRY };
         // Missing needs an answer for both hands; one that did not answer leaves it unknown
-        return { status: isGone(main.state) && isGone(off.state) ? "missing" : "unknown", remain: 0 };
+        return { status: this.isGone(main.state) && this.isGone(off.state) ? "missing" : "unknown", remain: 0 };
     }
 
     /** A weapon buff kept as an aura on the player (some clients show imbues that way). */
@@ -71,5 +68,9 @@ export class WeaponReadingService {
             if (read.isFound) return read;
         }
         return { isFound: false, remain: 0, isUnreadable: false };
+    }
+
+    private isGone(state: HandState): boolean {
+        return state === "no" || state === "other";
     }
 }

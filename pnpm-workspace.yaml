@@ -1,5 +1,5 @@
 # The packages and the addons of this repository. Each has its own package.json; the tools (TypeScript,
 # TypeScriptToLua, ESLint, Prettier) are shared and installed once, at the root.
 packages:
-  - "packages/*"
+  - "packages/@*/*"
   - "addons/*"

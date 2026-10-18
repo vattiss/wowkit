@@ -1,6 +1,7 @@
 // The page of this addon in the Settings panel: the switch, the sound, and a switch for each reagent of the player's class.
 import type { AboutSection, ControlsService, OptionsPage } from "@wowkit/ui";
-import type { PlayerService, Reagent, ReagentsService } from "@wowkit/wow";
+import type { Reagent, ReagentsService } from "@forever-reminders/shared";
+import type { PlayerService } from "@wowkit/wow";
 import type { AddonLocale } from "../locale/locale.interface";
 import type { AddonSettings, AddonSettingsService } from "../settings/settings.interface";
 

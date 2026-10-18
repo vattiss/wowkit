@@ -2,7 +2,7 @@
 // armor), others pair a buff with its group version (Prayer of Fortitude counts as Fortitude).
 // The members are spell IDs; their names are read from the client, so the categories hold in every language. They are
 // matched by name, not by the aura's ID: the client often hides the aura ID in combat, and every rank has its own ID.
-import { Group as G, Hunter as H, Mage as M, Paladin as P, Priest as Pr, Druid as D, Warlock as L } from "@wowkit/wow";
+import { Hunter as H, Mage as M, Paladin as P, Priest as Pr, Druid as D, Warlock as L } from "@wowkit/wow-data";
 
 export interface BuffCategory {
     key: string;
@@ -21,10 +21,9 @@ export const BUFF_CATEGORIES: BuffCategory[] = [
             P.BlessingWisdom,
             P.BlessingSalvation,
             P.BlessingLight,
-            P.BlessingSanctuary,
-            ...G.GreaterBlessingMight,
-            ...G.GreaterBlessingKings,
-            ...G.GreaterBlessingWisdom,
+            ...P.GreaterBlessingMight,
+            ...P.GreaterBlessingKings,
+            ...P.GreaterBlessingWisdom,
         ],
         seconds: 300,
     },
@@ -45,9 +44,9 @@ export const BUFF_CATEGORIES: BuffCategory[] = [
     { key: "magearmor", members: [M.MageArmor, M.IceArmor, M.FrostArmor], seconds: 1800 },
     { key: "lockarmor", members: [L.DemonArmor, L.DemonSkin], seconds: 1800 },
     // A buff and its group version
-    { key: "fortitude", members: [Pr.PowerWordFortitude, ...G.PrayerOfFortitude], seconds: 1800 },
-    { key: "spirit", members: [Pr.DivineSpirit, ...G.PrayerOfSpirit], seconds: 1800 },
-    { key: "shadowprotection", members: [Pr.ShadowProtection, ...G.PrayerOfShadowProtection], seconds: 600 },
-    { key: "wild", members: [D.MarkOfTheWild, ...G.GiftOfTheWild], seconds: 1800 },
-    { key: "intellect", members: [M.ArcaneIntellect, ...G.ArcaneBrilliance], seconds: 1800 },
+    { key: "fortitude", members: [Pr.PowerWordFortitude, ...Pr.PrayerOfFortitude], seconds: 1800 },
+    { key: "spirit", members: [Pr.DivineSpirit, ...Pr.PrayerOfSpirit], seconds: 1800 },
+    { key: "shadowprotection", members: [Pr.ShadowProtection, ...Pr.PrayerOfShadowProtection], seconds: 600 },
+    { key: "wild", members: [D.MarkOfTheWild, ...D.GiftOfTheWild], seconds: 1800 },
+    { key: "intellect", members: [M.ArcaneIntellect, ...M.ArcaneBrilliance], seconds: 1800 },
 ];

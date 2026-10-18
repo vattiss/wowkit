@@ -1,7 +1,7 @@
 # options/
 
 The addon's page in the game's Settings panel: one main page with every control, and a Help section at the bottom. Like
-`packages/wow/src/`, this folder may call the game, because the Settings panel API is the game's.
+`packages/@wowkit/wow/src/`, this folder may call the game, because the Settings panel API is the game's.
 
 | File | What it builds |
 |---|---|

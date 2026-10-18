@@ -3,7 +3,8 @@ dist/
 dist-test/
 .cache/
 node_modules/
-packages/wow-types/
+packages/@wowkit/wow-types/
+packages/@wowkit/wow-data/data/
 addons/*/addon/
 pnpm-lock.yaml
 *.md

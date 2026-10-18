@@ -2,8 +2,9 @@
 // once, and Forever froze when the addon rebuilt things on every one), so each request is merged
 // with the ones around it and delayed a little. The spells and the bars keep themselves fresh
 // (@wowkit/wow); this only asks for a tick when they say they changed.
+import type { BuffStateService } from "../character/buff-state.service";
 import { OnEvent, OnGameEvent } from "@wowkit/core";
-import type { AurasService, BarRefreshService, ClockService } from "@wowkit/wow";
+import type { BarRefreshService, ClockService } from "@wowkit/wow";
 import type { ShowRemindersService } from "./show-reminders.service";
 import type { TickService } from "./tick.service";
 
@@ -13,7 +14,7 @@ export class RefreshService {
     constructor(
         private readonly ticker: TickService,
         private readonly shower: ShowRemindersService,
-        private readonly auras: AurasService,
+        private readonly auras: BuffStateService,
         private readonly clock: ClockService,
         private readonly barRefresh: BarRefreshService,
     ) {}

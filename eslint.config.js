@@ -11,16 +11,22 @@ import tseslint from "typescript-eslint";
 const QUESTION_WORDS = ["is", "has", "can", "should", "does", "did", "was", "will", "are", "had", "show", "hide"];
 
 export default defineConfig(
-    { ignores: ["dist/**", "dist-test/**", ".cache/**", "node_modules/**", "packages/wow-types/**"] },
+    { ignores: ["dist/**", "dist-test/**", ".cache/**", "node_modules/**", "packages/@wowkit/wow-types/**"] },
     {
-        files: ["packages/*/src/**/*.ts", "packages/*/test/**/*.ts", "addons/*/src/**/*.ts", "addons/*/test/**/*.ts", "scripts/**/*.ts"],
+        files: [
+            "packages/@*/*/src/**/*.ts",
+            "packages/@*/*/test/**/*.ts",
+            "addons/*/src/**/*.ts",
+            "addons/*/test/**/*.ts",
+            "scripts/**/*.ts",
+        ],
         extends: [js.configs.recommended, tseslint.configs.recommended, tseslint.configs.stylistic],
         languageOptions: {
             parserOptions: {
                 project: [
                     "./addons/*/tsconfig.json",
                     "./addons/*/tsconfig.test.json",
-                    "./packages/*/tsconfig.test.json",
+                    "./packages/@*/*/tsconfig.test.json",
                     "./tsconfig.scripts.json",
                 ],
                 tsconfigRootDir: import.meta.dirname,
@@ -44,7 +50,14 @@ export default defineConfig(
     {
         // The names in the packages and the addons are ours (the test kit mirrors the game, so it is left out). The scripts mirror Blizzard's data and Node's option names.
         // Object literal properties are left out for the same reason (`{ recursive: true }`).
-        files: ["packages/core/src/**/*.ts", "packages/wow/src/**/*.ts", "packages/ui/src/**/*.ts", "addons/*/src/**/*.ts"],
+        files: [
+            "packages/@wowkit/core/src/**/*.ts",
+            "packages/@wowkit/wow/src/**/*.ts",
+            "packages/@wowkit/ui/src/**/*.ts",
+            "packages/@forever-reminders/shared/src/**/*.ts",
+            "packages/@wowkit/wow-data/src/**/*.ts",
+            "addons/*/src/**/*.ts",
+        ],
         rules: {
             "@typescript-eslint/naming-convention": [
                 "error",
@@ -60,7 +73,7 @@ export default defineConfig(
     {
         // A describe block holds all the tests of a topic, so it is long by nature. The fake game
         // takes the game's loosely typed callbacks (scripts, event handlers) as they are.
-        files: ["addons/*/test/**/*.ts", "packages/*/test/**/*.ts", "packages/test-kit/src/**/*.ts"],
+        files: ["addons/*/test/**/*.ts", "packages/@*/*/test/**/*.ts", "packages/@wowkit/test-kit/src/**/*.ts"],
         rules: {
             "max-lines-per-function": "off",
             "@typescript-eslint/no-explicit-any": "off",

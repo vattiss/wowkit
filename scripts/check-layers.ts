@@ -11,12 +11,14 @@ import { ROOT } from "./lib/paths.ts";
 
 /** Package folder -> the packages it may import (by name, as written in an import). */
 const PACKAGES: Record<string, string[]> = {
-    "packages/core/src": [],
-    "packages/wow/src": ["@wowkit/core"],
-    "packages/ui/src": ["@wowkit/core", "@wowkit/wow"],
-    "packages/test-kit/src": [],
+    "packages/@wowkit/core/src": [],
+    "packages/@wowkit/wow/src": ["@wowkit/core", "@wowkit/wow-data"],
+    "packages/@wowkit/ui/src": ["@wowkit/core", "@wowkit/wow"],
+    "packages/@forever-reminders/shared/src": ["@wowkit/core", "@wowkit/wow", "@wowkit/wow-data"],
+    "packages/@wowkit/wow-data/src": [],
+    "packages/@wowkit/test-kit/src": [],
 };
-const ALIASES = ["@wowkit/core", "@wowkit/wow", "@wowkit/ui", "@wowkit/test-kit"];
+const ALIASES = ["@wowkit/core", "@wowkit/wow", "@wowkit/ui", "@wowkit/test-kit", "@wowkit/wow-data", "@forever-reminders/shared"];
 
 /** Every .ts file under a folder, as a path from the project root. */
 function listFiles(folder: string): string[] {

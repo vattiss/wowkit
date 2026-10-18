@@ -5,13 +5,13 @@
 import type { MessagesService } from "@wowkit/ui";
 import { getGlowColor } from "../settings/settings.colors";
 import type { AddonSettingsService } from "../settings/settings.interface";
-import type { GlowService, ReminderGlow } from "@wowkit/wow";
+import type { GlowService, ButtonGlow } from "@wowkit/wow";
 import type { NoticesService } from "./notices.service";
 import type { Reminders } from "./tick.interface";
 
 export class ShowRemindersService {
-    private readonly buffGlow: ReminderGlow;
-    private readonly weaponGlow: ReminderGlow;
+    private readonly buffGlow: ButtonGlow;
+    private readonly weaponGlow: ButtonGlow;
     /** The buffs and the weapon spell of the previous tick, to tell what is new. */
     private previousBuffs: number[] = [];
     private previousWeaponSpell: number | undefined;
@@ -24,8 +24,8 @@ export class ShowRemindersService {
         private readonly settings: AddonSettingsService,
         private readonly notices: NoticesService,
     ) {
-        this.buffGlow = glow.createReminderGlow("buff");
-        this.weaponGlow = glow.createReminderGlow("weapon");
+        this.buffGlow = glow.createButtonGlow("buff");
+        this.weaponGlow = glow.createButtonGlow("weapon");
     }
 
     showReminders(reminders: Reminders): void {
