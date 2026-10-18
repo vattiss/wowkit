@@ -7,7 +7,7 @@ Blizzard's own API documentation in [Gethe/wow-ui-source](https://github.com/Get
 
 ## The addons
 
-Three small addons that remind you of what is easy to forget while you level. Each has its own
+Three small addons that remind you of what is easy to forget. Each has its own
 Settings page (*Options > AddOns*) and its own saved settings per character.
 
 | | Addon | What it reminds you of |
