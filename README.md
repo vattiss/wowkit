@@ -9,14 +9,15 @@ Blizzard's own API documentation in [Gethe/wow-ui-source](https://github.com/Get
 
 ## The addons
 
-Three small addons that remind you of what is easy to forget. Each has its own
-Settings page (*Options > AddOns*) and its own saved settings per character.
+Three small addons that remind you of what is easy to forget, and a rotation helper. Each has its own Settings page
+(*Options > AddOns*) and its own saved settings per character.
 
 | | Addon | What it reminds you of |
 |---|---|---|
 | <img src="addons/buff-reminder/assets/logo.png" width="48" alt=""> | [Buff Reminder](addons/buff-reminder/README.md) | Missing buffs and weapon buffs (the button glows), buffs that are on no action bar, party members who miss your buff. |
 | <img src="addons/rank-reminder/assets/logo.png" width="48" alt=""> | [Rank Reminder](addons/rank-reminder/README.md) | Spells on your action bars that are a lower rank than the one you know. |
 | <img src="addons/reagent-reminder/assets/logo.png" width="48" alt=""> | [Reagent Reminder](addons/reagent-reminder/README.md) | Reagents of your group buffs that run low, as you arrive in a town or an inn. |
+| <img src="addons/know-your-rotation/assets/logo.png" width="48" alt=""> | [Know Your Rotation](addons/know-your-rotation/README.md) | The next spell to press (the button glows), plus heals, defensive cooldowns, interrupts, purges, cleanses and totems. |
 
 Only Blizzard's own action bars are supported.
 
@@ -83,6 +84,7 @@ addons/
     test/             the specs: describe / it in TypeScript against the fake game (test/README.md)
   rank-reminder/    spells on the bars at an old rank (the smallest addon: the template for a new one)
   reagent-reminder/ low reagents on arriving in a town or an inn
+  know-your-rotation/ the next spell to press, and the cues next to it (heals, defense, interrupt, purge, cleanse, totems)
   wowkit-check/      developer tool, not released: asks the client about the IDs in wow-data (/wowkit check)
 scripts/        build, deploy, zip, type-generation and check scripts
 docs/           architecture (with the reasons), packages, releasing, glossary, the game's quirks

@@ -2,7 +2,7 @@
 
 You will write **Target Reminder**, an addon that shows a notice when you are fighting without a target. It is small
 on purpose: one service, about thirty lines of TypeScript, and it touches every part of the toolkit that matters.
-Do [Getting started](getting-started) first, so that `pnpm build` works.
+Do [Getting started](getting-started.md) first, so that `pnpm build` works.
 
 ## The idea in one minute
 
@@ -15,7 +15,7 @@ constructor, and it says what makes it run with a decorator on a method:
 
 A service never calls the game itself. It asks a service of `@wowkit/wow` ("is the player in combat?"), which is the
 only door to the game. A file called `addon.ts` makes every service with `new` and hands them to the `Addon`. That
-is all the wiring there is. The reasons are in [Architecture](architecture).
+is all the wiring there is. The reasons are in [Architecture](architecture.md).
 
 ## 1. Make the folder
 
@@ -204,8 +204,8 @@ Your addon works, but it is not yet a *good* addon. The real ones also have thes
 | Texts in one place | A `TEXTS` object and `LocaleService` | [`rank-reminder/src/locale`](https://github.com/vattiss/wowkit/tree/main/addons/rank-reminder/src/locale) |
 | Silence in towns, while dead or mounted | `IdleService` of `@forever-reminders/shared` | [`rank-notice.service.ts`](https://github.com/vattiss/wowkit/blob/main/addons/rank-reminder/src/rank-notice.service.ts) |
 | Tests | A spec against the fake game of `@wowkit/test-kit`; `state.isInCombat = true`, advance the clock, `expect(world.notice())` | [`rank-reminder/test`](https://github.com/vattiss/wowkit/tree/main/addons/rank-reminder/test) |
-| A release | A tag and the release workflow | [Releasing](releasing) |
+| A release | A tag and the release workflow | [Releasing](releasing.md) |
 
-When you meet a word you do not know, the [Glossary](glossary) has it. When a function you want is not there, look in
+When you meet a word you do not know, the [Glossary](glossary.md) has it. When a function you want is not there, look in
 the [API reference](/api/index.html){target="_self"} first: the answer to a question about the game is usually
 already a method of one of the services.

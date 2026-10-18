@@ -18,6 +18,7 @@ addons/
   buff-reminder/     BuffReminder      missing buffs, weapon buffs, party buffs, buffs not on the bars
   rank-reminder/     RankReminder      spells on the bars at an old rank
   reagent-reminder/  ReagentReminder   low reagents on arriving in a town or an inn
+  know-your-rotation/ KnowYourRotation the next spell to press, and the cues next to it
   wowkit-check/       WowkitCheck        developer tool, not released: checks the IDs of wow-data against the client
 scripts/                               build, deploy, type generation, the rule checks
 ```
@@ -35,27 +36,33 @@ flowchart LR
         buff["addons/buff-reminder"] --> ui["@wowkit/ui"]
         rank["addons/rank-reminder"] --> ui
         reagent["addons/reagent-reminder"] --> ui
+        rotation["addons/know-your-rotation"] --> ui
         buff --> shared["@forever-reminders/shared"]
         rank --> shared
         reagent --> shared
+        rotation --> shared
         shared --> wow
         shared --> core
         shared --> data["@wowkit/wow-data"]
         wow --> data
         buff --> data
+        rotation --> data
         checker["addons/wowkit-check"] --> data
         buff --> wow["@wowkit/wow"]
         rank --> wow
         reagent --> wow
+        rotation --> wow
         buff --> core["@wowkit/core"]
         rank --> core
         reagent --> core
+        rotation --> core
         ui --> wow
         ui --> core
         wow --> core
         buff -. "tests" .-> testkit["@wowkit/test-kit"]
         rank -. "tests" .-> testkit
         reagent -. "tests" .-> testkit
+        rotation -. "tests" .-> testkit
         wow -. "types only" .-> types["@wowkit/wow-types"]
         ui -. "types only" .-> types
         shared -. "types only" .-> types
@@ -79,11 +86,11 @@ flowchart LR
 | Package | What an addon gets |
 |---|---|
 | `@wowkit/core` | `Addon` (registers the services, starts them), `@OnGameEvent`, `@OnUnitEvent`, `@OnEvent`, `@Interval`, the lifecycle hooks, the `EventBus`. |
-| `@wowkit/wow` | The game's door and nothing else: player, party, bags, spells and the spell book, auras, action bars, weapon enchants, glows, notices, saved variables, the clock; `SpellRefreshService` and `BarRefreshService` keep the spells and the bars fresh. |
+| `@wowkit/wow` | The game's door and nothing else: player, character, other units (the target), party, bags, spells and the spell book, spell details and cooldowns, auras, action bars, totems, weapon enchants, glows (also faded by a hidden value), notices, saved variables, the clock; `SpellRefreshService` and `BarRefreshService` keep the spells and the bars fresh. |
 | `@wowkit/wow-data` | The spell and item IDs the addons use, by category, written in one place (`Paladin`, `Shaman`, `Priest`, `Reagents`...), and what the client said of them. |
 | `@forever-reminders/shared` | What the reminder addons share: `ReagentsService` and the reagent list, `IdleService` (when the reminders keep quiet). |
 | `@wowkit/ui` | `SettingsService<T>` (the shape is the addon's), `LocaleService<K>`, `MessagesService` and the sounds, `GreetingService`, and for the Settings panel `OptionsService` (one main page), `AboutSection` (the Help section), `ControlsService<T>` and `WidgetsService`. |
-| `@wowkit/test-kit` | `describe` / `it` / `expect`, `createWorld` (a fake game), and fixtures: the classes and spells the specs use. |
+| `@wowkit/test-kit` | `describe` / `it` / `expect`, `createWorld` (a fake game, with a target to fight), and fixtures: the classes and spells the specs use. |
 
 ## How an addon uses them
 

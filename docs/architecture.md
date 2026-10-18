@@ -131,6 +131,7 @@ flowchart TB
         end
 
         others["rank-reminder, reagent-reminder<br/>small addons of the same shape"]
+        rotation["know-your-rotation<br/>the lists, what it remembers, the situation,<br/>the step checks, the cues, a tick"]
 
         subgraph toolkit["packages (could serve any Forever addon)"]
             ui["packages/@wowkit/ui/src/<br/>settings, texts, chat lines, sounds,<br/>the Settings panel pages"]
@@ -145,9 +146,14 @@ flowchart TB
         wiring --> words
         wiring --> features
         wiring --> others
+        wiring --> rotation
         others --> ui
         others --> wow
         others --> shared
+        rotation --> ui
+        rotation --> wow
+        rotation --> shared
+        rotation --> wowdata
         reminders --> shared
         shared --> wow
         shared --> core

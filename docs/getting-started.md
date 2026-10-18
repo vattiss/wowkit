@@ -59,18 +59,18 @@ pnpm format      # let Prettier lay the code out
 
 `pnpm check` is not only style. It enforces the shape of the code: who may call the game, who may import whom, that
 every service is wired in `addon.ts`, that function names start with a verb, and that the spell and item IDs in the
-code are the ones the client knows. The reasons are in [Architecture](architecture).
+code are the ones the client knows. The reasons are in [Architecture](architecture.md).
 
 ## Find your way around
 
 | You want to | Go to |
 |---|---|
-| Understand how the code is split | [Packages and addons](packages) and [Architecture](architecture) |
-| Know what a word means (buff, aura, buff category...) | [Glossary](glossary) |
-| Know why the code is so careful with the game | [The game's quirks](forever-quirks) |
+| Understand how the code is split | [Packages and addons](packages.md) and [Architecture](architecture.md) |
+| Know what a word means (buff, aura, buff category...) | [Glossary](glossary.md) |
+| Know why the code is so careful with the game | [The game's quirks](forever-quirks.md) |
 | Look up a class or a function of the toolkit | [API reference](/api/index.html){target="_self"} |
-| Write an addon of your own | [Learning guide](learning-guide) |
-| Release an addon | [Releasing](releasing) |
+| Write an addon of your own | [Learning guide](learning-guide.md) |
+| Release an addon | [Releasing](releasing.md) |
 
 The smallest real addon is [Rank Reminder](https://github.com/vattiss/wowkit/tree/main/addons/rank-reminder): a few
 hundred lines, and the template for a new one.
