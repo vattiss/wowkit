@@ -8,3 +8,6 @@ packages/@wowkit/wow-data/data/
 addons/*/addon/
 pnpm-lock.yaml
 *.md
+docs/public/api/
+docs/.vitepress/cache/
+docs/.vitepress/dist/

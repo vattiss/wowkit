@@ -1,0 +1,25 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPointStrategy": "packages",
+  "entryPoints": [
+    "packages/@wowkit/core",
+    "packages/@wowkit/wow",
+    "packages/@wowkit/ui",
+    "packages/@wowkit/wow-data",
+    "packages/@wowkit/test-kit"
+  ],
+  "tsconfig": "tsconfig.docs.json",
+  "name": "wowkit API",
+  "out": "docs/public/api",
+  "readme": "none",
+  "excludePrivate": true,
+  "excludeInternal": true,
+  "skipErrorChecking": true,
+  "gitRevision": "main",
+  "validation": {
+    "notExported": false
+  },
+  "packageOptions": {
+    "readme": "none"
+  }
+}

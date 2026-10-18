@@ -31,6 +31,10 @@
     "format": "prettier --write .",
     "check": "node scripts/check-boundary.ts && node scripts/check-ids.ts && node scripts/check-layers.ts && node scripts/check-wiring.ts && node scripts/check-names.ts && eslint . && prettier --check .",
     "zip": "pnpm -r --workspace-concurrency=1 --if-present zip",
+    "docs:api": "typedoc",
+    "docs:dev": "pnpm docs:api && vitepress dev docs",
+    "docs:build": "pnpm docs:api && vitepress build docs",
+    "docs:preview": "vitepress preview docs",
     "test": "pnpm check && pnpm build && pnpm build:tests && pnpm -r --workspace-concurrency=1 test:run"
   },
   "devDependencies": {
@@ -42,10 +46,14 @@
     "eslint": "^10.13.0",
     "lua-types": "^2.14.1",
     "luaparse": "^0.3.1",
+    "mermaid": "^12.2.0",
     "pngjs": "^7.0.0",
     "prettier": "^3.9.10",
+    "typedoc": "^0.28.20",
     "typescript": "6.0.2",
     "typescript-eslint": "^8.71.2",
-    "typescript-to-lua": "^1.37.1"
+    "typescript-to-lua": "^1.37.1",
+    "vitepress": "^1.6.4",
+    "vitepress-plugin-mermaid": "^2.0.17"
   }
 }

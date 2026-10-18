@@ -5,6 +5,8 @@ TypeScript packages and addons for World of Warcraft: Forever (1.60.x, TOC `1600
 Blizzard's own API documentation in [Gethe/wow-ui-source](https://github.com/Gethe/wow-ui-source/tree/forever)
 (`forever` branch), so they match the client version exactly.
 
+**Documentation:** https://vattiss.github.io/wowkit/ - a getting started page, a learning guide that builds a first addon, the architecture and the API reference.
+
 ## The addons
 
 Three small addons that remind you of what is easy to forget. Each has its own
@@ -36,6 +38,9 @@ WOW_ADDONS_DIR="C:/Program Files (x86)/World of Warcraft/_classic_beta_/Interfac
 ```
 
 ### Layout
+
+The documentation site is at https://vattiss.github.io/wowkit/ (built from `docs/` and the TypeDoc API reference; `pnpm docs:dev` runs it locally).
+New here: [docs/getting-started.md](docs/getting-started.md), then the [learning guide](docs/learning-guide.md) that builds a first addon.
 
 Diagrams of the build pipeline, the features and the events: [docs/architecture.md](docs/architecture.md).
 The words used in the code (buff, aura, buff category, group version...): [docs/glossary.md](docs/glossary.md).

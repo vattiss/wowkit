@@ -1,0 +1,22 @@
+{
+  // Only for TypeDoc (typedoc.json): the toolkit packages and the game's typings, as one project.
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": ["ESNext"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "types": ["lua-types/5.1", "@typescript-to-lua/language-extensions"],
+    "strict": true,
+    "experimentalDecorators": true,
+    "noEmit": true,
+    "paths": {
+      "@wowkit/core": ["./packages/@wowkit/core/src/index.ts"],
+      "@wowkit/core/*": ["./packages/@wowkit/core/src/*"],
+      "@wowkit/wow": ["./packages/@wowkit/wow/src/index.ts"],
+      "@wowkit/ui": ["./packages/@wowkit/ui/src/index.ts"],
+      "@wowkit/wow-data": ["./packages/@wowkit/wow-data/src/index.ts"],
+      "@wowkit/test-kit": ["./packages/@wowkit/test-kit/src/index.ts"]
+    }
+  },
+  "include": ["packages/@wowkit/*/src/**/*.ts", "packages/@wowkit/wow-types/**/*.d.ts"]
+}
