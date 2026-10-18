@@ -42,6 +42,7 @@ The words used in the code (buff, aura, buff category, group version...): [docs/
 Why the code is so defensive (the game's quirks): [docs/forever-quirks.md](docs/forever-quirks.md).
 Why the project is built the way it is (the architecture decision records, ADR): [docs/architecture.md](docs/architecture.md#architecture-decision-records-adr).
 How the code is split into packages, and what a second addon would take: [docs/packages.md](docs/packages.md).
+How an addon is released to CurseForge: [docs/releasing.md](docs/releasing.md).
 Each folder has a short README.
 
 ```
@@ -73,8 +74,8 @@ addons/
     test/             the specs: describe / it in TypeScript against the fake game (test/README.md)
   rank-reminder/    spells on the bars at an old rank (the smallest addon: the template for a new one)
   reagent-reminder/ low reagents on arriving in a town or an inn
-scripts/        build, deploy, type-generation and check scripts
-docs/           architecture (with the reasons), packages, glossary, the game's quirks
+scripts/        build, deploy, zip, type-generation and check scripts
+docs/           architecture (with the reasons), packages, releasing, glossary, the game's quirks
 ```
 
 ### Rules

@@ -9,5 +9,6 @@
 ## SavedVariablesPerCharacter: RankReminderCharDB
 ## DefaultState: enabled
 ## X-Website: https://github.com/vattiss/wowkit
+## X-Curse-Project-ID: 1751395
 
 RankReminder.lua

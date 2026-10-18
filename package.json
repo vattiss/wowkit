@@ -29,6 +29,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "check": "node scripts/check-boundary.ts && node scripts/check-layers.ts && node scripts/check-wiring.ts && node scripts/check-names.ts && eslint . && prettier --check .",
+    "zip": "pnpm -r --workspace-concurrency=1 --if-present zip",
     "test": "pnpm check && pnpm build && pnpm build:tests && pnpm -r --workspace-concurrency=1 test:run"
   },
   "devDependencies": {
