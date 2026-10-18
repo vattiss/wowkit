@@ -10,11 +10,7 @@ The words this project uses in its own sense, in plain terms. One word means one
 | **aura and buff** | The game says *aura* for an effect that is on a unit; this project says *buff* for the same thing. Only the code that reads the game says aura; everything above it says buff. | `packages/wow/src/auras.service.ts` |
 | **class buff** | One entry of a class's buff list: which spell, how long it lasts, whether it is on by default, and whether it can be cast on party members. | `ClassBuff`, `reminders/class-buffs.constants.ts` |
 | **buff category** | Buffs of which one is enough: one aspect, one paladin aura, one armor, or a buff together with its group version (Fortitude and Prayer of Fortitude). Any member counts for the whole category. | `BuffCategory`, `categoryMembers`, `knowledge/buff-categories.constants.ts` |
-| **group version** | The spell that buffs the whole party in one cast and costs a reagent (Prayer of Fortitude, Gift of the Wild, a Greater Blessing). Not to be mixed up with a buff category. | `Group` in `packages/wow/src/spell-ids.constants.ts`, `groupIds` |
-| **party buff** | A class buff the player can also cast on other party members. | `party` in `ClassBuff`, `reminders/party-buffs.service.ts` |
-| **weapon buff** | A buff that sits on a weapon (an imbue, a poison, a stone). It has its own timing rules, so it has its own reminder. | `WeaponBuff`, `reminders/weapon/` |
 | **picked weapon buff** | The weapon buff the reminder keeps up: the player's choice, or the best one learned, with its highest learned rank. | `PickedWeaponBuff` |
-| **outdated rank** | A spell on the action bars at a lower rank than the highest one the player knows. | `OutdatedRank`, `findOutdatedRanks` |
 
 ## Reading the game
 
