@@ -4,8 +4,7 @@
 
 import type { ClassBuffsService } from "../reminders/class-buffs.service";
 import { OnEvent } from "@wowkit/core";
-import { buildAuraKey } from "./aura-key.utils";
-import type { SpellsService } from "@wowkit/wow";
+import { type SpellsService, buildNameKey } from "@wowkit/wow";
 import { Druid } from "@wowkit/wow-data";
 import { BUFF_CATEGORIES, type BuffCategory } from "./buff-categories.constants";
 
@@ -32,15 +31,15 @@ export class BuffKnowledgeService {
     /** The category a buff belongs to, found by its name (in the client's language). */
     findCategory(name: string | undefined): BuffCategory | undefined {
         if (name === undefined || name === "") return undefined;
-        return this.getCategoryNames().get(buildAuraKey(name));
+        return this.getCategoryNames().get(buildNameKey(name));
     }
 
-    /** Is this aura key (buildAuraKey of a name) a shapeshift form? */
+    /** Is this aura key (buildNameKey of a name) a shapeshift form? */
     isFormKey(key: string): boolean {
         if (!this.formKeys) {
             this.formKeys = new LuaSet();
             for (const spellId of FORMS) {
-                for (const name of this.listNames(spellId)) this.formKeys.add(buildAuraKey(name));
+                for (const name of this.listNames(spellId)) this.formKeys.add(buildNameKey(name));
             }
         }
         return this.formKeys.has(key);
@@ -56,7 +55,7 @@ export class BuffKnowledgeService {
         const names = new LuaMap<string, BuffCategory>();
         for (const category of BUFF_CATEGORIES) {
             for (const spellId of category.members) {
-                for (const name of this.listNames(spellId)) names.set(buildAuraKey(name), category);
+                for (const name of this.listNames(spellId)) names.set(buildNameKey(name), category);
             }
         }
         this.categoryByName = names;

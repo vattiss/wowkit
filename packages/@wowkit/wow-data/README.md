@@ -6,8 +6,8 @@ spell is which ID. This package does.
 
 | File | What it holds |
 |---|---|
-| `src/spells.ts` | The spell IDs by class (`Paladin.BlessingMight`, `Shaman.Windfury` with every rank) with their group versions (`Priest.PrayerOfFortitude`). |
-| `src/spells.ts`, at its end | `SPELL_NAME_HINT`: English names for IDs the client may not name, which `SpellsService` falls back on. |
+| `src/spells.ts` | The spell IDs by class (`Paladin.BlessingMight`, `Shaman.Windfury` with every rank) with their group versions (`Priest.PrayerOfFortitude`); the racials (`Racial`) and the cures of several classes (`Cure`). |
+| `src/spells.ts`, at its end | `SPELL_NAME_HINT`: English names for IDs the client may not name (a list for a spell with two), which `SpellsService` falls back on. |
 | `src/items.ts` | The item IDs by category (`Reagents.HolyCandle`). |
 | `data/ids.json` | What the client said of those IDs when it was last asked: `[19740, "Blessing of Might", 1]`, or `[19740]` for an ID the client does not know; under `candidates`, the spells the check found by the name of each unknown ID. |
 

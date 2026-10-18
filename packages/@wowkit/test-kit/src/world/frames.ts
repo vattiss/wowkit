@@ -12,6 +12,8 @@ export interface FakeFrame {
     /** The action slot of an action button. */
     action: number | undefined;
     isShown: boolean;
+    /** The opacity the addon set (a glow faded by a hidden value). */
+    alpha: number;
     text: string | undefined;
     scripts: { [script: string]: Script | undefined };
     events: { [event: string]: true | undefined };
@@ -25,6 +27,8 @@ export interface FakeFrame {
     Show(): void;
     Hide(): void;
     IsShown(): boolean;
+    SetAlpha(alpha: number): void;
+    GetAlpha(): number;
     SetScript(script: string, handler: Script | undefined): void;
     GetName(): string | undefined;
     GetFrameLevel(): number;
@@ -68,6 +72,7 @@ function createFakeFrame(init: FrameInit): FakeFrame {
         template: init.template,
         action: undefined,
         isShown: true,
+        alpha: 1,
         text: undefined,
         scripts: {},
         events: {},
@@ -81,6 +86,12 @@ function createFakeFrame(init: FrameInit): FakeFrame {
             if (!this.isShown) return;
             this.isShown = false;
             this.scripts.OnHide?.(this);
+        },
+        SetAlpha(alpha) {
+            this.alpha = alpha;
+        },
+        GetAlpha() {
+            return this.alpha;
         },
         IsShown() {
             return this.isShown;

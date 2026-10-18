@@ -3,6 +3,7 @@
 /** Inventory slots of the weapons. */
 export const MAIN_HAND_SLOT = 16;
 export const OFF_HAND_SLOT = 17;
+export const RANGED_SLOT = 18;
 
 /** "Seconds left" of something without an end, or whose end the client did not tell. */
 export const NO_EXPIRY = 9999;

@@ -71,6 +71,13 @@ export default defineConfig(
         },
     },
     {
+        // The ID tables are literals only, one ID per line: their length is not complexity.
+        files: ["packages/@wowkit/wow-data/src/**/*.ts"],
+        rules: {
+            "max-lines": "off",
+        },
+    },
+    {
         // A describe block holds all the tests of a topic, so it is long by nature. The fake game
         // takes the game's loosely typed callbacks (scripts, event handlers) as they are.
         files: ["addons/*/test/**/*.ts", "packages/@*/*/test/**/*.ts", "packages/@wowkit/test-kit/src/**/*.ts"],

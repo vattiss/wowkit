@@ -1,8 +1,15 @@
 // Is a buff up on the player or on a party member? Put together from the auras the game shows (AurasService of
 // @wowkit/wow), the buff categories (any aspect counts for an aspect, a group version for the single buff) and the
 // memory that fills in while the client hides the player's auras in combat.
-import { buildAuraKey } from "../knowledge/aura-key.utils";
-import { type AuraEntry, type AuraRead, type AurasService, type PlayerService, type SpellsService, isReadable } from "@wowkit/wow";
+import {
+    type AuraEntry,
+    type AuraRead,
+    type AurasService,
+    type PlayerService,
+    type SpellsService,
+    isReadable,
+    buildNameKey,
+} from "@wowkit/wow";
 import type { BuffCategory } from "../knowledge/buff-categories.constants";
 import type { BuffKnowledgeService } from "../knowledge/buff-knowledge.service";
 import type { BuffMemoryService } from "./buff-memory.service";
@@ -72,7 +79,7 @@ export class BuffStateService {
     getUnitBuffState(unit: UnitToken, spellId: number, isOwnOnly: boolean): UnitBuffState {
         const wantName = this.getBuffName(spellId);
         if (wantName === undefined) return "unknown";
-        const wantKey = buildAuraKey(wantName);
+        const wantKey = buildNameKey(wantName);
         const wantCategory = this.knowledge.findCategory(wantName);
         const scan = this.auras.scanAuras(unit);
         let isUnreadable = scan.isUnreadable;
@@ -93,7 +100,7 @@ export class BuffStateService {
     ): "has" | "hidden" | "other" {
         if (aura.isHidden || aura.name === undefined) return "hidden";
         const isWanted =
-            buildAuraKey(aura.name) === wantKey || (wantCategory !== undefined && this.knowledge.findCategory(aura.name) === wantCategory);
+            buildNameKey(aura.name) === wantKey || (wantCategory !== undefined && this.knowledge.findCategory(aura.name) === wantCategory);
         if (!isWanted) return "other";
         if (!isOwnOnly || aura.caster === "player") return "has";
         return aura.caster === "hidden" ? "hidden" : "other";
@@ -114,7 +121,7 @@ export class BuffStateService {
         const { names, ids, categories } = this.indexAuras(scan.auras);
         const wantCategory = this.knowledge.findCategory(wantName);
         const aura =
-            (wantName !== undefined ? names.get(buildAuraKey(wantName)) : undefined) ??
+            (wantName !== undefined ? names.get(buildNameKey(wantName)) : undefined) ??
             (resolved !== undefined ? ids.get(resolved) : undefined) ??
             ids.get(spellId) ??
             (wantCategory ? categories.get(wantCategory.key) : undefined);
@@ -135,7 +142,7 @@ export class BuffStateService {
             if (aura.isHidden) continue;
             if (aura.spellId !== undefined) ids.set(aura.spellId, aura);
             if (aura.name === undefined) continue;
-            names.set(buildAuraKey(aura.name), aura);
+            names.set(buildNameKey(aura.name), aura);
             const category = this.knowledge.findCategory(aura.name);
             if (category) categories.set(category.key, aura);
         }

@@ -2,8 +2,7 @@
 // auras at all, or auras whose name and ID are secret, so a buff seen or cast a moment ago counts
 // as up until its usual duration runs out.
 
-import { buildAuraKey } from "../knowledge/aura-key.utils";
-import { type AuraEntry, type ClockService, type SpellsService, hasKnownExpiry } from "@wowkit/wow";
+import { type AuraEntry, type ClockService, type SpellsService, hasKnownExpiry, buildNameKey } from "@wowkit/wow";
 import type { BuffKnowledgeService } from "../knowledge/buff-knowledge.service";
 
 /** A shapeshift form (Cat Form, Travel Form...): no end, only changes with a shapeshift. */
@@ -38,7 +37,7 @@ export class BuffMemoryService {
     remember(spellId: number | undefined, auraName: string | undefined, remain: number | undefined, isFromCast: boolean): void {
         const name = auraName ?? this.spells.getSpellName(spellId);
         if (name === undefined || name === "") return;
-        const key = buildAuraKey(name);
+        const key = buildNameKey(name);
         const category = this.knowledge.findCategory(name);
         const seconds = category?.seconds ?? (this.knowledge.isFormKey(key) ? FORM_SECONDS : this.knowledge.getSeconds(spellId, name));
         const now = this.clock.getCurrentTime();
@@ -58,7 +57,7 @@ export class BuffMemoryService {
         const name = this.spells.getSpellName(spellId);
         if (name === undefined || name === "") return false;
         const now = this.clock.getCurrentTime();
-        if (now < (this.heldNames.get(buildAuraKey(name)) ?? 0)) return true;
+        if (now < (this.heldNames.get(buildNameKey(name)) ?? 0)) return true;
         const category = this.knowledge.findCategory(name);
         return category !== undefined && now < (this.heldCategories.get(category.key) ?? 0);
     }
@@ -67,7 +66,7 @@ export class BuffMemoryService {
     release(spellId: number, categoriesSeen: LuaMap<string, AuraEntry> | undefined): void {
         const name = this.spells.getSpellName(spellId);
         if (name === undefined || name === "") return;
-        const key = buildAuraKey(name);
+        const key = buildNameKey(name);
         const now = this.clock.getCurrentTime();
         if (now - (this.castAt.get(key) ?? -10) < CAST_SETTLE) return;
         this.heldNames.delete(key);

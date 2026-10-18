@@ -31,7 +31,8 @@ export function installUi(frames: FrameRegistry, chat: string[], proxySettings: 
             WeaponSlot: { MainHand: 0, OffHand: 1, Ranged: 2 },
             ItemEnchantType: { None: 0, Permanent: 1, Temporary: 2, Imbue: 3 },
             ItemClass: { Weapon: 2 },
-            PowerType: { Mana: 0, Rage: 1, Focus: 2, Energy: 3 },
+            PowerType: { Mana: 0, Rage: 1, Focus: 2, Energy: 3, ComboPoints: 4 },
+            LuaCurveType: { Linear: 0, Step: 1, Cosine: 2 },
         },
     });
 

@@ -243,6 +243,31 @@ importers:
         specifier: workspace:*
         version: link:../../packages/@wowkit/wow-types
 
+  addons/know-your-rotation:
+    dependencies:
+      '@forever-reminders/shared':
+        specifier: workspace:*
+        version: link:../../packages/@forever-reminders/shared
+      '@wowkit/core':
+        specifier: workspace:*
+        version: link:../../packages/@wowkit/core
+      '@wowkit/ui':
+        specifier: workspace:*
+        version: link:../../packages/@wowkit/ui
+      '@wowkit/wow':
+        specifier: workspace:*
+        version: link:../../packages/@wowkit/wow
+      '@wowkit/wow-data':
+        specifier: workspace:*
+        version: link:../../packages/@wowkit/wow-data
+    devDependencies:
+      '@wowkit/test-kit':
+        specifier: workspace:*
+        version: link:../../packages/@wowkit/test-kit
+      '@wowkit/wow-types':
+        specifier: workspace:*
+        version: link:../../packages/@wowkit/wow-types
+
   addons/rank-reminder:
     dependencies:
       '@forever-reminders/shared':

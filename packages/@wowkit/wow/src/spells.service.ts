@@ -62,7 +62,14 @@ export class SpellsService implements OnFirstLogin {
 
     /** The English spellbook name of a spell, for IDs the client does not name. */
     getHintName(spellId: number | undefined): string | undefined {
-        return spellId !== undefined ? SPELL_NAME_HINT[spellId] : undefined;
+        return this.getHintNames(spellId)[0];
+    }
+
+    /** Every English spellbook name a spell may have (a renamed spell has two). */
+    getHintNames(spellId: number | undefined): string[] {
+        const hint = spellId !== undefined ? SPELL_NAME_HINT[spellId] : undefined;
+        if (hint === undefined) return [];
+        return type(hint) === "string" ? [hint as string] : (hint as string[]);
     }
 
     getSpellLabel(spellId: number): string | undefined {
@@ -89,6 +96,11 @@ export class SpellsService implements OnFirstLogin {
         const id = this.findKnownId(spellId);
         this.resolveCache.set(spellId, id ?? false);
         return id;
+    }
+
+    /** The ID the player knows for this spell, or the ID itself when none is known. */
+    resolveOrSame(spellId: number): number {
+        return this.resolve(spellId) ?? spellId;
     }
 
     isLearned(spellId: number | undefined): boolean {
@@ -182,8 +194,8 @@ export class SpellsService implements OnFirstLogin {
         const names: string[] = [];
         for (const name of [
             this.getSpellName(overrideId) ?? this.getSpellName(spellId),
-            this.getHintName(spellId),
-            this.getHintName(overrideId),
+            ...this.getHintNames(spellId),
+            ...this.getHintNames(overrideId),
         ]) {
             if (name !== undefined && name !== "" && !names.includes(name)) names.push(name);
         }

@@ -13,6 +13,18 @@ export interface SpellDefinition {
     name: string;
     rank: number;
     icon: number;
+    /** Milliseconds; instant when not given. */
+    castTimeMs?: number;
+    /** Yards; 0 is a melee spell. Not given: no range (a self-cast). */
+    maxRange?: number;
+    /** Cast on enemies. */
+    isHarmful?: boolean;
+    /** Cast on friends. */
+    isHelpful?: boolean;
+    /** The spell's base cooldown in seconds. */
+    cooldownSeconds?: number;
+    /** The spell's description text (the heal size is read from it). */
+    description?: string;
 }
 
 /** A buff on a character. `expirationTime` is on the game's clock (see World.makeAura). */
@@ -21,6 +33,34 @@ export interface FakeAura {
     spellId: number;
     expirationTime: number;
     sourceUnit?: string;
+    /** "Magic", "Curse", "Disease", "Poison". */
+    dispelName?: string;
+    isStealable?: boolean;
+    stacks?: number;
+}
+
+/** The target of the player. */
+export interface FakeTarget {
+    name: string;
+    level: number;
+    /** An enemy (hostile); otherwise a friend. */
+    isEnemy: boolean;
+    isDead?: boolean;
+    /** Health in percent. */
+    health: number;
+    /** How far it is. */
+    yards: number;
+    /** "Undead", "Mechanical"...; hidden when not given (as the client does for NPCs). */
+    creatureType?: string;
+    classification?: string;
+    /** Its debuffs; the player's own have sourceUnit "player". */
+    debuffs: FakeAura[];
+    buffs: FakeAura[];
+    /** The spell it is casting now. */
+    castingSpell?: string;
+    isCastShielded?: boolean;
+    /** It attacks the player (the player has aggro). */
+    isAttackingPlayer?: boolean;
 }
 
 export interface FakePartyMember {
@@ -66,6 +106,28 @@ export interface ClientState {
     bags: { [itemId: number]: number | undefined };
     /** The reagent named in a spell's tooltip. */
     reagentTexts: { [spellId: number]: string | undefined };
+    level: number;
+    /** The race: its ID (4 Night Elf) and the client's race file name. */
+    race: { id: number; file: string };
+    target: FakeTarget | undefined;
+    /** The player's health in percent. */
+    health: number;
+    /** In combat the game hides the player's health (and mana): the reads come back empty. */
+    isHealthHidden: boolean;
+    mana: { current: number; max: number };
+    energy: number;
+    comboPoints: number;
+    /** Spell ID -> when its cooldown started (game clock) and how long it lasts. */
+    cooldowns: { [spellId: number]: { start: number; duration: number } | undefined };
+    /** The debuffs on the player. */
+    playerDebuffs: FakeAura[];
+    pet: { isDead?: boolean } | undefined;
+    /** The spell the player is casting now. */
+    castingSpell: string | undefined;
+    /** Totem slot (fire 1, earth 2, water 3, air 4) -> the totem standing in it. */
+    totems: { [slot: number]: { name: string; start: number; duration: number } | undefined };
+    /** How many enemies around fight the player (nameplate1, nameplate2...). */
+    nameplates: number;
 }
 
 export function createClientState(): ClientState {
@@ -86,6 +148,20 @@ export function createClientState(): ClientState {
         isInRaid: false,
         bags: {},
         reagentTexts: {},
+        level: 60,
+        race: { id: 1, file: "Human" },
+        target: undefined,
+        health: 100,
+        isHealthHidden: false,
+        mana: { current: 1000, max: 1000 },
+        energy: 100,
+        comboPoints: 0,
+        cooldowns: {},
+        playerDebuffs: [],
+        pet: undefined,
+        castingSpell: undefined,
+        totems: {},
+        nameplates: 0,
     };
 }
 
@@ -97,4 +173,10 @@ export function playAs(state: ClientState, character: CharacterClass): void {
 export function learnSpell(state: ClientState, spell: SpellDefinition): void {
     state.spells[spell.id] = spell;
     state.knownSpells[spell.id] = true;
+}
+
+/** An enemy (a level 60 humanoid at 25 yards, full health, attacking no one) with what the test changes. */
+export function targetEnemy(state: ClientState, changes: Partial<FakeTarget> = {}): FakeTarget {
+    state.target = { name: "Defias Thug", level: 60, isEnemy: true, health: 100, yards: 25, debuffs: [], buffs: [], ...changes };
+    return state.target;
 }

@@ -4,7 +4,14 @@
 import { Consumable } from "@wowkit/wow-data";
 import { attempt, attemptMulti, tryCall } from "./utils/protected-call.utils";
 import { getReadable, isReadable } from "./utils/secret-value.utils";
-import { OFF_HAND_SLOT } from "./wow.constants";
+import { OFF_HAND_SLOT, RANGED_SLOT } from "./wow.constants";
+
+/** A point in the world: yards on the map, and the map's ID. */
+export interface WorldPosition {
+    x: number;
+    y: number;
+    mapId: number;
+}
 
 export class PlayerService {
     /** The lowercase names of the eating and drinking buffs (every food gives "Food", every drink "Drink", in the client's language). */
@@ -73,6 +80,72 @@ export class PlayerService {
         return didSucceed && isReadable(name) && type(name) === "string" ? name : undefined;
     }
 
+    /** The name of the spell being channeled now; undefined when none, or when the client hides it. */
+    getChannelingSpellName(): string | undefined {
+        const [didSucceed, name] = attemptMulti(() => UnitChannelInfo("player"));
+        return didSucceed && isReadable(name) && type(name) === "string" ? name : undefined;
+    }
+
+    /** Seconds left on the cast or channel in progress; 0 when none or when the client hides it. */
+    getCastRemaining(): number {
+        const cast = this.readCastEnd(() => UnitCastingInfo("player") as LuaMultiReturn<unknown[]>);
+        return cast > 0 ? cast : this.readCastEnd(() => UnitChannelInfo("player") as LuaMultiReturn<unknown[]>);
+    }
+
+    /**
+     * Combo points: the highest readable of the player's power (modern) and the points on the target (Classic); one
+     * source may read 0 while the other has the real value. Undefined when neither is readable.
+     */
+    readComboPoints(): number | undefined {
+        const power = getReadable(attempt(UnitPower, "player", Enum.PowerType.ComboPoints));
+        const onTarget = getReadable(attempt(GetComboPoints, "player", "target"));
+        if (type(power) !== "number" && type(onTarget) !== "number") return undefined;
+        return math.max(type(power) === "number" ? power! : 0, type(onTarget) === "number" ? onTarget! : 0);
+    }
+
+    /** Where the player stands; undefined when the client hides it (instances). */
+    getPosition(): WorldPosition | undefined {
+        const [didSucceed, x, y, , mapId] = attemptMulti(() => UnitPosition("player"));
+        if (!didSucceed || !isReadable(x) || !isReadable(y) || type(x) !== "number" || type(y) !== "number") return undefined;
+        return { x: x!, y: y!, mapId: getReadable(mapId) ?? 0 };
+    }
+
+    /** Seconds between two Auto Shots; undefined when hidden (in combat). */
+    getRangedSpeed(): number | undefined {
+        const [didSucceed, speed] = attemptMulti(() => UnitRangedDamage("player"));
+        const seconds = didSucceed && isReadable(speed) ? tonumber(speed) : undefined;
+        return seconds !== undefined && seconds > 0.4 ? seconds : undefined;
+    }
+
+    /** The "Speed" of the ranged weapon from its tooltip; undefined when not found. */
+    getRangedWeaponSpeed(): number | undefined {
+        const tooltip = attempt(C_TooltipInfo.GetInventoryItem, "player", RANGED_SLOT);
+        if (tooltip === undefined || type(tooltip) !== "table") return undefined;
+        for (const line of tooltip.lines ?? []) {
+            const text = getReadable(line.rightText);
+            if (text !== undefined && string.find(string.lower(text), "speed", 1, true)[0] !== undefined) {
+                const [digits] = string.match(text, "(%d+%.?%d*)");
+                const speed = tonumber(digits);
+                if (speed !== undefined && speed > 0.4) return speed;
+            }
+        }
+        return undefined;
+    }
+
+    /** The forms on the stance bar (druid forms, warrior stances): each spell, and whether it is active (undefined: hidden). */
+    listShapeshiftForms(): { spellId: number; isActive: boolean | undefined }[] {
+        const count = getReadable(attempt(GetNumShapeshiftForms));
+        const forms: { spellId: number; isActive: boolean | undefined }[] = [];
+        if (type(count) !== "number") return forms;
+        for (let index = 1; index <= count!; index++) {
+            const [didSucceed, , isActive, , spellId] = attemptMulti(() => GetShapeshiftFormInfo(index));
+            if (didSucceed && isReadable(spellId) && spellId !== undefined) {
+                forms.push({ spellId, isActive: isReadable(isActive) ? isActive === true || (isActive as unknown) === 1 : undefined });
+            }
+        }
+        return forms;
+    }
+
     /** Is the player eating or drinking (a food or drink buff)? */
     isEating(): boolean {
         for (let i = 1; i <= 40; i++) {
@@ -82,6 +155,16 @@ export class PlayerService {
             if (name !== undefined && this.getEatingNames().has(string.lower(name))) return true;
         }
         return false;
+    }
+
+    /** Seconds until the end time of a cast read (results: name first, end time in milliseconds fifth). */
+    private readCastEnd(read: (this: void) => LuaMultiReturn<unknown[]>): number {
+        const results = [...(pcall(read) as unknown as LuaMultiReturn<unknown[]>)];
+        if (results[0] !== true || results[1] === undefined || !isReadable(results[1])) return 0;
+        let endTime = isReadable(results[5]) ? tonumber(results[5]) : undefined;
+        if (endTime === undefined) return 0;
+        if (endTime > 100000) endTime = endTime / 1000;
+        return math.max(endTime - GetTime(), 0);
     }
 
     private getEatingNames(): LuaSet<string> {

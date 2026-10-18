@@ -1,6 +1,9 @@
 // Spells, the spellbook and spell tooltips.
 import type { ClientState, SpellDefinition } from "./client-state";
-import { defineNamespace, fake } from "./define";
+import { defineGlobals, defineNamespace, fake } from "./define";
+
+/** A melee spell (range 0) reaches this far. */
+const MELEE_YARDS = 5;
 
 export function installSpells(state: ClientState): void {
     function toSpellInfo(spell: SpellDefinition): SpellInfo {
@@ -8,9 +11,9 @@ export function installSpells(state: ClientState): void {
             name: spell.name,
             iconID: spell.icon,
             originalIconID: spell.icon,
-            castTime: 0,
+            castTime: spell.castTimeMs ?? 0,
             minRange: 0,
-            maxRange: 0,
+            maxRange: spell.maxRange ?? 0,
             spellID: spell.id,
         };
     }
@@ -23,6 +26,12 @@ export function installSpells(state: ClientState): void {
             if (spell.name === idOrName && (best === undefined || spell.rank > best.rank)) best = spell;
         }
         return best;
+    }
+
+    /** Is the target within the spell's range? Undefined for a spell without a range or without a target. */
+    function isTargetInRange(spell: SpellDefinition | undefined): boolean | undefined {
+        if (spell?.maxRange === undefined || state.target === undefined) return undefined;
+        return state.target.yards <= math.max(spell.maxRange, MELEE_YARDS);
     }
 
     /** The spellbook lists the learned spells, sorted by ID. */
@@ -43,9 +52,20 @@ export function installSpells(state: ClientState): void {
             return spell ? `Rank ${spell.rank}` : undefined;
         },
         GetOverrideSpell: (idOrName) => (type(idOrName) === "number" ? (idOrName as number) : 0),
-        IsSpellInRange: (_spell, unit) => {
+        IsSpellInRange: (idOrName, unit) => {
+            if (unit === "target") return isTargetInRange(findSpell(idOrName));
             const [digit] = string.match(unit ?? "", "^party(%d)$");
             return digit !== undefined ? state.party[tonumber(digit)! - 1]?.isOutOfRange !== true : true;
+        },
+        IsSpellHarmful: (idOrName) => findSpell(idOrName)?.isHarmful === true,
+        IsSpellHelpful: (idOrName) => findSpell(idOrName)?.isHelpful === true,
+        IsAutoRepeatSpell: () => false,
+        GetSpellPowerCost: () => [],
+        GetSpellDescription: (idOrName) => findSpell(idOrName)?.description ?? "",
+        GetSpellCooldown: (idOrName) => {
+            const spell = findSpell(idOrName);
+            const cooldown = spell ? state.cooldowns[spell.id] : undefined;
+            return fake<SpellCooldownInfo>({ startTime: cooldown?.start ?? 0, duration: cooldown?.duration ?? 0, isEnabled: true });
         },
         IsSpellUsable: (idOrName) => {
             const isUnusable = state.unusableSpells[idOrName as number] === true;
@@ -55,6 +75,10 @@ export function installSpells(state: ClientState): void {
             const icon = findSpell(idOrName)?.icon;
             return $multi(icon, icon, undefined);
         },
+    });
+
+    defineGlobals({
+        GetSpellBaseCooldown: (spellId) => $multi((state.spells[spellId]?.cooldownSeconds ?? 0) * 1000, 1500),
     });
 
     defineNamespace<typeof C_SpellBook>("C_SpellBook", {

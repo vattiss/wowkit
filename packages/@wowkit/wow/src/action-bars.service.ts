@@ -41,6 +41,8 @@ export class ActionBarsService implements OnFirstLogin {
     private readonly buttonsByName = new LuaMap<string, ActionButton[]>();
     private readonly buttonsByNameKey = new LuaMap<string, ActionButton[]>();
     private readonly buttonsByIcon = new LuaMap<number | string, ActionButton[]>();
+    /** The action slot each mapped button shows. */
+    private readonly slotByButton = new LuaMap<ActionButton, number>();
     private lastMapAt = 0;
     private mapGeneration = 0;
     /** When the player last changed the bars (a form, a stance, a page, a slot); the map is old until it is mapped again. */
@@ -72,6 +74,7 @@ export class ActionBarsService implements OnFirstLogin {
         this.clear(this.buttonsByName);
         this.clear(this.buttonsByNameKey);
         this.clear(this.buttonsByIcon);
+        this.clear(this.slotByButton);
         this.lastMapAt = this.clock.getCurrentTime();
 
         const queue: QueueEntry[] = [];
@@ -135,6 +138,20 @@ export class ActionBarsService implements OnFirstLogin {
             if (list && list.length > 0 && list.length <= MAX_BUTTONS_PER_ICON) take(list);
         }
         return out;
+    }
+
+    /** The action slot of a button the spell sits on (for the client's range check); undefined when none. */
+    findSlotOf(spellId: number | undefined): number | undefined {
+        for (const button of this.findButtonsOf(spellId)) {
+            const slot = this.slotByButton.get(button);
+            if (slot !== undefined) return slot;
+        }
+        return undefined;
+    }
+
+    /** Have the bars been mapped at least once? */
+    isMapped(): boolean {
+        return this.lastMapAt > 0;
     }
 
     isOnBars(spellId: number | undefined): boolean {
@@ -214,6 +231,7 @@ export class ActionBarsService implements OnFirstLogin {
             if (macroSpell !== undefined) [kind, id] = ["spell", macroSpell];
             this.addMacroSpells(macro, button);
         }
+        if (slot !== undefined) this.slotByButton.set(button, slot);
         if (slot !== undefined && this.hasAction(slot)) this.addIcons(button, slot);
         if (kind === "spell" && id !== undefined) {
             this.addSpell(getReadableId(this.spells.getSpellInfo(getReadableId(id))?.spellID) ?? getReadableId(id), button);

@@ -6,6 +6,7 @@ import { createClientState, type ClientState, type FakeAura } from "./client-sta
 import { clearGlobal, readGlobal, defineValues } from "./define";
 import { createFrameRegistry, type FakeFrame } from "./frames";
 import { installClock } from "./install-clock";
+import { installCurves } from "./install-curves";
 import { installActionBars, installAuras } from "./install-bars-and-auras";
 import { installItems } from "./install-items";
 import { installSpells } from "./install-spells";
@@ -32,6 +33,8 @@ export interface World {
     makeAura(name: string, spellId: number, secondsLeft: number, sourceUnit?: string): FakeAura;
     /** How many glows are showing on action button 1..12. */
     glowsOn(button: number): number;
+    /** The opacity of the glows showing on action button 1..12 (a glow faded by a hidden value is 0 or 1). */
+    glowAlphasOn(button: number): number[];
     /** The text of the notice at the top of the screen; empty when it is not showing. */
     notice(): string;
     /** What the addon keeps in the character's saved variables. */
@@ -67,6 +70,7 @@ export function createWorld(setup: (state: ClientState) => void, savedSettings?:
     installActionBars(state, frames);
     installAuras(state);
     installItems(state, sounds);
+    installCurves(state);
 
     loadAddon();
     frames.fire("ADDON_LOADED", config.addonName, false);
@@ -93,6 +97,12 @@ export function createWorld(setup: (state: ClientState) => void, savedSettings?:
             return frames.all.filter(
                 (frame) => frame.parent === buttonFrame && frame.template === "ActionButtonSpellAlertTemplate" && frame.isShown,
             ).length;
+        },
+        glowAlphasOn(button) {
+            const buttonFrame = readGlobal(`ActionButton${button}`);
+            return frames.all
+                .filter((frame) => frame.parent === buttonFrame && frame.template === "ActionButtonSpellAlertTemplate" && frame.isShown)
+                .map((frame) => frame.alpha);
         },
         notice() {
             const noticeFrame = frames.all.find((frame) => frame.parent === readGlobal("UIParent") && frame.fontStrings.length > 0);

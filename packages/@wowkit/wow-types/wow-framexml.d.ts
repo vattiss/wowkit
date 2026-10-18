@@ -13,6 +13,10 @@ interface AuraData {
     expirationTime: number;
     isHelpful: boolean;
     sourceUnit?: UnitToken;
+    /** "Magic", "Curse", "Disease", "Poison"; undefined when it cannot be dispelled. */
+    dispelName?: string;
+    /** A mage can steal it (Spellsteal). */
+    isStealable: boolean;
 }
 
 /** C_TooltipInfo result. */
@@ -30,6 +34,13 @@ declare function GetShapeshiftFormInfo(
     index: number,
 ): LuaMultiReturn<[icon: number | undefined, active: boolean, castable: boolean, spellId: number | undefined]>;
 declare function GetInventoryItemID(unit: UnitToken, slot: number): number | undefined;
+declare function IsInGroup(groupType?: number): boolean;
+/** The base cooldown and the global cooldown of a spell, in milliseconds (a legacy global). */
+declare function GetSpellBaseCooldown(spellId: number): LuaMultiReturn<[cooldownMs: number | undefined, gcdMs: number | undefined]>;
+/** "You must be behind your target." in the client's language. */
+declare const SPELL_FAILED_NOT_BEHIND: string | undefined;
+/** Ready-made curves for the *Percent functions. */
+declare const CurveConstants: { ScaleTo100: LuaCurveObjectBase } | undefined;
 
 interface Frame {
     // The docs type the units as an enum; the client takes unit tokens

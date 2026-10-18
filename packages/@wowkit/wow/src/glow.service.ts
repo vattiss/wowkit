@@ -2,6 +2,7 @@
 
 import type { ActionBarsService } from "./action-bars.service";
 import { tryCall } from "./utils/protected-call.utils";
+import type { HiddenAlpha } from "./value-curves.service";
 
 /** A color as red, green and blue between 0 and 1. */
 export type Rgb = [r: number, g: number, b: number];
@@ -21,6 +22,11 @@ export interface ButtonGlow {
     /** Glows the buttons of these spells in the color; an empty list clears. */
     show: (this: void, spellIds: number[], color: Rgb) => void;
     clear: (this: void) => void;
+    /**
+     * The opacity of the glowing buttons: a curve result the client computed from a hidden value (see
+     * ValueCurvesService), or a number; undefined is the glow's own opacity again.
+     */
+    setAlpha: (this: void, alpha: HiddenAlpha | number | undefined) => void;
 }
 
 export class GlowService {
@@ -42,9 +48,19 @@ export class GlowService {
         };
         return {
             clear: clearGlow,
+            setAlpha: (alpha) => {
+                for (const button of glowing) {
+                    // The client accepts the secret curve result here; addon code never reads it
+                    this.overlays
+                        .get(button)
+                        ?.get(kind)
+                        ?.frame.SetAlpha((alpha ?? GLOW_ALPHA) as number);
+                }
+            },
             show: (spellIds, color) => {
                 if (spellIds.length === 0) return clearGlow();
-                const key = spellIds.join(",");
+                // The color is part of the key: the same spell may glow in another color (a heal that turns urgent)
+                const key = `${spellIds.join(",")}|${color.join(",")}`;
                 if (key === last && !glowing.isEmpty()) return;
                 const buttons = spellIds.flatMap((spellId) => this.actionBars.findButtonsOf(spellId));
                 clearGlow();
