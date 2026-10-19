@@ -7,6 +7,14 @@ Blizzard's own API documentation in [Gethe/wow-ui-source](https://github.com/Get
 
 **Documentation:** https://vattiss.github.io/wowkit/ - a getting started page, a learning guide that builds a first addon, the architecture and the API reference.
 
+## Design goal
+
+wowkit is a TypeScript layer written to be **read by people**. An AI writes most of the code; the design makes sure a
+person can still read it, review it, trust it and change it. Names read like English, files and functions are small,
+each class has one job and is wired by hand, the game's quirks stay in one package, and the reasons for each choice are
+written down. Every rule is checked by `pnpm check`, so it holds for any change, whoever wrote it. More, and what it
+does not promise: [Design goal](docs/design-goal.md).
+
 ## The addons
 
 One addon that lights up your action bars, so you look at the buttons you press anyway and not at an extra window. It has

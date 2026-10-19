@@ -4,11 +4,14 @@ layout: home
 hero:
   name: wowkit
   text: "TypeScript for World of Warcraft: Forever addons"
-  tagline: A toolkit of small packages, compiled to Lua with TypeScriptToLua, and the reminder addons built with it.
+  tagline: A layer of small packages, compiled to Lua with TypeScriptToLua, written to be read by people. An AI writes most of the code; the rules make sure a person can still read, review and change it.
   actions:
     - theme: brand
       text: Getting started
       link: /getting-started
+    - theme: alt
+      text: Design goal
+      link: /design-goal
     - theme: alt
       text: Learning guide
       link: /learning-guide
@@ -18,6 +21,10 @@ hero:
       target: _self
 
 features:
+  - title: Written to be read
+    details: Names that read like English, small files and functions, one job for each class. Every rule is checked by a tool, so it holds for code a person wrote and for code an AI wrote.
+    link: /design-goal
+    linkText: The design goal
   - title: Plain classes, wired by hand
     details: A service is a class that asks for what it needs in its constructor. No container, no magic; a missing dependency is a compile error.
     link: /architecture

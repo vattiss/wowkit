@@ -26,6 +26,7 @@ export default withMermaid(
                 {
                     text: "Start here",
                     items: [
+                        { text: "Design goal", link: "/design-goal" },
                         { text: "Getting started", link: "/getting-started" },
                         { text: "Learning guide", link: "/learning-guide" },
                     ],
