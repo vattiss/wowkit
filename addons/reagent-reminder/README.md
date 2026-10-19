@@ -1,6 +1,6 @@
 # Reagent Reminder
 
-> **Moved.** This addon is replaced by **Glowing Bars And Auras**, which does what Buff Reminder, Rank Reminder and
+> **Moved.** This addon is replaced by **Glowing Bars**, which does what Buff Reminder, Rank Reminder and
 > Reagent Reminder did, and lights the cooldowns and procs too. Install it from CurseForge and remove this addon.
 
 A World of Warcraft: Forever addon (TOC `16001`) that names the reagents of your group buffs when they run low, as you

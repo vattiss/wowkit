@@ -1,6 +1,6 @@
 # Know Your Rotation
 
-> **Retired.** This addon is no longer developed. **Glowing Bars And Auras** replaces the reminders of the Forever
+> **Retired.** This addon is no longer developed. **Glowing Bars** replaces the reminders of the Forever
 > Reminders addons and lights ready cooldowns and procs on your action bars; it has no rotation queue. Install it from
 > CurseForge if that is what you need.
 

@@ -1,7 +1,7 @@
 // English only: every player-facing string of the addon.
 export const TEXTS = {
     TITLE: "Know Your Rotation",
-    INIT: "This addon is retired: see Glowing Bars And Auras on CurseForge",
+    INIT: "This addon is retired: see Glowing Bars on CurseForge",
 
     HDR_ABOUT: "Help",
     INFO_GITHUB: "GitHub",

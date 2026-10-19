@@ -1,7 +1,7 @@
 // English only: every player-facing string of the addon.
 export const TEXTS = {
     TITLE: "Buff Reminder",
-    INIT: "This addon has moved: please install Glowing Bars And Auras from CurseForge and remove this one",
+    INIT: "This addon has moved: please install Glowing Bars from CurseForge and remove this one",
 
     HDR_ABOUT: "Help",
     INFO_GITHUB: "GitHub",

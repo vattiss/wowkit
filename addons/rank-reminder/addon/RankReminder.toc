@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## AllowLoadGameType: camelot
 ## Title: Rank Reminder
-## Notes: Moved to Glowing Bars And Auras (CurseForge). Names the spells on your action bars that are a lower rank than the one you have learned.
+## Notes: Moved to Glowing Bars (CurseForge). Names the spells on your action bars that are a lower rank than the one you have learned.
 ## Category: Forever Reminders
 ## Author: Attila Varga (vattiss)
 ## Version: @version@
