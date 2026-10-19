@@ -14,13 +14,16 @@ Your Rotation.
   (Fortitude, Mark of the Wild, Arcane Intellect for mana users, your blessing), and its button glows. With two or more
   missing and the reagent in your bags, it suggests the group version (Prayer of Fortitude, Gift of the Wild, Arcane
   Brilliance; a Greater Blessing per class). A group version on you counts as the buff.
-- **Old ranks**: a spell on your action bars that is a lower rank than the one you know glows, quietly.
-- **Reagents**: the group buff on your action bar (Prayer of Fortitude, Gift of the Wild...) glows, quietly, while its reagent runs low, also in a town; on arriving in a town or an inn a message names the reagents.
-- **Ready cooldowns**: the important cooldowns of your class (Recklessness, Rapid Fire, Adrenaline Rush, Innervate...)
-  glow when they are ready, in combat (or always, if you ask). The list per class is a default you can switch off spell
-  by spell. When the client hides a cooldown in combat, the addon remembers the one it saw or started with a cast.
+- **Reagents**: the group buff on your action bar (Prayer of Fortitude, Gift of the Wild...) glows, quietly, while its
+  reagent runs low, also in a town; on arriving in a town or an inn a chat line names the reagents.
+- **Ready cooldowns**: in a fight, an important cooldown of your class (Recklessness, Rapid Fire, Adrenaline Rush,
+  Innervate...) or of your race (Blood Fury, Stoneform, Desperate Prayer...) glows when it is ready again after you used
+  it, or after it was running as the fight began: for 3 seconds by default (2, 5, 10, or until you press it). Out of
+  combat they glow only if you ask. The list is a default you can switch off spell by spell. When the client hides a
+  cooldown in combat, the addon remembers the one it saw or started with a cast.
 - **Procs**: a spell glows while the game says it can be used: Overpower, Revenge, Execute, Victory Rush, Riposte,
   Counterattack, Mongoose Bite, Hammer of Wrath.
+- **Old ranks**: a spell on your action bars that is a lower rank than the one you know glows, quietly.
 - Quiet while dead, mounted, on a taxi, eating, or (optionally) resting in town.
 
 Every kind of reminder has the same four settings: the **color** of its glow and message, the **opacity** of the glow

@@ -39,7 +39,7 @@ export const TEXTS = {
     HDR_COOLDOWNS: "Ready cooldowns",
     OPT_COOLDOWNS: "Highlight important cooldowns that are ready",
     TIP_COOLDOWNS:
-        "The important cooldowns of your class glow on their action button when they are ready. The list below is what you can switch off.",
+        "In a fight, an important cooldown of your class or your race glows on its action button when it is ready again after you used it (or after it was running as the fight began), for the time chosen below. The list below is what you can switch off.",
     OPT_COOLDOWNS_OUT_OF_COMBAT: "Also out of combat",
     TIP_COOLDOWNS_OUT_OF_COMBAT: "By default the cooldowns glow in combat only.",
     OPT_COOLDOWN_SECONDS: "Glow when it is back",

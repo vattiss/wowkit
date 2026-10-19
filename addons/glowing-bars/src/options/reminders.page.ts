@@ -61,12 +61,11 @@ export class RemindersPage implements OptionsPage {
         }
 
         this.weaponSection.addWeaponSection(category, layout);
+        this.reagentsSection.addReagentsSection(category, layout);
         this.glowsSection.addGlowsSection(category, layout);
 
         this.reminderControls.addHeader(layout, "HDR_RANKS");
         this.reminderControls.addSwitch(category, "showRanks", "OPT_RANKS", "TIP_RANKS");
-
-        this.reagentsSection.addReagentsSection(category, layout);
 
         this.about.addAboutSection(layout);
     }
