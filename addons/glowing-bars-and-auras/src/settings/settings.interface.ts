@@ -40,8 +40,8 @@ export interface AddonSettings {
     showProcs: boolean;
     /** The player's changes to the look of each kind of reminder (the default look of its spells). */
     styles: { [key in ColorKey]?: StyleOverride };
-    /** The player's changes to the look of one spell, by the spell's name. */
-    spellStyles: { [spellName: string]: StyleOverride | undefined };
+    /** The player's changes to the look of one spell in one kind, by the kind and the spell's name ("rank:Smite"). */
+    spellStyles: { [kindAndName: string]: StyleOverride | undefined };
     /** Per-spell switches of the cooldown and proc glows (by spell ID); only set where the player switched one off. */
     glowOn: { [spellId: string]: boolean | undefined };
     /** Per-reagent switches (by item ID); only set where the player switched one off. */

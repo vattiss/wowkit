@@ -10,6 +10,8 @@ import {
     playAs,
     PRAYER_OF_FORTITUDE,
     PRIEST,
+    SMITE_RANK_1,
+    SMITE_RANK_2,
     type ClientState,
     type World,
 } from "@wowkit/test-kit";
@@ -160,5 +162,22 @@ describe("a character whose saved sound has gone from the list", () => {
     it("gets the default sound again", () => {
         const world = createWorld((state) => setUpPriest(state, true), { styles: { reagent: { sound: "coin" } } });
         expect((world.getSavedSettings()?.styles as { reagent?: { sound?: string } } | undefined)?.reagent?.sound).toBeUndefined();
+    });
+});
+
+describe("a priest with an old rank on the bar who arrives in a town", () => {
+    it("keeps the reagent message, although the message of the old rank goes out in town", () => {
+        const world = createWorld((state) => {
+            setUpPriest(state, false);
+            for (const spell of [SMITE_RANK_1, SMITE_RANK_2]) learnSpell(state, spell);
+            state.bars[3] = SMITE_RANK_1.id;
+        });
+        world.advance(3);
+        expect(world.notice()).toContain("Old spell rank");
+        world.state.isResting = true;
+        world.fire("PLAYER_UPDATE_RESTING");
+        world.advance(1);
+        expect(world.notice()).toContain("Reagents running low");
+        expect(world.notice()).not.toContain("Old spell rank");
     });
 });

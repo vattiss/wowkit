@@ -53,7 +53,7 @@ describe("the opacity of a glow", () => {
     });
 
     it("follows the percent the player set for the spell, over the one of the kind", () => {
-        const world = start({ styles: { proc: { opacity: 30 } }, spellStyles: { Overpower: { opacity: 70 } } });
+        const world = start({ styles: { proc: { opacity: 30 } }, spellStyles: { "proc:Overpower": { opacity: 70 } } });
         expect(world.glowAlphasOn(1)).toEqual([0.7]);
     });
 
@@ -76,17 +76,17 @@ describe("the message of a reminder", () => {
     });
 
     it("is in the color the player picked for the spell", () => {
-        const world = start({ styles: { proc: { isTextOn: true } }, spellStyles: { Overpower: { color: [0, 1, 0] } } });
+        const world = start({ styles: { proc: { isTextOn: true } }, spellStyles: { "proc:Overpower": { color: [0, 1, 0] } } });
         expect(world.notice()).toBe("|cff00ff00Proc|r");
     });
 
     it("can be off for one spell although the kind has it on", () => {
-        const world = start({ styles: { proc: { isTextOn: true } }, spellStyles: { Overpower: { isTextOn: false } } });
+        const world = start({ styles: { proc: { isTextOn: true } }, spellStyles: { "proc:Overpower": { isTextOn: false } } });
         expect(world.notice()).toBe("");
     });
 
     it("can be on for one spell although the kind has it off", () => {
-        const world = start({ spellStyles: { Recklessness: { isTextOn: true } } });
+        const world = start({ spellStyles: { "cooldown:Recklessness": { isTextOn: true } } });
         expect(world.notice()).toBe("|cffffffffCooldown ready|r");
     });
 });
@@ -102,7 +102,7 @@ describe("the sound of a reminder", () => {
             },
             {
                 styles: { proc: { sound: "alarm1" } },
-                spellStyles: { Overpower: { sound: "raidwarning" }, Recklessness: { sound: "alarm3" } },
+                spellStyles: { "proc:Overpower": { sound: "raidwarning" }, "cooldown:Recklessness": { sound: "alarm3" } },
             },
         );
         world.advance(1);

@@ -247,7 +247,11 @@ export class StyleTableService {
         };
         widgets.opacity.SetScript("OnEnterPressed", apply);
         widgets.opacity.SetScript("OnEditFocusLost", apply);
-        widgets.opacity.SetScript("OnEscapePressed", () => widgets.opacity.ClearFocus());
+        widgets.opacity.SetScript("OnEscapePressed", () => {
+            const row = widgets.row;
+            if (row !== undefined) widgets.opacity.SetText(string.format("%d", this.styles.getStyle(row.kind, row.spellId).opacity));
+            widgets.opacity.ClearFocus();
+        });
     }
 
     private connectMessage(widgets: RowWidgets): void {
@@ -274,7 +278,7 @@ export class StyleTableService {
             const row = widgets.row;
             if (row === undefined) return;
             if (row.spellId === undefined) this.styles.resetKind(row.kind);
-            else this.styles.resetSpell(row.spellId);
+            else this.styles.resetSpell(row.kind, row.spellId);
         });
     }
 

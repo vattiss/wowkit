@@ -77,7 +77,7 @@ export function startAddon(addonName: string): void {
     const game = makeGame(addon, addonName);
     const texts = makeTexts(addon, game);
     const buffs = makeBuffs(addon, game, texts);
-    const reminders = makeReminders(addon, game, texts, buffs);
+    const reminders = makeReminders(addon, addonName, game, texts, buffs);
     makeTick(addon, addonName, game, texts, buffs, reminders);
     makeOptions(addon, addonName, game, texts, buffs, reminders);
     addon.start();
@@ -146,7 +146,7 @@ function makeBuffs(addon: Addon, game: Game, texts: Texts) {
 type Buffs = ReturnType<typeof makeBuffs>;
 
 /** What the addon reminds about. */
-function makeReminders(addon: Addon, game: Game, texts: Texts, buffs: Buffs) {
+function makeReminders(addon: Addon, addonName: string, game: Game, texts: Texts, buffs: Buffs) {
     const { settings } = texts;
     const buff = addon.register(new BuffReminderService(buffs.state, game.spells, game.player, game.actionBars, buffs.classBuffs));
     const reagents = addon.register(new ReagentsService(game.bags, game.spells));
@@ -160,7 +160,9 @@ function makeReminders(addon: Addon, game: Game, texts: Texts, buffs: Buffs) {
     const outdatedRanks = addon.register(new OutdatedRanksService(game.actionBars, game.spells));
     const tracker = addon.register(new CooldownTrackerService(game.spells, game.cooldowns, game.clock));
     const glowCues = addon.register(new GlowCuesService(game.player, game.spells, game.spellDetails, game.actionBars, tracker, settings));
-    addon.register(new TownVisitService(game.player, reagents, settings, texts.messages, game.notice, texts.locale, texts.styles));
+    // Its own block of the shared notice: the tick clearing its lines must not take the town message with them
+    const townNotice = addon.register(new NoticeService(`${addonName}-town`));
+    addon.register(new TownVisitService(game.player, reagents, settings, texts.messages, townNotice, texts.locale, texts.styles));
     return { buff, reagents, party, weaponChoice, weapon, outdatedRanks, glowCues };
 }
 type Reminders = ReturnType<typeof makeReminders>;

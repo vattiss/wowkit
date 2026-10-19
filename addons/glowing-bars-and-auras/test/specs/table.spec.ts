@@ -101,7 +101,7 @@ describe("the table of looks", () => {
         const row = findRow(world, "Recklessness");
         row.opacity.text = "40";
         row.opacity.scripts.OnEnterPressed!(row.opacity);
-        expect(readSaved(world, "spellStyles").Recklessness?.opacity).toBe(40);
+        expect(readSaved(world, "spellStyles")["cooldown:Recklessness"]?.opacity).toBe(40);
         expect(world.glowAlphasOn(2)).toEqual([0.4]);
     });
 
@@ -117,14 +117,14 @@ describe("the table of looks", () => {
         const row = findRow(world, "Recklessness");
         row.message.isChecked = true;
         row.message.scripts.OnClick!(row.message);
-        expect(readSaved(world, "spellStyles").Recklessness?.isTextOn).toBe(true);
+        expect(readSaved(world, "spellStyles")["cooldown:Recklessness"]?.isTextOn).toBe(true);
         expect(world.notice()).toContain("Cooldown ready");
     });
 
     it("takes the next sound on a click and plays it", () => {
         const row = findRow(world, "Recklessness");
         row.sound.scripts.OnClick!(row.sound, "LeftButton");
-        expect(readSaved(world, "spellStyles").Recklessness?.sound).toBe("raidwarning");
+        expect(readSaved(world, "spellStyles")["cooldown:Recklessness"]?.sound).toBe("raidwarning");
         expect(world.sounds).toEqual([8959]);
     });
 
@@ -134,7 +134,24 @@ describe("the table of looks", () => {
         const picker = ColorPickerFrame as unknown as FakeColorPicker;
         picker.pickedColor = [1, 0, 0];
         picker.info!.swatchFunc();
-        expect(readSaved(world, "spellStyles").Recklessness?.color).toEqual([1, 0, 0]);
+        expect(readSaved(world, "spellStyles")["cooldown:Recklessness"]?.color).toEqual([1, 0, 0]);
+    });
+
+    it("keeps the saved percent when Escape is pressed in the box", () => {
+        const row = findRow(world, "Recklessness");
+        row.opacity.text = "40";
+        row.opacity.scripts.OnEscapePressed!(row.opacity);
+        // Letting go of the box saves what it shows
+        row.opacity.scripts.OnEditFocusLost!(row.opacity);
+        expect(row.opacity.text).toBe("100");
+        expect(readSaved(world, "spellStyles")["cooldown:Recklessness"]).toBeUndefined();
+    });
+
+    it("keeps no change that is the same as what the spell inherits", () => {
+        const row = findRow(world, "Recklessness");
+        row.opacity.text = "100";
+        row.opacity.scripts.OnEnterPressed!(row.opacity);
+        expect(readSaved(world, "spellStyles")["cooldown:Recklessness"]).toBeUndefined();
     });
 
     it("forgets what the player changed for a spell on Reset", () => {
@@ -142,7 +159,7 @@ describe("the table of looks", () => {
         row.opacity.text = "40";
         row.opacity.scripts.OnEnterPressed!(row.opacity);
         row.reset.scripts.OnClick!(row.reset);
-        expect(readSaved(world, "spellStyles").Recklessness).toBeUndefined();
+        expect(readSaved(world, "spellStyles")["cooldown:Recklessness"]).toBeUndefined();
         expect(world.glowAlphasOn(2)).toEqual([1]);
     });
 });
