@@ -15,3 +15,5 @@ export const HEADER_HEIGHT = 24;
 export const COLUMN = { icon: 4, name: 42, kind: 208, color: 304, opacity: 354, message: 432, sound: 514, reset: 656 };
 /** The name of an overridden spell, against the gray of one that follows its kind. */
 export const OVERRIDDEN_COLOR: [number, number, number] = [1, 0.82, 0];
+/** The window border: the silver dialog art, tinted bronze. */
+export const BORDER_COLOR: Rgb = [0.85, 0.6, 0.3];

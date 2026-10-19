@@ -2,7 +2,7 @@
 // scroll area. The rows are the table's.
 import type { AddonLocale } from "../locale/locale.interface";
 import type { TextKey } from "../locale/texts.constants";
-import { COLUMN, WINDOW_HEIGHT, WINDOW_NAME, WINDOW_WIDTH } from "./style-table.constants";
+import { BORDER_COLOR, COLUMN, WINDOW_HEIGHT, WINDOW_NAME, WINDOW_WIDTH } from "./style-table.constants";
 
 export class StyleWindowService {
     constructor(private readonly locale: AddonLocale) {}
@@ -29,6 +29,7 @@ export class StyleWindowService {
         const scroll = CreateFrame("ScrollFrame", undefined, window, "UIPanelScrollFrameTemplate");
         scroll.SetPoint("TOPLEFT", window, "TOPLEFT", 16, -60);
         scroll.SetPoint("BOTTOMRIGHT", window, "BOTTOMRIGHT", -34, 16);
+        this.applyScrollBarTint(scroll);
         const content = CreateFrame("Frame", undefined, scroll);
         content.SetSize(WINDOW_WIDTH - 50, 10);
         scroll.SetScrollChild(content);
@@ -47,13 +48,30 @@ export class StyleWindowService {
         background.SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -6, 6);
         background.SetColorTexture(0.1, 0.07, 0.04, 1);
         if (didSucceed) {
-            (created as Frame & BackdropFrame).SetBackdrop({
+            const backdrop = created as Frame & BackdropFrame;
+            backdrop.SetBackdrop({
                 edgeFile: "Interface\\DialogFrame\\UI-DialogBox-Border",
                 edgeSize: 32,
                 insets: { left: 11, right: 12, top: 12, bottom: 11 },
             });
+            // The border art is silver; tinted, it is the bronze of Forever's own windows
+            backdrop.SetBackdropBorderColor(BORDER_COLOR[0], BORDER_COLOR[1], BORDER_COLOR[2]);
         }
         return frame;
+    }
+
+    /** The scroll bar of the template is silver art too: tinted like the border. A client without it keeps it silver. */
+    private applyScrollBarTint(scroll: ScrollFrame): void {
+        const bar = (scroll as unknown as { ScrollBar?: Frame }).ScrollBar;
+        if (bar !== undefined) pcall(() => this.applyTextureTint(bar, 0));
+    }
+
+    /** Every texture of the frame and of its children (the arrow buttons, the thumb), two levels down. */
+    private applyTextureTint(frame: Frame, depth: number): void {
+        for (const region of [...frame.GetRegions()]) {
+            if (region.GetObjectType() === "Texture") region.SetVertexColor(BORDER_COLOR[0], BORDER_COLOR[1], BORDER_COLOR[2]);
+        }
+        if (depth < 2) for (const child of [...frame.GetChildren()]) this.applyTextureTint(child, depth + 1);
     }
 
     private addColumnHeaders(window: Frame): void {
