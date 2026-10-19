@@ -5,7 +5,7 @@ pushed, and uploaded by hand to that project.
 
 | Addon | CurseForge project ID | Tag |
 |---|---|---|
-| Glowing Bars | (set in the TOC once the project exists) | `glowing-bars-v<version>` (a version like `1.0.0-beta.1` is uploaded as a Beta) |
+| Glowing Bars | 1754997 | `glowing-bars-v<version>` (a version like `1.0.0-beta.1` is uploaded as a Beta) |
 
 The four addons it replaced were released at their tags, the last ones as `1.0.2`: `buff-reminder-v1.0.2` (CurseForge
 project 1751392), `rank-reminder-v1.0.2` (1751395), `reagent-reminder-v1.0.2` (1751397) and `know-your-rotation-v1.0.2`

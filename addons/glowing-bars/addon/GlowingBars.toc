@@ -9,5 +9,6 @@
 ## SavedVariablesPerCharacter: GlowingBarsCharDB
 ## DefaultState: enabled
 ## X-Website: https://github.com/vattiss/wowkit
+## X-Curse-Project-ID: 1754997
 
 GlowingBars.lua
