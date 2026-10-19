@@ -63,6 +63,39 @@ describe("a warrior with Overpower and Recklessness on the bars", () => {
         expect(world.glowsOn(2)).toBe(1);
     });
 
+    it("lights Recklessness in combat when it comes back from a cooldown it was on as the fight started", () => {
+        world.state.cooldowns[RECKLESSNESS.id] = { start: 0, duration: 99999 };
+        world.advance(0.5);
+        world.state.isInCombat = true;
+        world.fire("PLAYER_REGEN_DISABLED");
+        world.advance(0.5);
+        expect(world.glowsOn(2)).toBe(0);
+        world.state.cooldowns[RECKLESSNESS.id] = undefined;
+        world.advance(0.5);
+        expect(world.glowsOn(2)).toBe(1);
+    });
+
+    it("glows for 3 seconds once Recklessness is back, not until it is pressed", () => {
+        world.state.isInCombat = true;
+        world.state.cooldowns[RECKLESSNESS.id] = { start: 0, duration: 99999 };
+        world.advance(0.5);
+        world.state.cooldowns[RECKLESSNESS.id] = undefined;
+        world.advance(2.5);
+        expect(world.glowsOn(2)).toBe(1);
+        world.advance(1);
+        expect(world.glowsOn(2)).toBe(0);
+    });
+
+    it("glows until it is pressed when the player chose so", () => {
+        world.setOption("cooldownGlowSeconds", "0");
+        world.state.isInCombat = true;
+        world.state.cooldowns[RECKLESSNESS.id] = { start: 0, duration: 99999 };
+        world.advance(0.5);
+        world.state.cooldowns[RECKLESSNESS.id] = undefined;
+        world.advance(30);
+        expect(world.glowsOn(2)).toBe(1);
+    });
+
     it("forgets the cooldowns of the last fight when a new one starts", () => {
         world.state.isInCombat = true;
         world.state.cooldowns[RECKLESSNESS.id] = { start: 0, duration: 99999 };
@@ -102,7 +135,11 @@ describe("a warrior with Overpower and Recklessness on the bars", () => {
     it("has the glow back when the cooldown is over", () => {
         world.state.isInCombat = true;
         world.fire("UNIT_SPELLCAST_SUCCEEDED", "player", "cast-1", RECKLESSNESS.id);
-        world.advance(301);
+        world.state.cooldowns[RECKLESSNESS.id] = { start: 0, duration: 99999 };
+        world.advance(1);
+        expect(world.glowsOn(2)).toBe(0);
+        world.state.cooldowns[RECKLESSNESS.id] = undefined;
+        world.advance(0.5);
         expect(world.glowsOn(2)).toBe(1);
     });
 
@@ -126,5 +163,24 @@ describe("a warrior with Overpower and Recklessness on the bars", () => {
         world.state.unusableSpells[OVERPOWER.id] = undefined;
         world.advance(0.5);
         expect(world.glowsOn(1) + world.glowsOn(2)).toBe(0);
+    });
+});
+
+describe("an orc warrior with Blood Fury on the bars", () => {
+    const BLOOD_FURY: SpellDefinition = { id: 20572, name: "Blood Fury", rank: 1, icon: 135726, cooldownSeconds: 120, isHelpful: true };
+
+    it("sees Blood Fury glow when it is back in a fight, like the cooldowns of the class", () => {
+        const world = createWorld((state) => {
+            playAs(state, WARRIOR);
+            learnSpell(state, BLOOD_FURY);
+            state.bars[3] = BLOOD_FURY.id;
+            state.isInCombat = true;
+        });
+        world.state.cooldowns[BLOOD_FURY.id] = { start: 0, duration: 99999 };
+        world.advance(0.5);
+        expect(world.glowsOn(3)).toBe(0);
+        world.state.cooldowns[BLOOD_FURY.id] = undefined;
+        world.advance(0.5);
+        expect(world.glowsOn(3)).toBe(1);
     });
 });

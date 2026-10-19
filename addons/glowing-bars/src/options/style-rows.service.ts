@@ -2,7 +2,8 @@
 // can have a look of their own: the buffs, the weapon buffs, the cooldowns, the procs, the group buffs with a reagent, and
 // every spell of the book that has ranks. Plain lists; the window draws them.
 import type { PlayerService, SpellsService } from "@wowkit/wow";
-import { COOLDOWN_CUES, PROC_CUES } from "../glows/glow-cues.constants";
+import { PROC_CUES } from "../glows/glow-cues.constants";
+import type { GlowCuesService } from "../glows/glow-cues.service";
 import type { AddonLocale } from "../locale/locale.interface";
 import type { TextKey } from "../locale/texts.constants";
 import type { ReagentsService } from "../reagents/reagents.service";
@@ -40,6 +41,7 @@ export class StyleRowsService {
         private readonly reagents: ReagentsService,
         private readonly locale: AddonLocale,
         private readonly styles: StyleService,
+        private readonly glowCues: GlowCuesService,
     ) {}
 
     /** The default look of each kind of reminder. */
@@ -66,7 +68,7 @@ export class StyleRowsService {
         const classToken = this.player.getClassToken() ?? "";
         for (const classBuff of this.classBuffs.getClassBuffs()) add("buff", classBuff.id);
         for (const entry of this.weaponChoice.getWeaponChoices()) add("weapon", entry.id);
-        for (const id of COOLDOWN_CUES[classToken] ?? []) add("cooldown", id);
+        for (const id of this.glowCues.listCooldownIds()) add("cooldown", id);
         for (const id of PROC_CUES[classToken] ?? []) add("proc", id);
         for (const reagent of this.reagents.getReagentsOfClass(this.player.getClassToken())) add("reagent", reagent.spells[0]);
         // The spells that have ranks (a spell with one rank has no "Rank" in its subtext), on a bar or not

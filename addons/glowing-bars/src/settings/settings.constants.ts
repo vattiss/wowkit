@@ -15,6 +15,7 @@ export function createDefaultSettings(): AddonSettings {
         showReagents: true,
         showCooldowns: true,
         showCooldownsOutOfCombat: false,
+        cooldownGlowSeconds: 3,
         showProcs: true,
         styles: {},
         spellStyles: {},
@@ -33,6 +34,9 @@ export const STYLE_DEFAULTS: { [key in ColorKey]: Style } = {
     rank: { color: [1, 0.85, 0.2], opacity: 50, isTextOn: true, sound: "alarm1" },
     reagent: { color: [1, 0.85, 0.2], opacity: 50, isTextOn: true, sound: "none" },
 };
+
+/** The choices of how long a cooldown glows once it is back (seconds; 0 = until it is pressed). */
+export const COOLDOWN_GLOW_CHOICES = [2, 3, 5, 10, 0];
 
 /** The kinds in the order the tables list them. */
 export const KIND_ORDER: ColorKey[] = ["buff", "weapon", "cooldown", "proc", "rank", "reagent"];
@@ -54,6 +58,8 @@ function repairStyle(style: StyleOverride | undefined): StyleOverride | undefine
 
 /** Puts right what a saved look got wrong. */
 export function repairSettings(values: AddonSettings): void {
+    if (!COOLDOWN_GLOW_CHOICES.includes(values.cooldownGlowSeconds))
+        values.cooldownGlowSeconds = createDefaultSettings().cooldownGlowSeconds;
     for (const kind of KIND_ORDER) values.styles[kind] = repairStyle(values.styles[kind]);
     for (const [name, style] of pairs(values.spellStyles)) values.spellStyles[name as string] = repairStyle(style);
 }

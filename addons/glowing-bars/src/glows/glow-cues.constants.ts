@@ -1,6 +1,6 @@
 // The spells that glow by themselves, per class (UnitClass token): the cooldowns worth pressing the moment they are ready,
 // and the spells that become usable only after something happened (a dodge, a parry, a kill, a low target).
-import { Druid, Hunter, Mage, Paladin, Priest, Rogue, Shaman, Warrior } from "@wowkit/wow-data";
+import { Druid, Hunter, Mage, Paladin, Priest, Racial, Rogue, Shaman, Warrior } from "@wowkit/wow-data";
 
 /** Important cooldowns: they glow when ready, in combat. The player can switch each off. */
 export const COOLDOWN_CUES: { [classToken: string]: number[] | undefined } = {
@@ -13,6 +13,26 @@ export const COOLDOWN_CUES: { [classToken: string]: number[] | undefined } = {
     SHAMAN: [Shaman.ElementalMastery],
     WARRIOR: [Warrior.Recklessness, Warrior.DeathWish, Warrior.ShieldWall, Warrior.LastStand],
 };
+
+/**
+ * The racials worth a glow in a fight, of every race: only the ones the player has learned count. Offensive (Blood Fury,
+ * Berserking, Elune's Light, Eureka), defensive (Stoneform, Will to Survive, Rapid Regeneration), and the ones that break
+ * out of a hold (Will of the Forsaken, Escape Artist, Shatter Curse), War Stomp and Perception.
+ */
+export const RACIAL_COOLDOWNS: number[] = [
+    Racial.BloodFury,
+    Racial.Berserking,
+    Racial.ElunesLight,
+    Racial.Eureka,
+    Racial.Stoneform,
+    Racial.WillToSurvive,
+    Racial.RapidRegeneration,
+    Racial.WillOfTheForsaken,
+    Racial.EscapeArtist,
+    Racial.ShatterCurse,
+    Racial.WarStomp,
+    Racial.Perception,
+];
 
 /** Procs: the spell glows while the game says it is usable (and not on cooldown). The player can switch each off. */
 export const PROC_CUES: { [classToken: string]: number[] | undefined } = {

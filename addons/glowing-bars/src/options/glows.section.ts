@@ -2,7 +2,9 @@
 // player's class that can glow.
 
 import type { AddonLocale } from "../locale/locale.interface";
-import { COOLDOWN_CUES, PROC_CUES } from "../glows/glow-cues.constants";
+import { PROC_CUES } from "../glows/glow-cues.constants";
+import { COOLDOWN_GLOW_CHOICES } from "../settings/settings.constants";
+import type { GlowCuesService } from "../glows/glow-cues.service";
 import type { AddonSettings, AddonSettingsService } from "../settings/settings.interface";
 import type { ControlsService } from "@wowkit/ui";
 import type { PlayerService, SpellsService } from "@wowkit/wow";
@@ -16,11 +18,12 @@ export class GlowsSection {
         private readonly controls: ControlsService<AddonSettings>,
         private readonly reminderControls: ReminderControlsService,
         private readonly player: PlayerService,
+        private readonly glowCues: GlowCuesService,
     ) {}
 
     addGlowsSection(category: SettingsCategory, layout: SettingsLayout): void {
         const classToken = this.player.getClassToken() ?? "";
-        const cooldowns = COOLDOWN_CUES[classToken] ?? [];
+        const cooldowns = this.glowCues.listCooldownIds();
         const procs = PROC_CUES[classToken] ?? [];
         if (cooldowns.length > 0) {
             this.reminderControls.addHeader(layout, "HDR_COOLDOWNS");
@@ -31,6 +34,7 @@ export class GlowsSection {
                 "OPT_COOLDOWNS_OUT_OF_COMBAT",
                 "TIP_COOLDOWNS_OUT_OF_COMBAT",
             );
+            this.addGlowSecondsDropdown(category);
             this.addSpellCheckboxes(category, cooldowns);
         }
         if (procs.length > 0) {
@@ -38,6 +42,25 @@ export class GlowsSection {
             this.reminderControls.addSwitch(category, "showProcs", "OPT_PROCS", "TIP_PROCS");
             this.addSpellCheckboxes(category, procs);
         }
+    }
+
+    /** How long a cooldown glows once it is back: a few seconds, or until it is pressed. */
+    private addGlowSecondsDropdown(category: SettingsCategory): void {
+        this.controls.addDropdown(
+            category,
+            "cooldownGlowSeconds",
+            this.locale.getText("OPT_COOLDOWN_SECONDS"),
+            this.locale.getText("TIP_COOLDOWN_SECONDS"),
+            string.format("%d", this.settings.getDefault("cooldownGlowSeconds")),
+            () => string.format("%d", this.settings.get("cooldownGlowSeconds")),
+            (value) => this.settings.change("cooldownGlowSeconds", tonumber(value) ?? this.settings.getDefault("cooldownGlowSeconds")),
+            () =>
+                COOLDOWN_GLOW_CHOICES.map((seconds): [string, string] => [
+                    string.format("%d", seconds),
+                    seconds === 0 ? this.locale.getText("OPT_UNTIL_PRESSED") : string.format(this.locale.getText("OPT_SECONDS"), seconds),
+                ]),
+            true,
+        );
     }
 
     /** One checkbox per spell, labeled with its name; the default (on) is not stored. */

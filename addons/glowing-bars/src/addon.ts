@@ -159,7 +159,9 @@ function makeReminders(addon: Addon, addonName: string, game: Game, texts: Texts
     const weapon = addon.register(new WeaponReminderService(game.clock, game.weaponEnchants, weaponChoice, weaponMemory, weaponReading));
     const outdatedRanks = addon.register(new OutdatedRanksService(game.actionBars, game.spells));
     const tracker = addon.register(new CooldownTrackerService(game.spells, game.cooldowns, game.clock));
-    const glowCues = addon.register(new GlowCuesService(game.player, game.spells, game.spellDetails, game.actionBars, tracker, settings));
+    const glowCues = addon.register(
+        new GlowCuesService(game.player, game.spells, game.spellDetails, game.actionBars, tracker, game.clock, settings),
+    );
     // Its own block of the shared notice: the tick clearing its lines must not take the town message with them
     const townNotice = addon.register(new NoticeService(`${addonName}-town`));
     addon.register(new TownVisitService(game.player, reagents, settings, texts.messages, townNotice, texts.locale, texts.styles));
@@ -196,9 +198,31 @@ function makeTick(addon: Addon, addonName: string, game: Game, texts: Texts, buf
     addon.register(new BlockedActionService(addonName, game.player, messages, locale));
 }
 
+/** The table of looks (/gb), and its command. */
+function makeTable(addon: Addon, game: Game, texts: Texts, buffs: Buffs, reminders: Reminders) {
+    const { locale, messages, styles } = texts;
+    const rows = addon.register(
+        new StyleRowsService(
+            game.player,
+            game.spells,
+            buffs.classBuffs,
+            reminders.weaponChoice,
+            reminders.reagents,
+            locale,
+            styles,
+            reminders.glowCues,
+        ),
+    );
+    const choices = addon.register(new StyleChoicesService(locale, styles, messages));
+    const windows = addon.register(new StyleWindowService(locale));
+    const table = addon.register(new StyleTableService(locale, styles, rows, messages, choices, windows));
+    addon.register(new TableCommand(table));
+    return table;
+}
+
 /** The Settings panel. */
 function makeOptions(addon: Addon, addonName: string, game: Game, texts: Texts, buffs: Buffs, reminders: Reminders) {
-    const { settings, locale, messages, styles } = texts;
+    const { settings, locale, messages } = texts;
     const controls = addon.register(new ControlsService<AddonSettings>(settings, messages, addonName));
     const widgets = addon.register(
         new WidgetsService(messages, { copy: locale.getText("INFO_COPY"), copied: locale.getText("INFO_COPIED") }),
@@ -210,14 +234,10 @@ function makeOptions(addon: Addon, addonName: string, game: Game, texts: Texts, 
     const reagentsSection = addon.register(
         new ReagentsSection(locale, settings, controls, reminderControls, reminders.reagents, game.player),
     );
-    const glowsSection = addon.register(new GlowsSection(locale, game.spells, settings, controls, reminderControls, game.player));
-    const rows = addon.register(
-        new StyleRowsService(game.player, game.spells, buffs.classBuffs, reminders.weaponChoice, reminders.reagents, locale, styles),
+    const glowsSection = addon.register(
+        new GlowsSection(locale, game.spells, settings, controls, reminderControls, game.player, reminders.glowCues),
     );
-    const choices = addon.register(new StyleChoicesService(locale, styles, messages));
-    const windows = addon.register(new StyleWindowService(locale));
-    const table = addon.register(new StyleTableService(locale, styles, rows, messages, choices, windows));
-    addon.register(new TableCommand(table));
+    const table = makeTable(addon, game, texts, buffs, reminders);
     const about = addon.register(
         new AboutSection(
             widgets,

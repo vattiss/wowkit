@@ -42,6 +42,10 @@ export const TEXTS = {
         "The important cooldowns of your class glow on their action button when they are ready. The list below is what you can switch off.",
     OPT_COOLDOWNS_OUT_OF_COMBAT: "Also out of combat",
     TIP_COOLDOWNS_OUT_OF_COMBAT: "By default the cooldowns glow in combat only.",
+    OPT_COOLDOWN_SECONDS: "Glow when it is back",
+    TIP_COOLDOWN_SECONDS: "In a fight, how long a cooldown glows once it is ready again.",
+    OPT_SECONDS: "%d seconds",
+    OPT_UNTIL_PRESSED: "Until it is pressed",
     OPT_COLOR_COOLDOWN: "Cooldown color",
     TIP_GLOW_ONE: "Highlight this spell when it is ready.",
 
