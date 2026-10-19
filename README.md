@@ -9,15 +9,15 @@ Blizzard's own API documentation in [Gethe/wow-ui-source](https://github.com/Get
 
 ## The addons
 
-Three small addons that remind you of what is easy to forget, and a rotation helper. Each has its own Settings page
-(*Options > AddOns*) and its own saved settings per character.
+One addon that lights up your action bars, so you look at the buttons you press anyway and not at an extra window. It has
+a Settings page (*Options > AddOns*) and saves its settings per character.
 
-| | Addon | What it reminds you of |
+| | Addon | What it lights up |
 |---|---|---|
-| <img src="addons/buff-reminder/assets/logo.png" width="48" alt=""> | [Buff Reminder](addons/buff-reminder/README.md) | Missing buffs and weapon buffs (the button glows), buffs that are on no action bar, party members who miss your buff. |
-| <img src="addons/rank-reminder/assets/logo.png" width="48" alt=""> | [Rank Reminder](addons/rank-reminder/README.md) | Spells on your action bars that are a lower rank than the one you know. |
-| <img src="addons/reagent-reminder/assets/logo.png" width="48" alt=""> | [Reagent Reminder](addons/reagent-reminder/README.md) | Reagents of your group buffs that run low, as you arrive in a town or an inn. |
-| <img src="addons/know-your-rotation/assets/logo.png" width="48" alt=""> | [Know Your Rotation](addons/know-your-rotation/README.md) | The next spell to press (the button glows), plus heals, defensive cooldowns, interrupts, purges, cleanses and totems. |
+| <img src="addons/glowing-bars-and-auras/assets/logo.png" width="48" alt=""> | [Glowing Bars And Auras](addons/glowing-bars-and-auras/README.md) | Missing buffs and weapon buffs, buffs that are on no action bar, party members who miss your buff, spells at an old rank, low reagents, important cooldowns that are ready, and procs (Overpower, Revenge, Execute...). |
+
+It replaces Buff Reminder, Rank Reminder and Reagent Reminder (and retires Know Your Rotation); their last releases
+(`1.0.2`) point here. Their code is in the history, at the tags `buff-reminder-v1.0.2` and so on.
 
 Only Blizzard's own action bars are supported.
 
@@ -28,14 +28,13 @@ Requires Node.js 24+ (the build scripts are TypeScript run by Node directly), [p
 ```sh
 pnpm install
 pnpm build        # every addon -> addons/<name>/dist/<AddonName>/{<AddonName>.toc,<AddonName>.lua}
-pnpm test         # checks, build, then the tests of every addon and of the core and wow packages (TypeScript, see addons/buff-reminder/test/README.md); CI runs the same
+pnpm test         # checks, build, then the tests of every addon and of the core and wow packages (TypeScript, see addons/glowing-bars-and-auras/test/README.md); CI runs the same
 pnpm typecheck
 pnpm format       # Prettier writes the code layout; pnpm test only checks it
-pnpm --filter @forever-reminders/buff-reminder watch   # rebuild on change
+pnpm --filter glowing-bars-and-auras watch   # rebuild on change
 
 # copy one addon's build into the game (then /reload); the Forever beta installs into _classic_beta_
-WOW_ADDONS_DIR="C:/Program Files (x86)/World of Warcraft/_classic_beta_/Interface/AddOns" pnpm --filter @forever-reminders/buff-reminder deploy:game
-# ... and the same for rank-reminder and reagent-reminder
+WOW_ADDONS_DIR="C:/Program Files (x86)/World of Warcraft/_classic_beta_/Interface/AddOns" pnpm --filter glowing-bars-and-auras deploy:game
 ```
 
 ### Layout
@@ -65,26 +64,23 @@ packages/       a folder per scope, then per package (packages/README.md); each 
       wow-manual.d.ts   hand-written typings: script handlers, CreateFrame, string unions
       wow-framexml.d.ts hand-written typings: Settings panel API, action buttons, FrameXML globals
     test-kit/         describe / it / expect, a fake game and its fixtures
-  @forever-reminders/ what the reminder addons share
-    shared/           the reagents of the group buffs, and when the reminders keep quiet
 addons/
-  buff-reminder/    missing buffs, weapon buffs, party buffs, buffs not on the bars
+  glowing-bars-and-auras/ the addon: reminders, old ranks, reagents, ready cooldowns and procs, all as glows on the bars
     src/              the addon's sources; a folder per feature
       main.ts           entry point: startAddon()
       addon.ts          makes every service with `new`, dependencies first; that order is the order of the lifecycle hooks
       settings/         the shape and defaults of the settings, the glow colors
       locale/           the texts
       knowledge/        what only this addon knows - buff categories
-      reminders/        missing buffs, weapon buffs, party buffs; the buff lists
+      reminders/        missing buffs, weapon buffs, party buffs, old ranks, the reagents on arriving in a town; the buff lists
+      reagents/         the reagents of the group buffs, and whether the bags hold them
+      glows/            ready cooldowns and procs: the lists per class, the cooldown tracker
       tick/             a tick every 0.2 s - find what is due, show it; when to look sooner
       character/        what happens to the player (weapons, auras and casts, the party roster, blocked actions)
       options/          the Settings panel pages
     addon/            static addon files (the TOC); its @version@ is filled from package.json
     assets/           logo.png: the one source of the logo; the build makes the game's icon (images/logo.tga) from it
     test/             the specs: describe / it in TypeScript against the fake game (test/README.md)
-  rank-reminder/    spells on the bars at an old rank (the smallest addon: the template for a new one)
-  reagent-reminder/ low reagents on arriving in a town or an inn
-  know-your-rotation/ the next spell to press, and the cues next to it (heals, defense, interrupt, purge, cleanse, totems)
   wowkit-check/      developer tool, not released: asks the client about the IDs in wow-data (/wowkit check)
 scripts/        build, deploy, zip, type-generation and check scripts
 docs/           architecture (with the reasons), packages, releasing, glossary, the game's quirks
@@ -93,11 +89,11 @@ docs/           architecture (with the reasons), packages, releasing, glossary, 
 ### Rules
 
 - **Only a few folders call the game:** `packages/@wowkit/wow/src/` (what the reminders ask the game),
-  `packages/@wowkit/core/src/` (events and timers), and `addons/buff-reminder/src/options/` (the Settings panel). Reminder
+  `packages/@wowkit/core/src/` (events and timers), and `addons/glowing-bars-and-auras/src/options/` (the Settings panel). Reminder
   logic talks to `packages/@wowkit/wow/src/` in plain terms (`isInCombat()`, `isLearned(spell)`) and never sees secret values,
   protected calls or remapped IDs.
 - **Everything is a service, made once, by hand:** plain classes that take what they need in the constructor,
-  made in `addons/buff-reminder/src/addon.ts`; no inheritance, no container; services are built from other services.
+  made in `addons/glowing-bars-and-auras/src/addon.ts`; no inheritance, no container; services are built from other services.
 - **The packages do not know the addon:** each package imports only itself and the packages it depends on
   (`pnpm check` enforces it); `addon.ts` passes in what a package asks for (buff categories, spell names).
 - **Names read like English:** functions start with a verb, booleans read as questions (`isFound`).

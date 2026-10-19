@@ -12,18 +12,13 @@ packages/
     wow-types/   Blizzard's API as TypeScript types (generated + hand-written)
     wow-data/    the spell and item IDs the addons use, by category, and what the client said of them
     test-kit/    describe / it / expect, the fake game and its fixtures
-  @forever-reminders/            what the reminder addons share
-    shared/      the reagents of the group buffs, when the reminders keep quiet
 addons/
-  buff-reminder/     BuffReminder      missing buffs, weapon buffs, party buffs, buffs not on the bars
-  rank-reminder/     RankReminder      spells on the bars at an old rank
-  reagent-reminder/  ReagentReminder   low reagents on arriving in a town or an inn
-  know-your-rotation/ KnowYourRotation the next spell to press, and the cues next to it
+  glowing-bars-and-auras/ GlowingBarsAndAuras the addon: buffs, old ranks, reagents, ready cooldowns and procs, as glows on the bars
   wowkit-check/       WowkitCheck        developer tool, not released: checks the IDs of wow-data against the client
 scripts/                               build, deploy, type generation, the rule checks
 ```
 
-Each addon is a folder with `src/`, `test/`, `addon/` (the TOC), `assets/logo.png`, a `package.json` and two
+An addon is a folder with `src/`, `test/`, `addon/` (the TOC), `assets/logo.png`, a `package.json` and two
 `tsconfig` files. The game loads each as a separate addon, with its own saved settings.
 
 ## Who may import whom
@@ -33,20 +28,11 @@ Each addon is a folder with `src/`, `test/`, `addon/` (the TOC), `assets/logo.pn
 flowchart LR
     classDef default fill:#f1f5f9,stroke:#94a3b8,color:#111827
     subgraph PANEL[" "]
-        buff["addons/buff-reminder"] --> ui["@wowkit/ui"]
-        rank["addons/rank-reminder"] --> ui
-        reagent["addons/reagent-reminder"] --> ui
-        rotation["addons/know-your-rotation"] --> ui
-        buff --> shared["@forever-reminders/shared"]
-        rank --> shared
-        reagent --> shared
-        rotation --> shared
-        shared --> wow
-        shared --> core
-        shared --> data["@wowkit/wow-data"]
+        glowing["addons/glowing-bars-and-auras"] --> ui["@wowkit/ui"]
+        glowing --> wow
+        glowing --> core
+        glowing --> data["@wowkit/wow-data"]
         wow --> data
-        buff --> data
-        rotation --> data
         checker["addons/wowkit-check"] --> data
         buff --> wow["@wowkit/wow"]
         rank --> wow
@@ -88,7 +74,6 @@ flowchart LR
 | `@wowkit/core` | `Addon` (registers the services, starts them), `@OnGameEvent`, `@OnUnitEvent`, `@OnEvent`, `@Interval`, the lifecycle hooks, the `EventBus`. |
 | `@wowkit/wow` | The game's door and nothing else: player, character, other units (the target), party, bags, spells and the spell book, spell details and cooldowns, auras, action bars, totems, weapon enchants, glows (also faded by a hidden value), notices, saved variables, the clock; `SpellRefreshService` and `BarRefreshService` keep the spells and the bars fresh. |
 | `@wowkit/wow-data` | The spell and item IDs the addons use, by category, written in one place (`Paladin`, `Shaman`, `Priest`, `Reagents`...), and what the client said of them. |
-| `@forever-reminders/shared` | What the reminder addons share: `ReagentsService` and the reagent list, `IdleService` (when the reminders keep quiet). |
 | `@wowkit/ui` | `SettingsService<T>` (the shape is the addon's), `LocaleService<K>`, `MessagesService` and the sounds, `GreetingService`, and for the Settings panel `OptionsService` (one main page), `AboutSection` (the Help section), `ControlsService<T>` and `WidgetsService`. |
 | `@wowkit/test-kit` | `describe` / `it` / `expect`, `createWorld` (a fake game, with a target to fight), and fixtures: the classes and spells the specs use. |
 
@@ -103,8 +88,7 @@ with the addon into one Lua file:
   "@wowkit/core/*": ["../../packages/@wowkit/core/src/*"],   // only for `declare module` blocks that add an event
   "@wowkit/wow": ["../../packages/@wowkit/wow/src/index.ts"],
   "@wowkit/ui": ["../../packages/@wowkit/ui/src/index.ts"],
-  "@wowkit/wow-data": ["../../packages/@wowkit/wow-data/src/index.ts"],
-  "@forever-reminders/shared": ["../../packages/@forever-reminders/shared/src/index.ts"]
+  "@wowkit/wow-data": ["../../packages/@wowkit/wow-data/src/index.ts"]
 },
 "include": ["src/**/*.ts", "../../packages/@*/*/src/**/*.ts", "../../packages/@wowkit/wow-types/**/*.d.ts"]
 ```
@@ -121,8 +105,8 @@ Prettier) are installed once, at the root.
 ```sh
 pnpm install                                    # once
 pnpm test                                       # checks, then build, build the tests and run them, for every addon
-pnpm --filter @forever-reminders/buff-reminder build               # one addon
-pnpm --filter @forever-reminders/buff-reminder deploy:game         # build it and copy it into the game (WOW_ADDONS_DIR)
+pnpm --filter glowing-bars-and-auras build               # one addon
+pnpm --filter glowing-bars-and-auras deploy:game         # build it and copy it into the game (WOW_ADDONS_DIR)
 ```
 
 The packages are listed as `workspace:*` dependencies, which records who depends on whom. Compiling does not use
@@ -131,10 +115,10 @@ the links pnpm makes in `node_modules`: TypeScriptToLua cannot compile sources f
 
 ## A new addon
 
-1. Copy `addons/rank-reminder` (the smallest one that has a Settings page and a notice) to `addons/<name>`, and
-   rename it in `package.json` (`name`, `addon.name`), in the `tsconfig` files (the bundle name and `outDir`), in the
-   TOC and in `src/main.ts`. Keep `## Category: Forever Reminders` in the TOC if it is a reminder: the game groups addons of one
-   category under a collapsible header in its addon list.
+1. Copy `addons/glowing-bars-and-auras` (or, for a smaller start, `addons/rank-reminder` as it was at the tag
+   `rank-reminder-v1.0.2`: a Settings page and a notice) to `addons/<name>`, and rename it in `package.json` (`name`, `addon.name`), in the `tsconfig` files (the bundle name and `outDir`), in the
+   TOC and in `src/main.ts`. Give it a `## Category:` in the TOC: the game groups addons of one category under a collapsible header in its
+   addon list.
 2. Write its settings (`settings.interface.ts`, `settings.constants.ts`), its texts and its services; make them in
    `src/addon.ts`, dependencies first.
 3. Draw `assets/logo.png` (square, a multiple of 128 px): the build makes the game's TGA icon from it.
@@ -162,7 +146,7 @@ Not done, and not needed until another repository wants the packages. It takes:
   `createBasicGame` of the test kit and stubs for what a service asks of its neighbours (a service takes its
   dependencies in the constructor, so a stub can stand in). `ui` has none of its own yet: its pages and controls are
   tested through the addons.
-- **Several addons, one client.** Each addon reads the spells and the action bars for itself. An addon that maps the
-  bars (buff-reminder, rank-reminder) does the same work as the other; the mapping is throttled and done a few buttons
-  per frame, so two at once have not shown a problem, but it has not been measured with all three in the game. The
+- **Several addons, one client.** Each addon reads the spells and the action bars for itself. Two addons that map the bars
+  do the same work twice; the mapping is throttled and done a few buttons per frame, so two at once have not shown a
+  problem. The
   on-screen notice is the one thing the addons share: one frame, a block of lines per addon (see `packages/@wowkit/wow`).

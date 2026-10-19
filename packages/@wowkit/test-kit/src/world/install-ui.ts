@@ -15,6 +15,28 @@ export interface ProxySettings {
     [variable: string]: ProxySetting | undefined;
 }
 
+/** The game's color picker: it keeps what the addon set it up with, and answers with the color a test picks. */
+export interface FakeColorPicker {
+    info: ColorPickerInfo | undefined;
+    pickedColor: [number, number, number];
+    SetupColorPickerAndShow(info: ColorPickerInfo): void;
+    GetColorRGB(): LuaMultiReturn<[number, number, number]>;
+}
+
+function createColorPicker(): FakeColorPicker {
+    const picker: FakeColorPicker = {
+        info: undefined,
+        pickedColor: [1, 1, 1],
+        SetupColorPickerAndShow(info) {
+            picker.info = info;
+        },
+        GetColorRGB() {
+            return $multi(picker.pickedColor[0], picker.pickedColor[1], picker.pickedColor[2]);
+        },
+    };
+    return picker;
+}
+
 export function installUi(frames: FrameRegistry, chat: string[], proxySettings: ProxySettings): void {
     defineValues({
         CreateFrame: (frameType: string, name?: string, parent?: FakeFrame, template?: string) =>
@@ -25,6 +47,9 @@ export function installUi(frames: FrameRegistry, chat: string[], proxySettings: 
         DEFAULT_CHAT_FRAME: frames.create("Frame", "DEFAULT_CHAT_FRAME"),
         // Slash commands: the addon adds its handlers here
         SlashCmdList: {},
+        // The frames that Escape closes
+        UISpecialFrames: [],
+        ColorPickerFrame: createColorPicker(),
         Enum: {
             SpellBookSpellBank: { Player: 0, Pet: 1 },
             SpellBookItemType: { None: 0, Spell: 1, FutureSpell: 2, PetAction: 3, Flyout: 4 },

@@ -13,4 +13,4 @@ run against a **fake game**. No Lua to read or write.
 - **`src/world/basic-game.ts`**: `createBasicGame()`, a game with only a clock, frames and the chat, for the tests of a package (see `packages/@wowkit/core/test` and `packages/@wowkit/wow/test`); no addon needs to be loaded.
 - **`src/config.ts`**: where the built addon is (set by the addon's `test/run.ts` from the command line).
 
-How a test run works, and how to write a spec: [the addon's test README](../../../addons/buff-reminder/test/README.md).
+How a test run works, and how to write a spec: [the addon's test README](../../../addons/glowing-bars-and-auras/test/README.md).

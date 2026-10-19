@@ -1,8 +1,8 @@
 # Architecture
 
-The addons of this repository (Buff Reminder, Rank Reminder, Reagent Reminder) are written in TypeScript on shared
-packages, and each is compiled to a single Lua file. This page shows how an addon is built (Buff Reminder, the biggest,
-as the example), how the code is organised, and the rules that keep it readable. The packages and the addons:
+The addon of this repository (Glowing Bars And Auras) is written in TypeScript on shared packages, and compiled to a
+single Lua file. This page shows how an addon is built (Glowing Bars And Auras as the example), how the code is organised,
+and the rules that keep it readable. The packages and the addons:
 [packages.md](packages.md).
 
 ## The four rules
@@ -11,14 +11,14 @@ as the example), how the code is organised, and the rules that keep it readable.
 Blizzard's API is full of quirks: values that are secret in combat, calls that can raise errors,
 spell IDs that Forever remaps, `multiple, return, values`. All of that stays inside `packages/@wowkit/wow/src/`, which
 turns it into plain answers in the addon's own words (`isInCombat()`, `isLearned(spell)`,
-`getItemCount(item)`). The reminder logic in `addons/buff-reminder/src/reminders/` never sees a Blizzard function, so it reads
+`getItemCount(item)`). The reminder logic in `addons/glowing-bars-and-auras/src/reminders/` never sees a Blizzard function, so it reads
 like plain code. A few more places may call the game because that is their job: `packages/@wowkit/core/src/` (game events and timers for
 the decorators), `packages/@wowkit/ui/src/` (the Settings panel and the chat) and the `options/` folders of the addons (their
 own page).
 
 **2. Everything is a service, made once, by hand.**
 Code that keeps state, talks to the game or uses other services is a class with its dependencies in the
-constructor. `addons/buff-reminder/src/addon.ts` makes each one with `new`, dependencies first, so there is one instance of each; there
+constructor. `addons/glowing-bars-and-auras/src/addon.ts` makes each one with `new`, dependencies first, so there is one instance of each; there
 is no inheritance and no container (a service is built from the services it is given). Pure data is a
 `*.constants.ts` file, a shape is a `*.interface.ts` file, and a helper only one class uses is a private method of that class. Only
 helpers that several files share stay plain functions, in a file of their own (`packages/@wowkit/core/src/utils/text.utils.ts`,
@@ -26,9 +26,8 @@ helpers that several files share stay plain functions, in a file of their own (`
 `reminders/weapon/weapon-reactions.ts`).
 
 **3. The packages do not know the addon.**
-`packages/@wowkit/` (core, wow, ui, wow-data, test-kit and the typings) could serve any Forever addon, and
-`packages/@forever-reminders/shared` holds what the reminders share, so each imports only itself and the packages it
-depends on. What only an addon knows (the buff knowledge, the shape of its settings, its texts, the name of
+`packages/@wowkit/` (core, wow, ui, wow-data, test-kit and the typings) could serve any Forever addon, so each
+imports only itself and the packages it depends on. What only an addon knows (the buff knowledge, the shape of its settings, its texts, the name of
 the saved variable) is a constructor or type parameter, passed in by the addon's `addon.ts`. See [packages.md](packages.md).
 
 **4. Names read like English.**
@@ -63,11 +62,11 @@ flowchart LR
         src["packages/*/src and<br/>addons/*/src"] --> tstl["TSTL<br/>luaTarget 5.1, luaBundle,<br/>noImplicitSelf"]
         generated --> tstl
         manual --> tstl
-        tstl --> lua["dist/BuffReminder/<br/>BuffReminder.lua<br/>(in the addon folder)"]
-        toc["addon/BuffReminder.toc<br/>assets/logo.png"] -- "scripts/package-addon.ts<br/>(@version@, logo.png to logo.tga)" --> dist["dist/BuffReminder/"]
+        tstl --> lua["dist/GlowingBarsAndAuras/<br/>GlowingBarsAndAuras.lua<br/>(in the addon folder)"]
+        toc["addon/GlowingBarsAndAuras.toc<br/>assets/logo.png"] -- "scripts/package-addon.ts<br/>(@version@, logo.png to logo.tga)" --> dist["dist/GlowingBarsAndAuras/"]
         lua --> dist
         dist -- "pnpm test<br/>tests in TypeScript, run by LuaJIT<br/>against a fake game" --> smoke["tests"]
-        dist -- "pnpm --filter @forever-reminders/buff-reminder deploy:game" --> game["_classic_beta_/Interface/AddOns"]
+        dist -- "pnpm --filter glowing-bars-and-auras deploy:game" --> game["_classic_beta_/Interface/AddOns"]
     end
     classDef panel fill:#ffffff,stroke:#d1d5db,color:#111827
     class PANEL panel
@@ -87,7 +86,7 @@ flowchart LR
     classDef default fill:#f1f5f9,stroke:#94a3b8,color:#111827
     subgraph PANEL[" "]
         data["wow-data/src<br/>spells.ts, items.ts<br/>(written by hand)"]
-        code["addons and shared<br/>import the IDs"]
+        code["the addon<br/>imports the IDs"]
         checker["wowkit-check<br/>/wowkit check"]
         saved[("saved variable<br/>after /reload")]
         ids["wow-data/data/ids.json<br/>what the client said"]
@@ -123,20 +122,18 @@ flowchart TB
             knowledge["knowledge/<br/>what only this addon knows:<br/>buff categories"]
         end
 
-        subgraph features["features (buff-reminder)"]
+        subgraph features["features (glowing-bars-and-auras)"]
             tick["tick/<br/>a tick every 0.2 s: find what is due,<br/>show it; when to look sooner"]
             character["character/<br/>weapons, auras and casts,<br/>party roster, blocked actions"]
             options["options/<br/>the Settings panel pages"]
-            reminders["reminders/<br/>missing buffs, weapon buff,<br/>party buffs"]
+            reminders["reminders/<br/>missing buffs, weapon buff,<br/>party buffs, old ranks, reagents"]
+            glows["glows/<br/>ready cooldowns and procs,<br/>the cooldown tracker"]
         end
 
-        others["rank-reminder, reagent-reminder<br/>small addons of the same shape"]
-        rotation["know-your-rotation<br/>the lists, what it remembers, the situation,<br/>the step checks, the cues, a tick"]
 
         subgraph toolkit["packages (could serve any Forever addon)"]
             ui["packages/@wowkit/ui/src/<br/>settings, texts, chat lines, sounds,<br/>the Settings panel pages"]
             wow["packages/@wowkit/wow/src/<br/>the only code that calls the game<br/>spells, auras, action bars, player, party, bags,<br/>glows, notices, saved variables"]
-            shared["packages/@forever-reminders/shared/src/<br/>reagents, when to keep quiet"]
             wowdata["packages/@wowkit/wow-data/src/<br/>spell and item IDs<br/>by category"]
             core["packages/@wowkit/core/src/<br/>Addon, lifecycle hooks, EventBus,<br/>@OnGameEvent, @Interval"]
         end
@@ -145,19 +142,8 @@ flowchart TB
 
         wiring --> words
         wiring --> features
-        wiring --> others
-        wiring --> rotation
-        others --> ui
-        others --> wow
-        others --> shared
-        rotation --> ui
-        rotation --> wow
-        rotation --> shared
-        rotation --> wowdata
-        reminders --> shared
-        shared --> wow
-        shared --> core
-        shared --> wowdata
+        glows --> wow
+        glows --> wowdata
         wow --> wowdata
         reminders --> wowdata
         tick --> reminders
@@ -487,17 +473,17 @@ change its record here.
 - **Packages and addons in one pnpm workspace, compiled from sources.** TypeScriptToLua cannot compile sources it finds
   through `node_modules` (it takes them for precompiled Lua), so the `tsconfig` `paths` point at the package sources.
   Publishing would need library builds; it is not done and not needed until another repository wants the packages.
-- **Three small addons, not one.** The reminders share infrastructure but not a purpose, and a player may want only one.
-  The shared parts are packages (`ui` for the settings and the Settings page, `wow` for the game's door, `shared` for what only
-  the reminders have in common).
+- **One addon, not several.** Buff, rank and reagent reminders were three addons that shared infrastructure; players
+  wanted one thing that lights up the action bars, and the glows (buffs, old ranks, ready cooldowns, procs) are one idea.
+  The old ones are kept in the history, at their last tags. The shared parts stay packages (`ui` for the settings and the
+  Settings page, `wow` for the game's door).
 - **One page per addon, and no debug report.** The addons are small; a landing page with sub pages only added clicks. The
   debug report was built to find out what the client answers while the first addon was written, and was never needed since.
 - **State belongs to an object, not to a module.** A package that keeps its state in module variables cannot be tested
   (every test shares it), so the event frame belongs to an `Addon`, and a package reads the game's API when a service needs it,
   not when the file is loaded.
 - **`@wowkit/wow` is the game's door and nothing else.** Logic about what the reminders remind of does not live there: the spell and
-  item IDs are written once in `@wowkit/wow-data`, what two addons share (the reagents of the group buffs) is in
-  `@forever-reminders/shared`, and what one addon needs is in that addon. Reading the auras is a facade too: `AurasService` says what the game shows, and Buff Reminder's `BuffStateService` decides
+  item IDs are written once in `@wowkit/wow-data`, what an addon needs (the reagents of the group buffs, when to keep quiet) is in that addon. Reading the auras is a facade too: `AurasService` says what the game shows, and Buff Reminder's `BuffStateService` decides
   what it means (the memory while the client hides the auras, the buff categories).
 - **`@wowkit/core` stays small:** `Addon`, the events and timers, the lifecycle hooks and the text helpers. Anything that talks
   to the game's API belongs in `@wowkit/wow`, and anything for the Settings panel in `@wowkit/ui`.

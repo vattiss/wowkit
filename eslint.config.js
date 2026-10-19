@@ -54,7 +54,6 @@ export default defineConfig(
             "packages/@wowkit/core/src/**/*.ts",
             "packages/@wowkit/wow/src/**/*.ts",
             "packages/@wowkit/ui/src/**/*.ts",
-            "packages/@forever-reminders/shared/src/**/*.ts",
             "packages/@wowkit/wow-data/src/**/*.ts",
             "addons/*/src/**/*.ts",
         ],

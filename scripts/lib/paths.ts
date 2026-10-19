@@ -52,7 +52,6 @@ export function listSourceFolders(): string[] {
         "packages/@wowkit/core/src/",
         "packages/@wowkit/wow/src/",
         "packages/@wowkit/ui/src/",
-        "packages/@forever-reminders/shared/src/",
         "packages/@wowkit/wow-data/src/",
         ...listAddons().map((addon) => `${addon}/src/`),
     ];

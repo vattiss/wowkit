@@ -15,6 +15,8 @@ export interface FakeFrame {
     /** The opacity the addon set (a glow faded by a hidden value). */
     alpha: number;
     text: string | undefined;
+    /** A check button's state. */
+    isChecked: boolean;
     scripts: { [script: string]: Script | undefined };
     events: { [event: string]: true | undefined };
     fontStrings: FakeFrame[];
@@ -40,6 +42,8 @@ export interface FakeFrame {
     UnregisterAllEvents(): void;
     SetText(text: string): void;
     GetText(): string | undefined;
+    SetChecked(isChecked?: boolean): void;
+    GetChecked(): boolean;
     CreateFontString(): FakeFrame;
     CreateTexture(): FakeFrame;
 }
@@ -74,6 +78,7 @@ function createFakeFrame(init: FrameInit): FakeFrame {
         isShown: true,
         alpha: 1,
         text: undefined,
+        isChecked: false,
         scripts: {},
         events: {},
         fontStrings: [],
@@ -130,6 +135,12 @@ function createFakeFrame(init: FrameInit): FakeFrame {
         },
         GetText() {
             return this.text;
+        },
+        SetChecked(isChecked) {
+            this.isChecked = isChecked === true;
+        },
+        GetChecked() {
+            return this.isChecked;
         },
         CreateFontString() {
             const fontString = createFakeFrame({ frameType: "FontString", parent: this });

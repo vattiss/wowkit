@@ -53,6 +53,13 @@ export class SpellBookService {
         return this.entries?.byName.get(this.buildSpellBookKey(name));
     }
 
+    /** One spell ID of each spell name in the book (the first one found); empty before the index is built. */
+    listSpellIds(): number[] {
+        const ids: number[] = [];
+        if (this.entries) for (const [, id] of this.entries.byName) ids.push(id);
+        return ids;
+    }
+
     /** Every learned rank of a spell name. */
     getRanksByName(name: string): number[] {
         return this.entries?.ranks.get(this.buildSpellBookKey(name)) ?? [];

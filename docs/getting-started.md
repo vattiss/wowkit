@@ -22,9 +22,9 @@ pnpm build
 addon becomes one folder in its own `dist/`:
 
 ```
-addons/rank-reminder/dist/RankReminder/
-    RankReminder.toc     the addon's description for the game
-    RankReminder.lua     all of the addon (and the packages it uses) in one Lua file
+addons/glowing-bars-and-auras/dist/GlowingBarsAndAuras/
+    GlowingBarsAndAuras.toc     the addon's description for the game
+    GlowingBarsAndAuras.lua     all of the addon (and the packages it uses) in one Lua file
     images/logo.tga      the icon, made from assets/logo.png
 ```
 
@@ -36,12 +36,12 @@ Tell the deploy script where the game's `AddOns` folder is, then deploy one addo
 
 ```sh [bash]
 export WOW_ADDONS_DIR="C:/Program Files (x86)/World of Warcraft/_classic_beta_/Interface/AddOns"
-pnpm --filter @forever-reminders/rank-reminder deploy:game
+pnpm --filter glowing-bars-and-auras deploy:game
 ```
 
 ```powershell [PowerShell]
 $env:WOW_ADDONS_DIR = "C:\Program Files (x86)\World of Warcraft\_classic_beta_\Interface\AddOns"
-pnpm --filter @forever-reminders/rank-reminder deploy:game
+pnpm --filter glowing-bars-and-auras deploy:game
 ```
 
 :::
@@ -72,5 +72,6 @@ code are the ones the client knows. The reasons are in [Architecture](architectu
 | Write an addon of your own | [Learning guide](learning-guide.md) |
 | Release an addon | [Releasing](releasing.md) |
 
-The smallest real addon is [Rank Reminder](https://github.com/vattiss/wowkit/tree/main/addons/rank-reminder): a few
-hundred lines, and the template for a new one.
+The addon of this repository is [Glowing Bars And Auras](https://github.com/vattiss/wowkit/tree/main/addons/glowing-bars-and-auras). The smallest
+real addon the repository had, a notice and a Settings page in a few hundred lines, is [Rank Reminder](https://github.com/vattiss/wowkit/tree/rank-reminder-v1.0.2/addons/rank-reminder),
+at its last tag: the template for a new one.

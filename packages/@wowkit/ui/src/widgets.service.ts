@@ -14,6 +14,11 @@ export class WidgetsService {
         layout.AddInitializer(CreateSettingsButtonInitializer(label, this.texts.copy, () => this.copyText(url), url, false));
     }
 
+    /** A row with a label and a button that does something. */
+    addButton(layout: SettingsLayout, label: string, buttonText: string, onClick: () => void, tooltip: string): void {
+        layout.AddInitializer(CreateSettingsButtonInitializer(label, buttonText, onClick, tooltip, false));
+    }
+
     /** Puts the text in the chat box, highlighted, for Ctrl+C. */
     private copyText(text: string): void {
         const chat = ChatFrameUtil;

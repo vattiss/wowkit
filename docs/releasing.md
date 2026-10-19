@@ -5,10 +5,11 @@ pushed, and uploaded by hand to that project.
 
 | Addon | CurseForge project ID | Tag |
 |---|---|---|
-| Buff Reminder | 1751392 | `buff-reminder-v<version>` |
-| Rank Reminder | 1751395 | `rank-reminder-v<version>` |
-| Reagent Reminder | 1751397 | `reagent-reminder-v<version>` |
-| Know Your Rotation | 1745557 | `know-your-rotation-v<version>` (a version like `1.0.0-beta.3` is uploaded as a Beta) |
+| Glowing Bars And Auras | (set in the TOC once the project exists) | `glowing-bars-and-auras-v<version>` (a version like `1.0.0-beta.1` is uploaded as a Beta) |
+
+The four addons it replaced were released at their tags, the last ones as `1.0.2`: `buff-reminder-v1.0.2` (CurseForge
+project 1751392), `rank-reminder-v1.0.2` (1751395), `reagent-reminder-v1.0.2` (1751397) and `know-your-rotation-v1.0.2`
+(1745557). Their folders are gone from `main`; check a tag out to see or rebuild one.
 
 The project ID is the `## X-Curse-Project-ID` line of the addon's TOC.
 
@@ -18,8 +19,8 @@ The project ID is the `## X-Curse-Project-ID` line of the addon's TOC.
 2. Tag the commit and push the tag:
 
    ```
-   git tag buff-reminder-v1.0.0
-   git push origin buff-reminder-v1.0.0
+   git tag glowing-bars-and-auras-v1.0.0
+   git push origin glowing-bars-and-auras-v1.0.0
    ```
 
    [The release workflow](../.github/workflows/release.yml) stops if the tag's version is not the one in `package.json`.
@@ -36,7 +37,7 @@ no earlier tag it lists the last 30 commits, so trim it for a first release.
 
 ```
 pnpm zip                                   # every released addon
-pnpm --filter ./addons/buff-reminder zip   # one addon
+pnpm --filter ./addons/glowing-bars-and-auras zip   # one addon
 ```
 
 The zip and `changelog.md` are written to `addons/<addon>/dist/`.

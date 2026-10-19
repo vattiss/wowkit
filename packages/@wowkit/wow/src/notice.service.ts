@@ -60,6 +60,15 @@ export class NoticeService {
         C_Timer.After(NOTICE_SECONDS, () => this.removeExpired(token));
     }
 
+    /** This addon's message goes out now, without waiting for its time. */
+    clearNotice(): void {
+        const shared = WowkitNotices;
+        if (!shared) return;
+        const before = shared.entries.length;
+        shared.entries = shared.entries.filter((candidate) => candidate.owner !== this.owner);
+        if (shared.entries.length !== before) this.draw(shared);
+    }
+
     /** This addon's message goes out, if no newer message replaced it. */
     private removeExpired(token: number): void {
         const shared = WowkitNotices;

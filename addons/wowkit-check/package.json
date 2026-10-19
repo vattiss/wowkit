@@ -1,5 +1,5 @@
 {
-  "name": "@forever-reminders/wowkit-check",
+  "name": "wowkit-check",
   "version": "0.1.0",
   "description": "Developer tool, not released: scans the spell and item data of the World of Warcraft: Forever client into a saved variable, for the repository's scripts to read",
   "private": true,

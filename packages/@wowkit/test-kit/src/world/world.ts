@@ -105,8 +105,8 @@ export function createWorld(setup: (state: ClientState) => void, savedSettings?:
                 .map((frame) => frame.alpha);
         },
         notice() {
-            const noticeFrame = frames.all.find((frame) => frame.parent === readGlobal("UIParent") && frame.fontStrings.length > 0);
-            return noticeFrame?.isShown ? (noticeFrame.fontStrings[0]?.text ?? "") : "";
+            const shared = readGlobal("WowkitNotices") as { frame: FakeFrame; text: FakeFrame } | undefined;
+            return shared?.frame.isShown ? (shared.text.text ?? "") : "";
         },
         getSavedSettings: () => readGlobal(config.savedVariables) as Record<string, unknown> | undefined,
         findFrame: (matches) => frames.all.find((frame) => matches(frame)),

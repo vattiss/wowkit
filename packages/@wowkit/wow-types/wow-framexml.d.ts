@@ -156,6 +156,25 @@ declare namespace Settings {
     function OpenToCategory(categoryId: number): void;
 }
 
+/** What the game's color picker is set up with (the retail-style picker). */
+interface ColorPickerInfo {
+    r: number;
+    g: number;
+    b: number;
+    hasOpacity?: boolean;
+    swatchFunc: (this: void) => void;
+    cancelFunc: (this: void) => void;
+}
+
+/** The game's color picker; `SetupColorPickerAndShow` is missing on clients with the older one. */
+declare const ColorPickerFrame: Frame & {
+    SetupColorPickerAndShow?(info: ColorPickerInfo): void;
+    GetColorRGB(): LuaMultiReturn<[number, number, number]>;
+};
+
+/** The names of the frames that Escape closes. */
+declare const UISpecialFrames: string[];
+
 declare function CreateSettingsListSectionHeaderInitializer(name: string, tooltip?: string): SettingsInitializer;
 /** A row with a label and a button; `addSearchTags` makes the row show up in the panel's search. */
 declare function CreateSettingsButtonInitializer(

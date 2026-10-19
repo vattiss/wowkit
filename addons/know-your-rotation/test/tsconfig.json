@@ -1,6 +1,0 @@
-{
-  // For the editor: files in test/ belong to the test project (../tsconfig.test.json). The build and
-  // `pnpm typecheck` use that file directly.
-  "extends": "../tsconfig.test.json",
-  "include": ["./**/*.ts", "../../../packages/@wowkit/test-kit/src/**/*.ts", "../../../packages/@wowkit/wow-types/**/*.d.ts"]
-}

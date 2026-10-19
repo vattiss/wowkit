@@ -130,6 +130,11 @@ export class SpellsService implements OnFirstLogin {
         return texts;
     }
 
+    /** One spell ID of each spell in the player's spell book (and the pet's); empty until the book is read. */
+    listSpellBookIds(): number[] {
+        return this.book.listSpellIds();
+    }
+
     /** The rank number from the spell's subtext ("Rank 2"); undefined without a rank or text. */
     getSpellRank(spellId: number): number | undefined {
         const text = getReadable(attempt(C_Spell.GetSpellSubtext, spellId));

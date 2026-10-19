@@ -31,8 +31,9 @@ addons/target-reminder/
     src/target-notice.service.ts
 ```
 
-The quickest start is to copy [`addons/rank-reminder`](https://github.com/vattiss/wowkit/tree/main/addons/rank-reminder),
-delete what you do not need and rename. The files below are what is left of it.
+The quickest start is to copy `addons/rank-reminder` as it was at the tag [`rank-reminder-v1.0.2`](https://github.com/vattiss/wowkit/tree/rank-reminder-v1.0.2/addons/rank-reminder)
+(`git show rank-reminder-v1.0.2:addons/rank-reminder/...`; it is a part of Glowing Bars And Auras now), delete what you do not need and rename.
+The files below are what is left of it.
 
 ## 2. Describe the package
 
@@ -41,7 +42,7 @@ file the build makes.
 
 ```json [addons/target-reminder/package.json]
 {
-  "name": "@forever-reminders/target-reminder",
+  "name": "target-reminder",
   "version": "1.0.0",
   "private": true,
   "license": "MIT",
@@ -188,7 +189,7 @@ whole dependency system.
 
 ```sh
 pnpm install
-pnpm --filter @forever-reminders/target-reminder deploy:game
+pnpm --filter target-reminder deploy:game
 ```
 
 Then `/reload` in the game, pull a monster and press Escape to clear your target. The notice appears in the upper
@@ -200,10 +201,10 @@ Your addon works, but it is not yet a *good* addon. The real ones also have thes
 
 | Add | How | Look at |
 |---|---|---|
-| A way to turn it off | `SettingsService`, a settings page and saved variables per character | [`rank-reminder/src/settings`](https://github.com/vattiss/wowkit/tree/main/addons/rank-reminder/src/settings) and [`options`](https://github.com/vattiss/wowkit/tree/main/addons/rank-reminder/src/options) |
-| Texts in one place | A `TEXTS` object and `LocaleService` | [`rank-reminder/src/locale`](https://github.com/vattiss/wowkit/tree/main/addons/rank-reminder/src/locale) |
-| Silence in towns, while dead or mounted | `IdleService` of `@forever-reminders/shared` | [`rank-notice.service.ts`](https://github.com/vattiss/wowkit/blob/main/addons/rank-reminder/src/rank-notice.service.ts) |
-| Tests | A spec against the fake game of `@wowkit/test-kit`; `state.isInCombat = true`, advance the clock, `expect(world.notice())` | [`rank-reminder/test`](https://github.com/vattiss/wowkit/tree/main/addons/rank-reminder/test) |
+| A way to turn it off | `SettingsService`, a settings page and saved variables per character | [`rank-reminder/src/settings`](https://github.com/vattiss/wowkit/tree/rank-reminder-v1.0.2/addons/rank-reminder/src/settings) and [`options`](https://github.com/vattiss/wowkit/tree/rank-reminder-v1.0.2/addons/rank-reminder/src/options) |
+| Texts in one place | A `TEXTS` object and `LocaleService` | [`rank-reminder/src/locale`](https://github.com/vattiss/wowkit/tree/rank-reminder-v1.0.2/addons/rank-reminder/src/locale) |
+| Silence in towns, while dead or mounted | `IdleService` of [Glowing Bars And Auras](https://github.com/vattiss/wowkit/blob/main/addons/glowing-bars-and-auras/src/character/idle.service.ts) | [`rank-notice.service.ts`](https://github.com/vattiss/wowkit/blob/rank-reminder-v1.0.2/addons/rank-reminder/src/rank-notice.service.ts) |
+| Tests | A spec against the fake game of `@wowkit/test-kit`; `state.isInCombat = true`, advance the clock, `expect(world.notice())` | [`rank-reminder/test`](https://github.com/vattiss/wowkit/tree/rank-reminder-v1.0.2/addons/rank-reminder/test) |
 | A release | A tag and the release workflow | [Releasing](releasing.md) |
 
 When you meet a word you do not know, the [Glossary](glossary.md) has it. When a function you want is not there, look in
