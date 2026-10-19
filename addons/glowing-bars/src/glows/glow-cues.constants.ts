@@ -17,7 +17,9 @@ export const COOLDOWN_CUES: { [classToken: string]: number[] | undefined } = {
 /**
  * The racials worth a glow in a fight, of every race: only the ones the player has learned count. Offensive (Blood Fury,
  * Berserking, Elune's Light, Eureka), defensive (Stoneform, Will to Survive, Rapid Regeneration), and the ones that break
- * out of a hold (Will of the Forsaken, Escape Artist, Shatter Curse), War Stomp and Perception.
+ * out of a hold (Will of the Forsaken, Escape Artist, Shatter Curse), War Stomp and Perception. And the priest's spells
+ * of each race that have a cooldown (Desperate Prayer, Elune's Grace, Feedback, Divine Grace...); the ones without one
+ * (Touch of Weakness, Shadowguard, Hex of Weakness) are buffs and debuffs, not cooldowns.
  */
 export const RACIAL_COOLDOWNS: number[] = [
     Racial.BloodFury,
@@ -32,6 +34,15 @@ export const RACIAL_COOLDOWNS: number[] = [
     Racial.ShatterCurse,
     Racial.WarStomp,
     Racial.Perception,
+    Priest.DesperatePrayer,
+    Priest.DivineGrace,
+    Priest.Feedback,
+    Priest.Chastise,
+    Priest.ElunesGrace,
+    Priest.Starshards,
+    Priest.DarkSacrifice,
+    Priest.ConfoundingFlash,
+    Priest.ContingencyPlan,
 ];
 
 /** Procs: the spell glows while the game says it is usable (and not on cooldown). The player can switch each off. */

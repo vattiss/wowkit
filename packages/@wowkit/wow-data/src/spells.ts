@@ -231,7 +231,13 @@ export const Priest = {
     PrayerOfMending: 401859,
     BindingHeal: 401937,
     DivineGrace: 1277370,
-    ContingencyPlan: 1277456,
+    // The spell the gnome priest casts (Wowhead's Forever database); 1277456 is the shield it triggers
+    ContingencyPlan: 1277462,
+    // The racial spells of the other races (Wowhead's Forever database)
+    Feedback: 13896,
+    DesperatePrayer: 13908,
+    ElunesGrace: 2651,
+    Starshards: 10797,
     // Defense and the rest
     PsychicScream: 8122,
     Fade: 586,
