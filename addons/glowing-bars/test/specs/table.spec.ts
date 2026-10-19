@@ -92,6 +92,11 @@ describe("the table of looks", () => {
         }
     });
 
+    it("shows no kind the character has no spell of: a warrior has no weapon buff and no reagent", () => {
+        expect(findLabel(world, "Weapon buff")).toBeUndefined();
+        expect(findLabel(world, "Low reagent")).toBeUndefined();
+    });
+
     it("closes with /gb again", () => {
         toggleTable();
         expect(world.findFrame((frame) => frame.name === "GlowingBarsLooks")?.isShown).toBe(false);

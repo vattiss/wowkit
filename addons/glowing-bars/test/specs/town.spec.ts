@@ -30,7 +30,7 @@ describe("a priest who arrives in a town", () => {
     let world!: World;
 
     beforeEach(() => {
-        world = createWorld((state) => setUpPriest(state, true));
+        world = createWorld((state) => setUpPriest(state, true), { styles: { reagent: { isTextOn: true } } });
     });
 
     it("is told which reagents run low", () => {
@@ -51,6 +51,14 @@ describe("a priest who arrives in a town", () => {
 
     it("keeps its settings in the character's saved variables", () => {
         expect(world.getSavedSettings()?.isMuted).toBe(false);
+    });
+});
+
+describe("the reagent message on the screen", () => {
+    it("is off unless the player switched it on; the chat line stays", () => {
+        const world = createWorld((state) => setUpPriest(state, true));
+        expect(world.notice()).not.toContain("Reagents running low");
+        expect(world.chat.join("\n")).toContain("Reagents running low");
     });
 });
 
@@ -167,11 +175,14 @@ describe("a character whose saved sound has gone from the list", () => {
 
 describe("a priest with an old rank on the bar who arrives in a town", () => {
     it("keeps the reagent message, although the message of the old rank goes out in town", () => {
-        const world = createWorld((state) => {
-            setUpPriest(state, false);
-            for (const spell of [SMITE_RANK_1, SMITE_RANK_2]) learnSpell(state, spell);
-            state.bars[3] = SMITE_RANK_1.id;
-        });
+        const world = createWorld(
+            (state) => {
+                setUpPriest(state, false);
+                for (const spell of [SMITE_RANK_1, SMITE_RANK_2]) learnSpell(state, spell);
+                state.bars[3] = SMITE_RANK_1.id;
+            },
+            { styles: { reagent: { isTextOn: true } } },
+        );
         world.advance(3);
         expect(world.notice()).toContain("Old spell rank");
         world.state.isResting = true;

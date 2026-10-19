@@ -37,11 +37,14 @@ describe("a priest in a party", () => {
 
     describe("out of town, with no candles", () => {
         beforeEach(() => {
-            world = createWorld((state) => {
-                setUpPartyOfThree(state, false);
-                // Another priest's Prayer of Fortitude is on the player
-                state.auras.push({ name: PRAYER_OF_FORTITUDE.name, spellId: PRAYER_OF_FORTITUDE.id, expirationTime: 1000 + 3600 });
-            });
+            world = createWorld(
+                (state) => {
+                    setUpPartyOfThree(state, false);
+                    // Another priest's Prayer of Fortitude is on the player
+                    state.auras.push({ name: PRAYER_OF_FORTITUDE.name, spellId: PRAYER_OF_FORTITUDE.id, expirationTime: 1000 + 3600 });
+                },
+                { styles: { buff: { isTextOn: true } } },
+            );
             world.advance(1);
         });
 

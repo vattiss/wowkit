@@ -90,8 +90,9 @@ export class StyleTableService {
         if (content === undefined) return;
         this.usedWidgets = 0;
         this.usedHeaders = 0;
-        let y = this.drawSection(content, "HDR_TABLE_DEFAULTS", this.rows.listKindRows(), 0);
-        y = this.drawSection(content, "HDR_TABLE_SPELLS", this.rows.listSpellRows(), y);
+        const spellRows = this.rows.listSpellRows();
+        let y = this.drawSection(content, "HDR_TABLE_DEFAULTS", this.rows.listKindRows(spellRows), 0);
+        y = this.drawSection(content, "HDR_TABLE_SPELLS", spellRows, y);
         for (let i = this.usedHeaders; i < this.headers.length; i++) this.headers[i]!.Hide();
         for (let i = this.usedWidgets; i < this.widgets.length; i++) this.widgets[i]!.frame.Hide();
         content.SetHeight(math.max(10, y));

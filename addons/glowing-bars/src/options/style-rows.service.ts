@@ -44,9 +44,14 @@ export class StyleRowsService {
         private readonly glowCues: GlowCuesService,
     ) {}
 
-    /** The default look of each kind of reminder. */
-    listKindRows(): StyleRow[] {
-        return KIND_ORDER.map((kind) => ({ kind, spellId: undefined, label: this.locale.getText(KIND_TEXTS[kind]), iconId: undefined }));
+    /** The default look of each kind of reminder this character has spells of (a warrior has no weapon buff to remind of). */
+    listKindRows(spellRows: StyleRow[]): StyleRow[] {
+        return KIND_ORDER.filter((kind) => spellRows.some((row) => row.kind === kind)).map((kind) => ({
+            kind,
+            spellId: undefined,
+            label: this.locale.getText(KIND_TEXTS[kind]),
+            iconId: undefined,
+        }));
     }
 
     /** The spells of the class that can have a look of their own, by kind, then by name. A spell is listed once. */

@@ -1,7 +1,7 @@
 // English only: every player-facing string of the addon.
 export const TEXTS = {
     TITLE: "Glowing Bars",
-    INIT: "Initialized",
+    INIT: "Initialized. Type /gb to set how the reminders look.",
 
     HDR_ABOUT: "Help",
     INFO_GITHUB: "GitHub",

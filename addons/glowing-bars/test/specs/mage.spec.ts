@@ -16,17 +16,20 @@ describe("a mage in a party", () => {
     let world!: World;
 
     beforeEach(() => {
-        world = createWorld((state) => {
-            playAs(state, MAGE);
-            learnSpell(state, ARCANE_INTELLECT);
-            state.auras.push({ name: ARCANE_INTELLECT.name, spellId: ARCANE_INTELLECT.id, expirationTime: 1000 + 1800 });
-            state.bars[1] = ARCANE_INTELLECT.id;
-            state.party = [
-                { name: "Bob", classToken: "WARRIOR", power: POWER.Rage, auras: [] },
-                { name: "Alice", classToken: "PRIEST", power: POWER.Mana, auras: [] },
-                { name: "Far", classToken: "DRUID", power: POWER.Mana, auras: [], isOutOfRange: true },
-            ];
-        });
+        world = createWorld(
+            (state) => {
+                playAs(state, MAGE);
+                learnSpell(state, ARCANE_INTELLECT);
+                state.auras.push({ name: ARCANE_INTELLECT.name, spellId: ARCANE_INTELLECT.id, expirationTime: 1000 + 1800 });
+                state.bars[1] = ARCANE_INTELLECT.id;
+                state.party = [
+                    { name: "Bob", classToken: "WARRIOR", power: POWER.Rage, auras: [] },
+                    { name: "Alice", classToken: "PRIEST", power: POWER.Mana, auras: [] },
+                    { name: "Far", classToken: "DRUID", power: POWER.Mana, auras: [], isOutOfRange: true },
+                ];
+            },
+            { styles: { buff: { isTextOn: true } } },
+        );
     });
 
     it("is told to buff a member who uses mana", () => {

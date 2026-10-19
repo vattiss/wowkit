@@ -27,19 +27,19 @@ export function createDefaultSettings(): AddonSettings {
 
 /** The look of each kind of reminder until the player changes it. The old ranks and the low reagents are a quiet hint. */
 export const STYLE_DEFAULTS: { [key in ColorKey]: Style } = {
-    buff: { color: [0.2, 0.55, 1], opacity: 100, isTextOn: true, sound: "none" },
+    buff: { color: [0.2, 0.55, 1], opacity: 100, isTextOn: false, sound: "none" },
     weapon: { color: [1, 0.55, 0.1], opacity: 100, isTextOn: false, sound: "alarm2" },
     cooldown: { color: [1, 1, 1], opacity: 100, isTextOn: false, sound: "none" },
     proc: { color: [1, 0.12, 0.08], opacity: 100, isTextOn: false, sound: "none" },
     rank: { color: [1, 0.85, 0.2], opacity: 50, isTextOn: true, sound: "alarm1" },
-    reagent: { color: [1, 0.85, 0.2], opacity: 50, isTextOn: true, sound: "none" },
+    reagent: { color: [1, 0.85, 0.2], opacity: 50, isTextOn: false, sound: "none" },
 };
 
 /** The choices of how long a cooldown glows once it is back (seconds; 0 = until it is pressed). */
 export const COOLDOWN_GLOW_CHOICES = [2, 3, 5, 10, 0];
 
 /** The kinds in the order the tables list them. */
-export const KIND_ORDER: ColorKey[] = ["buff", "weapon", "cooldown", "proc", "rank", "reagent"];
+export const KIND_ORDER: ColorKey[] = ["buff", "weapon", "reagent", "cooldown", "proc", "rank"];
 
 /** The part of a saved look that can be used: a sound that is no longer in the list, or a color that is no color, is dropped. */
 function repairStyle(style: StyleOverride | undefined): StyleOverride | undefined {

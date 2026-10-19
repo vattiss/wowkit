@@ -27,7 +27,7 @@ describe("a priest", () => {
                 state.bars[1] = FORTITUDE.id;
                 state.bars[2] = SMITE_RANK_2.id;
             },
-            { styles: { rank: { sound: "none" } } },
+            { styles: { rank: { sound: "none" }, buff: { isTextOn: true } } },
         );
     });
 
@@ -135,5 +135,17 @@ describe("a priest who eats", () => {
 
     it("stays quiet on a Spanish client too, where the buff of eating is not called Food", () => {
         expect(createEatingPriest("Comida", true).glowsOn(1)).toBe(0);
+    });
+});
+
+describe("the message of a missing buff", () => {
+    it("is off unless the player switched it on: the glow is the reminder", () => {
+        const world = createWorld((state) => {
+            playAs(state, PRIEST);
+            for (const spell of [FORTITUDE, INNER_FIRE]) learnSpell(state, spell);
+            state.bars[1] = FORTITUDE.id;
+        });
+        expect(world.glowsOn(1)).toBe(1);
+        expect(world.notice()).toBe("");
     });
 });
