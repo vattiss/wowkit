@@ -1,6 +1,6 @@
 {
   "name": "@forever-reminders/buff-reminder",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "World of Warcraft: Forever addon reminding of missing buffs, weapon buffs and party buffs, and of buffs missing from the action bars",
   "private": true,
   "license": "MIT",

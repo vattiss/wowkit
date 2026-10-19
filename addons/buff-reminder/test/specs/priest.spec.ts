@@ -29,7 +29,7 @@ describe("a priest", () => {
 
     describe("at login", () => {
         it("greets in the chat", () => {
-            expect(world.chat[0]).toContain("Initialized");
+            expect(world.chat[0]).toContain("has moved");
         });
 
         it("keeps its settings in the character's saved variables", () => {

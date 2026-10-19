@@ -1,5 +1,8 @@
 # Rank Reminder
 
+> **Moved.** This addon is replaced by **Glowing Bars And Auras**, which does what Buff Reminder, Rank Reminder and
+> Reagent Reminder did, and lights the cooldowns and procs too. Install it from CurseForge and remove this addon.
+
 A World of Warcraft: Forever addon (TOC `16001`) that names every spell on your action bars that is a lower rank than
 the one you know, so a new rank never stays unused on a bar by accident.
 

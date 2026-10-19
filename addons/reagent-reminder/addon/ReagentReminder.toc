@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## AllowLoadGameType: camelot
 ## Title: Reagent Reminder
-## Notes: When you arrive in a town or an inn, names the reagents of your group buffs that are running low.
+## Notes: Moved to Glowing Bars And Auras (CurseForge). When you arrive in a town or an inn, names the reagents of your group buffs that are running low.
 ## Category: Forever Reminders
 ## Author: Attila Varga (vattiss)
 ## Version: @version@

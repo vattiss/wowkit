@@ -1,6 +1,6 @@
 {
   "name": "@forever-reminders/reagent-reminder",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "World of Warcraft: Forever addon that names the reagents of your group buffs when they run low, as you arrive in a town or an inn",
   "private": true,
   "license": "MIT",

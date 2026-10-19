@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## AllowLoadGameType: camelot
 ## Title: Know Your Rotation
-## Notes: Lights up the next spell to press on your action bars, plus heals, defense, interrupts, purges, cleanses and totems.
+## Notes: Retired, see Glowing Bars And Auras (CurseForge). Lights up the next spell to press on your action bars, plus heals, defense, interrupts, purges, cleanses and totems.
 ## Author: Attila Varga (vattiss)
 ## Version: @version@
 ## IconTexture: Interface\AddOns\KnowYourRotation\images\logo

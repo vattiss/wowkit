@@ -1,5 +1,9 @@
 # Know Your Rotation
 
+> **Retired.** This addon is no longer developed. **Glowing Bars And Auras** replaces the reminders of the Forever
+> Reminders addons and lights ready cooldowns and procs on your action bars; it has no rotation queue. Install it from
+> CurseForge if that is what you need.
+
 A World of Warcraft: Forever addon (TOC `16001`) for leveling and learning a class: the spell to press next lights up
 on your action bar. No window, no bars of its own: only the glow on the button you would press anyway.
 
