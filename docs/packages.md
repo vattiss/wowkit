@@ -13,7 +13,7 @@ packages/
     wow-data/    the spell and item IDs the addons use, by category, and what the client said of them
     test-kit/    describe / it / expect, the fake game and its fixtures
 addons/
-  glowing-bars-and-auras/ GlowingBarsAndAuras the addon: buffs, old ranks, reagents, ready cooldowns and procs, as glows on the bars
+  glowing-bars/ GlowingBars the addon: buffs, old ranks, reagents, ready cooldowns and procs, as glows on the bars
   wowkit-check/       WowkitCheck        developer tool, not released: checks the IDs of wow-data against the client
 scripts/                               build, deploy, type generation, the rule checks
 ```
@@ -28,7 +28,7 @@ An addon is a folder with `src/`, `test/`, `addon/` (the TOC), `assets/logo.png`
 flowchart LR
     classDef default fill:#f1f5f9,stroke:#94a3b8,color:#111827
     subgraph PANEL[" "]
-        glowing["addons/glowing-bars-and-auras"] --> ui["@wowkit/ui"]
+        glowing["addons/glowing-bars"] --> ui["@wowkit/ui"]
         glowing --> wow
         glowing --> core
         glowing --> data["@wowkit/wow-data"]
@@ -105,8 +105,8 @@ Prettier) are installed once, at the root.
 ```sh
 pnpm install                                    # once
 pnpm test                                       # checks, then build, build the tests and run them, for every addon
-pnpm --filter glowing-bars-and-auras build               # one addon
-pnpm --filter glowing-bars-and-auras deploy:game         # build it and copy it into the game (WOW_ADDONS_DIR)
+pnpm --filter glowing-bars build               # one addon
+pnpm --filter glowing-bars deploy:game         # build it and copy it into the game (WOW_ADDONS_DIR)
 ```
 
 The packages are listed as `workspace:*` dependencies, which records who depends on whom. Compiling does not use
@@ -115,7 +115,7 @@ the links pnpm makes in `node_modules`: TypeScriptToLua cannot compile sources f
 
 ## A new addon
 
-1. Copy `addons/glowing-bars-and-auras` (or, for a smaller start, `addons/rank-reminder` as it was at the tag
+1. Copy `addons/glowing-bars` (or, for a smaller start, `addons/rank-reminder` as it was at the tag
    `rank-reminder-v1.0.2`: a Settings page and a notice) to `addons/<name>`, and rename it in `package.json` (`name`, `addon.name`), in the `tsconfig` files (the bundle name and `outDir`), in the
    TOC and in `src/main.ts`. Give it a `## Category:` in the TOC: the game groups addons of one category under a collapsible header in its
    addon list.

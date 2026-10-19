@@ -19,7 +19,7 @@ The words this project uses in its own sense, in plain terms. One word means one
 | **secret value** | A value the game refuses to let addon code read in some situations (mostly in combat). Reading or comparing it raises an error. | `isReadable`, `getReadable` in `packages/@wowkit/wow/src/utils/secret-value.utils.ts` |
 | **protected call** | A call to the game made so that an error does not stop the addon. | `attempt`, `tryCall` in `packages/@wowkit/wow/src/utils/protected-call.utils.ts` |
 | **aura memory** | While the game hides auras (in combat), the addon remembers which buffs it saw or cast, for as long as they last. | `BuffMemoryService` (Buff Reminder) |
-| **idle** | Dead, mounted, on a taxi, eating, or resting in town: nothing is shown then. | `IdleService` in `addons/glowing-bars-and-auras/src/character/` |
+| **idle** | Dead, mounted, on a taxi, eating, or resting in town: nothing is shown then. | `IdleService` in `addons/glowing-bars/src/character/` |
 
 ## How the code is organised
 

@@ -1,6 +1,6 @@
 # settings/
 
-The addon's per-character settings, saved by the game as `GlowingBarsAndAurasCharDB`. The service is the generic
+The addon's per-character settings, saved by the game as `GlowingBarsCharDB`. The service is the generic
 `SettingsService<T>` of `@wowkit/ui` ([ui/](../../../../packages/@wowkit/ui/README.md)): `get`, `change` (announces
 `setting.changed`), Only the shape is this addon's:
 

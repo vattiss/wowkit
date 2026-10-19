@@ -1,6 +1,6 @@
 // The window with the table of looks: one row for each kind of reminder (its default look) and one for each spell of the
 // player's class (a look of its own where the player changed it, else the kind's). A row shows the color, the opacity of
-// the glow in percent, whether a message says so, and the sound; a click or an entry changes it. Opened by /gba and by
+// the glow in percent, whether a message says so, and the sound; a click or an entry changes it. Opened by /gb and by
 // the button on the Settings page. Like the Settings page, this folder may call the game.
 import { OnEvent } from "@wowkit/core";
 import { SOUNDS, type MessagesService } from "@wowkit/ui";

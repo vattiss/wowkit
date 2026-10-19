@@ -1,6 +1,6 @@
 {
   // For the editor: the sources of this package belong to the test project, which compiles them
-  // (../../../addons/glowing-bars-and-auras/tsconfig.test.json). The build and `pnpm typecheck` use that file directly.
-  "extends": "../../../addons/glowing-bars-and-auras/tsconfig.test.json",
+  // (../../../addons/glowing-bars/tsconfig.test.json). The build and `pnpm typecheck` use that file directly.
+  "extends": "../../../addons/glowing-bars/tsconfig.test.json",
   "include": ["./src/**/*.ts", "../wow-types/**/*.d.ts"]
 }

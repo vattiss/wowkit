@@ -1,6 +1,6 @@
 // English only: every player-facing string of the addon.
 export const TEXTS = {
-    TITLE: "Glowing Bars And Auras",
+    TITLE: "Glowing Bars",
     INIT: "Initialized",
 
     HDR_ABOUT: "Help",
@@ -63,10 +63,10 @@ export const TEXTS = {
 
     HDR_LOOKS: "Looks",
     OPT_TABLE: "Colors, opacity, messages and sounds",
-    TIP_TABLE: "A table with the look of each kind of reminder, and of each spell of your class. Also /gba.",
+    TIP_TABLE: "A table with the look of each kind of reminder, and of each spell of your class. Also /gb.",
     BTN_OPEN: "Open the table",
     BTN_RESET: "Reset",
-    TABLE_TITLE: "Glowing Bars And Auras: looks",
+    TABLE_TITLE: "Glowing Bars: looks",
     HDR_TABLE_DEFAULTS: "Each kind of reminder",
     HDR_TABLE_SPELLS: "Your spells (a change here wins over the kind)",
     COL_SPELL: "Spell",

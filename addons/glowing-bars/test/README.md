@@ -11,7 +11,7 @@ pnpm build:tests # only compiles the tests (TypeScript -> dist-test/tests.lua)
 ## How they run
 
 The addon is Lua, so the tests run in Lua too: TypeScriptToLua compiles them into one file and
-LuaJIT (Lua 5.1, like the game) runs it against the **built** addon (`dist/GlowingBarsAndAuras`). There is no
+LuaJIT (Lua 5.1, like the game) runs it against the **built** addon (`dist/GlowingBars`). There is no
 game in the loop, so the test kit has a *fake game* that answers the addon's questions.
 
 - **The test kit** has `describe`, `it`, `beforeEach`, `expect` and the fake game, `createWorld(setup)`: a fresh game

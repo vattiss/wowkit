@@ -41,7 +41,7 @@ describe("a priest", () => {
         });
 
         it("adds its page to the options", () => {
-            expect(world.proxySettings["GlowingBarsAndAuras_showBuff"]).toBeDefined();
+            expect(world.proxySettings["GlowingBars_showBuff"]).toBeDefined();
         });
     });
 

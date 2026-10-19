@@ -21,7 +21,7 @@
       "@wowkit/wow-data": ["../../packages/@wowkit/wow-data/src/index.ts"]
     },
     "rootDir": "../..",
-    "outDir": "dist/GlowingBarsAndAuras"
+    "outDir": "dist/GlowingBars"
   },
   "include": [
     "src/**/*.ts",
@@ -35,7 +35,7 @@
     // WoW embeds Lua 5.1
     "luaTarget": "5.1",
     // One self-contained file; WoW has no `require`
-    "luaBundle": "GlowingBarsAndAuras.lua",
+    "luaBundle": "GlowingBars.lua",
     "luaBundleEntry": "src/main.ts",
     "luaLibImport": "require-minimal",
     // Plain functions do not take a hidden `self`; methods of interfaces/classes still do (`:` calls)

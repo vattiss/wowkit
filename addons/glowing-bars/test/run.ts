@@ -1,4 +1,4 @@
-// Entry of the test bundle: luajit dist-test/tests.lua dist/GlowingBarsAndAuras/GlowingBarsAndAuras.lua
+// Entry of the test bundle: luajit dist-test/tests.lua dist/GlowingBars/GlowingBars.lua
 import { config, runAll } from "@wowkit/test-kit";
 import "./specs";
 

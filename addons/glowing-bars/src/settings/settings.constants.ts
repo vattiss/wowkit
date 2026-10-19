@@ -2,7 +2,7 @@ import { isSoundKey } from "@wowkit/ui";
 import type { AddonSettings, ColorKey, Style, StyleOverride } from "./settings.interface";
 
 /** The global the TOC saves per character (## SavedVariablesPerCharacter). */
-export const SAVED_VARIABLES_NAME = "GlowingBarsAndAurasCharDB";
+export const SAVED_VARIABLES_NAME = "GlowingBarsCharDB";
 
 export function createDefaultSettings(): AddonSettings {
     return {

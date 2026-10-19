@@ -1,11 +1,11 @@
 {
-  "name": "glowing-bars-and-auras",
+  "name": "glowing-bars",
   "version": "1.0.2",
   "description": "World of Warcraft: Forever addon reminding of missing buffs, weapon buffs and party buffs, and of buffs missing from the action bars",
   "private": true,
   "license": "MIT",
   "addon": {
-    "name": "GlowingBarsAndAuras"
+    "name": "GlowingBars"
   },
   "scripts": {
     "build": "tstl -p tsconfig.json && node ../../scripts/package-addon.ts",

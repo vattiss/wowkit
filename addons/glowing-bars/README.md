@@ -1,4 +1,4 @@
-# Glowing Bars And Auras
+# Glowing Bars
 
 A World of Warcraft: Forever addon (TOC `16001`) that lights up your action bars. No window and no bars of its own: the
 button you should press anyway glows. It replaces Buff Reminder, Rank Reminder and Reagent Reminder, and retires Know
@@ -27,9 +27,9 @@ Every kind of reminder has the same four settings: the **color** of its glow and
 (1 to 100 percent), whether a short **message** at the top of the screen says so, and a **sound**. The defaults: missing
 buffs blue, weapon buffs orange, ready cooldowns white, procs red, old ranks and low reagents yellow (and a quieter glow
 than the others). They are set in a table, and every spell of your class can have a look of its own in the same table.
-It opens with `/gba` or from the Settings page.
+It opens with `/gb` or from the Settings page.
 
-Settings (per character): *Options > AddOns > Glowing Bars And Auras*: a switch per feature and per spell, the button
+Settings (per character): *Options > AddOns > Glowing Bars*: a switch per feature and per spell, the button
 that opens the table of looks, and a Help section with links to report problems. Only Blizzard's own action bars are supported.
 
 How the code is organised: [src/](src/addon.ts), and [docs/architecture.md](../../docs/architecture.md). The old

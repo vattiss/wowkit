@@ -1,4 +1,4 @@
-# Makes the zip of one addon when a tag like glowing-bars-and-auras-v1.0.0 is pushed, and attaches it to a GitHub release, from
+# Makes the zip of one addon when a tag like glowing-bars-v1.0.0 is pushed, and attaches it to a GitHub release, from
 # where it is downloaded and uploaded to CurseForge by hand. See docs/releasing.md.
 name: Release
 
@@ -30,7 +30,7 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # glowing-bars-and-auras-v1.0.0 -> addon glowing-bars-and-auras, version 1.0.0; the version must be the one in its package.json
+      # glowing-bars-v1.0.0 -> addon glowing-bars, version 1.0.0; the version must be the one in its package.json
       - name: Read the tag
         id: tag
         run: |

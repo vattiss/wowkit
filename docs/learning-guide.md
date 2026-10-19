@@ -32,7 +32,7 @@ addons/target-reminder/
 ```
 
 The quickest start is to copy `addons/rank-reminder` as it was at the tag [`rank-reminder-v1.0.2`](https://github.com/vattiss/wowkit/tree/rank-reminder-v1.0.2/addons/rank-reminder)
-(`git show rank-reminder-v1.0.2:addons/rank-reminder/...`; it is a part of Glowing Bars And Auras now), delete what you do not need and rename.
+(`git show rank-reminder-v1.0.2:addons/rank-reminder/...`; it is a part of Glowing Bars now), delete what you do not need and rename.
 The files below are what is left of it.
 
 ## 2. Describe the package
@@ -203,7 +203,7 @@ Your addon works, but it is not yet a *good* addon. The real ones also have thes
 |---|---|---|
 | A way to turn it off | `SettingsService`, a settings page and saved variables per character | [`rank-reminder/src/settings`](https://github.com/vattiss/wowkit/tree/rank-reminder-v1.0.2/addons/rank-reminder/src/settings) and [`options`](https://github.com/vattiss/wowkit/tree/rank-reminder-v1.0.2/addons/rank-reminder/src/options) |
 | Texts in one place | A `TEXTS` object and `LocaleService` | [`rank-reminder/src/locale`](https://github.com/vattiss/wowkit/tree/rank-reminder-v1.0.2/addons/rank-reminder/src/locale) |
-| Silence in towns, while dead or mounted | `IdleService` of [Glowing Bars And Auras](https://github.com/vattiss/wowkit/blob/main/addons/glowing-bars-and-auras/src/character/idle.service.ts) | [`rank-notice.service.ts`](https://github.com/vattiss/wowkit/blob/rank-reminder-v1.0.2/addons/rank-reminder/src/rank-notice.service.ts) |
+| Silence in towns, while dead or mounted | `IdleService` of [Glowing Bars](https://github.com/vattiss/wowkit/blob/main/addons/glowing-bars/src/character/idle.service.ts) | [`rank-notice.service.ts`](https://github.com/vattiss/wowkit/blob/rank-reminder-v1.0.2/addons/rank-reminder/src/rank-notice.service.ts) |
 | Tests | A spec against the fake game of `@wowkit/test-kit`; `state.isInCombat = true`, advance the clock, `expect(world.notice())` | [`rank-reminder/test`](https://github.com/vattiss/wowkit/tree/rank-reminder-v1.0.2/addons/rank-reminder/test) |
 | A release | A tag and the release workflow | [Releasing](releasing.md) |
 

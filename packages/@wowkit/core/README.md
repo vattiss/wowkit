@@ -14,7 +14,7 @@ export class RefreshService {
     scheduleSpellRefresh(): void { ... }
 }
 
-// addons/glowing-bars-and-auras/src/addon.ts: every service is made by hand, dependencies first, and handed to the addon
+// addons/glowing-bars/src/addon.ts: every service is made by hand, dependencies first, and handed to the addon
 const addon = new Addon(addonName);
 const tick = addon.register(new TickService(findReminders, showReminders));
 addon.register(new RefreshService(tick));

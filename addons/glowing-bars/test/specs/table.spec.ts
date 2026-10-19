@@ -67,7 +67,7 @@ function findRow(world: World, label: string): Row {
 }
 
 function toggleTable(): void {
-    SlashCmdList["GLOWINGBARSANDAURAS"]!("", undefined as never);
+    SlashCmdList["GLOWINGBARS"]!("", undefined as never);
 }
 
 function readSaved(world: World, section: "styles" | "spellStyles"): Record<string, Record<string, unknown> | undefined> {
@@ -84,17 +84,17 @@ describe("the table of looks", () => {
         toggleTable();
     });
 
-    it("opens with /gba, a row for each kind and for each spell of the class", () => {
-        const window = world.findFrame((frame) => frame.name === "GlowingBarsAndAurasLooks");
+    it("opens with /gb, a row for each kind and for each spell of the class", () => {
+        const window = world.findFrame((frame) => frame.name === "GlowingBarsLooks");
         expect(window?.isShown).toBe(true);
         for (const label of ["Missing buff", "Ready cooldown", "Proc", "Recklessness"]) {
             expect(findLabel(world, label)).toBeDefined();
         }
     });
 
-    it("closes with /gba again", () => {
+    it("closes with /gb again", () => {
         toggleTable();
-        expect(world.findFrame((frame) => frame.name === "GlowingBarsAndAurasLooks")?.isShown).toBe(false);
+        expect(world.findFrame((frame) => frame.name === "GlowingBarsLooks")?.isShown).toBe(false);
     });
 
     it("changes the opacity of a spell when a percent is typed, and the glow follows", () => {

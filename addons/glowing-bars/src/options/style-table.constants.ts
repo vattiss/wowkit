@@ -1,7 +1,7 @@
 // The size, the columns and the colors of the table of looks.
 import type { Rgb } from "@wowkit/wow";
 
-export const WINDOW_NAME = "GlowingBarsAndAurasLooks";
+export const WINDOW_NAME = "GlowingBarsLooks";
 export const WINDOW_WIDTH = 740;
 export const WINDOW_HEIGHT = 520;
 export const ROW_HEIGHT = 36;

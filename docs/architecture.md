@@ -1,7 +1,7 @@
 # Architecture
 
-The addon of this repository (Glowing Bars And Auras) is written in TypeScript on shared packages, and compiled to a
-single Lua file. This page shows how an addon is built (Glowing Bars And Auras as the example), how the code is organised,
+The addon of this repository (Glowing Bars) is written in TypeScript on shared packages, and compiled to a
+single Lua file. This page shows how an addon is built (Glowing Bars as the example), how the code is organised,
 and the rules that keep it readable. The packages and the addons:
 [packages.md](packages.md).
 
@@ -11,14 +11,14 @@ and the rules that keep it readable. The packages and the addons:
 Blizzard's API is full of quirks: values that are secret in combat, calls that can raise errors,
 spell IDs that Forever remaps, `multiple, return, values`. All of that stays inside `packages/@wowkit/wow/src/`, which
 turns it into plain answers in the addon's own words (`isInCombat()`, `isLearned(spell)`,
-`getItemCount(item)`). The reminder logic in `addons/glowing-bars-and-auras/src/reminders/` never sees a Blizzard function, so it reads
+`getItemCount(item)`). The reminder logic in `addons/glowing-bars/src/reminders/` never sees a Blizzard function, so it reads
 like plain code. A few more places may call the game because that is their job: `packages/@wowkit/core/src/` (game events and timers for
 the decorators), `packages/@wowkit/ui/src/` (the Settings panel and the chat) and the `options/` folders of the addons (their
 own page).
 
 **2. Everything is a service, made once, by hand.**
 Code that keeps state, talks to the game or uses other services is a class with its dependencies in the
-constructor. `addons/glowing-bars-and-auras/src/addon.ts` makes each one with `new`, dependencies first, so there is one instance of each; there
+constructor. `addons/glowing-bars/src/addon.ts` makes each one with `new`, dependencies first, so there is one instance of each; there
 is no inheritance and no container (a service is built from the services it is given). Pure data is a
 `*.constants.ts` file, a shape is a `*.interface.ts` file, and a helper only one class uses is a private method of that class. Only
 helpers that several files share stay plain functions, in a file of their own (`packages/@wowkit/core/src/utils/text.utils.ts`,
@@ -62,11 +62,11 @@ flowchart LR
         src["packages/*/src and<br/>addons/*/src"] --> tstl["TSTL<br/>luaTarget 5.1, luaBundle,<br/>noImplicitSelf"]
         generated --> tstl
         manual --> tstl
-        tstl --> lua["dist/GlowingBarsAndAuras/<br/>GlowingBarsAndAuras.lua<br/>(in the addon folder)"]
-        toc["addon/GlowingBarsAndAuras.toc<br/>assets/logo.png"] -- "scripts/package-addon.ts<br/>(@version@, logo.png to logo.tga)" --> dist["dist/GlowingBarsAndAuras/"]
+        tstl --> lua["dist/GlowingBars/<br/>GlowingBars.lua<br/>(in the addon folder)"]
+        toc["addon/GlowingBars.toc<br/>assets/logo.png"] -- "scripts/package-addon.ts<br/>(@version@, logo.png to logo.tga)" --> dist["dist/GlowingBars/"]
         lua --> dist
         dist -- "pnpm test<br/>tests in TypeScript, run by LuaJIT<br/>against a fake game" --> smoke["tests"]
-        dist -- "pnpm --filter glowing-bars-and-auras deploy:game" --> game["_classic_beta_/Interface/AddOns"]
+        dist -- "pnpm --filter glowing-bars deploy:game" --> game["_classic_beta_/Interface/AddOns"]
     end
     classDef panel fill:#ffffff,stroke:#d1d5db,color:#111827
     class PANEL panel
@@ -122,7 +122,7 @@ flowchart TB
             knowledge["knowledge/<br/>what only this addon knows:<br/>buff categories"]
         end
 
-        subgraph features["features (glowing-bars-and-auras)"]
+        subgraph features["features (glowing-bars)"]
             tick["tick/<br/>a tick every 0.2 s: find what is due,<br/>show it; when to look sooner"]
             character["character/<br/>weapons, auras and casts,<br/>party roster, blocked actions"]
             options["options/<br/>the Settings panel pages"]

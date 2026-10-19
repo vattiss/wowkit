@@ -135,9 +135,9 @@ describe("the reagents of a priest on the options page", () => {
 
     it("have a switch each, and none for another class's reagents", () => {
         const world = createWorld((state) => setUpPriest(state, false));
-        expect(world.proxySettings["GlowingBarsAndAuras_reagent_17028"]).toBeDefined();
-        expect(world.proxySettings["GlowingBarsAndAuras_reagent_17029"]).toBeDefined();
-        expect(world.proxySettings["GlowingBarsAndAuras_reagent_17021"]).toBeUndefined();
+        expect(world.proxySettings["GlowingBars_reagent_17028"]).toBeDefined();
+        expect(world.proxySettings["GlowingBars_reagent_17029"]).toBeDefined();
+        expect(world.proxySettings["GlowingBars_reagent_17021"]).toBeUndefined();
     });
 
     it("silence the message of a reagent that is switched off", () => {
