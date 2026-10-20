@@ -14,6 +14,7 @@ type FeatureKey =
     | "showReagents"
     | "showCooldowns"
     | "showCooldownsOutOfCombat"
+    | "showCooldownsAtFightStart"
     | "showProcs";
 
 export class ReminderControlsService {

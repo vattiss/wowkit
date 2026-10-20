@@ -15,6 +15,7 @@ export function createDefaultSettings(): AddonSettings {
         showReagents: true,
         showCooldowns: true,
         showCooldownsOutOfCombat: false,
+        showCooldownsAtFightStart: false,
         cooldownGlowSeconds: 3,
         showProcs: true,
         styles: {},

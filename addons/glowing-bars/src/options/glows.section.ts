@@ -34,6 +34,12 @@ export class GlowsSection {
                 "OPT_COOLDOWNS_OUT_OF_COMBAT",
                 "TIP_COOLDOWNS_OUT_OF_COMBAT",
             );
+            this.reminderControls.addSwitch(
+                category,
+                "showCooldownsAtFightStart",
+                "OPT_COOLDOWNS_FIGHT_START",
+                "TIP_COOLDOWNS_FIGHT_START",
+            );
             this.addGlowSecondsDropdown(category);
             this.addSpellCheckboxes(category, cooldowns);
         }

@@ -96,6 +96,23 @@ describe("a warrior with Overpower and Recklessness on the bars", () => {
         expect(world.glowsOn(2)).toBe(1);
     });
 
+    it("lights the ready Recklessness as the fight starts when the player asked for it, for the glow time", () => {
+        world.setOption("showCooldownsAtFightStart", true);
+        world.state.isInCombat = true;
+        world.fire("PLAYER_REGEN_DISABLED");
+        world.advance(0.5);
+        expect(world.glowsOn(2)).toBe(1);
+        world.advance(3);
+        expect(world.glowsOn(2)).toBe(0);
+    });
+
+    it("does not light the ready Recklessness as the fight starts by default", () => {
+        world.state.isInCombat = true;
+        world.fire("PLAYER_REGEN_DISABLED");
+        world.advance(0.5);
+        expect(world.glowsOn(2)).toBe(0);
+    });
+
     it("forgets the cooldowns of the last fight when a new one starts", () => {
         world.state.isInCombat = true;
         world.state.cooldowns[RECKLESSNESS.id] = { start: 0, duration: 99999 };

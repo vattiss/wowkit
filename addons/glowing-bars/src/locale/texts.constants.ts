@@ -47,6 +47,9 @@ export const TEXTS = {
         "In a fight, an important cooldown of your class or your race glows on its action button when it is ready again after you used it (or after it was running as the fight began), for the time chosen below. The list below is what you can switch off.",
     OPT_COOLDOWNS_OUT_OF_COMBAT: "Also out of combat",
     TIP_COOLDOWNS_OUT_OF_COMBAT: "By default the cooldowns glow in combat only.",
+    OPT_COOLDOWNS_FIGHT_START: "Also at the start of a fight",
+    TIP_COOLDOWNS_FIGHT_START:
+        "When a fight starts, every ready cooldown glows for the time below too, so you remember to use it (Berserking, Recklessness...).",
     OPT_COOLDOWN_SECONDS: "Glow when it is back",
     TIP_COOLDOWN_SECONDS: "In a fight, how long a cooldown glows once it is ready again.",
     OPT_SECONDS: "%d seconds",

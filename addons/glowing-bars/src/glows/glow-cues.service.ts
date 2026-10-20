@@ -25,13 +25,23 @@ export class GlowCuesService {
 
     /**
      * A new fight: what was used in the last one is forgotten, and a cooldown that is running as it starts counts as used
-     * in it (it glows when it is back). Read now, while the client may still show the cooldowns.
+     * in it (it glows when it is back). Read now, while the client may still show the cooldowns. If the player asked for it,
+     * the ready ones glow right away, as if they had just come back: a reminder to use them.
      */
     @OnGameEvent("PLAYER_REGEN_DISABLED")
     startFight(): void {
         this.usedInCombat = new LuaSet<number>();
         this.backAt = new LuaMap<number, number>();
-        for (const id of this.listCues(this.listCooldownIds())) if (this.tracker.getRemaining(id) > READY_MARGIN) this.usedInCombat.add(id);
+        const isReadyGlowing = this.settings.get("showCooldownsAtFightStart");
+        const now = this.clock.getCurrentTime();
+        for (const id of this.listCues(this.listCooldownIds())) {
+            if (this.tracker.getRemaining(id) > READY_MARGIN) {
+                this.usedInCombat.add(id);
+            } else if (isReadyGlowing) {
+                this.usedInCombat.add(id);
+                this.backAt.set(id, now);
+            }
+        }
     }
 
     /**

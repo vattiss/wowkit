@@ -36,6 +36,8 @@ export interface AddonSettings {
     showCooldowns: boolean;
     /** Also out of combat (by default only in combat). */
     showCooldownsOutOfCombat: boolean;
+    /** As a fight starts, every ready cooldown glows too (a reminder to use it), for the same time. */
+    showCooldownsAtFightStart: boolean;
     /** How long a cooldown glows in a fight once it is back, in seconds; 0 = until it is pressed. */
     cooldownGlowSeconds: number;
     /** Spells the game says are usable now (Overpower, Revenge, Execute...). */
