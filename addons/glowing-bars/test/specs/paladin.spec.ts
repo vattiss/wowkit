@@ -132,3 +132,38 @@ describe("a paladin with two seals on the bars", () => {
         expect(world.glowsOn(1)).toBe(0);
     });
 });
+
+describe("a paladin who cancels an aura in a fight", () => {
+    const DEVOTION_AURA: SpellDefinition = { id: 465, name: "Devotion Aura", rank: 1, icon: 135893, isHelpful: true };
+    let world!: World;
+
+    beforeEach(() => {
+        world = createWorld((state) => {
+            playAs(state, PALADIN);
+            learnSpell(state, DEVOTION_AURA);
+            learnSpell(state, BLESSING_OF_KINGS);
+            state.bars[1] = DEVOTION_AURA.id;
+            state.auras.push({ name: DEVOTION_AURA.name, spellId: DEVOTION_AURA.id, expirationTime: 99999 });
+            state.auras.push({ name: BLESSING_OF_KINGS.name, spellId: BLESSING_OF_KINGS.id, expirationTime: 99999 });
+        });
+        world.advance(1);
+        world.state.isInCombat = true;
+        world.fire("PLAYER_REGEN_DISABLED");
+        world.advance(1);
+    });
+
+    it("sees it glow when the game shows the auras and it is gone", () => {
+        expect(world.glowsOn(1)).toBe(0);
+        world.state.auras = world.state.auras.filter((aura) => aura.name !== DEVOTION_AURA.name);
+        world.fire("UNIT_AURA", "player");
+        world.advance(1);
+        expect(world.glowsOn(1)).toBe(1);
+    });
+
+    it("still counts it while the game hides the auras", () => {
+        world.state.areAurasHidden = true;
+        world.fire("UNIT_AURA", "player");
+        world.advance(1);
+        expect(world.glowsOn(1)).toBe(0);
+    });
+});

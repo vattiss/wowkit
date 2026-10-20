@@ -51,10 +51,9 @@ export class BuffStateService {
             this.memory.remember(spellId, undefined, read.remain, false);
             return true;
         }
+        // The client hides auras in combat (none at all, or some whose name and ID are secret): a buff we saw or cast is
+        // trusted until it runs out. A list it shows in full is believed, in combat too: a buff the player cancelled is gone.
         if (read.isUnreadable) return this.memory.isRemembered(spellId);
-        // In combat the client may simply return no auras: a buff we saw or cast is trusted until it
-        // runs out. "Not found" only counts out of combat.
-        if (this.memory.isRemembered(spellId) && this.player.isInCombat()) return true;
         this.memory.release(spellId, read.categories);
         return false;
     }
@@ -116,8 +115,10 @@ export class BuffStateService {
         const resolved = this.spells.resolve(spellId);
         const wantName = this.getBuffName(spellId);
         const scan = this.auras.scanAuras("player");
-        // No auras at all while buffs are remembered, in combat or with a target: the client hides them
-        const isUnreadable = scan.isUnreadable || (scan.auras.length === 0 && this.isEmptyListSuspicious());
+        // No auras at all while buffs are remembered, in combat or with a target, or an aura whose name is secret: the client
+        // hides them, and the buff may be one of them
+        const hasHiddenAura = scan.auras.some((aura) => aura.isHidden || aura.name === undefined);
+        const isUnreadable = scan.isUnreadable || hasHiddenAura || (scan.auras.length === 0 && this.isEmptyListSuspicious());
         const { names, ids, categories } = this.indexAuras(scan.auras);
         const wantCategory = this.knowledge.findCategory(wantName);
         const aura =
