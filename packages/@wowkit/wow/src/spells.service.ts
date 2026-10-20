@@ -20,6 +20,8 @@ declare module "@wowkit/core/event-bus" {
 export class SpellsService implements OnFirstLogin {
     /** spell ID -> the ID the player knows, or false when not known (cached until invalidated). */
     private readonly resolveCache = new LuaMap<number, number | false>();
+    /** The ID the client knows a spell by, when the player gave it another one (see useIdAlias). */
+    private findAlias: (this: void, spellId: number) => number = (spellId) => spellId;
 
     constructor(
         private readonly book: SpellBookService,
@@ -39,9 +41,22 @@ export class SpellsService implements OnFirstLogin {
         C_Timer.After(0, () => this.bus.emit("spellbook.indexed"));
     }
 
+    /**
+     * The addon's player may give a spell of a list another ID (one the client knows it by): from then on every question
+     * about the spell is asked of that ID. `alias` returns the ID itself for every other spell.
+     */
+    useIdAlias(alias: (this: void, spellId: number) => number): void {
+        this.findAlias = alias;
+    }
+
+    /** The answer for one spell is asked again: its ID was given another one. */
+    forgetResolved(spellId: number): void {
+        this.resolveCache.delete(spellId);
+    }
+
     getSpellInfo(spellId: number | undefined): SpellInfo | undefined {
         if (spellId === undefined) return undefined;
-        return attempt(C_Spell.GetSpellInfo, spellId);
+        return attempt(C_Spell.GetSpellInfo, this.findAlias(spellId));
     }
 
     getSpellName(spellId: number | undefined): string | undefined {
@@ -93,7 +108,7 @@ export class SpellsService implements OnFirstLogin {
         if (spellId === undefined) return undefined;
         const cached = this.resolveCache.get(spellId);
         if (cached !== undefined) return cached === false ? undefined : cached;
-        const id = this.findKnownId(spellId);
+        const id = this.findKnownId(this.findAlias(spellId));
         this.resolveCache.set(spellId, id ?? false);
         return id;
     }
@@ -112,14 +127,14 @@ export class SpellsService implements OnFirstLogin {
      * answer. Battle Shout with 0 rage: false.
      */
     isCastable(spellId: number): boolean | undefined {
-        const [didSucceed, isUsable] = attemptMulti(() => C_Spell.IsSpellUsable(spellId));
+        const [didSucceed, isUsable] = attemptMulti(() => C_Spell.IsSpellUsable(this.findAlias(spellId)));
         if (!didSucceed || !isReadable(isUsable)) return undefined;
         return isUsable === true;
     }
 
     /** The texts of the spell's tooltip; undefined when the client has none. */
     getSpellTooltipTexts(spellId: number): string[] | undefined {
-        const tooltip = attempt(C_TooltipInfo.GetSpellByID, spellId);
+        const tooltip = attempt(C_TooltipInfo.GetSpellByID, this.findAlias(spellId));
         if (tooltip === undefined || type(tooltip) !== "table") return undefined;
         const texts: string[] = [];
         for (const line of tooltip.lines ?? []) {
@@ -137,7 +152,7 @@ export class SpellsService implements OnFirstLogin {
 
     /** The rank number from the spell's subtext ("Rank 2"); undefined without a rank or text. */
     getSpellRank(spellId: number): number | undefined {
-        const text = getReadable(attempt(C_Spell.GetSpellSubtext, spellId));
+        const text = getReadable(attempt(C_Spell.GetSpellSubtext, this.findAlias(spellId)));
         if (text === undefined) return undefined;
         const [digits] = string.match(text, "(%d+)");
         return digits !== undefined ? tonumber(digits) : undefined;

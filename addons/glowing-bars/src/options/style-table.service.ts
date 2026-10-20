@@ -11,16 +11,20 @@ import type { StyleService } from "../settings/style.service";
 import {
     BRONZE_TEXT,
     COLUMN,
+    findCenteredX,
+    type Column,
     HEADER_HEIGHT,
     ICON_SIZE,
     OVERRIDDEN_COLOR,
     ROW_HEIGHT,
     STRIPE_ALPHA,
     STRIPE_COLOR,
-    WINDOW_WIDTH,
+    TABLE_WIDTH,
 } from "./style-table.constants";
 import type { StyleWindowService } from "./style-window.service";
 import type { StyleChoicesService } from "./style-choices.service";
+import type { StyleEditsService } from "./style-edits.service";
+import type { CustomCuesService } from "../glows/custom-cues.service";
 import { KIND_TEXTS, type StyleRow, type StyleRowsService } from "./style-rows.service";
 
 /** The widgets of one row; the table has as many as its longest list and reuses them. */
@@ -34,9 +38,13 @@ interface RowWidgets {
     swatch: Button;
     swatchColor: Texture;
     opacity: EditBox;
+    /** The ID of a cooldown or proc: it can be fixed. */
+    spellIdBox: EditBox;
     message: CheckButton;
     sound: Button;
     reset: Button;
+    /** Takes out a spell the player added. */
+    remove: Button;
     /** What the row shows now. */
     row: StyleRow | undefined;
 }
@@ -48,6 +56,8 @@ export class StyleTableService {
     private readonly headers: FontString[] = [];
     private usedWidgets = 0;
     private usedHeaders = 0;
+    /** The row at the end that adds a spell; made with the first rows. */
+    private addRow: Frame | undefined;
 
     constructor(
         private readonly locale: AddonLocale,
@@ -56,6 +66,8 @@ export class StyleTableService {
         private readonly messages: MessagesService,
         private readonly choices: StyleChoicesService,
         private readonly windows: StyleWindowService,
+        private readonly edits: StyleEditsService,
+        private readonly customCues: CustomCuesService,
     ) {}
 
     /** Opens the window, or closes it when it is open. A failure is printed, never thrown. */
@@ -66,8 +78,9 @@ export class StyleTableService {
 
     /** A look changed (here or elsewhere): the rows show it. */
     @OnEvent("setting.changed")
-    refreshAfterChange(key: string): void {
-        if (this.window?.IsShown() === true && (key === "styles" || key === "spellStyles")) this.showRows();
+    refreshAfterChange(_key: string): void {
+        // Any setting: a look, a spell added or fixed, a switch (also one changed on the Settings page)
+        if (this.window?.IsShown() === true) this.showRows();
     }
 
     private toggleWindow(): void {
@@ -93,6 +106,7 @@ export class StyleTableService {
         const spellRows = this.rows.listSpellRows();
         let y = this.drawSection(content, "HDR_TABLE_DEFAULTS", this.rows.listKindRows(spellRows), 0);
         y = this.drawSection(content, "HDR_TABLE_SPELLS", spellRows, y);
+        y = this.drawAddRow(content, y);
         for (let i = this.usedHeaders; i < this.headers.length; i++) this.headers[i]!.Hide();
         for (let i = this.usedWidgets; i < this.widgets.length; i++) this.widgets[i]!.frame.Hide();
         content.SetHeight(math.max(10, y));
@@ -121,6 +135,19 @@ export class StyleTableService {
             y += ROW_HEIGHT;
         }
         return y + 10;
+    }
+
+    /** The header and the row that adds a spell by its ID, at the end of the list. */
+    private drawAddRow(content: Frame, top: number): number {
+        const header = this.takeHeader(content);
+        header.SetPoint("TOPLEFT", content, "TOPLEFT", 0, -top);
+        header.SetText(this.locale.getText("HDR_TABLE_ADD"));
+        header.Show();
+        this.addRow = this.addRow ?? this.edits.createAddRow(content);
+        this.addRow.ClearAllPoints();
+        this.addRow.SetPoint("TOPLEFT", content, "TOPLEFT", 0, -(top + HEADER_HEIGHT));
+        this.addRow.Show();
+        return top + HEADER_HEIGHT + ROW_HEIGHT + 10;
     }
 
     private takeHeader(content: Frame): FontString {
@@ -161,22 +188,27 @@ export class StyleTableService {
         widgets.message.SetChecked(style.isTextOn);
         widgets.sound.SetText(SOUNDS.find((sound) => sound.key === style.sound)?.label ?? "");
         widgets.reset.SetShown(isOverridden);
+        widgets.remove.SetShown(row.isCustom === true);
+        this.edits.fillIdBox(widgets.spellIdBox, row);
     }
 
     private createWidgets(content: Frame): RowWidgets {
         const frame = CreateFrame("Frame", undefined, content);
-        frame.SetSize(WINDOW_WIDTH - 50, ROW_HEIGHT);
+        frame.SetSize(TABLE_WIDTH, ROW_HEIGHT);
+        // The ID box asks for the row it shows when it is used, by then the object below is there
         const widgets: RowWidgets = {
             frame,
             stripe: this.createStripe(frame),
             icon: this.createIcon(frame),
-            name: this.createText(frame, COLUMN.name, 160, "GameFontHighlight"),
-            kind: this.createText(frame, COLUMN.kind, 88, "GameFontNormalSmall"),
+            name: this.createText(frame, COLUMN.name, "GameFontHighlight"),
+            kind: this.createText(frame, COLUMN.kind, "GameFontNormalSmall"),
             ...this.createSwatch(frame),
             opacity: this.createOpacityBox(frame),
             message: CreateFrame("CheckButton", undefined, frame, "UICheckButtonTemplate"),
             sound: CreateFrame("Button", undefined, frame, "UIPanelButtonTemplate"),
             reset: CreateFrame("Button", undefined, frame, "UIPanelButtonTemplate"),
+            remove: CreateFrame("Button", undefined, frame, "UIPanelButtonTemplate"),
+            spellIdBox: this.edits.createIdBox(frame, () => widgets.row),
             row: undefined,
         };
         this.connectSwatch(widgets);
@@ -184,6 +216,7 @@ export class StyleTableService {
         this.connectMessage(widgets);
         this.connectSound(widgets);
         this.connectReset(widgets);
+        this.connectRemove(widgets);
         return widgets;
     }
 
@@ -196,14 +229,14 @@ export class StyleTableService {
     private createIcon(frame: Frame): Texture {
         const icon = frame.CreateTexture(undefined, "ARTWORK");
         icon.SetSize(ICON_SIZE, ICON_SIZE);
-        icon.SetPoint("LEFT", frame, "LEFT", COLUMN.icon, 0);
+        icon.SetPoint("LEFT", frame, "LEFT", findCenteredX(COLUMN.icon, ICON_SIZE), 0);
         return icon;
     }
 
-    private createText(frame: Frame, x: number, width: number, font: string): FontString {
+    private createText(frame: Frame, column: Column, font: string): FontString {
         const text = frame.CreateFontString(undefined, "OVERLAY", font);
-        text.SetPoint("LEFT", frame, "LEFT", x, 0);
-        text.SetWidth(width);
+        text.SetPoint("LEFT", frame, "LEFT", column.x, 0);
+        text.SetWidth(column.width - 4);
         text.SetJustifyH("LEFT");
         return text;
     }
@@ -211,7 +244,7 @@ export class StyleTableService {
     private createSwatch(frame: Frame): { swatch: Button; swatchColor: Texture } {
         const swatch = CreateFrame("Button", undefined, frame);
         swatch.SetSize(22, 16);
-        swatch.SetPoint("LEFT", frame, "LEFT", COLUMN.color, 0);
+        swatch.SetPoint("LEFT", frame, "LEFT", findCenteredX(COLUMN.color, 22), 0);
         const border = swatch.CreateTexture(undefined, "BACKGROUND");
         border.SetAllPoints(swatch);
         border.SetColorTexture(0.55, 0.42, 0.2, 1);
@@ -224,7 +257,7 @@ export class StyleTableService {
     private createOpacityBox(frame: Frame): EditBox {
         const box = CreateFrame("EditBox", undefined, frame, "InputBoxTemplate");
         box.SetSize(36, 20);
-        box.SetPoint("LEFT", frame, "LEFT", COLUMN.opacity + 6, 0);
+        box.SetPoint("LEFT", frame, "LEFT", findCenteredX(COLUMN.opacity, 36) + 3, 0);
         box.SetAutoFocus(false);
         box.SetNumeric(true);
         box.SetMaxLetters(3);
@@ -256,15 +289,15 @@ export class StyleTableService {
     }
 
     private connectMessage(widgets: RowWidgets): void {
-        widgets.message.SetPoint("LEFT", widgets.frame, "LEFT", COLUMN.message, 0);
+        widgets.message.SetPoint("LEFT", widgets.frame, "LEFT", findCenteredX(COLUMN.message, 24), 0);
         widgets.message.SetSize(24, 24);
         widgets.message.SetScript("OnClick", () => this.change(widgets, { isTextOn: widgets.message.GetChecked() }));
     }
 
     /** Left click: the next sound; right click: the one before. Choosing one plays it once as a preview. */
     private connectSound(widgets: RowWidgets): void {
-        widgets.sound.SetSize(136, 24);
-        widgets.sound.SetPoint("LEFT", widgets.frame, "LEFT", COLUMN.sound, 0);
+        widgets.sound.SetSize(126, 24);
+        widgets.sound.SetPoint("LEFT", widgets.frame, "LEFT", findCenteredX(COLUMN.sound, 126), 0);
         widgets.sound.RegisterForClicks("LeftButtonUp", "RightButtonUp");
         widgets.sound.SetScript("OnClick", (_button, mouseButton) => {
             if (widgets.row !== undefined) this.choices.chooseNextSound(widgets.row, mouseButton === "RightButton" ? -1 : 1);
@@ -272,14 +305,24 @@ export class StyleTableService {
     }
 
     private connectReset(widgets: RowWidgets): void {
-        widgets.reset.SetSize(54, 22);
-        widgets.reset.SetPoint("LEFT", widgets.frame, "LEFT", COLUMN.reset, 0);
+        widgets.reset.SetSize(46, 22);
+        widgets.reset.SetPoint("LEFT", widgets.frame, "LEFT", COLUMN.actions.x + 2, 0);
         widgets.reset.SetText(this.locale.getText("BTN_RESET"));
         widgets.reset.SetScript("OnClick", () => {
             const row = widgets.row;
             if (row === undefined) return;
             if (row.spellId === undefined) this.styles.resetKind(row.kind);
             else this.styles.resetSpell(row.kind, row.spellId);
+        });
+    }
+
+    private connectRemove(widgets: RowWidgets): void {
+        widgets.remove.SetSize(22, 22);
+        widgets.remove.SetPoint("LEFT", widgets.frame, "LEFT", COLUMN.actions.x + 50, 0);
+        widgets.remove.SetText("X");
+        widgets.remove.SetScript("OnClick", () => {
+            const spellId = widgets.row?.spellId;
+            if (spellId !== undefined) this.customCues.removeCustom(spellId);
         });
     }
 

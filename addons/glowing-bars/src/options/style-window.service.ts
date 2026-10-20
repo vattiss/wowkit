@@ -2,7 +2,16 @@
 // scroll area. The rows are the table's.
 import type { AddonLocale } from "../locale/locale.interface";
 import type { TextKey } from "../locale/texts.constants";
-import { BORDER_COLOR, COLUMN, WINDOW_HEIGHT, WINDOW_NAME, WINDOW_WIDTH } from "./style-table.constants";
+import {
+    BORDER_COLOR,
+    COLUMN,
+    TABLE_LEFT,
+    TABLE_WIDTH,
+    WINDOW_HEIGHT,
+    WINDOW_NAME,
+    WINDOW_WIDTH,
+    type Column,
+} from "./style-table.constants";
 
 export class StyleWindowService {
     constructor(private readonly locale: AddonLocale) {}
@@ -27,11 +36,11 @@ export class StyleWindowService {
         close.SetPoint("TOPRIGHT", window, "TOPRIGHT", -6, -6);
         this.addColumnHeaders(window);
         const scroll = CreateFrame("ScrollFrame", undefined, window, "UIPanelScrollFrameTemplate");
-        scroll.SetPoint("TOPLEFT", window, "TOPLEFT", 16, -60);
+        scroll.SetPoint("TOPLEFT", window, "TOPLEFT", TABLE_LEFT, -60);
         scroll.SetPoint("BOTTOMRIGHT", window, "BOTTOMRIGHT", -34, 16);
         this.applyScrollBarTint(scroll);
         const content = CreateFrame("Frame", undefined, scroll);
-        content.SetSize(WINDOW_WIDTH - 50, 10);
+        content.SetSize(TABLE_WIDTH, 10);
         scroll.SetScrollChild(content);
         // A new frame is shown; the table opens when it is asked for
         window.Hide();
@@ -75,17 +84,21 @@ export class StyleWindowService {
     }
 
     private addColumnHeaders(window: Frame): void {
-        const columns: [x: number, text: TextKey][] = [
-            [COLUMN.name, "COL_SPELL"],
-            [COLUMN.kind, "COL_KIND"],
-            [COLUMN.color, "COL_COLOR"],
-            [COLUMN.opacity, "COL_OPACITY"],
-            [COLUMN.message, "COL_MESSAGE"],
-            [COLUMN.sound, "COL_SOUND"],
+        // The name and the kind read from the left; the other headers are centered over their controls
+        const columns: [column: Column, text: TextKey, isCentered: boolean][] = [
+            [COLUMN.name, "COL_SPELL", false],
+            [COLUMN.kind, "COL_KIND", false],
+            [COLUMN.id, "COL_ID", true],
+            [COLUMN.color, "COL_COLOR", true],
+            [COLUMN.opacity, "COL_OPACITY", true],
+            [COLUMN.message, "COL_MESSAGE", true],
+            [COLUMN.sound, "COL_SOUND", true],
         ];
-        for (const [x, text] of columns) {
+        for (const [column, text, isCentered] of columns) {
             const header = window.CreateFontString(undefined, "OVERLAY", "GameFontNormalSmall");
-            header.SetPoint("TOPLEFT", window, "TOPLEFT", 14 + x, -42);
+            header.SetPoint("TOPLEFT", window, "TOPLEFT", TABLE_LEFT + column.x, -42);
+            header.SetWidth(column.width);
+            header.SetJustifyH(isCentered ? "CENTER" : "LEFT");
             header.SetText(this.locale.getText(text));
         }
     }

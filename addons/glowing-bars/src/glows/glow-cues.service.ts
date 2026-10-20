@@ -3,7 +3,8 @@
 // fight is not news, and one that waits for the right moment should not glow all the while.
 import { OnGameEvent } from "@wowkit/core";
 import type { ActionBarsService, ClockService, PlayerService, SpellDetailsService, SpellsService } from "@wowkit/wow";
-import type { AddonSettingsService } from "../settings/settings.interface";
+import type { AddonSettingsService, CueKind } from "../settings/settings.interface";
+import type { CustomCuesService } from "./custom-cues.service";
 import { COOLDOWN_CUES, PROC_CUES, RACIAL_COOLDOWNS } from "./glow-cues.constants";
 import { READY_MARGIN, type CooldownTrackerService } from "./cooldown-tracker.service";
 
@@ -21,6 +22,7 @@ export class GlowCuesService {
         private readonly tracker: CooldownTrackerService,
         private readonly clock: ClockService,
         private readonly settings: AddonSettingsService,
+        private readonly customCues: CustomCuesService,
     ) {}
 
     /**
@@ -34,7 +36,7 @@ export class GlowCuesService {
         this.backAt = new LuaMap<number, number>();
         const isReadyGlowing = this.settings.get("showCooldownsAtFightStart");
         const now = this.clock.getCurrentTime();
-        for (const id of this.listCues(this.listCooldownIds())) {
+        for (const id of this.listCues(this.listCueIds("cooldown"))) {
             if (this.tracker.getRemaining(id) > READY_MARGIN) {
                 this.usedInCombat.add(id);
             } else if (isReadyGlowing) {
@@ -54,7 +56,7 @@ export class GlowCuesService {
         if (!this.settings.get("showCooldowns")) return [];
         const isInCombat = this.player.isInCombat();
         const ready: number[] = [];
-        for (const id of this.listCues(this.listCooldownIds())) {
+        for (const id of this.listCues(this.listCueIds("cooldown"))) {
             if (this.tracker.getRemaining(id) > READY_MARGIN) {
                 if (isInCombat) this.usedInCombat.add(id);
                 this.backAt.delete(id);
@@ -79,15 +81,28 @@ export class GlowCuesService {
     /** The procs of the class that the game says are usable now, and on a button. */
     findProcs(): number[] {
         if (!this.settings.get("showProcs")) return [];
-        return this.listCues(PROC_CUES[this.player.getClassToken() ?? ""] ?? []).filter(
+        return this.listCues(this.listCueIds("proc")).filter(
             (id) => this.spellDetails.readUsability(id).isUsable === true && this.tracker.getRemaining(id) <= READY_MARGIN,
         );
     }
 
-    /** The important cooldowns of the class, and the racials of the list the player has learned (their wow-data IDs). */
-    listCooldownIds(): number[] {
-        const classIds = COOLDOWN_CUES[this.player.getClassToken() ?? ""] ?? [];
-        return [...classIds, ...RACIAL_COOLDOWNS.filter((id) => this.spells.isLearned(id))];
+    /**
+     * The spells of the lists of a kind (their wow-data IDs): for cooldowns the class's and the racials the player has
+     * learned, for procs the class's.
+     */
+    listBuiltInIds(kind: CueKind): number[] {
+        const classToken = this.player.getClassToken() ?? "";
+        if (kind === "proc") return PROC_CUES[classToken] ?? [];
+        const racials = RACIAL_COOLDOWNS.filter((id) => this.spells.isLearned(this.customCues.getEffectiveId(id)));
+        return [...(COOLDOWN_CUES[classToken] ?? []), ...racials];
+    }
+
+    /** The spells of a kind: the lists', and the ones the player added. */
+    listCueIds(kind: CueKind): number[] {
+        // Once each: a spell the player added may be on a list too (the Settings page cannot have two switches of one name)
+        const ids: number[] = [];
+        for (const id of [...this.listBuiltInIds(kind), ...this.customCues.listCustom(kind)]) if (!ids.includes(id)) ids.push(id);
+        return ids;
     }
 
     /** The cues that are learned, switched on, and on an action button, as the IDs the buttons hold. */
@@ -95,7 +110,7 @@ export class GlowCuesService {
         const glowOn = this.settings.get("glowOn");
         const found: number[] = [];
         for (const id of ids) {
-            const learned = this.spells.resolve(id);
+            const learned = this.spells.resolve(this.customCues.getEffectiveId(id));
             if (learned === undefined || glowOn[String(id)] === false || !this.actionBars.isOnBars(learned)) continue;
             found.push(learned);
         }

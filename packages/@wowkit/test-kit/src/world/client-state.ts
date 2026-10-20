@@ -106,6 +106,8 @@ export interface ClientState {
     bags: { [itemId: number]: number | undefined };
     /** The reagent named in a spell's tooltip. */
     reagentTexts: { [spellId: number]: string | undefined };
+    /** Item IDs by name, for an item the addon counts by its name. */
+    itemIds: { [name: string]: number | undefined };
     level: number;
     /** The race: its ID (4 Night Elf) and the client's race file name. */
     race: { id: number; file: string };
@@ -148,6 +150,7 @@ export function createClientState(): ClientState {
         isInRaid: false,
         bags: {},
         reagentTexts: {},
+        itemIds: {},
         level: 60,
         race: { id: 1, file: "Human" },
         target: undefined,

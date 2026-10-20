@@ -29,6 +29,24 @@ export class ReagentsService {
         return reagent === undefined || this.getReagentCount(reagent) > 0;
     }
 
+    /** The first item of the "Reagents:" line of the spell's tooltip (the English client's wording); undefined without one. */
+    findTooltipReagent(spellId: number): string | undefined {
+        for (const text of this.spells.getSpellTooltipTexts(spellId) ?? []) {
+            const [list] = string.match(text, "^Reagents?:%s*(.+)$");
+            if (list === undefined) continue;
+            // Color codes and counts are not part of the name: "|cffff2020Holy Candle|r (2)"
+            const [plain] = string.gsub(string.gsub(list, "|c%x%x%x%x%x%x%x%x", "")[0], "|r", "");
+            const [first] = string.match(plain, "^%s*([^,%(]-)%s*[,%(]");
+            return first ?? string.match(plain, "^%s*(.-)%s*$")[0];
+        }
+        return undefined;
+    }
+
+    /** The reagent a group buff of the list uses; undefined for another spell. */
+    findReagentOfSpell(spellId: number): Reagent | undefined {
+        return REAGENTS.find((reagent) => reagent.spells.includes(spellId));
+    }
+
     /** The reagents the group buffs of a class use ("PRIEST"), in list order. */
     getReagentsOfClass(classToken: string | undefined): Reagent[] {
         return REAGENTS.filter((reagent) => reagent.classToken === classToken);

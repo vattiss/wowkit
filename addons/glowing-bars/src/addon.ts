@@ -39,6 +39,7 @@ import { EquipmentService } from "./character/equipment.service";
 import { IdleService } from "./character/idle.service";
 import { RosterService } from "./character/roster.service";
 import { CooldownTrackerService } from "./glows/cooldown-tracker.service";
+import { CustomCuesService } from "./glows/custom-cues.service";
 import { GlowCuesService } from "./glows/glow-cues.service";
 import { BuffKnowledgeService } from "./knowledge/buff-knowledge.service";
 import { TEXTS } from "./locale/texts.constants";
@@ -47,6 +48,7 @@ import { GlowsSection } from "./options/glows.section";
 import { ReagentsSection } from "./options/reagents.section";
 import { ReminderControlsService } from "./options/reminder-controls.service";
 import { StyleChoicesService } from "./options/style-choices.service";
+import { StyleEditsService } from "./options/style-edits.service";
 import { StyleRowsService } from "./options/style-rows.service";
 import { StyleTableService } from "./options/style-table.service";
 import { StyleWindowService } from "./options/style-window.service";
@@ -56,6 +58,7 @@ import { WeaponSection } from "./options/weapon.section";
 import { ReagentsService } from "./reagents/reagents.service";
 import { BuffReminderService } from "./reminders/buff-reminder.service";
 import { ClassBuffsService } from "./reminders/class-buffs.service";
+import { CustomRemindersService } from "./reminders/custom-reminders.service";
 import { OutdatedRanksService } from "./reminders/outdated-ranks.service";
 import { PartyBuffsService } from "./reminders/party-buffs.service";
 import { TownVisitService } from "./reminders/town-visit.service";
@@ -159,14 +162,29 @@ function makeReminders(addon: Addon, addonName: string, game: Game, texts: Texts
     const weaponReading = addon.register(new WeaponReadingService(buffs.state, game.weaponEnchants, weaponChoice));
     const weapon = addon.register(new WeaponReminderService(game.clock, game.weaponEnchants, weaponChoice, weaponMemory, weaponReading));
     const outdatedRanks = addon.register(new OutdatedRanksService(game.actionBars, game.spells));
+    const customCues = addon.register(new CustomCuesService(game.spells, settings, game.cooldowns, reagents));
+    // A spell the player gave another ID is asked of that ID everywhere: buffs, weapon buffs, reagents, cooldowns, procs
+    game.spells.useIdAlias((spellId) => customCues.getEffectiveId(spellId));
     const tracker = addon.register(new CooldownTrackerService(game.spells, game.cooldowns, game.clock));
     const glowCues = addon.register(
-        new GlowCuesService(game.player, game.spells, game.spellDetails, game.actionBars, tracker, game.clock, settings),
+        new GlowCuesService(game.player, game.spells, game.spellDetails, game.actionBars, tracker, game.clock, settings, customCues),
     );
     // Its own block of the shared notice: the tick clearing its lines must not take the town message with them
     const townNotice = addon.register(new NoticeService(`${addonName}-town`));
     addon.register(new TownVisitService(game.player, reagents, settings, texts.messages, townNotice, texts.locale, texts.styles));
-    return { buff, reagents, party, weaponChoice, weapon, outdatedRanks, glowCues };
+    const custom = addon.register(
+        new CustomRemindersService(
+            customCues,
+            game.spells,
+            game.actionBars,
+            buffs.state,
+            game.weaponEnchants,
+            game.bags,
+            settings,
+            reagents,
+        ),
+    );
+    return { buff, reagents, party, weaponChoice, weapon, outdatedRanks, glowCues, customCues, custom };
 }
 type Reminders = ReturnType<typeof makeReminders>;
 
@@ -185,6 +203,7 @@ function makeTick(addon: Addon, addonName: string, game: Game, texts: Texts, buf
             reminders.outdatedRanks,
             reminders.glowCues,
             reminders.reagents,
+            reminders.custom,
             settings,
         ),
     );
@@ -200,7 +219,7 @@ function makeTick(addon: Addon, addonName: string, game: Game, texts: Texts, buf
 }
 
 /** The table of looks (/gb), and its command. */
-function makeTable(addon: Addon, game: Game, texts: Texts, buffs: Buffs, reminders: Reminders) {
+function makeTable(addon: Addon, addonName: string, game: Game, texts: Texts, buffs: Buffs, reminders: Reminders) {
     const { locale, messages, styles } = texts;
     const rows = addon.register(
         new StyleRowsService(
@@ -212,11 +231,14 @@ function makeTable(addon: Addon, game: Game, texts: Texts, buffs: Buffs, reminde
             locale,
             styles,
             reminders.glowCues,
+            reminders.customCues,
         ),
     );
     const choices = addon.register(new StyleChoicesService(locale, styles, messages));
     const windows = addon.register(new StyleWindowService(locale));
-    const table = addon.register(new StyleTableService(locale, styles, rows, messages, choices, windows));
+    const tableNotice = addon.register(new NoticeService(`${addonName}-table`));
+    const edits = addon.register(new StyleEditsService(locale, reminders.customCues, tableNotice, rows, styles));
+    const table = addon.register(new StyleTableService(locale, styles, rows, messages, choices, windows, edits, reminders.customCues));
     addon.register(new TableCommand(table));
     return table;
 }
@@ -238,7 +260,7 @@ function makeOptions(addon: Addon, addonName: string, game: Game, texts: Texts, 
     const glowsSection = addon.register(
         new GlowsSection(locale, game.spells, settings, controls, reminderControls, game.player, reminders.glowCues),
     );
-    const table = makeTable(addon, game, texts, buffs, reminders);
+    const table = makeTable(addon, addonName, game, texts, buffs, reminders);
     const barsSection = addon.register(new BarsSection(locale, settings, controls, reminderControls));
     const about = addon.register(
         new AboutSection(

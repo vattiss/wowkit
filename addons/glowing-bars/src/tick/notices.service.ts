@@ -55,7 +55,12 @@ export class NoticesService {
     private listLines(reminders: Reminders): Line[] {
         const lines: Line[] = [];
         this.addKindLines(lines, "buff", reminders.buffsToCast, "TEXT_BUFF");
-        this.addKindLines(lines, "weapon", reminders.weaponSpell !== undefined ? [reminders.weaponSpell] : [], "TEXT_WEAPON");
+        this.addKindLines(
+            lines,
+            "weapon",
+            [...(reminders.weaponSpell !== undefined ? [reminders.weaponSpell] : []), ...reminders.customWeaponSpells],
+            "TEXT_WEAPON",
+        );
         this.addKindLines(lines, "cooldown", reminders.readyCooldowns, "TEXT_COOLDOWN");
         this.addKindLines(lines, "proc", reminders.procs, "TEXT_PROC");
         this.addKindLines(

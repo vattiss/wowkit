@@ -78,6 +78,8 @@ export function installUi(frames: FrameRegistry, chat: string[], proxySettings: 
         RegisterVerticalLayoutSubcategory: () => $multi(createInertObject<SettingsCategory>(), createInertObject<SettingsLayout>()),
         RegisterAddOnCategory: () => undefined,
         RegisterProxySetting: (_category, variable, _varType, _name, defaultValue, getValue, setValue) => {
+            // The game refuses a second setting of the same name, and the whole page with it
+            if (proxySettings[variable] !== undefined) throw new Error(`a setting named ${variable} is registered already`);
             proxySettings[variable] = { defaultValue, get: getValue, set: setValue as (this: void, value: unknown) => void };
             return createInertObject<SettingsSetting>();
         },

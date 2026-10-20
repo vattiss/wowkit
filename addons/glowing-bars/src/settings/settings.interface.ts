@@ -18,6 +18,15 @@ export interface Style {
     sound: SoundKey;
 }
 
+/** The kinds a spell can be added as by the player: every kind but the old ranks, which are found for every spell. */
+export type CueKind = "buff" | "weapon" | "reagent" | "cooldown" | "proc";
+
+/** A spell the player added by its ID. */
+export interface CustomCue {
+    id: number;
+    kind: CueKind;
+}
+
 /** The parts of a look the player changed; the rest is inherited. */
 export type StyleOverride = Partial<Style>;
 
@@ -46,6 +55,10 @@ export interface AddonSettings {
     styles: { [key in ColorKey]?: StyleOverride };
     /** The player's changes to the look of one spell in one kind, by the kind and the spell's name ("rank:Smite"). */
     spellStyles: { [kindAndName: string]: StyleOverride | undefined };
+    /** The player's fix of the ID of a cooldown or proc of the lists (by the list's ID): the ID the client knows it by. */
+    idOverrides: { [listId: string]: number | undefined };
+    /** Cooldowns and procs the player added by their ID. */
+    customCues: CustomCue[];
     /** The action bars (1 to 8) whose buttons do not glow; only set where the player switched one off. */
     barOff: { [bar: string]: boolean | undefined };
     /** Per-spell switches of the cooldown and proc glows (by spell ID); only set where the player switched one off. */

@@ -8,6 +8,11 @@ export class BagsService {
         return getReadable(attempt(C_Item.GetItemCount, itemId)) ?? 0;
     }
 
+    /** How many of an item, by its name, are in the bags. */
+    getItemCountByName(name: string): number {
+        return getReadable(attempt(C_Item.GetItemCount, name)) ?? 0;
+    }
+
     /** The item's name; undefined while the client has not loaded the item yet. */
     getItemName(itemId: number): string | undefined {
         return getReadable(attempt(C_Item.GetItemNameByID, itemId));

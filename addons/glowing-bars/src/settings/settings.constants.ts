@@ -1,5 +1,5 @@
 import { isSoundKey } from "@wowkit/ui";
-import type { AddonSettings, ColorKey, Style, StyleOverride } from "./settings.interface";
+import type { AddonSettings, ColorKey, CueKind, Style, StyleOverride } from "./settings.interface";
 
 /** The global the TOC saves per character (## SavedVariablesPerCharacter). */
 export const SAVED_VARIABLES_NAME = "GlowingBarsCharDB";
@@ -22,6 +22,8 @@ export function createDefaultSettings(): AddonSettings {
         spellStyles: {},
         buffOn: {},
         barOff: {},
+        idOverrides: {},
+        customCues: [],
         reagentOn: {},
         glowOn: {},
     };
@@ -39,6 +41,9 @@ export const STYLE_DEFAULTS: { [key in ColorKey]: Style } = {
 
 /** The choices of how long a cooldown glows once it is back (seconds; 0 = until it is pressed). */
 export const COOLDOWN_GLOW_CHOICES = [2, 3, 5, 10, 0];
+
+/** The kinds a spell can be added as, in the order the add button goes through them. */
+export const CUE_KINDS: CueKind[] = ["cooldown", "proc", "buff", "weapon", "reagent"];
 
 /** The kinds in the order the tables list them. */
 export const KIND_ORDER: ColorKey[] = ["buff", "weapon", "reagent", "cooldown", "proc", "rank"];
@@ -60,6 +65,10 @@ function repairStyle(style: StyleOverride | undefined): StyleOverride | undefine
 
 /** Puts right what a saved look got wrong. */
 export function repairSettings(values: AddonSettings): void {
+    // An added spell that is not a number and a kind is dropped
+    values.customCues = (values.customCues ?? []).filter(
+        (cue) => type(cue) === "table" && tonumber(cue.id) !== undefined && CUE_KINDS.includes(cue.kind),
+    );
     if (!COOLDOWN_GLOW_CHOICES.includes(values.cooldownGlowSeconds))
         values.cooldownGlowSeconds = createDefaultSettings().cooldownGlowSeconds;
     for (const kind of KIND_ORDER) values.styles[kind] = repairStyle(values.styles[kind]);

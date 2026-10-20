@@ -201,3 +201,15 @@ describe("an orc warrior with Blood Fury on the bars", () => {
         expect(world.glowsOn(3)).toBe(1);
     });
 });
+
+describe("a warrior who added Recklessness as a cooldown and as a proc", () => {
+    it("still has the page in the Settings panel", () => {
+        const world = createWorld((state) => playAs(state, WARRIOR), {
+            customCues: [
+                { id: 1719, kind: "cooldown" },
+                { id: 1719, kind: "proc" },
+            ],
+        });
+        expect(world.proxySettings["GlowingBars_isMuted"]).toBeDefined();
+    });
+});

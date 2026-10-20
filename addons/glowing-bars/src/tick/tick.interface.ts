@@ -7,6 +7,8 @@ export interface Reminders {
     buffsToCast: number[];
     /** The weapon buff that needs attention: its button glows. */
     weaponSpell?: number;
+    /** Weapon buffs the player added, when the main-hand weapon has no temporary enchant: their buttons glow. */
+    customWeaponSpells: number[];
     /** Missing buffs the player has learned but put on no action bar. */
     buffsNotOnBars: number[];
     /** Party members missing one of the player's buffs. */

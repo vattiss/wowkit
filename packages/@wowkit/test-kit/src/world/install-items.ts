@@ -19,7 +19,8 @@ export function installItems(state: ClientState, sounds: number[]): void {
         // Every equipped item is a one-handed mace: item class 2 is a weapon
         GetItemInfoInstant: (item) => $multi(item as number, "Weapon", "Mace", "INVTYPE_WEAPON", 0, 2, 4),
         GetItemSpell: () => $multi(undefined, undefined),
-        GetItemCount: (item) => state.bags[item as number] ?? 0,
+        // By ID, or by a name the test gave an item ID
+        GetItemCount: (item) => state.bags[(type(item) === "string" ? state.itemIds[item as string] : (item as number)) ?? 0] ?? 0,
         GetItemNameByID: () => undefined,
     });
 

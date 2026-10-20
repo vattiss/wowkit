@@ -21,7 +21,10 @@ const KINDS: GlowKind[] = [
     {
         category: "weapon",
         isOnSetting: "showWeapon",
-        findSpells: (reminders) => (reminders.weaponSpell !== undefined ? [reminders.weaponSpell] : []),
+        findSpells: (reminders) => [
+            ...(reminders.weaponSpell !== undefined ? [reminders.weaponSpell] : []),
+            ...reminders.customWeaponSpells,
+        ],
     },
     { category: "cooldown", isOnSetting: "showCooldowns", findSpells: (reminders) => reminders.readyCooldowns },
     { category: "proc", isOnSetting: "showProcs", findSpells: (reminders) => reminders.procs },
@@ -68,7 +71,15 @@ export class ShowRemindersService {
 
     /** A setting changed: the glows go out at once and are lit again by the next tick, in the new look. */
     redrawGlowsAfterSettingChange(key: string): void {
-        if (key !== "styles" && key !== "spellStyles" && key !== "barOff" && !KINDS.some((kind) => kind.isOnSetting === key)) return;
+        if (
+            key !== "styles" &&
+            key !== "spellStyles" &&
+            key !== "barOff" &&
+            key !== "idOverrides" &&
+            key !== "customCues" &&
+            !KINDS.some((kind) => kind.isOnSetting === key)
+        )
+            return;
         for (const [, glow] of this.glows) glow.clear();
         this.markGlowsStale();
     }

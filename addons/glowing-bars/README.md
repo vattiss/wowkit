@@ -34,7 +34,9 @@ Every kind of reminder has the same four settings: the **color** of its glow and
 buffs blue, weapon buffs orange, ready cooldowns white, procs red, old ranks and low reagents yellow (and a quieter glow
 than the others). By default only the old ranks show a message; the buff messages (including the ones that name a
 buff on no bar and the party members who miss one) and the reagent message are there to switch on. They are set in a table, and every spell of your class can have a look of its own in the same table.
-It opens with `/gb` or from the Settings page, and shows only the kinds your character has spells of. Like the other
+It opens with `/gb` or from the Settings page, and shows only the kinds your character has spells of. There you can
+also fix the spell ID of a spell of the lists, and add spells of your own by their ID, as any kind but an old rank (those
+are found for every spell); a kind the game says is wrong for the spell is refused or put right. Like the other
 settings, the looks are kept per character.
 
 Settings (per character): *Options > AddOns > Glowing Bars*: a switch per feature and per spell, the button

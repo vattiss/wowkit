@@ -93,7 +93,8 @@ export class NoticeService {
         const frame = CreateFrame("Frame", undefined, UIParent);
         frame.SetSize(700, 40);
         frame.SetPoint("TOP", UIParent, "TOP", 0, -180);
-        frame.SetFrameStrata("HIGH");
+        // Above the dialogs too: a message about what was just done in a window must not hide behind it
+        frame.SetFrameStrata("FULLSCREEN_DIALOG");
         const text = frame.CreateFontString(undefined, "OVERLAY", "GameFontNormalHuge");
         text.SetPoint("CENTER");
         text.SetTextColor(1, 0.82, 0);

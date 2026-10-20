@@ -23,7 +23,7 @@ export class GlowsSection {
 
     addGlowsSection(category: SettingsCategory, layout: SettingsLayout): void {
         const classToken = this.player.getClassToken() ?? "";
-        const cooldowns = this.glowCues.listCooldownIds();
+        const cooldowns = this.glowCues.listCueIds("cooldown");
         const procs = PROC_CUES[classToken] ?? [];
         if (cooldowns.length > 0) {
             this.reminderControls.addHeader(layout, "HDR_COOLDOWNS");
