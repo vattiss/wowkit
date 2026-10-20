@@ -55,6 +55,17 @@ describe("the table of looks", () => {
         expect(findLabel(world, "Recklessness")!.parent!.alpha).toBe(0.4);
     });
 
+    it("leaves out the Reset and X column while no row shows one of its buttons", () => {
+        const window = world.findFrame((frame) => frame.name === "GlowingBarsLooks")!;
+        const narrow = window.width;
+        const row = findRow(world, "Recklessness");
+        row.opacity.text = "40";
+        row.opacity.scripts.OnEditFocusLost!(row.opacity);
+        expect(window.width).toBe(narrow + 72);
+        findRow(world, "Recklessness").reset.scripts.OnClick!(findRow(world, "Recklessness").reset);
+        expect(window.width).toBe(narrow);
+    });
+
     it("closes with /gb again", () => {
         toggleTable();
         expect(world.findFrame((frame) => frame.name === "GlowingBarsLooks")?.isShown).toBe(false);

@@ -20,11 +20,12 @@ import {
     STRIPE_ALPHA,
     STRIPE_COLOR,
     TABLE_WIDTH,
+    TABLE_WIDTH_WITHOUT_ACTIONS,
+    findWindowWidth,
 } from "./style-table.constants";
 import type { StyleWindowService } from "./style-window.service";
 import type { StyleChoicesService } from "./style-choices.service";
 import type { StyleEditsService } from "./style-edits.service";
-import type { CustomCuesService } from "../glows/custom-cues.service";
 import { KIND_TEXTS, type StyleRow, type StyleRowsService } from "./style-rows.service";
 
 /** The widgets of one row; the table has as many as its longest list and reuses them. */
@@ -58,6 +59,8 @@ export class StyleTableService {
     private readonly headers: FontString[] = [];
     private usedWidgets = 0;
     private usedHeaders = 0;
+    /** How wide the rows are now: the Reset and X column only while a row shows one of its buttons. */
+    private tableWidth = TABLE_WIDTH;
     /** The row at the end that adds a spell; made with the first rows. */
     private addRow: Frame | undefined;
 
@@ -69,7 +72,6 @@ export class StyleTableService {
         private readonly choices: StyleChoicesService,
         private readonly windows: StyleWindowService,
         private readonly edits: StyleEditsService,
-        private readonly customCues: CustomCuesService,
     ) {}
 
     /** Opens the window, or closes it when it is open. A failure is printed, never thrown. */
@@ -106,12 +108,22 @@ export class StyleTableService {
         this.usedWidgets = 0;
         this.usedHeaders = 0;
         const spellRows = this.rows.listSpellRows();
-        let y = this.drawSection(content, "HDR_TABLE_DEFAULTS", this.rows.listKindRows(spellRows), 0);
+        const kindRows = this.rows.listKindRows(spellRows);
+        this.applyTableWidth(content, [...kindRows, ...spellRows]);
+        let y = this.drawSection(content, "HDR_TABLE_DEFAULTS", kindRows, 0);
         y = this.drawSection(content, "HDR_TABLE_SPELLS", spellRows, y);
         y = this.drawAddRow(content, y);
         for (let i = this.usedHeaders; i < this.headers.length; i++) this.headers[i]!.Hide();
         for (let i = this.usedWidgets; i < this.widgets.length; i++) this.widgets[i]!.frame.Hide();
         content.SetHeight(math.max(10, y));
+    }
+
+    /** The window is as wide as the columns in use: without the Reset and X column while no row shows one of its buttons. */
+    private applyTableWidth(content: Frame, rows: StyleRow[]): void {
+        const hasActions = rows.some((row) => row.isCustom === true || this.styles.isOverridden(row.kind, row.spellId));
+        this.tableWidth = hasActions ? TABLE_WIDTH : TABLE_WIDTH_WITHOUT_ACTIONS;
+        this.window?.SetWidth(findWindowWidth(this.tableWidth));
+        content.SetWidth(this.tableWidth);
     }
 
     /** A header and a row for each entry, from `top` down; returns where the next section starts. */
@@ -126,6 +138,7 @@ export class StyleTableService {
             widgets.row = row;
             widgets.frame.ClearAllPoints();
             widgets.frame.SetPoint("TOPLEFT", content, "TOPLEFT", 0, -y);
+            widgets.frame.SetWidth(this.tableWidth);
             widgets.frame.Show();
             this.fill(widgets, row);
             widgets.stripe.SetColorTexture(
@@ -220,7 +233,7 @@ export class StyleTableService {
         this.connectMessage(widgets);
         this.connectSound(widgets);
         this.connectReset(widgets);
-        this.connectRemove(widgets);
+        this.edits.connectRemove(widgets.remove, () => widgets.row);
         this.edits.connectEnabled(widgets.enabled, () => widgets.row);
         return widgets;
     }
@@ -318,16 +331,6 @@ export class StyleTableService {
             if (row === undefined) return;
             if (row.spellId === undefined) this.styles.resetKind(row.kind);
             else this.styles.resetSpell(row.kind, row.spellId);
-        });
-    }
-
-    private connectRemove(widgets: RowWidgets): void {
-        widgets.remove.SetSize(22, 22);
-        widgets.remove.SetPoint("LEFT", widgets.frame, "LEFT", COLUMN.actions.x + 50, 0);
-        widgets.remove.SetText("X");
-        widgets.remove.SetScript("OnClick", () => {
-            const spellId = widgets.row?.spellId;
-            if (spellId !== undefined) this.customCues.removeCustom(spellId);
         });
     }
 

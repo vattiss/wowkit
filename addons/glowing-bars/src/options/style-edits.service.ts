@@ -44,6 +44,17 @@ export class StyleEditsService {
         box.SetScript("OnLeave", () => GameTooltip.Hide());
     }
 
+    /** The X button of a spell the player added: it takes the spell out. */
+    connectRemove(button: Button, getRow: (this: void) => StyleRow | undefined): void {
+        button.SetSize(22, 22);
+        button.SetPoint("LEFT", button.GetParent() as Frame, "LEFT", COLUMN.actions.x + 50, 0);
+        button.SetText("X");
+        button.SetScript("OnClick", () => {
+            const spellId = getRow()?.spellId;
+            if (spellId !== undefined) this.customCues.removeCustom(spellId);
+        });
+    }
+
     /** Shows whether the row is on, and fades the spell rows of a kind that is off: they will not glow. */
     fillEnabled(box: CheckButton, frame: Frame, row: StyleRow): void {
         box.SetShown(this.switches.isSwitchable(row));

@@ -33,10 +33,15 @@ export const COLUMN = {
     actions: { x: 718, width: 72 },
 } satisfies { [name: string]: Column };
 
-/** A row is as wide as its columns; the window has a margin inside its border on the left and the scroll bar on the right. */
+/** A row is as wide as its columns. The last one (Reset and X) is there only while a row shows one of its buttons. */
 export const TABLE_WIDTH = COLUMN.actions.x + COLUMN.actions.width;
+export const TABLE_WIDTH_WITHOUT_ACTIONS = COLUMN.actions.x;
 export const TABLE_LEFT = 28;
-export const WINDOW_WIDTH = TABLE_LEFT + TABLE_WIDTH + 34;
+
+/** The window around a table this wide: a margin inside its border on the left, the scroll bar on the right. */
+export function findWindowWidth(tableWidth: number): number {
+    return TABLE_LEFT + tableWidth + 34;
+}
 
 /** Where a control of this width starts to sit in the middle of its column. */
 export function findCenteredX(column: Column, controlWidth: number): number {

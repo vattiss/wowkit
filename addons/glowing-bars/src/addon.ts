@@ -243,7 +243,7 @@ function makeTable(addon: Addon, addonName: string, game: Game, texts: Texts, bu
     const switches = addon.register(new SwitchesService(game.spells, buffs.classBuffs, reminders.reagents, texts.settings));
     const tableNotice = addon.register(new NoticeService(`${addonName}-table`));
     const edits = addon.register(new StyleEditsService(locale, reminders.customCues, tableNotice, switches, rows, styles));
-    const table = addon.register(new StyleTableService(locale, styles, rows, messages, choices, windows, edits, reminders.customCues));
+    const table = addon.register(new StyleTableService(locale, styles, rows, messages, choices, windows, edits));
     addon.register(new TableCommand(table));
     return table;
 }

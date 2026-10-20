@@ -9,7 +9,7 @@ import {
     TABLE_WIDTH,
     WINDOW_HEIGHT,
     WINDOW_NAME,
-    WINDOW_WIDTH,
+    findWindowWidth,
     type Column,
 } from "./style-table.constants";
 
@@ -19,7 +19,7 @@ export class StyleWindowService {
     /** The frame, and the frame inside its scroll area that the rows go in. */
     createWindow(): { window: Frame; content: Frame } {
         const window = this.createFrameWithBorder();
-        window.SetSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+        window.SetSize(findWindowWidth(TABLE_WIDTH), WINDOW_HEIGHT);
         window.SetPoint("CENTER", UIParent, "CENTER", 0, 0);
         window.SetFrameStrata("DIALOG");
         window.SetMovable(true);

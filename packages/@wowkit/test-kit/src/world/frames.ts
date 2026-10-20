@@ -15,6 +15,8 @@ export interface FakeFrame {
     /** The opacity the addon set (a glow faded by a hidden value). */
     alpha: number;
     text: string | undefined;
+    /** The width the addon set (36, the size of an action button, until it sets one). */
+    width: number;
     /** A check button's state. */
     isChecked: boolean;
     scripts: { [script: string]: Script | undefined };
@@ -34,6 +36,8 @@ export interface FakeFrame {
     SetScript(script: string, handler: Script | undefined): void;
     GetName(): string | undefined;
     GetFrameLevel(): number;
+    SetWidth(width: number): void;
+    SetSize(width: number, height: number): void;
     GetWidth(): number;
     GetHeight(): number;
     RegisterEvent(event: string): boolean;
@@ -78,6 +82,7 @@ function createFakeFrame(init: FrameInit): FakeFrame {
         isShown: true,
         alpha: 1,
         text: undefined,
+        width: 36,
         isChecked: false,
         scripts: {},
         events: {},
@@ -110,8 +115,14 @@ function createFakeFrame(init: FrameInit): FakeFrame {
         GetFrameLevel() {
             return 1;
         },
+        SetWidth(width) {
+            this.width = width;
+        },
+        SetSize(width) {
+            this.width = width;
+        },
         GetWidth() {
-            return 36;
+            return this.width;
         },
         GetHeight() {
             return 36;
