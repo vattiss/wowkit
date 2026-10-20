@@ -45,6 +45,7 @@ export function installUi(frames: FrameRegistry, chat: string[], proxySettings: 
         UIParent: frames.create("Frame", "UIParent"),
         RaidWarningFrame: frames.create("Frame", "RaidWarningFrame"),
         DEFAULT_CHAT_FRAME: frames.create("Frame", "DEFAULT_CHAT_FRAME"),
+        GameTooltip: frames.create("GameTooltip", "GameTooltip"),
         // Slash commands: the addon adds its handlers here
         SlashCmdList: {},
         // The frames that Escape closes

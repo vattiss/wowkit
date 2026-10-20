@@ -262,6 +262,9 @@ describe("the IDs that cannot be changed in the table", () => {
         box.scripts.OnEditFocusLost!(box);
         expect(world.getSavedSettings()?.idOverrides).toEqual({});
         expect(findLabel(world, "Smite")).toBeDefined();
+        // The tooltip says why
+        box.scripts.OnEnter!(box);
+        expect(world.findFrame((frame) => frame.name === "GameTooltip")?.text).toContain("this ID can't be changed");
     });
 
     it("are those of a spell listed on another row: it would take that row's place", () => {

@@ -4,6 +4,7 @@ import type { NoticeService, Rgb } from "@wowkit/wow";
 import type { CustomCuesService } from "../glows/custom-cues.service";
 import type { SwitchesService } from "../settings/switches.service";
 import type { AddonLocale } from "../locale/locale.interface";
+import type { TextKey } from "../locale/texts.constants";
 import { CUE_KINDS } from "../settings/settings.constants";
 import { COLUMN, ROW_HEIGHT, TABLE_WIDTH, findCenteredX } from "./style-table.constants";
 import { KIND_TEXTS, type StyleRow, type StyleRowsService } from "./style-rows.service";
@@ -38,16 +39,7 @@ export class StyleEditsService {
         box.SetScript("OnEnter", () => {
             const row = getRow();
             if (row === undefined) return;
-            GameTooltip.SetOwner(box, "ANCHOR_RIGHT");
-            GameTooltip.SetText(
-                this.locale.getText(row.spellId === undefined ? "TIP_ENABLED_KIND" : "TIP_ENABLED_SPELL"),
-                1,
-                1,
-                1,
-                1,
-                true,
-            );
-            GameTooltip.Show();
+            this.showTooltip(box, row.spellId === undefined ? "TIP_ENABLED_KIND" : "TIP_ENABLED_SPELL");
         });
         box.SetScript("OnLeave", () => GameTooltip.Hide());
     }
@@ -81,6 +73,12 @@ export class StyleEditsService {
             restore();
             box.ClearFocus();
         });
+        // Why the ID of an old rank cannot be changed
+        box.SetScript("OnEnter", () => {
+            const row = getRow();
+            if (row !== undefined && !this.isIdEditable(row)) this.showTooltip(box, "TIP_ID_RANK");
+        });
+        box.SetScript("OnLeave", () => GameTooltip.Hide());
         return box;
     }
 
@@ -190,6 +188,13 @@ export class StyleEditsService {
 
     private showUnknown(spellId: number): void {
         this.showProblem(string.format(this.locale.getText("MSG_UNKNOWN_SPELL"), spellId), ERROR_COLOR);
+    }
+
+    /** The game's tooltip next to a control, with one of the addon's texts. */
+    private showTooltip(owner: Frame, text: TextKey): void {
+        GameTooltip.SetOwner(owner, "ANCHOR_RIGHT");
+        GameTooltip.SetText(this.locale.getText(text), 1, 1, 1, 1, true);
+        GameTooltip.Show();
     }
 
     /** A problem with what was typed: a line at the top of the screen, like the messages of the reminders. */

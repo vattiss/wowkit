@@ -56,6 +56,7 @@ export const TEXTS = {
     COL_ID: "Spell ID",
     COL_ON: "Enabled",
     TIP_ENABLED_KIND: "Turns this reminder type on or off. While it's off, none of its spells glow and their rows are grayed out.",
+    TIP_ID_RANK: "Old ranks are checked using the spells on your action bars and in your spellbook, so this ID can't be changed.",
     TIP_ENABLED_SPELL: "Turns the reminder for this spell on or off.",
     HDR_TABLE_ADD: "Add a spell by ID",
     BTN_ADD: "Add",
