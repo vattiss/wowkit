@@ -185,7 +185,7 @@ function makeReminders(addon: Addon, addonName: string, game: Game, texts: Texts
             reagents,
         ),
     );
-    const seal = addon.register(new SealReminderService(game.spells, game.actionBars, buffs.state, game.player, settings));
+    const seal = addon.register(new SealReminderService(game.spells, game.actionBars, buffs.state, game.player, settings, customCues));
     return { buff, reagents, party, weaponChoice, weapon, outdatedRanks, glowCues, customCues, custom, seal };
 }
 type Reminders = ReturnType<typeof makeReminders>;

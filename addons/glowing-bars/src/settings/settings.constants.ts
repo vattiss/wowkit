@@ -47,7 +47,7 @@ export const STYLE_DEFAULTS: { [key in ColorKey]: Style } = {
 export const COOLDOWN_GLOW_CHOICES = [2, 3, 5, 10, 0];
 
 /** The kinds a spell can be added as, in the order the add button goes through them. */
-export const CUE_KINDS: CueKind[] = ["cooldown", "proc", "buff", "weapon", "reagent"];
+export const CUE_KINDS: CueKind[] = ["cooldown", "proc", "buff", "weapon", "reagent", "seal"];
 
 /** The kinds in the order the tables list them. */
 export const KIND_ORDER: ColorKey[] = ["buff", "weapon", "seal", "reagent", "cooldown", "proc", "rank"];

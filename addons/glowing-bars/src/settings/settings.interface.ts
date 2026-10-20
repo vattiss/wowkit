@@ -19,7 +19,7 @@ export interface Style {
 }
 
 /** The kinds a spell can be added as by the player: every kind but the old ranks, which are found for every spell. */
-export type CueKind = "buff" | "weapon" | "reagent" | "cooldown" | "proc";
+export type CueKind = "buff" | "weapon" | "seal" | "reagent" | "cooldown" | "proc";
 
 /** A spell the player added by its ID. */
 export interface CustomCue {

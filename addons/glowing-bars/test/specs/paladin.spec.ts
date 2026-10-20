@@ -167,3 +167,35 @@ describe("a paladin who cancels an aura in a fight", () => {
         expect(world.glowsOn(1)).toBe(0);
     });
 });
+
+describe("a paladin who added a seal of Forever by its ID", () => {
+    const SEAL_OF_THE_DAWN: SpellDefinition = { id: 1310500, name: "Seal of the Dawn", rank: 1, icon: 135924, isHelpful: true };
+    let world!: World;
+
+    beforeEach(() => {
+        world = createWorld(
+            (state) => {
+                playAs(state, PALADIN);
+                learnSpell(state, SEAL_OF_THE_DAWN);
+                state.bars[1] = SEAL_OF_THE_DAWN.id;
+            },
+            { customCues: [{ id: SEAL_OF_THE_DAWN.id, kind: "seal" }] },
+        );
+        world.state.isInCombat = true;
+        world.state.areAurasHidden = true;
+        world.fire("PLAYER_REGEN_DISABLED");
+        world.advance(1);
+    });
+
+    it("sees it glow in a fight with no seal up", () => {
+        expect(world.glowsOn(1)).toBe(1);
+    });
+
+    it("sees no glow for 30 seconds once it is cast", () => {
+        world.fire("UNIT_SPELLCAST_SUCCEEDED", "player", "cast-guid", SEAL_OF_THE_DAWN.id);
+        world.advance(1);
+        expect(world.glowsOn(1)).toBe(0);
+        world.advance(30);
+        expect(world.glowsOn(1)).toBe(1);
+    });
+});
