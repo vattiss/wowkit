@@ -9,7 +9,7 @@ Your Rotation.
   member counts. In combat, when the client hides auras, buffs you saw or cast are remembered.
 - **Weapon buffs**: shaman imbues, rogue poisons (per hand) and warlock stones glow when missing or about to run out
   (30 s), with an alarm sound by default.
-- **Paladin seals**: in a fight with no seal up, the seal you used last glows (gold). The game hides auras in combat,
+- **Paladin seals**: in a fight with no seal up, the seal you used last glows (gold); none before you have used one. The game hides auras in combat,
   so a seal counts for its 30 seconds from your cast.
 - **Not on your bars**: a message names missing buffs you have learned but put on no action bar.
 - **Party buffs** (party, not raid; out of combat): a message names the members in range who miss one of your buffs

@@ -102,9 +102,9 @@ describe("a paladin with two seals on the bars", () => {
         expect(world.glowsOn(2)).toBe(0);
     });
 
-    it("sees the first seal glow in a fight with no seal up", () => {
+    it("sees no seal glow in a fight before using one: the addon does not know which one the player wants", () => {
         startFight();
-        expect(world.glowsOn(1)).toBe(1);
+        expect(world.glowsOn(1)).toBe(0);
         expect(world.glowsOn(2)).toBe(0);
     });
 
@@ -129,6 +129,8 @@ describe("a paladin with two seals on the bars", () => {
     it("sees no seal glow once the seals are switched off in the table", () => {
         switchInTable(world, "Missing seal", false);
         startFight();
+        cast(RIGHTEOUSNESS);
+        world.advance(31);
         expect(world.glowsOn(1)).toBe(0);
     });
 });
@@ -187,11 +189,8 @@ describe("a paladin who added a seal of Forever by its ID", () => {
         world.advance(1);
     });
 
-    it("sees it glow in a fight with no seal up", () => {
-        expect(world.glowsOn(1)).toBe(1);
-    });
-
-    it("sees no glow for 30 seconds once it is cast", () => {
+    it("sees it glow 30 seconds after it is cast", () => {
+        expect(world.glowsOn(1)).toBe(0);
         world.fire("UNIT_SPELLCAST_SUCCEEDED", "player", "cast-guid", SEAL_OF_THE_DAWN.id);
         world.advance(1);
         expect(world.glowsOn(1)).toBe(0);

@@ -1,6 +1,7 @@
 // The paladin's seals: in a fight a seal should be up. The client hides the auras in combat, so a seal counts from the
 // player's own cast for its 30 seconds (the "seal" category of the buff memory); a Judgement leaves it on. Any seal
-// counts, the seals the player added too; the one that glows is the seal the player last used, else the first on the bars.
+// counts, the seals the player added too. The one that glows is the seal the player last used; before the first one the
+// addon does not know which seal the player wants, or whether they use one at all, so none glows.
 import { OnEvent } from "@wowkit/core";
 import type { ActionBarsService, PlayerService, PlayerSpellCast, SpellsService } from "@wowkit/wow";
 import { Paladin } from "@wowkit/wow-data";
@@ -50,7 +51,7 @@ export class SealReminderService {
         if (this.listAllSeals().some((sealId) => (this.spells.resolve(sealId) ?? sealId) === id)) this.lastSeal = id;
     }
 
-    /** In a fight with no seal up: the seal to put on, when it is on a button and switched on. */
+    /** In a fight with no seal up: the seal the player last used, when it is on a button and switched on. */
     findMissingSeal(): number[] {
         if (!this.settings.get("showSeals") || !this.player.isInCombat()) return [];
         const glowOn = this.settings.get("glowOn");
@@ -61,7 +62,6 @@ export class SealReminderService {
             if (this.buffState.hasAura(id)) return [];
             if (glowOn[string.format("%d", listId)] !== false && this.actionBars.isOnBars(id)) onBars.push(id);
         }
-        if (onBars.length === 0) return [];
-        return [this.lastSeal !== undefined && onBars.includes(this.lastSeal) ? this.lastSeal : onBars[0]!];
+        return this.lastSeal !== undefined && onBars.includes(this.lastSeal) ? [this.lastSeal] : [];
     }
 }
