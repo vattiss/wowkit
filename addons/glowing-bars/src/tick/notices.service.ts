@@ -61,6 +61,7 @@ export class NoticesService {
             [...(reminders.weaponSpell !== undefined ? [reminders.weaponSpell] : []), ...reminders.customWeaponSpells],
             "TEXT_WEAPON",
         );
+        this.addKindLines(lines, "seal", reminders.seals, "TEXT_SEAL");
         this.addKindLines(lines, "cooldown", reminders.readyCooldowns, "TEXT_COOLDOWN");
         this.addKindLines(lines, "proc", reminders.procs, "TEXT_PROC");
         this.addKindLines(

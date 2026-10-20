@@ -18,6 +18,7 @@ export function createDefaultSettings(): AddonSettings {
         showCooldownsAtFightStart: false,
         cooldownGlowSeconds: 3,
         showProcs: true,
+        showSeals: true,
         styles: {},
         spellStyles: {},
         buffOn: {},
@@ -34,6 +35,8 @@ export function createDefaultSettings(): AddonSettings {
 export const STYLE_DEFAULTS: { [key in ColorKey]: Style } = {
     buff: { color: [0.2, 0.55, 1], opacity: 100, isTextOn: false, sound: "none" },
     weapon: { color: [1, 0.55, 0.1], opacity: 100, isTextOn: false, sound: "alarm2" },
+    // The paladin's gold
+    seal: { color: [1, 0.85, 0.2], opacity: 100, isTextOn: false, sound: "none" },
     cooldown: { color: [1, 1, 1], opacity: 100, isTextOn: false, sound: "none" },
     proc: { color: [1, 0.12, 0.08], opacity: 100, isTextOn: false, sound: "none" },
     rank: { color: [1, 0.85, 0.2], opacity: 50, isTextOn: true, sound: "alarm1" },
@@ -47,7 +50,7 @@ export const COOLDOWN_GLOW_CHOICES = [2, 3, 5, 10, 0];
 export const CUE_KINDS: CueKind[] = ["cooldown", "proc", "buff", "weapon", "reagent"];
 
 /** The kinds in the order the tables list them. */
-export const KIND_ORDER: ColorKey[] = ["buff", "weapon", "reagent", "cooldown", "proc", "rank"];
+export const KIND_ORDER: ColorKey[] = ["buff", "weapon", "seal", "reagent", "cooldown", "proc", "rank"];
 
 /** The part of a saved look that can be used: a sound that is no longer in the list, or a color that is no color, is dropped. */
 function repairStyle(style: StyleOverride | undefined): StyleOverride | undefined {

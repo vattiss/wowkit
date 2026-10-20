@@ -59,6 +59,7 @@ import { BuffReminderService } from "./reminders/buff-reminder.service";
 import { ClassBuffsService } from "./reminders/class-buffs.service";
 import { CustomRemindersService } from "./reminders/custom-reminders.service";
 import { OutdatedRanksService } from "./reminders/outdated-ranks.service";
+import { SealReminderService } from "./reminders/seal-reminder.service";
 import { PartyBuffsService } from "./reminders/party-buffs.service";
 import { TownVisitService } from "./reminders/town-visit.service";
 import { WeaponChoiceService } from "./reminders/weapon/weapon-choice.service";
@@ -184,7 +185,8 @@ function makeReminders(addon: Addon, addonName: string, game: Game, texts: Texts
             reagents,
         ),
     );
-    return { buff, reagents, party, weaponChoice, weapon, outdatedRanks, glowCues, customCues, custom };
+    const seal = addon.register(new SealReminderService(game.spells, game.actionBars, buffs.state, game.player, settings));
+    return { buff, reagents, party, weaponChoice, weapon, outdatedRanks, glowCues, customCues, custom, seal };
 }
 type Reminders = ReturnType<typeof makeReminders>;
 
@@ -204,6 +206,7 @@ function makeTick(addon: Addon, addonName: string, game: Game, texts: Texts, buf
             reminders.glowCues,
             reminders.reagents,
             reminders.custom,
+            reminders.seal,
             settings,
         ),
     );
@@ -232,6 +235,7 @@ function makeTable(addon: Addon, addonName: string, game: Game, texts: Texts, bu
             styles,
             reminders.glowCues,
             reminders.customCues,
+            reminders.seal,
         ),
     );
     const choices = addon.register(new StyleChoicesService(locale, styles, messages));

@@ -2,7 +2,7 @@ import type { SettingsService, SoundKey } from "@wowkit/ui";
 import type { Rgb } from "@wowkit/wow";
 
 /** The kinds of reminder. Each has a look (color, opacity, message, sound) the player can change for the kind and for a spell. */
-export type ColorKey = "buff" | "weapon" | "cooldown" | "proc" | "rank" | "reagent";
+export type ColorKey = "buff" | "weapon" | "seal" | "cooldown" | "proc" | "rank" | "reagent";
 
 /** The settings service of this addon: a SettingsService that knows the shape of its settings. */
 export type AddonSettingsService = SettingsService<AddonSettings>;
@@ -51,6 +51,8 @@ export interface AddonSettings {
     cooldownGlowSeconds: number;
     /** Spells the game says are usable now (Overpower, Revenge, Execute...). */
     showProcs: boolean;
+    /** A paladin in a fight with no seal up. */
+    showSeals: boolean;
     /** The player's changes to the look of each kind of reminder (the default look of its spells). */
     styles: { [key in ColorKey]?: StyleOverride };
     /** The player's changes to the look of one spell in one kind, by the kind and the spell's name ("rank:Smite"). */

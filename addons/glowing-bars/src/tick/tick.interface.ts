@@ -9,6 +9,8 @@ export interface Reminders {
     weaponSpell?: number;
     /** Weapon buffs the player added, when the main-hand weapon has no temporary enchant: their buttons glow. */
     customWeaponSpells: number[];
+    /** A paladin in a fight with no seal up: the seal to put on. */
+    seals: number[];
     /** Missing buffs the player has learned but put on no action bar. */
     buffsNotOnBars: number[];
     /** Party members missing one of the player's buffs. */

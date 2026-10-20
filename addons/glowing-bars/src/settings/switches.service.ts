@@ -11,6 +11,7 @@ import type { AddonSettingsService, ColorKey } from "./settings.interface";
 const KIND_SWITCHES = {
     buff: "showBuff",
     weapon: "showWeapon",
+    seal: "showSeals",
     reagent: "showReagents",
     cooldown: "showCooldowns",
     proc: "showProcs",
