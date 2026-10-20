@@ -52,3 +52,9 @@ export const PROC_CUES: { [classToken: string]: number[] | undefined } = {
     ROGUE: [Rogue.Riposte],
     WARRIOR: [Warrior.Overpower, Warrior.Revenge, Warrior.Execute, Warrior.VictoryRush],
 };
+
+/**
+ * Cooldowns that start when another spell is cast, not when they are: Swift Judgement makes the next Judgement cheap, and
+ * its cooldown starts as that Judgement uses it up, however long that takes. Until then the spell is not ready.
+ */
+export const COOLDOWN_STARTED_BY: [spellId: number, startedBy: number[]][] = [[Paladin.SwiftJudgement, [Paladin.Judgement]]];

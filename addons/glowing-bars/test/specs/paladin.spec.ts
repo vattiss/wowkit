@@ -199,3 +199,54 @@ describe("a paladin who added a seal of Forever by its ID", () => {
         expect(world.glowsOn(1)).toBe(1);
     });
 });
+
+describe("a paladin who uses Swift Judgement in a fight", () => {
+    const SWIFT_JUDGEMENT: SpellDefinition = {
+        id: 1310994,
+        name: "Swift Judgement",
+        rank: 1,
+        icon: 135959,
+        cooldownSeconds: 60,
+        isHelpful: true,
+    };
+    const JUDGEMENT_SPELL: SpellDefinition = { id: 20271, name: "Judgement", rank: 1, icon: 135959, cooldownSeconds: 10, isHelpful: false };
+    let world!: World;
+
+    function cast(spell: SpellDefinition): void {
+        world.fire("UNIT_SPELLCAST_SUCCEEDED", "player", "cast-guid", spell.id);
+        world.advance(0.5);
+    }
+
+    beforeEach(() => {
+        world = createWorld((state) => {
+            playAs(state, PALADIN);
+            for (const spell of [SWIFT_JUDGEMENT, JUDGEMENT_SPELL]) learnSpell(state, spell);
+            state.bars[1] = SWIFT_JUDGEMENT.id;
+            state.bars[2] = JUDGEMENT_SPELL.id;
+            state.isInCombat = true;
+        });
+        world.fire("PLAYER_REGEN_DISABLED");
+        world.advance(1);
+    });
+
+    it("has its cooldown start with the next Judgement, however long that takes, while the game hides the cooldowns", () => {
+        world.state.areCooldownsHidden = true;
+        cast(SWIFT_JUDGEMENT);
+        // No Judgement for two minutes: the buff waits, so the cooldown has not even started
+        world.advance(120);
+        expect(world.glowsOn(1)).toBe(0);
+        cast(JUDGEMENT_SPELL);
+        world.advance(58);
+        expect(world.glowsOn(1)).toBe(0);
+        // A minute after the Judgement it is back
+        world.advance(2);
+        expect(world.glowsOn(1)).toBe(1);
+    });
+
+    it("does not take the game's word that it is ready while it waits for the Judgement", () => {
+        // The cooldown has not started, so the game shows none
+        cast(SWIFT_JUDGEMENT);
+        world.advance(2);
+        expect(world.glowsOn(1)).toBe(0);
+    });
+});

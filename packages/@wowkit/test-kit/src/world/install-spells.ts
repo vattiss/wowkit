@@ -63,6 +63,7 @@ export function installSpells(state: ClientState): void {
         GetSpellPowerCost: () => [],
         GetSpellDescription: (idOrName) => findSpell(idOrName)?.description ?? "",
         GetSpellCooldown: (idOrName) => {
+            if (state.areCooldownsHidden) return undefined;
             const spell = findSpell(idOrName);
             const cooldown = spell ? state.cooldowns[spell.id] : undefined;
             return fake<SpellCooldownInfo>({ startTime: cooldown?.start ?? 0, duration: cooldown?.duration ?? 0, isEnabled: true });

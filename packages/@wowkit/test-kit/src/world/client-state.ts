@@ -92,6 +92,8 @@ export interface ClientState {
     isInCombat: boolean;
     /** In combat the game hides the auras: the list comes back empty. */
     areAurasHidden: boolean;
+    /** In combat the game hides the spell cooldowns: no answer. */
+    areCooldownsHidden: boolean;
     isResting: boolean;
     /** Inventory slot (16 main hand, 17 off hand) -> the temporary enchant on it. */
     enchants: { [slot: number]: FakeEnchant | undefined };
@@ -141,6 +143,7 @@ export function createClientState(): ClientState {
         auras: [],
         isInCombat: false,
         areAurasHidden: false,
+        areCooldownsHidden: false,
         isResting: false,
         enchants: {},
         areEnchantReadsBroken: false,
