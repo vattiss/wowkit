@@ -56,6 +56,10 @@ export const TEXTS = {
     COL_ID: "Spell ID",
     COL_ON: "Enabled",
     TIP_ENABLED_KIND: "Turns this reminder type on or off. While it's off, none of its spells glow and their rows are grayed out.",
+    TIP_ID_EDIT:
+        "The spell ID the addon looks for. Change it if the game uses a different ID for this spell, e.g. after a patch the addon hasn't caught up with yet.",
+    TIP_ADD_ID:
+        "Add a spell the addon doesn't know yet by its ID (you can find it on Wowhead), e.g. a new or changed spell of Forever. Pick its type with the button next to it.",
     TIP_ID_RANK: "Old ranks are checked using the spells on your action bars and in your spellbook, so this ID can't be changed.",
     TIP_ENABLED_SPELL: "Turns the reminder for this spell on or off.",
     HDR_TABLE_ADD: "Add a spell by ID",

@@ -73,10 +73,10 @@ export class StyleEditsService {
             restore();
             box.ClearFocus();
         });
-        // Why the ID of an old rank cannot be changed
+        // What the ID is for, or why an old rank's cannot be changed
         box.SetScript("OnEnter", () => {
             const row = getRow();
-            if (row !== undefined && !this.isIdEditable(row)) this.showTooltip(box, "TIP_ID_RANK");
+            if (row !== undefined) this.showTooltip(box, this.isIdEditable(row) ? "TIP_ID_EDIT" : "TIP_ID_RANK");
         });
         box.SetScript("OnLeave", () => GameTooltip.Hide());
         return box;
@@ -102,6 +102,8 @@ export class StyleEditsService {
         const frame = CreateFrame("Frame", undefined, content);
         frame.SetSize(TABLE_WIDTH, ROW_HEIGHT);
         const box = this.createNumberBox(frame, COLUMN.name.x, 90, 7);
+        box.SetScript("OnEnter", () => this.showTooltip(box, "TIP_ADD_ID"));
+        box.SetScript("OnLeave", () => GameTooltip.Hide());
         let kindIndex = 0;
         const kindButton = CreateFrame("Button", undefined, frame, "UIPanelButtonTemplate");
         kindButton.SetSize(136, 24);

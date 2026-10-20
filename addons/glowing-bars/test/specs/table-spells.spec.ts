@@ -66,8 +66,17 @@ describe("the spells of the table, fixed and added by the player", () => {
         toggleTable();
     });
 
-    it("shows the ID of a cooldown in its row", () => {
-        expect(findIdBox("Recklessness").text).toBe("1719");
+    it("shows the ID of a cooldown in its row, and says what it is for", () => {
+        const box = findIdBox("Recklessness");
+        expect(box.text).toBe("1719");
+        box.scripts.OnEnter!(box);
+        expect(world.findFrame((frame) => frame.name === "GameTooltip")?.text).toContain("Change it if the game uses a different ID");
+    });
+
+    it("says what the box of the add row is for", () => {
+        const { box } = findAddRow();
+        box.scripts.OnEnter!(box);
+        expect(world.findFrame((frame) => frame.name === "GameTooltip")?.text).toContain("Add a spell the addon doesn't know yet");
     });
 
     it("takes a fixed ID for a cooldown of the list", () => {
