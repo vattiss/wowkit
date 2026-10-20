@@ -5,7 +5,7 @@
 import type { MessagesService, SoundKey } from "@wowkit/ui";
 import type { StyleService } from "../settings/style.service";
 import type { AddonSettingsService, ColorKey } from "../settings/settings.interface";
-import type { GlowService, ButtonGlow, Rgb } from "@wowkit/wow";
+import type { ActionBarsService, GlowService, ButtonGlow, Rgb } from "@wowkit/wow";
 import type { NoticesService } from "./notices.service";
 import type { Reminders } from "./tick.interface";
 
@@ -52,6 +52,7 @@ export class ShowRemindersService {
         private readonly settings: AddonSettingsService,
         private readonly notices: NoticesService,
         private readonly styles: StyleService,
+        private readonly actionBars: ActionBarsService,
     ) {}
 
     showReminders(reminders: Reminders): void {
@@ -67,7 +68,7 @@ export class ShowRemindersService {
 
     /** A setting changed: the glows go out at once and are lit again by the next tick, in the new look. */
     redrawGlowsAfterSettingChange(key: string): void {
-        if (key !== "styles" && key !== "spellStyles" && !KINDS.some((kind) => kind.isOnSetting === key)) return;
+        if (key !== "styles" && key !== "spellStyles" && key !== "barOff" && !KINDS.some((kind) => kind.isOnSetting === key)) return;
         for (const [, glow] of this.glows) glow.clear();
         this.markGlowsStale();
     }
@@ -97,12 +98,18 @@ export class ShowRemindersService {
         for (const group of groups) {
             let glow = this.glows.get(group.key);
             if (glow === undefined) {
-                glow = this.glow.createButtonGlow(group.key);
+                glow = this.glow.createButtonGlow(group.key, (button) => this.isBarShown(button));
                 this.glows.set(group.key, glow);
             }
             glow.show(group.spells, group.color);
             glow.setAlpha(group.opacity / 100);
         }
+    }
+
+    /** A button glows unless its bar is switched off (a button of no numbered bar always may). */
+    private isBarShown(button: ActionButton): boolean {
+        const bar = this.actionBars.getBarNumber(button);
+        return bar === undefined || this.settings.get("barOff")[string.format("%d", bar)] !== true;
     }
 
     /** The spells to glow, in groups of the same look. */

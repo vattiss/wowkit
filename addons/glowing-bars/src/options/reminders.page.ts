@@ -7,6 +7,7 @@ import type { SpellsService } from "@wowkit/wow";
 import type { AboutSection, ControlsService, OptionsPage, WidgetsService } from "@wowkit/ui";
 import type { GlowsSection } from "./glows.section";
 import type { StyleTableService } from "./style-table.service";
+import type { BarsSection } from "./bars.section";
 import type { ReagentsSection } from "./reagents.section";
 import type { ReminderControlsService } from "./reminder-controls.service";
 import type { WeaponSection } from "./weapon.section";
@@ -25,6 +26,7 @@ export class RemindersPage implements OptionsPage {
         private readonly about: AboutSection,
         private readonly widgets: WidgetsService,
         private readonly table: StyleTableService,
+        private readonly barsSection: BarsSection,
     ) {}
 
     buildPage(category: SettingsCategory, layout: SettingsLayout): void {
@@ -50,6 +52,8 @@ export class RemindersPage implements OptionsPage {
             (isChecked) => this.settings.change("isMuted", isChecked),
         );
         this.reminderControls.addSwitch(category, "hideResting", "OPT_HIDE_RESTING", "TIP_HIDE_RESTING");
+
+        this.barsSection.addBarsSection(category, layout);
 
         if (buffs.length > 0) {
             this.reminderControls.addHeader(layout, "HDR_BUFFS");

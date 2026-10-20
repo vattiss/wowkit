@@ -8,6 +8,17 @@ const TOTEM_BAR_BUTTONS = 4;
 /** The action slot of MultiCastActionButton1. */
 export const TOTEM_BAR_FIRST_SLOT = 133;
 
+/** The bars 2 to 8 and the action slot of their first button. */
+const OTHER_BARS: [bar: string, firstSlot: number][] = [
+    ["MultiBarBottomLeft", 61],
+    ["MultiBarBottomRight", 49],
+    ["MultiBarRight", 25],
+    ["MultiBarLeft", 37],
+    ["MultiBar5", 145],
+    ["MultiBar6", 157],
+    ["MultiBar7", 169],
+];
+
 export function installActionBars(state: ClientState, frames: FrameRegistry): void {
     defineNamespace<typeof C_ActionBar>("C_ActionBar", {
         HasAction: (slot) => state.bars[slot] !== undefined,
@@ -33,6 +44,11 @@ export function installActionBars(state: ClientState, frames: FrameRegistry): vo
     // Blizzard's own action buttons: ActionButton1..12, each on its action slot
     for (let slot = 1; slot <= MAIN_BAR_BUTTONS; slot++) {
         frames.create("Button", `ActionButton${slot}`).action = slot;
+    }
+    // The other bars of Edit Mode (2 to 8): their buttons, on the action slots the game gives each
+    for (const [bar, firstSlot] of OTHER_BARS) {
+        for (let index = 1; index <= MAIN_BAR_BUTTONS; index++)
+            frames.create("Button", `${bar}Button${index}`).action = firstSlot + index - 1;
     }
     // The shaman's totem bar: MultiCastActionButton1..4 on the action slots after the main bar's pages
     for (let index = 1; index <= TOTEM_BAR_BUTTONS; index++) {

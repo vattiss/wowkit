@@ -26,6 +26,8 @@ Your Rotation.
 - **Old ranks**: a spell on your action bars that is a lower rank than the one you know glows, quietly.
 - Quiet while dead, mounted, on a taxi, eating, or (optionally) resting in town.
 
+- Each of the eight action bars can be switched off, for example to have the glow only on a big bar of cooldowns next to
+  your character.
 Every kind of reminder has the same four settings: the **color** of its glow and message, the **opacity** of the glow
 (1 to 100 percent), whether a short **message** at the top of the screen says so, and a **sound**. The defaults: missing
 buffs blue, weapon buffs orange, ready cooldowns white, procs red, old ranks and low reagents yellow (and a quieter glow

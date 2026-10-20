@@ -31,8 +31,8 @@ export interface World {
     advance(seconds: number): void;
     /** A buff that lasts `secondsLeft` more seconds from now. */
     makeAura(name: string, spellId: number, secondsLeft: number, sourceUnit?: string): FakeAura;
-    /** How many glows are showing on action button 1..12. */
-    glowsOn(button: number): number;
+    /** How many glows are showing on action button 1..12 (of the main bar, or of another bar: "MultiBar6"). */
+    glowsOn(button: number, bar?: string): number;
     /** The opacity of the glows showing on action button 1..12 (a glow faded by a hidden value is 0 or 1). */
     glowAlphasOn(button: number): number[];
     /** The text of the notice at the top of the screen; empty when it is not showing. */
@@ -92,8 +92,8 @@ export function createWorld(setup: (state: ClientState) => void, savedSettings?:
         fire: (event, ...args) => frames.fire(event, ...args),
         advance: (seconds) => clock.advance(seconds),
         makeAura: (name, spellId, secondsLeft, sourceUnit) => ({ name, spellId, expirationTime: clock.getNow() + secondsLeft, sourceUnit }),
-        glowsOn(button) {
-            const buttonFrame = readGlobal(`ActionButton${button}`);
+        glowsOn(button, bar = "Action") {
+            const buttonFrame = readGlobal(`${bar}Button${button}`);
             return frames.all.filter(
                 (frame) => frame.parent === buttonFrame && frame.template === "ActionButtonSpellAlertTemplate" && frame.isShown,
             ).length;

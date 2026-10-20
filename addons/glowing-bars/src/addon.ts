@@ -42,6 +42,7 @@ import { CooldownTrackerService } from "./glows/cooldown-tracker.service";
 import { GlowCuesService } from "./glows/glow-cues.service";
 import { BuffKnowledgeService } from "./knowledge/buff-knowledge.service";
 import { TEXTS } from "./locale/texts.constants";
+import { BarsSection } from "./options/bars.section";
 import { GlowsSection } from "./options/glows.section";
 import { ReagentsSection } from "./options/reagents.section";
 import { ReminderControlsService } from "./options/reminder-controls.service";
@@ -188,7 +189,7 @@ function makeTick(addon: Addon, addonName: string, game: Game, texts: Texts, buf
         ),
     );
     const notices = addon.register(new NoticesService(game.actionBars, game.clock, game.notice, game.spells, locale, styles));
-    const shower = addon.register(new ShowRemindersService(game.glow, messages, settings, notices, styles));
+    const shower = addon.register(new ShowRemindersService(game.glow, messages, settings, notices, styles, game.actionBars));
     const tick = addon.register(new TickService(finder, shower));
     const refresh = addon.register(new RefreshService(tick, shower, buffs.state, game.clock, game.barRefresh));
     addon.register(new DisplayService(shower, tick));
@@ -238,6 +239,7 @@ function makeOptions(addon: Addon, addonName: string, game: Game, texts: Texts, 
         new GlowsSection(locale, game.spells, settings, controls, reminderControls, game.player, reminders.glowCues),
     );
     const table = makeTable(addon, game, texts, buffs, reminders);
+    const barsSection = addon.register(new BarsSection(locale, settings, controls, reminderControls));
     const about = addon.register(
         new AboutSection(
             widgets,
@@ -263,6 +265,7 @@ function makeOptions(addon: Addon, addonName: string, game: Game, texts: Texts, 
             about,
             widgets,
             table,
+            barsSection,
         ),
     );
     addon.register(new OptionsService(messages, locale.getText("TITLE"), page));

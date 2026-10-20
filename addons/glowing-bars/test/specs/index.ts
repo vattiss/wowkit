@@ -13,3 +13,4 @@ import "./town.spec";
 import "./glows.spec";
 import "./looks.spec";
 import "./table.spec";
+import "./bars.spec";

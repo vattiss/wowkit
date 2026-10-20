@@ -44,6 +44,8 @@ export interface AddonSettings {
     styles: { [key in ColorKey]?: StyleOverride };
     /** The player's changes to the look of one spell in one kind, by the kind and the spell's name ("rank:Smite"). */
     spellStyles: { [kindAndName: string]: StyleOverride | undefined };
+    /** The action bars (1 to 8) whose buttons do not glow; only set where the player switched one off. */
+    barOff: { [bar: string]: boolean | undefined };
     /** Per-spell switches of the cooldown and proc glows (by spell ID); only set where the player switched one off. */
     glowOn: { [spellId: string]: boolean | undefined };
     /** Per-reagent switches (by item ID); only set where the player switched one off. */

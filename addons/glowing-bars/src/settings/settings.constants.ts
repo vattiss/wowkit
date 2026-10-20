@@ -20,6 +20,7 @@ export function createDefaultSettings(): AddonSettings {
         styles: {},
         spellStyles: {},
         buffOn: {},
+        barOff: {},
         reagentOn: {},
         glowOn: {},
     };

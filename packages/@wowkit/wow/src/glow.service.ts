@@ -35,8 +35,11 @@ export class GlowService {
 
     constructor(private readonly actionBars: ActionBarsService) {}
 
-    /** One glow on the buttons of some spells; each kind (the buff, the weapon buff) keeps its own overlays. */
-    createButtonGlow(kind: string): ButtonGlow {
+    /**
+     * One glow on the buttons of some spells; each kind (the buff, the weapon buff) keeps its own overlays.
+     * `isButtonShown` leaves buttons out (a bar the player does not want to glow); it is asked each time the glow is shown.
+     */
+    createButtonGlow(kind: string, isButtonShown?: (this: void, button: ActionButton) => boolean): ButtonGlow {
         const glowing = new LuaSet<ActionButton>();
         let last: string | undefined;
         const clearGlow = () => {
@@ -61,8 +64,12 @@ export class GlowService {
                 if (spellIds.length === 0) return clearGlow();
                 // The color is part of the key: the same spell may glow in another color (a heal that turns urgent)
                 const key = `${spellIds.join(",")}|${color.join(",")}`;
-                if (key === last && !glowing.isEmpty()) return;
-                const buttons = spellIds.flatMap((spellId) => this.actionBars.findButtonsOf(spellId));
+                const buttons = spellIds
+                    .flatMap((spellId) => this.actionBars.findButtonsOf(spellId))
+                    .filter((button) => isButtonShown === undefined || isButtonShown(button));
+                // The same spells on the same buttons: nothing to redraw. The buttons count too: the bars are mapped a few
+                // buttons a frame, so a spell may be found on more buttons than when it was first lit
+                if (key === last && !glowing.isEmpty() && this.isSameButtons(glowing, buttons)) return;
                 clearGlow();
                 last = key;
                 for (const button of buttons) {
@@ -73,6 +80,18 @@ export class GlowService {
                 }
             },
         };
+    }
+
+    /** Does the glow already light exactly these buttons? */
+    private isSameButtons(glowing: LuaSet<ActionButton>, buttons: ActionButton[]): boolean {
+        const wanted = new LuaSet<ActionButton>();
+        for (const button of buttons) {
+            if (!glowing.has(button)) return false;
+            wanted.add(button);
+        }
+        // Every wanted button glows already; none glows that is not wanted
+        for (const button of glowing) if (!wanted.has(button)) return false;
+        return true;
     }
 
     private getOverlay(button: ActionButton, kind: string, [r, g, b]: Rgb): Frame {

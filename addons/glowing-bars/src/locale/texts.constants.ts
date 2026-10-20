@@ -16,6 +16,11 @@ export const TEXTS = {
     TIP_HIDE_RESTING:
         "No glow or message while you are resting in a town or an inn and not in combat. Switch it off to get the reminders there too.",
 
+    HDR_BARS: "Action bars that glow",
+    OPT_BAR: "Action Bar %d",
+    TIP_BAR:
+        "The buttons of this bar glow. Switch a bar off to keep its buttons calm, for example when the same spells are on a bar of cooldowns next to your character.",
+
     HDR_BUFFS: "Buffs",
     OPT_BUFF: "Highlight a missing buff",
     TIP_BUFF: "Every missing buff of the list below glows on its action button (one per category, e.g. one aspect).",

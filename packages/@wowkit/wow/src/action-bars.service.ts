@@ -108,6 +108,18 @@ export class ActionBarsService implements OnFirstLogin {
         mapNextButtons();
     }
 
+    /**
+     * The action bar a button is on, numbered as the game's Edit Mode numbers them: 1 is the main bar, 2 to 8 the others.
+     * Undefined for the buttons of no numbered bar (the totem bar, the stance bar).
+     */
+    getBarNumber(button: ActionButton): number | undefined {
+        const name = button.GetName();
+        if (name === undefined) return undefined;
+        const [prefix] = string.match(name, "^(.-)Button%d+$");
+        const index = prefix !== undefined ? BARS.indexOf(prefix) : -1;
+        return index >= 0 ? index + 1 : undefined;
+    }
+
     /** The buttons a spell sits on: by ID, resolved ID, name, and (rarely shared) icon. */
     findButtonsOf(spellId: number | undefined): ActionButton[] {
         const out: ActionButton[] = [];
