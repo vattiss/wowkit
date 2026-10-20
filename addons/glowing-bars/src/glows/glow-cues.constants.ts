@@ -7,7 +7,7 @@ export const COOLDOWN_CUES: { [classToken: string]: number[] | undefined } = {
     DRUID: [Druid.Innervate, Druid.Barkskin, Druid.TigersFury, Druid.Berserk, Druid.FrenziedRegeneration],
     HUNTER: [Hunter.RapidFire, Hunter.BestialWrath, Hunter.Deterrence],
     MAGE: [Mage.PresenceOfMind, Mage.ArcanePower, Mage.Combustion, Mage.IceBlock],
-    PALADIN: [Paladin.DivineShield, Paladin.DivineProtection, Paladin.LayOnHands],
+    PALADIN: [Paladin.DivineShield, Paladin.DivineProtection, Paladin.LayOnHands, Paladin.SwiftJudgement],
     PRIEST: [Priest.InnerFocus, Priest.PowerInfusion, Priest.Fade],
     ROGUE: [Rogue.AdrenalineRush, Rogue.BladeFlurry, Rogue.ColdBlood, Rogue.Evasion, Rogue.Vanish],
     SHAMAN: [Shaman.ElementalMastery],
