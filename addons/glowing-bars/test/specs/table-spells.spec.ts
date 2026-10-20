@@ -83,7 +83,7 @@ describe("the spells of the table, fixed and added by the player", () => {
         box.text = "999999";
         box.scripts.OnEditFocusLost!(box);
         expect((readSettings().idOverrides as Record<string, number>)["1719"]).toBeUndefined();
-        expect(world.notice()).toContain("knows no spell with the ID 999999");
+        expect(world.notice()).toContain("No spell found with ID 999999.");
         expect(box.text).toBe("1719");
     });
 
@@ -114,7 +114,7 @@ describe("the spells of the table, fixed and added by the player", () => {
         box.text = "1719";
         add.scripts.OnClick!(add);
         expect(readSettings().customCues).toEqual([]);
-        expect(world.notice()).toContain("Recklessness is in the list already.");
+        expect(world.notice()).toContain("Recklessness is already in the list.");
     });
 
     it("does not add a spell with no cooldown as a cooldown, and says so", () => {
@@ -123,7 +123,7 @@ describe("the spells of the table, fixed and added by the player", () => {
         box.text = "687";
         add.scripts.OnClick!(add);
         expect(readSettings().customCues).toEqual([]);
-        expect(world.notice()).toContain("Demon Skin has no cooldown: choose another kind.");
+        expect(world.notice()).toContain("Demon Skin has no cooldown, pick another type.");
     });
 
     it("adds a spell as the kind the game surely says it is, and says so", () => {
@@ -133,7 +133,7 @@ describe("the spells of the table, fixed and added by the player", () => {
         box.text = "29893";
         add.scripts.OnClick!(add);
         expect(readSettings().customCues).toEqual([{ id: 29893, kind: "reagent" }]);
-        expect(world.notice()).toContain("Ritual of Souls has no cooldown: added as Low reagent instead.");
+        expect(world.notice()).toContain("Ritual of Souls has no cooldown, added as Low reagent instead.");
         expect(kind.text).toBe("Low reagent");
     });
 
@@ -276,7 +276,7 @@ describe("the IDs that cannot be changed in the table", () => {
         box.text = "1243";
         box.scripts.OnEditFocusLost!(box);
         expect(world.getSavedSettings()?.idOverrides).toEqual({});
-        expect(world.notice()).toContain("Power Word: Fortitude is in the list already.");
+        expect(world.notice()).toContain("Power Word: Fortitude is already in the list.");
         expect(box.text).toBe("588");
     });
 });

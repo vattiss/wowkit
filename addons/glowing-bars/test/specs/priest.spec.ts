@@ -34,7 +34,7 @@ describe("a priest", () => {
 
     describe("at login", () => {
         it("greets in the chat", () => {
-            expect(world.chat[0]).toContain("Initialized");
+            expect(world.chat[0]).toContain("Loaded. Type /gb");
         });
 
         it("keeps its settings in the character's saved variables", () => {
@@ -56,7 +56,7 @@ describe("a priest", () => {
         });
 
         it("is named when it is on no action bar", () => {
-            expect(world.notice()).toContain("not on your action bars: Inner Fire");
+            expect(world.notice()).toContain("(not on your action bars): Inner Fire");
         });
 
         it("makes no sound unless the player picked one", () => {
