@@ -161,14 +161,16 @@ describe("a warrior with Overpower and Recklessness on the bars", () => {
     });
 
     it("lights no cooldown the player switched off", () => {
-        world.setOption("glow_1719", false);
+        world = createWorld(setUpWarrior, { glowOn: { "1719": false } });
+        world.advance(1);
         world.state.isInCombat = true;
         world.advance(0.5);
         expect(world.glowsOn(2)).toBe(0);
     });
 
     it("lights no cooldown when the player switched the cooldown glows off", () => {
-        world.setOption("showCooldowns", false);
+        world = createWorld(setUpWarrior, { showCooldowns: false });
+        world.advance(1);
         world.state.isInCombat = true;
         world.advance(0.5);
         expect(world.glowsOn(2)).toBe(0);

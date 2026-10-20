@@ -172,6 +172,13 @@ declare const ColorPickerFrame: Frame & {
     GetColorRGB(): LuaMultiReturn<[number, number, number]>;
 };
 
+interface GameTooltip {
+    SetOwner(owner: Frame, anchor: string): void;
+}
+
+/** The game's own tooltip. */
+declare const GameTooltip: GameTooltip;
+
 /** The names of the frames that Escape closes. */
 declare const UISpecialFrames: string[];
 

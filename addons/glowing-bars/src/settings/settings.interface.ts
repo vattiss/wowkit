@@ -63,6 +63,8 @@ export interface AddonSettings {
     barOff: { [bar: string]: boolean | undefined };
     /** Per-spell switches of the cooldown and proc glows (by spell ID); only set where the player switched one off. */
     glowOn: { [spellId: string]: boolean | undefined };
+    /** The spells whose old rank is not reminded of, by name; only set where the player switched one off. */
+    rankOff: { [spellName: string]: boolean | undefined };
     /** Per-reagent switches (by item ID); only set where the player switched one off. */
     reagentOn: { [itemId: string]: boolean | undefined };
     /** Per-buff switches; only set where the player changed the default. */

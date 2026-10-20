@@ -13,6 +13,7 @@ import {
     SMITE_RANK_1,
     SMITE_RANK_2,
 } from "@wowkit/test-kit";
+import { switchInTable } from "./table.helpers";
 
 describe("a priest", () => {
     let world!: World;
@@ -41,7 +42,7 @@ describe("a priest", () => {
         });
 
         it("adds its page to the options", () => {
-            expect(world.proxySettings["GlowingBars_showBuff"]).toBeDefined();
+            expect(world.proxySettings["GlowingBars_isMuted"]).toBeDefined();
         });
     });
 
@@ -93,16 +94,16 @@ describe("a priest", () => {
         });
     });
 
-    describe("the switch of a buff in the options", () => {
+    describe("the switch of a buff in the table", () => {
         it("is saved when the player switches the buff off", () => {
-            world.setOption("buff_InnerFire", false);
+            switchInTable(world, "Inner Fire", false);
             const buffOn = world.getSavedSettings()?.buffOn as Record<string, boolean | undefined>;
             expect(buffOn.InnerFire).toBe(false);
         });
 
         it("is not stored when it is back at its default", () => {
-            world.setOption("buff_InnerFire", false);
-            world.setOption("buff_InnerFire", true);
+            switchInTable(world, "Inner Fire", false);
+            switchInTable(world, "Inner Fire", true);
             const buffOn = world.getSavedSettings()?.buffOn as Record<string, boolean | undefined>;
             expect(buffOn.InnerFire).toBeUndefined();
         });

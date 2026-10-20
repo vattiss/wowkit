@@ -93,6 +93,7 @@ export class StyleWindowService {
             [COLUMN.opacity, "COL_OPACITY", true],
             [COLUMN.message, "COL_MESSAGE", true],
             [COLUMN.sound, "COL_SOUND", true],
+            [COLUMN.enabled, "COL_ON", true],
         ];
         for (const [column, text, isCentered] of columns) {
             const header = window.CreateFontString(undefined, "OVERLAY", "GameFontNormalSmall");

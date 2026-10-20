@@ -30,6 +30,7 @@ export interface Row {
     swatch: FakeFrame;
     opacity: FakeFrame;
     message: FakeFrame;
+    enabled: FakeFrame;
     sound: FakeFrame;
     reset: FakeFrame;
 }
@@ -51,7 +52,8 @@ export function findRow(world: World, label: string): Row {
     return {
         swatch: parts.find((frame) => frame.frameType === "Button" && frame.template === undefined)!,
         opacity: parts.find((frame) => frame.frameType === "EditBox")!,
-        message: parts.find((frame) => frame.frameType === "CheckButton")!,
+        message: parts.filter((frame) => frame.frameType === "CheckButton")[0]!,
+        enabled: parts.filter((frame) => frame.frameType === "CheckButton")[1]!,
         sound: buttons[0]!,
         reset: buttons[1]!,
     };
@@ -63,4 +65,15 @@ export function toggleTable(): void {
 
 export function readSaved(world: World, section: "styles" | "spellStyles"): Record<string, Record<string, unknown> | undefined> {
     return world.getSavedSettings()?.[section] as Record<string, Record<string, unknown> | undefined>;
+}
+
+/** Switches a kind or a spell on or off in the Enabled column of the table, the way a click does (the table is opened). */
+export function switchInTable(world: World, label: string, isOn: boolean): void {
+    const window = world.findFrame((frame) => frame.name === "GlowingBarsLooks");
+    if (window?.isShown !== true) toggleTable();
+    const row = findLabel(world, label)?.parent;
+    if (row === undefined) throw new Error(`no row for ${label}`);
+    const enabled = world.frames.filter((frame) => frame.parent === row && frame.frameType === "CheckButton")[1]!;
+    enabled.isChecked = isOn;
+    enabled.scripts.OnClick!(enabled);
 }

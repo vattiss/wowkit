@@ -2,12 +2,16 @@
 // the ID the addon uses for it), and the row at the end that adds a spell by its ID. Like the table, it may call the game.
 import type { NoticeService, Rgb } from "@wowkit/wow";
 import type { CustomCuesService } from "../glows/custom-cues.service";
+import type { SwitchesService } from "../settings/switches.service";
 import type { AddonLocale } from "../locale/locale.interface";
 import { CUE_KINDS } from "../settings/settings.constants";
 import { COLUMN, ROW_HEIGHT, TABLE_WIDTH, findCenteredX } from "./style-table.constants";
 import { KIND_TEXTS, type StyleRow, type StyleRowsService } from "./style-rows.service";
 import type { StyleService } from "../settings/style.service";
 import type { CueKind } from "../settings/settings.interface";
+
+/** How faded the spell rows of a kind that is switched off are. */
+const KIND_OFF_ALPHA = 0.4;
 
 /** What was typed is wrong: nothing was done, or something else than was asked. */
 const ERROR_COLOR: Rgb = [1, 0.25, 0.2];
@@ -18,9 +22,43 @@ export class StyleEditsService {
         private readonly customCues: CustomCuesService,
         /** The table's own block of the shared notice: the tick clearing its lines must not take these with them. */
         private readonly notice: NoticeService,
+        private readonly switches: SwitchesService,
         private readonly rows: StyleRowsService,
         private readonly styles: StyleService,
     ) {}
+
+    /** The Enabled box of a row: it switches the kind (on a kind's row) or the spell; its tooltip says which. */
+    connectEnabled(box: CheckButton, getRow: (this: void) => StyleRow | undefined): void {
+        box.SetPoint("LEFT", box.GetParent() as Frame, "LEFT", findCenteredX(COLUMN.enabled, 24), 0);
+        box.SetSize(24, 24);
+        box.SetScript("OnClick", () => {
+            const row = getRow();
+            if (row !== undefined) this.switches.setOn(row, box.GetChecked());
+        });
+        box.SetScript("OnEnter", () => {
+            const row = getRow();
+            if (row === undefined) return;
+            GameTooltip.SetOwner(box, "ANCHOR_RIGHT");
+            GameTooltip.SetText(
+                this.locale.getText(row.spellId === undefined ? "TIP_ENABLED_KIND" : "TIP_ENABLED_SPELL"),
+                1,
+                1,
+                1,
+                1,
+                true,
+            );
+            GameTooltip.Show();
+        });
+        box.SetScript("OnLeave", () => GameTooltip.Hide());
+    }
+
+    /** Shows whether the row is on, and fades the spell rows of a kind that is off: they will not glow. */
+    fillEnabled(box: CheckButton, frame: Frame, row: StyleRow): void {
+        box.SetShown(this.switches.isSwitchable(row));
+        box.SetChecked(this.switches.isOn(row));
+        const isKindOff = row.spellId !== undefined && !this.switches.isKindOn(row.kind);
+        frame.SetAlpha(isKindOff ? KIND_OFF_ALPHA : 1);
+    }
 
     /** The Spell ID box of a row; `getRow` tells which row it shows now (the rows are reused). */
     createIdBox(frame: Frame, getRow: (this: void) => StyleRow | undefined): EditBox {

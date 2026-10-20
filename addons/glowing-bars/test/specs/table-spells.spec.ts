@@ -12,6 +12,8 @@ import {
     type SpellDefinition,
     type World,
     PRIEST,
+    SMITE_RANK_1,
+    SMITE_RANK_2,
 } from "@wowkit/test-kit";
 import { RECKLESSNESS, findLabel, toggleTable } from "./table.helpers";
 
@@ -201,6 +203,26 @@ describe("the spells of other kinds a player adds", () => {
         world.state.bags[6265] = 20;
         world.advance(0.5);
         expect(world.glowsOn(3)).toBe(0);
+    });
+});
+
+describe("the old rank of a spell, switched off in the table", () => {
+    it("is not reminded of any more", () => {
+        const world = createWorld((state) => {
+            playAs(state, PRIEST);
+            for (const spell of [SMITE_RANK_1, SMITE_RANK_2]) learnSpell(state, spell);
+            state.bars[1] = SMITE_RANK_1.id;
+        });
+        world.advance(3);
+        expect(world.glowsOn(1)).toBe(1);
+        toggleTable();
+        const row = findLabel(world, "Smite")!.parent;
+        const enabled = world.frames.filter((frame) => frame.parent === row && frame.frameType === "CheckButton")[1]!;
+        enabled.isChecked = false;
+        enabled.scripts.OnClick!(enabled);
+        world.advance(0.5);
+        expect(world.glowsOn(1)).toBe(0);
+        expect((world.getSavedSettings()?.rankOff as Record<string, boolean>).Smite).toBe(true);
     });
 });
 

@@ -45,6 +45,8 @@ interface RowWidgets {
     reset: Button;
     /** Takes out a spell the player added. */
     remove: Button;
+    /** The kind or the spell is on. */
+    enabled: CheckButton;
     /** What the row shows now. */
     row: StyleRow | undefined;
 }
@@ -189,6 +191,7 @@ export class StyleTableService {
         widgets.sound.SetText(SOUNDS.find((sound) => sound.key === style.sound)?.label ?? "");
         widgets.reset.SetShown(isOverridden);
         widgets.remove.SetShown(row.isCustom === true);
+        this.edits.fillEnabled(widgets.enabled, widgets.frame, row);
         this.edits.fillIdBox(widgets.spellIdBox, row);
     }
 
@@ -208,6 +211,7 @@ export class StyleTableService {
             sound: CreateFrame("Button", undefined, frame, "UIPanelButtonTemplate"),
             reset: CreateFrame("Button", undefined, frame, "UIPanelButtonTemplate"),
             remove: CreateFrame("Button", undefined, frame, "UIPanelButtonTemplate"),
+            enabled: CreateFrame("CheckButton", undefined, frame, "UICheckButtonTemplate"),
             spellIdBox: this.edits.createIdBox(frame, () => widgets.row),
             row: undefined,
         };
@@ -217,6 +221,7 @@ export class StyleTableService {
         this.connectSound(widgets);
         this.connectReset(widgets);
         this.connectRemove(widgets);
+        this.edits.connectEnabled(widgets.enabled, () => widgets.row);
         return widgets;
     }
 

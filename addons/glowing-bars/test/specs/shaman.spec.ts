@@ -10,6 +10,7 @@ import {
     LIGHTNING_SHIELD,
     ROCKBITER_WEAPON,
     SHAMAN,
+    type ClientState,
 } from "@wowkit/test-kit";
 
 const MAIN_HAND = 16;
@@ -22,15 +23,17 @@ describe("a shaman", () => {
 
     // Rockbiter is on button 3, Lightning Shield on button 4; a weapon is equipped and nothing is on it.
     // The world is two seconds into the session: a missing weapon buff must hold for a moment to count.
+    function setUpShaman(state: ClientState): void {
+        playAs(state, SHAMAN);
+        learnSpell(state, ROCKBITER_WEAPON);
+        learnSpell(state, LIGHTNING_SHIELD);
+        state.bars[3] = ROCKBITER_WEAPON.id;
+        state.bars[4] = LIGHTNING_SHIELD.id;
+        state.equippedItems[MAIN_HAND] = 1234;
+    }
+
     beforeEach(() => {
-        world = createWorld((state) => {
-            playAs(state, SHAMAN);
-            learnSpell(state, ROCKBITER_WEAPON);
-            learnSpell(state, LIGHTNING_SHIELD);
-            state.bars[3] = ROCKBITER_WEAPON.id;
-            state.bars[4] = LIGHTNING_SHIELD.id;
-            state.equippedItems[MAIN_HAND] = 1234;
-        });
+        world = createWorld(setUpShaman);
         world.advance(2);
     });
 
@@ -101,7 +104,8 @@ describe("a shaman", () => {
         });
 
         it("has no glow when the player switched the weapon reminder off", () => {
-            world.setOption("showWeapon", false);
+            world = createWorld(setUpShaman, { showWeapon: false });
+            world.advance(2);
             expect(world.glowsOn(3)).toBe(0);
         });
     });

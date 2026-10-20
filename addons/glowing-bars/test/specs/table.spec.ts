@@ -37,6 +37,24 @@ describe("the table of looks", () => {
         expect(findLabel(world, "Low reagent")).toBeUndefined();
     });
 
+    it("switches a cooldown off in the On column, and its glow goes out", () => {
+        const row = findRow(world, "Recklessness");
+        expect(row.enabled.isChecked).toBe(true);
+        row.enabled.isChecked = false;
+        row.enabled.scripts.OnClick!(row.enabled);
+        expect((world.getSavedSettings()?.glowOn as Record<string, boolean>)["1719"]).toBe(false);
+        expect(world.glowsOn(2)).toBe(0);
+    });
+
+    it("switches a whole kind off in the On column", () => {
+        const row = findRow(world, "Ready cooldown");
+        row.enabled.isChecked = false;
+        row.enabled.scripts.OnClick!(row.enabled);
+        expect(world.getSavedSettings()?.showCooldowns).toBe(false);
+        // The spells of the kind are faded: they will not glow, whatever their own box says
+        expect(findLabel(world, "Recklessness")!.parent!.alpha).toBe(0.4);
+    });
+
     it("closes with /gb again", () => {
         toggleTable();
         expect(world.findFrame((frame) => frame.name === "GlowingBarsLooks")?.isShown).toBe(false);

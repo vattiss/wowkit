@@ -15,6 +15,7 @@ import {
     type ClientState,
     type World,
 } from "@wowkit/test-kit";
+import { findLabel, switchInTable } from "./table.helpers";
 
 /** A priest who knows Prayer of Fortitude, which costs a Holy Candle, and has none in the bags. */
 function setUpPriest(state: ClientState, isResting: boolean): void {
@@ -122,7 +123,7 @@ describe("the group buff on the bar of a priest low on candles", () => {
     });
 
     it("does not glow when the player switched the reagent reminder off", () => {
-        world.setOption("showReagents", false);
+        switchInTable(world, "Low reagent", false);
         world.advance(1);
         expect(world.glowsOn(1)).toBe(0);
     });
@@ -135,32 +136,33 @@ describe("the group buff on the bar of a priest low on candles", () => {
     });
 });
 
-describe("the reagents of a priest on the options page", () => {
+describe("the reagents of a priest in the table", () => {
     function arriveInTown(world: World): void {
         world.state.isResting = true;
         world.fire("PLAYER_UPDATE_RESTING");
     }
 
-    it("have a switch each, and none for another class's reagents", () => {
+    it("have a row for the group buff of the class, and none for the group buffs of another class", () => {
         const world = createWorld((state) => setUpPriest(state, false));
-        expect(world.proxySettings["GlowingBars_reagent_17028"]).toBeDefined();
-        expect(world.proxySettings["GlowingBars_reagent_17029"]).toBeDefined();
-        expect(world.proxySettings["GlowingBars_reagent_17021"]).toBeUndefined();
+        SlashCmdList["GLOWINGBARS"]!("", undefined as never);
+        expect(findLabel(world, "Prayer of Fortitude (Holy Candle)")).toBeDefined();
+        expect(findLabel(world, "Prayer of Fortitude (Sacred Candle)")).toBeDefined();
+        expect(findLabel(world, "Gift of the Wild")).toBeUndefined();
     });
 
     it("silence the message of a reagent that is switched off", () => {
-        const world = createWorld((state) => setUpPriest(state, false));
-        world.setOption("reagent_17028", false);
+        const world = createWorld((state) => setUpPriest(state, false), { styles: { reagent: { isTextOn: true } } });
+        switchInTable(world, "Prayer of Fortitude (Holy Candle)", false);
         arriveInTown(world);
         expect(world.chat.join("\n")).not.toContain("Reagents running low");
     });
 
     it("are stored only where they differ from the default", () => {
         const world = createWorld((state) => setUpPriest(state, false));
-        world.setOption("reagent_17028", false);
+        switchInTable(world, "Prayer of Fortitude (Holy Candle)", false);
         const reagentOn = world.getSavedSettings()?.reagentOn as Record<string, boolean | undefined>;
         expect(reagentOn["17028"]).toBe(false);
-        world.setOption("reagent_17028", true);
+        switchInTable(world, "Prayer of Fortitude (Holy Candle)", true);
         const afterwards = world.getSavedSettings()?.reagentOn as Record<string, boolean | undefined>;
         expect(afterwards["17028"]).toBeUndefined();
     });

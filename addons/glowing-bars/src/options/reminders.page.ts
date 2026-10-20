@@ -1,27 +1,24 @@
-// The Reminders page: what the addon reminds about, per character.
+// The page of the addon in the Settings panel: the settings that are not about one kind or one spell. What is on and off,
+// and how each kind and spell looks, is the table's (/gb); its button is at the top.
 
 import type { AddonLocale } from "../locale/locale.interface";
 import type { ClassBuffsService } from "../reminders/class-buffs.service";
 import type { AddonSettingsService, AddonSettings } from "../settings/settings.interface";
-import type { SpellsService } from "@wowkit/wow";
 import type { AboutSection, ControlsService, OptionsPage, WidgetsService } from "@wowkit/ui";
+import type { BarsSection } from "./bars.section";
 import type { GlowsSection } from "./glows.section";
 import type { StyleTableService } from "./style-table.service";
-import type { BarsSection } from "./bars.section";
-import type { ReagentsSection } from "./reagents.section";
 import type { ReminderControlsService } from "./reminder-controls.service";
 import type { WeaponSection } from "./weapon.section";
 
 export class RemindersPage implements OptionsPage {
     constructor(
         private readonly locale: AddonLocale,
-        private readonly spells: SpellsService,
         private readonly classBuffs: ClassBuffsService,
         private readonly settings: AddonSettingsService,
         private readonly controls: ControlsService<AddonSettings>,
         private readonly reminderControls: ReminderControlsService,
         private readonly weaponSection: WeaponSection,
-        private readonly reagentsSection: ReagentsSection,
         private readonly glowsSection: GlowsSection,
         private readonly about: AboutSection,
         private readonly widgets: WidgetsService,
@@ -30,8 +27,6 @@ export class RemindersPage implements OptionsPage {
     ) {}
 
     buildPage(category: SettingsCategory, layout: SettingsLayout): void {
-        const buffs = this.classBuffs.getClassBuffs();
-
         this.reminderControls.addHeader(layout, "HDR_LOOKS");
         this.widgets.addButton(
             layout,
@@ -55,37 +50,15 @@ export class RemindersPage implements OptionsPage {
 
         this.barsSection.addBarsSection(category, layout);
 
-        if (buffs.length > 0) {
+        // The party members: a part of the buff reminder that is not one buff
+        if (this.classBuffs.getClassBuffs().some((classBuff) => classBuff.party !== undefined)) {
             this.reminderControls.addHeader(layout, "HDR_BUFFS");
-            this.reminderControls.addSwitch(category, "showBuff", "OPT_BUFF", "TIP_BUFF");
-            this.addBuffCheckboxes(category);
-            if (buffs.some((classBuff) => classBuff.party !== undefined)) {
-                this.reminderControls.addSwitch(category, "showPartyBuffs", "OPT_PARTY_BUFFS", "TIP_PARTY_BUFFS");
-            }
+            this.reminderControls.addSwitch(category, "showPartyBuffs", "OPT_PARTY_BUFFS", "TIP_PARTY_BUFFS");
         }
 
         this.weaponSection.addWeaponSection(category, layout);
-        this.reagentsSection.addReagentsSection(category, layout);
         this.glowsSection.addGlowsSection(category, layout);
 
-        this.reminderControls.addHeader(layout, "HDR_RANKS");
-        this.reminderControls.addSwitch(category, "showRanks", "OPT_RANKS", "TIP_RANKS");
-
         this.about.addAboutSection(layout);
-    }
-
-    /** One checkbox per buff of the class list, labeled with the spell's name. */
-    private addBuffCheckboxes(category: SettingsCategory): void {
-        for (const classBuff of this.classBuffs.getClassBuffs()) {
-            this.controls.addCheckbox(
-                category,
-                `buff_${classBuff.key}`,
-                this.spells.getSpellLabel(classBuff.id) ?? classBuff.key,
-                this.locale.getText("TIP_BUFF_ONE"),
-                classBuff.isOnByDefault,
-                () => this.classBuffs.isBuffEnabled(classBuff),
-                (isChecked) => this.classBuffs.setBuffEnabled(classBuff, isChecked),
-            );
-        }
     }
 }

@@ -1,53 +1,29 @@
-// The cooldown and proc part of the Reminders page: the switches, the colors and sounds, and a switch for each spell of the
-// player's class that can glow.
+// The cooldown part of the Settings page: also out of combat, also at the start of a fight, and how long a cooldown glows
+// once it is back. Which cooldowns glow, and how they look, is the table's.
 
 import type { AddonLocale } from "../locale/locale.interface";
-import { PROC_CUES } from "../glows/glow-cues.constants";
 import { COOLDOWN_GLOW_CHOICES } from "../settings/settings.constants";
 import type { GlowCuesService } from "../glows/glow-cues.service";
 import type { AddonSettings, AddonSettingsService } from "../settings/settings.interface";
 import type { ControlsService } from "@wowkit/ui";
-import type { PlayerService, SpellsService } from "@wowkit/wow";
 import type { ReminderControlsService } from "./reminder-controls.service";
 
 export class GlowsSection {
     constructor(
         private readonly locale: AddonLocale,
-        private readonly spells: SpellsService,
         private readonly settings: AddonSettingsService,
         private readonly controls: ControlsService<AddonSettings>,
         private readonly reminderControls: ReminderControlsService,
-        private readonly player: PlayerService,
         private readonly glowCues: GlowCuesService,
     ) {}
 
+    /** How the cooldowns glow (which ones do is the table's); nothing for a character without one. */
     addGlowsSection(category: SettingsCategory, layout: SettingsLayout): void {
-        const classToken = this.player.getClassToken() ?? "";
-        const cooldowns = this.glowCues.listCueIds("cooldown");
-        const procs = PROC_CUES[classToken] ?? [];
-        if (cooldowns.length > 0) {
-            this.reminderControls.addHeader(layout, "HDR_COOLDOWNS");
-            this.reminderControls.addSwitch(category, "showCooldowns", "OPT_COOLDOWNS", "TIP_COOLDOWNS");
-            this.reminderControls.addSwitch(
-                category,
-                "showCooldownsOutOfCombat",
-                "OPT_COOLDOWNS_OUT_OF_COMBAT",
-                "TIP_COOLDOWNS_OUT_OF_COMBAT",
-            );
-            this.reminderControls.addSwitch(
-                category,
-                "showCooldownsAtFightStart",
-                "OPT_COOLDOWNS_FIGHT_START",
-                "TIP_COOLDOWNS_FIGHT_START",
-            );
-            this.addGlowSecondsDropdown(category);
-            this.addSpellCheckboxes(category, cooldowns);
-        }
-        if (procs.length > 0) {
-            this.reminderControls.addHeader(layout, "HDR_PROCS");
-            this.reminderControls.addSwitch(category, "showProcs", "OPT_PROCS", "TIP_PROCS");
-            this.addSpellCheckboxes(category, procs);
-        }
+        if (this.glowCues.listCueIds("cooldown").length === 0) return;
+        this.reminderControls.addHeader(layout, "HDR_COOLDOWNS");
+        this.reminderControls.addSwitch(category, "showCooldownsOutOfCombat", "OPT_COOLDOWNS_OUT_OF_COMBAT", "TIP_COOLDOWNS_OUT_OF_COMBAT");
+        this.reminderControls.addSwitch(category, "showCooldownsAtFightStart", "OPT_COOLDOWNS_FIGHT_START", "TIP_COOLDOWNS_FIGHT_START");
+        this.addGlowSecondsDropdown(category);
     }
 
     /** How long a cooldown glows once it is back: a few seconds, or until it is pressed. */
@@ -67,27 +43,5 @@ export class GlowsSection {
                 ]),
             true,
         );
-    }
-
-    /** One checkbox per spell, labeled with its name; the default (on) is not stored. */
-    private addSpellCheckboxes(category: SettingsCategory, spellIds: number[]): void {
-        for (const spellId of spellIds) {
-            this.controls.addCheckbox(
-                category,
-                `glow_${spellId}`,
-                this.spells.getSpellLabel(spellId) ?? string.format("%d", spellId),
-                this.locale.getText("TIP_GLOW_ONE"),
-                true,
-                () => this.settings.get("glowOn")[String(spellId)] !== false,
-                (isChecked) => this.setGlowOn(spellId, isChecked),
-            );
-        }
-    }
-
-    /** Switches one spell on or off; the default (on) is not stored. */
-    private setGlowOn(spellId: number, isOn: boolean): void {
-        const glowOn = { ...this.settings.get("glowOn") };
-        glowOn[String(spellId)] = isOn ? undefined : false;
-        this.settings.change("glowOn", glowOn);
     }
 }

@@ -45,7 +45,6 @@ import { BuffKnowledgeService } from "./knowledge/buff-knowledge.service";
 import { TEXTS } from "./locale/texts.constants";
 import { BarsSection } from "./options/bars.section";
 import { GlowsSection } from "./options/glows.section";
-import { ReagentsSection } from "./options/reagents.section";
 import { ReminderControlsService } from "./options/reminder-controls.service";
 import { StyleChoicesService } from "./options/style-choices.service";
 import { StyleEditsService } from "./options/style-edits.service";
@@ -69,6 +68,7 @@ import { WeaponReminderService } from "./reminders/weapon/weapon-reminder.servic
 import { SAVED_VARIABLES_NAME, createDefaultSettings, repairSettings } from "./settings/settings.constants";
 import type { AddonSettings } from "./settings/settings.interface";
 import { StyleService } from "./settings/style.service";
+import { SwitchesService } from "./settings/switches.service";
 import { DisplayService } from "./tick/display.service";
 import { FindRemindersService } from "./tick/find-reminders.service";
 import { NoticesService } from "./tick/notices.service";
@@ -161,7 +161,7 @@ function makeReminders(addon: Addon, addonName: string, game: Game, texts: Texts
     const weaponMemory = addon.register(new WeaponMemoryService());
     const weaponReading = addon.register(new WeaponReadingService(buffs.state, game.weaponEnchants, weaponChoice));
     const weapon = addon.register(new WeaponReminderService(game.clock, game.weaponEnchants, weaponChoice, weaponMemory, weaponReading));
-    const outdatedRanks = addon.register(new OutdatedRanksService(game.actionBars, game.spells));
+    const outdatedRanks = addon.register(new OutdatedRanksService(game.actionBars, game.spells, settings));
     const customCues = addon.register(new CustomCuesService(game.spells, settings, game.cooldowns, reagents));
     // A spell the player gave another ID is asked of that ID everywhere: buffs, weapon buffs, reagents, cooldowns, procs
     game.spells.useIdAlias((spellId) => customCues.getEffectiveId(spellId));
@@ -236,8 +236,9 @@ function makeTable(addon: Addon, addonName: string, game: Game, texts: Texts, bu
     );
     const choices = addon.register(new StyleChoicesService(locale, styles, messages));
     const windows = addon.register(new StyleWindowService(locale));
+    const switches = addon.register(new SwitchesService(game.spells, buffs.classBuffs, reminders.reagents, texts.settings));
     const tableNotice = addon.register(new NoticeService(`${addonName}-table`));
-    const edits = addon.register(new StyleEditsService(locale, reminders.customCues, tableNotice, rows, styles));
+    const edits = addon.register(new StyleEditsService(locale, reminders.customCues, tableNotice, switches, rows, styles));
     const table = addon.register(new StyleTableService(locale, styles, rows, messages, choices, windows, edits, reminders.customCues));
     addon.register(new TableCommand(table));
     return table;
@@ -254,12 +255,7 @@ function makeOptions(addon: Addon, addonName: string, game: Game, texts: Texts, 
     const weaponSection = addon.register(
         new WeaponSection(locale, game.spells, reminders.weaponChoice, settings, controls, reminderControls),
     );
-    const reagentsSection = addon.register(
-        new ReagentsSection(locale, settings, controls, reminderControls, reminders.reagents, game.player),
-    );
-    const glowsSection = addon.register(
-        new GlowsSection(locale, game.spells, settings, controls, reminderControls, game.player, reminders.glowCues),
-    );
+    const glowsSection = addon.register(new GlowsSection(locale, settings, controls, reminderControls, reminders.glowCues));
     const table = makeTable(addon, addonName, game, texts, buffs, reminders);
     const barsSection = addon.register(new BarsSection(locale, settings, controls, reminderControls));
     const about = addon.register(
@@ -276,13 +272,11 @@ function makeOptions(addon: Addon, addonName: string, game: Game, texts: Texts, 
     const page = addon.register(
         new RemindersPage(
             locale,
-            game.spells,
             buffs.classBuffs,
             settings,
             controls,
             reminderControls,
             weaponSection,
-            reagentsSection,
             glowsSection,
             about,
             widgets,

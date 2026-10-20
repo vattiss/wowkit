@@ -26,21 +26,22 @@ Your Rotation.
   Counterattack, Mongoose Bite, Hammer of Wrath.
 - **Old ranks**: a spell on your action bars that is a lower rank than the one you know glows, quietly.
 - Quiet while dead, mounted, on a taxi, eating, or (optionally) resting in town.
-
 - Each of the eight action bars can be switched off, for example to have the glow only on a big bar of cooldowns next to
   your character.
+
 Every kind of reminder has the same four settings: the **color** of its glow and message, the **opacity** of the glow
 (1 to 100 percent), whether a short **message** at the top of the screen says so, and a **sound**. The defaults: missing
 buffs blue, weapon buffs orange, ready cooldowns white, procs red, old ranks and low reagents yellow (and a quieter glow
 than the others). By default only the old ranks show a message; the buff messages (including the ones that name a
 buff on no bar and the party members who miss one) and the reagent message are there to switch on. They are set in a table, and every spell of your class can have a look of its own in the same table.
-It opens with `/gb` or from the Settings page, and shows only the kinds your character has spells of. There you can
-also fix the spell ID of a spell of the lists, and add spells of your own by their ID, as any kind but an old rank (those
-are found for every spell); a kind the game says is wrong for the spell is refused or put right. Like the other
-settings, the looks are kept per character.
+It opens with `/gb` or from the Settings page, and shows only the kinds your character has spells of. Its Enabled column
+switches a whole kind or a single spell on and off. There you can also fix the spell ID of a spell of the lists, and add
+spells of your own by their ID, as any kind but an old rank (those are found for every spell); a kind the game says is
+wrong for the spell is refused or put right. Like the other settings, the looks are kept per character.
 
-Settings (per character): *Options > AddOns > Glowing Bars*: a switch per feature and per spell, the button
-that opens the table of looks, and a Help section with links to report problems. Only Blizzard's own action bars are supported.
+Settings (per character): *Options > AddOns > Glowing Bars*: the button that opens the table of looks, the action bars
+that glow, the party buff message, the weapon buff to keep up, when the cooldowns glow, and a Help section with links to
+report problems. Only Blizzard's own action bars are supported.
 
 How the code is organised: [src/](src/addon.ts), and [docs/architecture.md](../../docs/architecture.md). The old
 addons are in the history, at the tags `buff-reminder-v1.0.2`, `rank-reminder-v1.0.2`, `reagent-reminder-v1.0.2` and

@@ -1,5 +1,6 @@
 // The rule of the old ranks: a spell on the action bars at a lower rank than the highest one the player has learned.
 import type { ActionBarsService, SpellsService } from "@wowkit/wow";
+import type { AddonSettingsService } from "../settings/settings.interface";
 
 export interface OutdatedRank {
     id: number;
@@ -14,6 +15,7 @@ export class OutdatedRanksService {
     constructor(
         private readonly actionBars: ActionBarsService,
         private readonly spells: SpellsService,
+        private readonly settings: AddonSettingsService,
     ) {}
 
     /** Every spell on the bars at a lower rank than the highest learned one, sorted by name. */
@@ -31,6 +33,8 @@ export class OutdatedRanksService {
             if (best !== undefined && best > entry.rank) outdated.push({ id: entry.id, name, onBar: entry.rank, best });
         }
         outdated.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
-        return outdated;
+        // The spells the player switched off
+        const rankOff = this.settings.get("rankOff");
+        return outdated.filter((rank) => rankOff[rank.name] !== true);
     }
 }

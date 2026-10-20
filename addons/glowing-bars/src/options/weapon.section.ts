@@ -23,7 +23,6 @@ export class WeaponSection {
     addWeaponSection(category: SettingsCategory, layout: SettingsLayout): void {
         if (this.weaponChoice.getWeaponChoices().length === 0) return;
         this.reminderControls.addHeader(layout, "HDR_WEAPON");
-        this.reminderControls.addSwitch(category, "showWeapon", "OPT_WEAPON", "TIP_WEAPON");
         if (this.weaponChoice.hasOffhandChoice()) {
             this.addWeaponPick(category, "weaponBuff", "OPT_WEAPON_PICK_MAIN", false);
             this.addWeaponPick(category, "weaponBuffOff", "OPT_WEAPON_PICK_OFF", true);

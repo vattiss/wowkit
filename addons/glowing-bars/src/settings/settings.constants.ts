@@ -25,6 +25,7 @@ export function createDefaultSettings(): AddonSettings {
         idOverrides: {},
         customCues: [],
         reagentOn: {},
+        rankOff: {},
         glowOn: {},
     };
 }
