@@ -15,7 +15,8 @@ The project ID is the `## X-Curse-Project-ID` line of the addon's TOC.
 
 ## Releasing
 
-1. Set the new `version` in `addons/<addon>/package.json` (it goes into the TOC) and commit and push it.
+1. Set the new `version` in `addons/<addon>/package.json` (it goes into the TOC), write the release notes in
+   `addons/<addon>/release-notes/<version>.md`, and commit and push them.
 2. Tag the commit and push the tag:
 
    ```
@@ -29,9 +30,11 @@ The project ID is the `## X-Curse-Project-ID` line of the addon's TOC.
 3. Download the zip from the release and upload it on the addon's CurseForge page (*Files > Upload file*), pasting the
    changelog.
 
-The zip holds the folder `<AddonName>/`, the name the game loads. The changelog is the subjects of the commits since
-the addon's previous tag that touched the addon or `packages/` (a change in a package is a change of every addon); with
-no earlier tag it lists the last 30 commits, so trim it for a first release.
+The zip holds the folder `<AddonName>/`, the name the game loads. The changelog is the release notes of the version,
+written for players: what is new, what changed, and what was fixed that was wrong in an earlier release (a fix of
+something new in the same release is not news). Without a notes file it is the subjects of the commits since the addon's
+previous tag that touched the addon or `packages/` (a change in a package is a change of every addon); with no earlier
+tag the last 30 commits.
 
 ## Making a zip on your own machine
 
