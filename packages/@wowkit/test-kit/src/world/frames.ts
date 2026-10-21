@@ -15,6 +15,8 @@ export interface FakeFrame {
     /** The opacity the addon set (a glow faded by a hidden value). */
     alpha: number;
     text: string | undefined;
+    /** The frame the addon last anchored this one to (SetPoint). */
+    anchor?: FakeFrame;
     /** The width the addon set (36, the size of an action button, until it sets one). */
     width: number;
     /** A check button's state. */
@@ -37,6 +39,10 @@ export interface FakeFrame {
     GetName(): string | undefined;
     GetFrameLevel(): number;
     SetWidth(width: number): void;
+    SetPoint(point: string, relativeTo?: unknown): void;
+    IsVisible(): boolean;
+    HookScript(script: string, handler: Script): void;
+    GetEffectiveScale(): number;
     SetSize(width: number, height: number): void;
     GetWidth(): number;
     GetHeight(): number;
@@ -118,6 +124,24 @@ function createFakeFrame(init: FrameInit): FakeFrame {
         SetWidth(width) {
             this.width = width;
         },
+        SetPoint(_point, relativeTo) {
+            if (type(relativeTo) === "table") this.anchor = relativeTo as FakeFrame;
+        },
+        // Shown, and every parent shown too
+        IsVisible() {
+            return this.isShown && (this.parent === undefined || this.parent.IsVisible());
+        },
+        // The handler runs after the script the frame has
+        HookScript(script, handler) {
+            const before = this.scripts[script];
+            this.scripts[script] = (...args) => {
+                before?.(...args);
+                handler(...args);
+            };
+        },
+        GetEffectiveScale() {
+            return 1;
+        },
         SetSize(width) {
             this.width = width;
         },
@@ -185,6 +209,9 @@ export function createFrameRegistry(): FrameRegistry {
                 frame.ProcStartFlipbook = createFakeFrame({ frameType: "Texture" });
                 frame.ProcLoopFlipbook = createFakeFrame({ frameType: "Texture" });
             }
+            // Its children, as the game lists them (a frame is a child of the frame it was made in)
+            (frame as FakeFrame & { GetChildren(): LuaMultiReturn<FakeFrame[]> }).GetChildren = () =>
+                $multi(...all.filter((other) => other.parent === frame));
             all.push(frame);
             if (name !== undefined) defineValues({ [name]: frame });
             return frame;

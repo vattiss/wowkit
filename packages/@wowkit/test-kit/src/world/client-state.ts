@@ -94,6 +94,8 @@ export interface ClientState {
     areAurasHidden: boolean;
     /** In combat the game hides the spell cooldowns: no answer. */
     areCooldownsHidden: boolean;
+    /** The spell on the class button of the gamepad bars (the paladin's aura, picked from a flyout). */
+    gamepadClassSpell: number | undefined;
     isResting: boolean;
     /** Inventory slot (16 main hand, 17 off hand) -> the temporary enchant on it. */
     enchants: { [slot: number]: FakeEnchant | undefined };
@@ -144,6 +146,7 @@ export function createClientState(): ClientState {
         isInCombat: false,
         areAurasHidden: false,
         areCooldownsHidden: false,
+        gamepadClassSpell: undefined,
         isResting: false,
         enchants: {},
         areEnchantReadsBroken: false,

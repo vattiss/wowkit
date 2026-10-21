@@ -33,6 +33,11 @@ export interface World {
     makeAura(name: string, spellId: number, secondsLeft: number, sourceUnit?: string): FakeAura;
     /** How many glows are showing on action button 1..12 (of the main bar, or of another bar: "MultiBar6"). */
     glowsOn(button: number, bar?: string): number;
+    /**
+     * How many glows are showing on the button of this name: the spell alerts, and the ring a glow draws on a round button;
+     * made in the button, or anchored to it (the glow of a gamepad button is beside it).
+     */
+    glowsOnFrame(name: string): number;
     /** The opacity of the glows showing on action button 1..12 (a glow faded by a hidden value is 0 or 1). */
     glowAlphasOn(button: number): number[];
     /** The text of the notice at the top of the screen; empty when it is not showing. */
@@ -93,9 +98,15 @@ export function createWorld(setup: (state: ClientState) => void, savedSettings?:
         advance: (seconds) => clock.advance(seconds),
         makeAura: (name, spellId, secondsLeft, sourceUnit) => ({ name, spellId, expirationTime: clock.getNow() + secondsLeft, sourceUnit }),
         glowsOn(button, bar = "Action") {
-            const buttonFrame = readGlobal(`${bar}Button${button}`);
+            return this.glowsOnFrame(`${bar}Button${button}`);
+        },
+        glowsOnFrame(name) {
+            const buttonFrame = readGlobal(name);
             return frames.all.filter(
-                (frame) => frame.parent === buttonFrame && frame.template === "ActionButtonSpellAlertTemplate" && frame.isShown,
+                (frame) =>
+                    (frame.parent === buttonFrame || frame.anchor === buttonFrame) &&
+                    (frame.template === "ActionButtonSpellAlertTemplate" || frame.frameType === "Frame") &&
+                    frame.isShown,
             ).length;
         },
         glowAlphasOn(button) {

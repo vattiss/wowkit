@@ -3,7 +3,8 @@
 //
 // Forever rules: never call C_TooltipInfo.GetAction while mapping the bars (tooltips froze the
 // client when many slots updated after a quest turn-in), and map the bars a few buttons per frame.
-// Only Blizzard's own bars are mapped (no bars of other addons).
+// Only the client's own bars are mapped (no bars of other addons): Blizzard's, and the gamepad bars Forever draws in its
+// gamepad mode.
 import { type EventBus, type OnFirstLogin, trimText } from "@wowkit/core";
 import type { ClockService } from "./clock.service";
 import { attempt, attemptMulti } from "./utils/protected-call.utils";
@@ -27,6 +28,13 @@ const BARS = [
     "MultiBar6",
     "MultiBar7",
 ];
+/**
+ * The gamepad bars Forever draws in gamepad mode, in place of the usual ones: their buttons are action buttons under names
+ * of their own ("GamepadMainActionBarFramePageUnitLeft...ActionButton1"), found among the frame's children.
+ */
+const GAMEPAD_BAR = "GamepadMainActionBarFrame";
+/** How deep the buttons of the gamepad bars sit under their frame, at most. */
+const GAMEPAD_DEPTH = 6;
 /** Buttons mapped per frame. */
 const MAP_BUDGET = 20;
 /** Mapping is skipped when the last one is more recent than this (unless forced). */
@@ -34,7 +42,11 @@ const MAP_THROTTLE = 2;
 /** An icon on more buttons than this is a generic one, not a particular spell's. */
 const MAX_BUTTONS_PER_ICON = 4;
 
-type QueueEntry = { button: ActionButton } | { stance: number; button: ActionButton | undefined };
+/**
+ * A button to map: an action button (by its slot), a stance (by its index), or a button of the gamepad bars that shows a
+ * spell of its own (the paladin's aura, picked from a flyout: no action slot, the spell in its `spellID`).
+ */
+type QueueEntry = { button: ActionButton } | { stance: number; button: ActionButton | undefined } | { spellButton: ActionButton };
 
 export class ActionBarsService implements OnFirstLogin {
     private readonly buttonsBySpell = new LuaMap<number, ActionButton[]>();
@@ -85,6 +97,9 @@ export class ActionBarsService implements OnFirstLogin {
         for (const bar of BARS) for (let i = 1; i <= 12; i++) add(`${bar}Button${i}`);
         // The shaman's totem bar: its buttons are action buttons too
         for (let i = 1; i <= 12; i++) add(`MultiCastActionButton${i}`);
+        for (const button of this.listGamepadButtons()) {
+            queue.push(this.getActionSlot(button) === undefined ? { spellButton: button } : { button });
+        }
         const forms = attempt(GetNumShapeshiftForms) ?? 0;
         for (let i = 1; i <= forms; i++) queue.push({ stance: i, button: this.getGlobal<ActionButton>(`StanceButton${i}`) });
 
@@ -95,7 +110,9 @@ export class ActionBarsService implements OnFirstLogin {
             if (generation !== this.mapGeneration) return;
             for (let budget = MAP_BUDGET; next < queue.length && budget > 0; budget--) {
                 const entry = queue[next++]!;
-                if (!("stance" in entry)) {
+                if ("spellButton" in entry) {
+                    this.addSpell((entry.spellButton as { spellID?: unknown }).spellID, entry.spellButton);
+                } else if (!("stance" in entry)) {
                     this.addButton(entry.button);
                 } else if (entry.button) {
                     const [didSucceed, , , , spellId] = attemptMulti(() => GetShapeshiftFormInfo(entry.stance));
@@ -272,6 +289,22 @@ export class ActionBarsService implements OnFirstLogin {
 
     private clear<K extends AnyNotNil, V>(map: LuaMap<K, V>): void {
         for (const [key] of map) map.delete(key);
+    }
+
+    /** The action buttons of the gamepad bars: every child of their frame, at any depth, that shows an action slot. */
+    private listGamepadButtons(): ActionButton[] {
+        const found: ActionButton[] = [];
+        const addButtonsUnder = (frame: Frame, depth: number) => {
+            if (depth > GAMEPAD_DEPTH) return;
+            for (const child of [...frame.GetChildren()]) {
+                // An action button shows a slot; the class button a spell (`action` 0 and a `spellID`)
+                if (type((child as { action?: unknown }).action) === "number") found.push(child as unknown as ActionButton);
+                else addButtonsUnder(child, depth + 1);
+            }
+        };
+        const root = this.getGlobal<Frame>(GAMEPAD_BAR);
+        if (root !== undefined) addButtonsUnder(root, 0);
+        return found;
     }
 
     private getGlobal<T>(name: string): T | undefined {

@@ -1,10 +1,13 @@
 // The action bars (which spell is on which slot) and the auras on the player and the party.
 import type { ClientState, FakeAura } from "./client-state";
 import { defineGlobals, defineNamespace } from "./define";
-import type { FrameRegistry } from "./frames";
+import type { FakeFrame, FrameRegistry } from "./frames";
 
 const MAIN_BAR_BUTTONS = 12;
 const TOTEM_BAR_BUTTONS = 4;
+/** The frame of Forever's gamepad bars. */
+export const GAMEPAD_BAR = "GamepadMainActionBarFrame";
+
 /** The action slot of MultiCastActionButton1. */
 export const TOTEM_BAR_FIRST_SLOT = 133;
 
@@ -50,6 +53,30 @@ export function installActionBars(state: ClientState, frames: FrameRegistry): vo
         for (let index = 1; index <= MAIN_BAR_BUTTONS; index++)
             frames.create("Button", `${bar}Button${index}`).action = firstSlot + index - 1;
     }
+    // Forever's gamepad bars: a left and a right bar of 8 buttons, deep in the frame of the gamepad mode (action slots 185 on)
+    const gamepad = frames.create("Frame", GAMEPAD_BAR);
+    for (const [side, firstSlot] of [
+        ["Left", 185],
+        ["Right", 193],
+    ] as const) {
+        const unit = frames.create("Frame", `${GAMEPAD_BAR}PageUnit${side}`, gamepad);
+        const bar = frames.create("Frame", `${GAMEPAD_BAR}PageUnit${side}CenteredAnchor${side}Bar`, unit);
+        for (let index = 1; index <= 8; index++) {
+            const button = frames.create("Button", `${GAMEPAD_BAR}PageUnit${side}CenteredAnchor${side}BarActionButton${index}`, bar);
+            button.action = firstSlot + index - 1;
+            // The right unit's face buttons are round, the left's square, as in the game
+            (button as FakeFrame & { activeButtonShape?: string }).activeButtonShape = side === "Right" ? "Circle" : "Square";
+        }
+    }
+    // The class button of the left unit: no action slot (0), the spell it shows in its own field
+    const classButton = frames.create(
+        "Button",
+        `${GAMEPAD_BAR}PageUnitLeftClassAction`,
+        frames.all.find((frame) => frame.name === `${GAMEPAD_BAR}PageUnitLeft`),
+    );
+    classButton.action = 0;
+    (classButton as FakeFrame & { activeButtonShape?: string }).activeButtonShape = "Circle";
+    (classButton as FakeFrame & { spellID?: number }).spellID = state.gamepadClassSpell;
     // The shaman's totem bar: MultiCastActionButton1..4 on the action slots after the main bar's pages
     for (let index = 1; index <= TOTEM_BAR_BUTTONS; index++) {
         frames.create("Button", `MultiCastActionButton${index}`).action = TOTEM_BAR_FIRST_SLOT + index - 1;
