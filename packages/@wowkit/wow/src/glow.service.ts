@@ -8,6 +8,7 @@
 
 import type { ActionBarsService } from "./action-bars.service";
 import { tryCall } from "./utils/protected-call.utils";
+import { getReadable } from "./utils/secret-value.utils";
 import type { HiddenAlpha } from "./value-curves.service";
 
 /** A color as red, green and blue between 0 and 1. */
@@ -75,6 +76,11 @@ export interface ButtonGlow {
 export class GlowService {
     /** Overlays per button and reminder kind. Kept here, never written onto Blizzard's buttons. */
     private readonly overlays = new LuaMap<ActionButton, LuaMap<string, Overlay>>();
+    /**
+     * The last readable size of each button, and its scale against the screen: in combat the client keeps a protected
+     * button's geometry secret, and a secret value cannot even be compared.
+     */
+    private readonly sizes = new LuaMap<ActionButton, [width: number, height: number, scale: number]>();
     /** The gamepad buttons whose showing and hiding the glows beside them follow. */
     private readonly tracked = new LuaSet<ActionButton>();
     /** The breathing of the glows that show (round, or square and breathing): they restart together, in step. */
@@ -128,13 +134,14 @@ export class GlowService {
                 // buttons a frame, so a spell may be found on more buttons than when it was first lit
                 if (key === last && !glowing.isEmpty() && this.isSameButtons(glowing, buttons)) return;
                 clearGlow();
-                last = key;
                 for (const button of buttons) {
                     if (!glowing.has(button)) {
                         this.showOverlay(this.getOverlay(button, kind, color), button);
                         glowing.add(button);
                     }
                 }
+                // Drawn only once every button is lit: after an error the next tick draws again, it does not take it as done
+                last = key;
             },
         };
     }
@@ -195,23 +202,26 @@ export class GlowService {
 
     /** The glow is a little larger than its button (a size the client has not laid out yet counts as 36). */
     private applySize(entry: Overlay, button: ActionButton): void {
-        const width = button.GetWidth();
-        const height = button.GetHeight();
+        const [width, height, buttonScale] = this.readButtonSize(button);
         // A glow beside the button is sized in its own parent's scale
-        const scale = (entry.isRing === true ? RING_SCALE : GLOW_SCALE) * (entry.isBeside === true ? this.getScaleRatio(button) : 1);
-        entry.frame.SetSize((width < 8 ? 36 : width) * scale, (height < 8 ? 36 : height) * scale);
-        entry.halo?.SetSize(entry.frame.GetWidth() * HALO_SCALE, entry.frame.GetHeight() * HALO_SCALE);
+        const scale = (entry.isRing === true ? RING_SCALE : GLOW_SCALE) * (entry.isBeside === true ? buttonScale : 1);
+        entry.frame.SetSize(width * scale, height * scale);
+        entry.halo?.SetSize(width * scale * HALO_SCALE, height * scale * HALO_SCALE);
+    }
+
+    /** The button's size and scale against the screen: the last readable ones (36 and 1 before any, or not laid out yet). */
+    private readButtonSize(button: ActionButton): [width: number, height: number, scale: number] {
+        const width = getReadable(button.GetWidth());
+        const height = getReadable(button.GetHeight());
+        const [screenScale, ownScale] = [getReadable(UIParent.GetEffectiveScale()), getReadable(button.GetEffectiveScale())];
+        const scale = screenScale !== undefined && ownScale !== undefined && screenScale > 0 ? ownScale / screenScale : 1;
+        if (width !== undefined && height !== undefined && width >= 8 && height >= 8) this.sizes.set(button, [width, height, scale]);
+        return this.sizes.get(button) ?? [36, 36, 1];
     }
 
     /** A button of the gamepad bars (Forever): they say their shape, round or square. */
     private isGamepadButton(button: ActionButton): boolean {
         return (button as { activeButtonShape?: unknown }).activeButtonShape !== undefined;
-    }
-
-    /** How much larger the button is drawn than a frame of the screen (the gamepad bars have a scale of their own). */
-    private getScaleRatio(button: ActionButton): number {
-        const screenScale = UIParent.GetEffectiveScale();
-        return screenScale > 0 ? button.GetEffectiveScale() / screenScale : 1;
     }
 
     /** The glows beside a gamepad button hide with it, and show again with it while they are lit. */

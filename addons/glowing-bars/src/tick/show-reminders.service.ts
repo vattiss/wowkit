@@ -107,7 +107,6 @@ export class ShowRemindersService {
         const groups = this.listGroups(reminders);
         const glowKey = groups.map((group) => `${group.key}=${group.spells.join(",")}`).join(";");
         if (glowKey === this.shownGlowKey) return;
-        this.shownGlowKey = glowKey;
         this.glow.setStyles(this.settings.get("glowStyle"), this.settings.get("roundGlowStyle"));
         // A look that no spell has now: its glow goes out
         for (const [key, glow] of this.glows) if (!groups.some((group) => group.key === key)) glow.clear();
@@ -120,6 +119,8 @@ export class ShowRemindersService {
             glow.show(group.spells, group.color);
             glow.setAlpha(group.opacity / 100);
         }
+        // Shown only once every glow is: after an error the next tick shows them again
+        this.shownGlowKey = glowKey;
     }
 
     /** A button glows unless its bar is switched off (a button of no numbered bar always may). */

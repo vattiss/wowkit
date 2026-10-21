@@ -137,3 +137,21 @@ describe("a priest who chose how the glow moves", () => {
         expect(findAlert(world).ProcStartFlipbook!.isShown).toBe(false);
     });
 });
+
+describe("a priest in a fight, where the client keeps the buttons' size secret", () => {
+    it("still sees the missing buff glow, and the next ticks run on", () => {
+        const world = createWorld((state) => {
+            playAs(state, PRIEST);
+            learnSpell(state, FORTITUDE);
+            state.bars[1] = FORTITUDE.id;
+        });
+        // No answer about the size: what the client gives for a secret one
+        const button = world.findFrame((frame) => frame.name === "ActionButton1")!;
+        (button as unknown as { GetWidth: () => undefined; GetHeight: () => undefined }).GetWidth = () => undefined;
+        (button as unknown as { GetWidth: () => undefined; GetHeight: () => undefined }).GetHeight = () => undefined;
+        world.advance(1);
+        expect(world.glowsOn(1)).toBe(1);
+        world.advance(2);
+        expect(world.glowsOn(1)).toBe(1);
+    });
+});
