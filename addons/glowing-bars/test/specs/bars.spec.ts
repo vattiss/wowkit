@@ -138,6 +138,43 @@ describe("a priest who chose how the glow moves", () => {
     });
 });
 
+describe("a priest with Action Bar 7 faded until it glows", () => {
+    const SMITE: SpellDefinition = { id: 585, name: "Smite", rank: 1, icon: 135924, isHelpful: false };
+
+    function setUp(state: Parameters<Parameters<typeof createWorld>[0]>[0]): void {
+        playAs(state, PRIEST);
+        learnSpell(state, FORTITUDE);
+        learnSpell(state, SMITE);
+        state.bars[BAR_7_FIRST_SLOT] = FORTITUDE.id;
+        state.bars[BAR_7_FIRST_SLOT + 1] = SMITE.id;
+    }
+
+    function readAlpha(world: World, index: number): number {
+        return world.findFrame((frame) => frame.name === `MultiBar6Button${index}`)!.alpha;
+    }
+
+    it("sees the glowing button in full and the other one faded", () => {
+        const world = createWorld(setUp, { barFaded: { "7": true } });
+        world.advance(1);
+        expect(readAlpha(world, 1)).toBe(1);
+        expect(readAlpha(world, 2)).toBe(0.5);
+    });
+
+    it("sees the faded opacity the player chose", () => {
+        const world = createWorld(setUp, { barFaded: { "7": true }, fadedOpacity: 20 });
+        world.advance(1);
+        expect(readAlpha(world, 2)).toBe(0.2);
+    });
+
+    it("sees the bar in full again once it is no longer faded", () => {
+        const world = createWorld(setUp, { barFaded: { "7": true } });
+        world.advance(1);
+        world.setOption("fade_7", false);
+        world.advance(1);
+        expect(readAlpha(world, 2)).toBe(1);
+    });
+});
+
 describe("a priest in a fight, where the client keeps the buttons' size secret", () => {
     it("still sees the missing buff glow, and the next ticks run on", () => {
         const world = createWorld((state) => {

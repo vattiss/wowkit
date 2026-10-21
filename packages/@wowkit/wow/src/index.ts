@@ -2,6 +2,7 @@
 export * from "./action-bars.service";
 export * from "./auras.service";
 export * from "./bags.service";
+export * from "./bar-fade.service";
 export * from "./character.service";
 export * from "./clock.service";
 export * from "./cooldowns.service";

@@ -162,6 +162,12 @@ export class GlowService {
         else entry.frame.Hide();
     }
 
+    /** Is a glow lit on the button? */
+    isGlowing(button: ActionButton): boolean {
+        for (const [, entry] of this.overlays.get(button) ?? new LuaMap<string, Overlay>()) if (entry.isWanted === true) return true;
+        return false;
+    }
+
     /** Does the glow already light exactly these buttons? */
     private isSameButtons(glowing: LuaSet<ActionButton>, buttons: ActionButton[]): boolean {
         const wanted = new LuaSet<ActionButton>();

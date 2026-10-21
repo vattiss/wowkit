@@ -18,7 +18,8 @@ declare module "@wowkit/core/event-bus" {
     }
 }
 
-const BARS = [
+/** The bars of Edit Mode, 1 to 8, by the prefix of their buttons' names. */
+export const BARS = [
     "Action",
     "MultiBarBottomLeft",
     "MultiBarBottomRight",

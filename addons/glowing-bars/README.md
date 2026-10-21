@@ -33,7 +33,8 @@ Your Rotation.
 - The glow runs around the button; on the Settings page it can breathe (stand still, slowly fading out and in) or stand
   still, fading in and out only as it comes and goes.
 - Each of the eight action bars can be switched off, for example to have the glow only on a big bar of cooldowns next to
-  your character.
+  your character. The bars 2 to 8 can also be faded until their buttons glow (50% by default), so such a bar shows only
+  what is due.
 
 Every kind of reminder has the same four settings: the **color** of its glow and message, the **opacity** of the glow
 (1 to 100 percent), whether a short **message** at the top of the screen says so, and a **sound**. The defaults: missing

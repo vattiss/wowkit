@@ -26,6 +26,8 @@ export function createDefaultSettings(): AddonSettings {
         spellStyles: {},
         buffOn: {},
         barOff: {},
+        barFaded: {},
+        fadedOpacity: 50,
         idOverrides: {},
         customCues: [],
         reagentOn: {},
@@ -47,6 +49,9 @@ export const STYLE_DEFAULTS: { [key in ColorKey]: Style } = {
     rank: { color: [1, 0.85, 0.2], opacity: 50, isTextOn: true, sound: "alarm1" },
     reagent: { color: [1, 0.85, 0.2], opacity: 50, isTextOn: false, sound: "none" },
 };
+
+/** The choices of how visible a faded bar's buttons are, in percent. */
+export const FADED_OPACITY_CHOICES = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90];
 
 /** The choices of how long a cooldown glows once it is back (seconds; 0 = until it is pressed). */
 export const COOLDOWN_GLOW_CHOICES = [2, 3, 5, 10, 0];
@@ -78,6 +83,7 @@ export function repairSettings(values: AddonSettings): void {
     const defaults = createDefaultSettings();
     if (!["circling", "breathing", "still"].includes(values.glowStyle)) values.glowStyle = defaults.glowStyle;
     if (!["breathing", "still"].includes(values.roundGlowStyle)) values.roundGlowStyle = defaults.roundGlowStyle;
+    if (!FADED_OPACITY_CHOICES.includes(values.fadedOpacity)) values.fadedOpacity = defaults.fadedOpacity;
     // An added spell that is not a number and a kind is dropped
     values.customCues = (values.customCues ?? []).filter(
         (cue) => type(cue) === "table" && tonumber(cue.id) !== undefined && CUE_KINDS.includes(cue.kind),

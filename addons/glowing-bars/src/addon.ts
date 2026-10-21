@@ -16,6 +16,7 @@ import {
     ActionBarsService,
     AurasService,
     BagsService,
+    BarFadeService,
     BarRefreshService,
     ClockService,
     CooldownsService,
@@ -108,6 +109,7 @@ function makeGame(addon: Addon, addonName: string) {
     const barRefresh = addon.register(new BarRefreshService(actionBars, clock));
     const weaponEnchants = addon.register(new WeaponEnchantsService());
     const glow = addon.register(new GlowService(actionBars));
+    const barFade = addon.register(new BarFadeService(glow));
     const notice = addon.register(new NoticeService(addonName));
     return {
         clock,
@@ -123,6 +125,7 @@ function makeGame(addon: Addon, addonName: string) {
         barRefresh,
         weaponEnchants,
         glow,
+        barFade,
         notice,
     };
 }
@@ -215,7 +218,7 @@ function makeTick(addon: Addon, addonName: string, game: Game, texts: Texts, buf
         ),
     );
     const notices = addon.register(new NoticesService(game.actionBars, game.clock, game.notice, game.spells, locale, styles));
-    const shower = addon.register(new ShowRemindersService(game.glow, messages, settings, notices, styles, game.actionBars));
+    const shower = addon.register(new ShowRemindersService(game.glow, messages, settings, notices, styles, game.actionBars, game.barFade));
     const tick = addon.register(new TickService(finder, shower));
     const refresh = addon.register(new RefreshService(tick, shower, buffs.state, game.clock, game.barRefresh));
     addon.register(new DisplayService(shower, tick));

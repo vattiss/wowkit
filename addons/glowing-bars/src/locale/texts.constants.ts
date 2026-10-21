@@ -20,6 +20,12 @@ export const TEXTS = {
     TIP_BAR:
         "Buttons on this bar can glow. Turn a bar off to keep it quiet, e.g. if you have the same spells on a cooldown bar next to your character.",
 
+    HDR_FADED: "Faded until they glow",
+    TIP_FADE: "The buttons of this bar are faded while they don't glow; a glowing one shows in full.",
+    OPT_FADED_OPACITY: "Faded opacity",
+    TIP_FADED_OPACITY: "How visible the buttons of a faded bar are while they don't glow.",
+    OPT_PERCENT: "%d%%",
+
     HDR_BUFFS: "Buffs",
     OPT_PARTY_BUFFS: "Party members missing your buffs",
     TIP_PARTY_BUFFS:

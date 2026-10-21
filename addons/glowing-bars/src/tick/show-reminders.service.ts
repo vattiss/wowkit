@@ -5,7 +5,7 @@
 import type { MessagesService, SoundKey } from "@wowkit/ui";
 import type { StyleService } from "../settings/style.service";
 import type { AddonSettingsService, ColorKey } from "../settings/settings.interface";
-import type { ActionBarsService, GlowService, ButtonGlow, Rgb } from "@wowkit/wow";
+import type { ActionBarsService, BarFadeService, GlowService, ButtonGlow, Rgb } from "@wowkit/wow";
 import type { NoticesService } from "./notices.service";
 import type { Reminders } from "./tick.interface";
 
@@ -58,12 +58,25 @@ export class ShowRemindersService {
         private readonly notices: NoticesService,
         private readonly styles: StyleService,
         private readonly actionBars: ActionBarsService,
+        private readonly barFade: BarFadeService,
     ) {}
 
     showReminders(reminders: Reminders): void {
         this.playSoundsForNewReminders(reminders);
         this.notices.showNoticeIfNew(reminders);
         this.updateGlows(reminders);
+        this.applyBarFades();
+    }
+
+    /** The faded bars: their buttons faded while they do not glow (every tick: the glows come and go). */
+    private applyBarFades(): void {
+        const opacityByBar = new LuaMap<number, number>();
+        const opacity = this.settings.get("fadedOpacity") / 100;
+        for (const [bar, isFaded] of pairs(this.settings.get("barFaded"))) {
+            const number = tonumber(bar);
+            if (isFaded === true && number !== undefined) opacityByBar.set(number, opacity);
+        }
+        this.barFade.applyBarFades(opacityByBar);
     }
 
     /** The buttons or the spells changed under the glows: set them again on the next tick. */

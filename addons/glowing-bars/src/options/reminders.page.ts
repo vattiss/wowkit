@@ -53,6 +53,7 @@ export class RemindersPage implements OptionsPage {
         this.reminderControls.addSwitch(category, "hideResting", "OPT_HIDE_RESTING", "TIP_HIDE_RESTING");
 
         this.barsSection.addBarsSection(category, layout);
+        this.barsSection.addFadedSection(category, layout);
 
         // The party members: a part of the buff reminder that is not one buff
         if (this.classBuffs.getClassBuffs().some((classBuff) => classBuff.party !== undefined)) {
