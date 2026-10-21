@@ -3,13 +3,14 @@
 //
 // Forever rules: never call C_TooltipInfo.GetAction while mapping the bars (tooltips froze the
 // client when many slots updated after a quest turn-in), and map the bars a few buttons per frame.
-// Only the client's own bars are mapped (no bars of other addons): Blizzard's, and the gamepad bars Forever draws in its
-// gamepad mode.
+// The client's own bars are mapped (Blizzard's, and the gamepad bars Forever draws in its gamepad mode), and Bartender4's:
+// its buttons (LibActionButton-1.0) keep their action slot where Blizzard's do.
 import { type EventBus, type OnFirstLogin, trimText } from "@wowkit/core";
 import type { ClockService } from "./clock.service";
 import { attempt, attemptMulti } from "./utils/protected-call.utils";
 import { getReadableId, isReadable } from "./utils/secret-value.utils";
 import type { SpellsService } from "./spells.service";
+import { BARS, BARTENDER_BUTTONS, BARTENDER_PREFIX, findBarNumber } from "./bar-names";
 
 declare module "@wowkit/core/event-bus" {
     interface AppEvents {
@@ -18,17 +19,6 @@ declare module "@wowkit/core/event-bus" {
     }
 }
 
-/** The bars of Edit Mode, 1 to 8, by the prefix of their buttons' names. */
-export const BARS = [
-    "Action",
-    "MultiBarBottomLeft",
-    "MultiBarBottomRight",
-    "MultiBarRight",
-    "MultiBarLeft",
-    "MultiBar5",
-    "MultiBar6",
-    "MultiBar7",
-];
 /**
  * The gamepad bars Forever draws in gamepad mode, in place of the usual ones: their buttons are action buttons under names
  * of their own ("GamepadMainActionBarFramePageUnitLeft...ActionButton1"), found among the frame's children.
@@ -90,19 +80,7 @@ export class ActionBarsService implements OnFirstLogin {
         this.clear(this.slotByButton);
         this.lastMapAt = this.clock.getCurrentTime();
 
-        const queue: QueueEntry[] = [];
-        const add = (name: string) => {
-            const button = this.getGlobal<ActionButton>(name);
-            if (button) queue.push({ button });
-        };
-        for (const bar of BARS) for (let i = 1; i <= 12; i++) add(`${bar}Button${i}`);
-        // The shaman's totem bar: its buttons are action buttons too
-        for (let i = 1; i <= 12; i++) add(`MultiCastActionButton${i}`);
-        for (const button of this.listGamepadButtons()) {
-            queue.push(this.getActionSlot(button) === undefined ? { spellButton: button } : { button });
-        }
-        const forms = attempt(GetNumShapeshiftForms) ?? 0;
-        for (let i = 1; i <= forms; i++) queue.push({ stance: i, button: this.getGlobal<ActionButton>(`StanceButton${i}`) });
+        const queue = this.listButtonsToMap();
 
         this.mapGeneration += 1;
         const generation = this.mapGeneration;
@@ -132,10 +110,7 @@ export class ActionBarsService implements OnFirstLogin {
      */
     getBarNumber(button: ActionButton): number | undefined {
         const name = button.GetName();
-        if (name === undefined) return undefined;
-        const [prefix] = string.match(name, "^(.-)Button%d+$");
-        const index = prefix !== undefined ? BARS.indexOf(prefix) : -1;
-        return index >= 0 ? index + 1 : undefined;
+        return name !== undefined ? findBarNumber(name) : undefined;
     }
 
     /** The buttons a spell sits on: by ID, resolved ID, name, and (rarely shared) icon. */
@@ -306,6 +281,29 @@ export class ActionBarsService implements OnFirstLogin {
         const root = this.getGlobal<Frame>(GAMEPAD_BAR);
         if (root !== undefined) addButtonsUnder(root, 0);
         return found;
+    }
+
+    /** Every button to map: the bars' (Blizzard's, the totem bar, Bartender4's, the gamepad bars), then the stances. */
+    private listButtonsToMap(): QueueEntry[] {
+        const queue: QueueEntry[] = [];
+        const add = (name: string) => {
+            const button = this.getGlobal<ActionButton>(name);
+            if (button) queue.push({ button });
+        };
+        for (const bar of BARS) for (let i = 1; i <= 12; i++) add(`${bar}Button${i}`);
+        // The shaman's totem bar: its buttons are action buttons too
+        for (let i = 1; i <= 12; i++) add(`MultiCastActionButton${i}`);
+        for (let i = 1; i <= BARTENDER_BUTTONS; i++) add(`${BARTENDER_PREFIX}${i}`);
+        for (const button of this.listGamepadButtons()) {
+            queue.push(this.getActionSlot(button) === undefined ? { spellButton: button } : { button });
+        }
+        const forms = attempt(GetNumShapeshiftForms) ?? 0;
+        // The stance bar: Blizzard's, and Bartender4's, whose buttons stand for the same forms (a paladin's auras too)
+        for (let i = 1; i <= forms; i++) {
+            for (const name of [`StanceButton${i}`, `BT4StanceButton${i}`])
+                queue.push({ stance: i, button: this.getGlobal<ActionButton>(name) });
+        }
+        return queue;
     }
 
     private getGlobal<T>(name: string): T | undefined {

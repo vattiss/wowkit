@@ -1,7 +1,7 @@
 // Bars faded until their buttons glow: the buttons of a faded bar are drawn faint while no glow is lit on them, and in full
 // while one is, so a bar in the middle of the screen shows only what is due. Only the opacity this service set is changed
 // back: a bar no longer faded shows in full again.
-import { BARS } from "./action-bars.service";
+import { listBarButtonNames } from "./bar-names";
 import type { GlowService } from "./glow.service";
 import { getReadable } from "./utils/secret-value.utils";
 
@@ -35,13 +35,12 @@ export class BarFadeService {
         }
     }
 
-    /** The buttons of a bar (1 the main bar, 2 to 8 the others). */
+    /** The buttons of a bar (1 the main bar, 2 to 8 the others): Blizzard's, and Bartender4's of the same number. */
     private listBarButtons(bar: number): ActionButton[] {
-        const prefix = BARS[bar - 1];
+        const globals = _G as unknown as { [name: string]: ActionButton | undefined };
         const buttons: ActionButton[] = [];
-        if (prefix === undefined) return buttons;
-        for (let i = 1; i <= 12; i++) {
-            const button = (_G as unknown as { [name: string]: ActionButton | undefined })[`${prefix}Button${i}`];
+        for (const name of listBarButtonNames(bar)) {
+            const button = globals[name];
             if (button) buttons.push(button);
         }
         return buttons;

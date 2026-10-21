@@ -192,3 +192,34 @@ describe("a priest in a fight, where the client keeps the buttons' size secret",
         expect(world.glowsOn(1)).toBe(1);
     });
 });
+
+describe("a priest who plays with Bartender4", () => {
+    /** Bartender4's bar 2 starts at this button (and action slot). */
+    const BARTENDER_BAR_2_FIRST = 13;
+
+    function setUp(state: Parameters<Parameters<typeof createWorld>[0]>[0]): void {
+        playAs(state, PRIEST);
+        learnSpell(state, FORTITUDE);
+        state.hasBartender = true;
+        state.bars[BARTENDER_BAR_2_FIRST] = FORTITUDE.id;
+    }
+
+    it("sees the missing buff glow on Bartender4's button", () => {
+        const world = createWorld(setUp);
+        world.advance(1);
+        expect(world.glowsOn(BARTENDER_BAR_2_FIRST, "BT4")).toBe(1);
+    });
+
+    it("sees no glow there once Action Bar 2 is switched off: Bartender4's bar 2 is it", () => {
+        const world = createWorld(setUp, { barOff: { "2": true } });
+        world.advance(1);
+        expect(world.glowsOn(BARTENDER_BAR_2_FIRST, "BT4")).toBe(0);
+    });
+
+    it("fades Bartender4's bar 2 with Action Bar 2", () => {
+        const world = createWorld(setUp, { barFaded: { "2": true } });
+        world.advance(1);
+        const other = world.findFrame((frame) => frame.name === `BT4Button${BARTENDER_BAR_2_FIRST + 1}`)!;
+        expect(other.alpha).toBe(0.5);
+    });
+});

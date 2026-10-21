@@ -96,6 +96,8 @@ export interface ClientState {
     areCooldownsHidden: boolean;
     /** The spell on the class button of the gamepad bars (the paladin's aura, picked from a flyout). */
     gamepadClassSpell: number | undefined;
+    /** Bartender4 is loaded: its first two bars (BT4Button1 to 24, on the action slots 1 to 24). */
+    hasBartender: boolean;
     isResting: boolean;
     /** Inventory slot (16 main hand, 17 off hand) -> the temporary enchant on it. */
     enchants: { [slot: number]: FakeEnchant | undefined };
@@ -147,6 +149,7 @@ export function createClientState(): ClientState {
         areAurasHidden: false,
         areCooldownsHidden: false,
         gamepadClassSpell: undefined,
+        hasBartender: false,
         isResting: false,
         enchants: {},
         areEnchantReadsBroken: false,

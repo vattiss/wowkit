@@ -77,6 +77,10 @@ export function installActionBars(state: ClientState, frames: FrameRegistry): vo
     classButton.action = 0;
     (classButton as FakeFrame & { activeButtonShape?: string }).activeButtonShape = "Circle";
     (classButton as FakeFrame & { spellID?: number }).spellID = state.gamepadClassSpell;
+    // Bartender4's buttons (LibActionButton keeps the slot in `action`, as Blizzard's buttons do)
+    if (state.hasBartender) {
+        for (let index = 1; index <= 24; index++) frames.create("CheckButton", `BT4Button${index}`).action = index;
+    }
     // The shaman's totem bar: MultiCastActionButton1..4 on the action slots after the main bar's pages
     for (let index = 1; index <= TOTEM_BAR_BUTTONS; index++) {
         frames.create("Button", `MultiCastActionButton${index}`).action = TOTEM_BAR_FIRST_SLOT + index - 1;
