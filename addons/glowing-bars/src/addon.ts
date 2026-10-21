@@ -44,6 +44,7 @@ import { GlowCuesService } from "./glows/glow-cues.service";
 import { BuffKnowledgeService } from "./knowledge/buff-knowledge.service";
 import { TEXTS } from "./locale/texts.constants";
 import { BarsSection } from "./options/bars.section";
+import { GlowStyleSection } from "./options/glow-style.section";
 import { GlowsSection } from "./options/glows.section";
 import { ReminderControlsService } from "./options/reminder-controls.service";
 import { StyleChoicesService } from "./options/style-choices.service";
@@ -266,6 +267,7 @@ function makeOptions(addon: Addon, addonName: string, game: Game, texts: Texts, 
     const glowsSection = addon.register(new GlowsSection(locale, settings, controls, reminderControls, reminders.glowCues));
     const table = makeTable(addon, addonName, game, texts, buffs, reminders);
     const barsSection = addon.register(new BarsSection(locale, settings, controls, reminderControls));
+    const glowStyleSection = addon.register(new GlowStyleSection(locale, settings, controls));
     const about = addon.register(
         new AboutSection(
             widgets,
@@ -290,6 +292,7 @@ function makeOptions(addon: Addon, addonName: string, game: Game, texts: Texts, 
             widgets,
             table,
             barsSection,
+            glowStyleSection,
         ),
     );
     addon.register(new OptionsService(messages, locale.getText("TITLE"), page));

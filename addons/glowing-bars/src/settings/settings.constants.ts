@@ -8,6 +8,8 @@ export function createDefaultSettings(): AddonSettings {
     return {
         isMuted: false,
         hideResting: true,
+        glowStyle: "circling",
+        roundGlowStyle: "breathing",
         showBuff: true,
         showWeapon: true,
         showPartyBuffs: true,
@@ -72,6 +74,10 @@ function repairStyle(style: StyleOverride | undefined): StyleOverride | undefine
 
 /** Puts right what a saved look got wrong. */
 export function repairSettings(values: AddonSettings): void {
+    // A style no longer known (or circling on a round button) is the default again
+    const defaults = createDefaultSettings();
+    if (!["circling", "breathing", "still"].includes(values.glowStyle)) values.glowStyle = defaults.glowStyle;
+    if (!["breathing", "still"].includes(values.roundGlowStyle)) values.roundGlowStyle = defaults.roundGlowStyle;
     // An added spell that is not a number and a kind is dropped
     values.customCues = (values.customCues ?? []).filter(
         (cue) => type(cue) === "table" && tonumber(cue.id) !== undefined && CUE_KINDS.includes(cue.kind),

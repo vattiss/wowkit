@@ -47,6 +47,15 @@ export const TEXTS = {
     OPT_TABLE: "Colors, sounds and on/off per spell",
     TIP_TABLE: "Set the color, glow, message and sound of each reminder type and each spell, and turn them on or off. Also /gb.",
     BTN_OPEN: "Open",
+    OPT_GLOW_STYLE: "Glow animation",
+    TIP_GLOW_STYLE:
+        "Circling: the glow runs around the button. Breathing: it stands still and slowly fades out and in. None: it stands still, fading in and out only as it comes and goes.",
+    OPT_ROUND_GLOW_STYLE: "Round gamepad buttons animation (alpha)",
+    TIP_ROUND_GLOW_STYLE:
+        "The glow of the round buttons of the gamepad bars: breathing, or still. Gamepad support is new; please report what you see.",
+    OPT_STYLE_CIRCLING: "Circling",
+    OPT_STYLE_BREATHING: "Breathing",
+    OPT_STYLE_STILL: "None",
     BTN_RESET: "Reset",
     TABLE_TITLE: "Glowing Bars",
     HDR_TABLE_DEFAULTS: "Defaults",

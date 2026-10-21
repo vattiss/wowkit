@@ -6,6 +6,7 @@ import type { ClassBuffsService } from "../reminders/class-buffs.service";
 import type { AddonSettingsService, AddonSettings } from "../settings/settings.interface";
 import type { AboutSection, ControlsService, OptionsPage, WidgetsService } from "@wowkit/ui";
 import type { BarsSection } from "./bars.section";
+import type { GlowStyleSection } from "./glow-style.section";
 import type { GlowsSection } from "./glows.section";
 import type { StyleTableService } from "./style-table.service";
 import type { ReminderControlsService } from "./reminder-controls.service";
@@ -24,6 +25,7 @@ export class RemindersPage implements OptionsPage {
         private readonly widgets: WidgetsService,
         private readonly table: StyleTableService,
         private readonly barsSection: BarsSection,
+        private readonly glowStyleSection: GlowStyleSection,
     ) {}
 
     buildPage(category: SettingsCategory, layout: SettingsLayout): void {
@@ -35,6 +37,8 @@ export class RemindersPage implements OptionsPage {
             () => this.table.toggle(),
             this.locale.getText("TIP_TABLE"),
         );
+
+        this.glowStyleSection.addGlowStyleSection(category);
 
         this.reminderControls.addHeader(layout, "HDR_CHARACTER");
         this.controls.addCheckbox(

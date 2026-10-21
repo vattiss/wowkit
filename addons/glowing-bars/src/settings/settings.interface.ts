@@ -1,5 +1,5 @@
 import type { SettingsService, SoundKey } from "@wowkit/ui";
-import type { Rgb } from "@wowkit/wow";
+import type { GlowStyle, Rgb } from "@wowkit/wow";
 
 /** The kinds of reminder. Each has a look (color, opacity, message, sound) the player can change for the kind and for a spell. */
 export type ColorKey = "buff" | "weapon" | "seal" | "tracking" | "cooldown" | "proc" | "rank" | "reagent";
@@ -33,6 +33,10 @@ export type StyleOverride = Partial<Style>;
 export interface AddonSettings {
     isMuted: boolean;
     hideResting: boolean;
+    /** How the glows move: around the button, breathing, or still (fading in and out as they come and go). */
+    glowStyle: GlowStyle;
+    /** How the glows of the round buttons of Forever's gamepad bars move: breathing, or still. */
+    roundGlowStyle: GlowStyle;
     showBuff: boolean;
     showWeapon: boolean;
     /** Party members missing the player's buffs. */

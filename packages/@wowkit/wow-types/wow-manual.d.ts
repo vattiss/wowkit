@@ -214,3 +214,8 @@ declare function time(): number;
 declare function strtrim(text: string, chars?: string): string;
 declare function strsplit(delimiter: string, text: string, pieces?: number): LuaMultiReturn<string[]>;
 declare function wipe<T extends object>(table: T): T;
+
+/** The corners form of SetTexCoord, the one GetTexCoord answers in (the documentation names only the edges form). */
+interface TextureBase {
+    SetTexCoord(ulX: number, ulY: number, llX: number, llY: number, urX: number, urY: number, lrX: number, lrY: number): void;
+}

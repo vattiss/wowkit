@@ -33,6 +33,7 @@ export interface FakeFrame {
     Show(): void;
     Hide(): void;
     IsShown(): boolean;
+    SetShown(isShown: boolean): void;
     SetAlpha(alpha: number): void;
     GetAlpha(): number;
     SetScript(script: string, handler: Script | undefined): void;
@@ -102,6 +103,10 @@ function createFakeFrame(init: FrameInit): FakeFrame {
             if (!this.isShown) return;
             this.isShown = false;
             this.scripts.OnHide?.(this);
+        },
+        SetShown(isShown) {
+            if (isShown) this.Show();
+            else this.Hide();
         },
         SetAlpha(alpha) {
             this.alpha = alpha;

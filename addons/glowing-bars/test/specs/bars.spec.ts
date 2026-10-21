@@ -94,3 +94,46 @@ describe("a paladin with no aura, in Forever's gamepad mode", () => {
         );
     });
 });
+
+describe("a priest who chose how the glow moves", () => {
+    function findAlert(world: World) {
+        const button = world.findFrame((frame) => frame.name === "ActionButton1");
+        return world.frames.find((frame) => frame.parent === button && frame.template === "ActionButtonSpellAlertTemplate")!;
+    }
+
+    function setUp(state: Parameters<Parameters<typeof createWorld>[0]>[0]): void {
+        playAs(state, PRIEST);
+        learnSpell(state, FORTITUDE);
+        state.bars[1] = FORTITUDE.id;
+    }
+
+    it("sees the missing buff glow standing still: Blizzard's glow, without the flash it starts with", () => {
+        const world = createWorld(setUp, { glowStyle: "still" });
+        world.advance(1);
+        const alert = findAlert(world);
+        expect(alert.isShown).toBe(true);
+        expect(alert.ProcStartFlipbook!.isShown).toBe(false);
+        expect(alert.ProcLoopFlipbook!.isShown).toBe(true);
+    });
+
+    it("sees the glow breathing as Blizzard's glow standing still, without the flash", () => {
+        const world = createWorld(setUp, { glowStyle: "breathing" });
+        world.advance(1);
+        const alert = findAlert(world);
+        expect(alert.ProcStartFlipbook!.isShown).toBe(false);
+        expect(alert.ProcLoopFlipbook!.isShown).toBe(true);
+    });
+
+    it("sees the animation, with its flash, by default", () => {
+        const world = createWorld(setUp);
+        world.advance(1);
+        expect(findAlert(world).ProcStartFlipbook!.isShown).toBe(true);
+    });
+
+    it("has a switch for it on the Settings page", () => {
+        const world = createWorld(setUp);
+        world.setOption("glowStyle", "still");
+        world.advance(1);
+        expect(findAlert(world).ProcStartFlipbook!.isShown).toBe(false);
+    });
+});

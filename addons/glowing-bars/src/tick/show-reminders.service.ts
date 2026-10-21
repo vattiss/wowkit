@@ -79,6 +79,8 @@ export class ShowRemindersService {
             key !== "barOff" &&
             key !== "idOverrides" &&
             key !== "customCues" &&
+            key !== "glowStyle" &&
+            key !== "roundGlowStyle" &&
             !KINDS.some((kind) => kind.isOnSetting === key)
         )
             return;
@@ -106,6 +108,7 @@ export class ShowRemindersService {
         const glowKey = groups.map((group) => `${group.key}=${group.spells.join(",")}`).join(";");
         if (glowKey === this.shownGlowKey) return;
         this.shownGlowKey = glowKey;
+        this.glow.setStyles(this.settings.get("glowStyle"), this.settings.get("roundGlowStyle"));
         // A look that no spell has now: its glow goes out
         for (const [key, glow] of this.glows) if (!groups.some((group) => group.key === key)) glow.clear();
         for (const group of groups) {

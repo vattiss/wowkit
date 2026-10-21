@@ -1,5 +1,6 @@
-// A glow on action buttons: Blizzard's spell-alert ("proc") animation, tinted with a color. The round buttons of Forever's
-// gamepad bars get the client's own round highlight instead, pulsing: the square alert does not fit them.
+// A glow on action buttons: Blizzard's spell-alert ("proc") animation, tinted with a color, in one of three styles (see
+// GlowStyle). The round buttons of Forever's gamepad bars get the client's own round highlight instead, breathing or
+// still: the square alert does not fit them. Every breathing glow breathes in step.
 //
 // A glow on a button of the gamepad bars is a frame of our own beside it, never its child: the gamepad bars' code goes
 // through the children of its buttons, and a frame an addon made there taints it (the game then blocks its
@@ -11,6 +12,12 @@ import type { HiddenAlpha } from "./value-curves.service";
 
 /** A color as red, green and blue between 0 and 1. */
 export type Rgb = [r: number, g: number, b: number];
+
+/**
+ * How a glow moves: Blizzard's animation running around the button; the glow standing still, slowly fading out and in;
+ * or standing still, fading in as it lights and out as it goes.
+ */
+export type GlowStyle = "circling" | "breathing" | "still";
 
 /** Fallback art if the spell-alert glow template is missing; built-in client art only. */
 const GLOW_FALLBACK = "Interface\\Cooldown\\star4";
@@ -25,14 +32,26 @@ const RING_SCALE = 1.2;
 const HALO_ATLAS = "gamepad-hud-actionbar-casting-complete-glow";
 /** The halo's size, against the ring's. */
 const HALO_SCALE = 1.35;
-/** The two pulse together between full and this opacity, half a second each way. */
+/** A breathing glow fades between full and this opacity, half a second each way. */
 const RING_PULSE_ALPHA = 0.45;
 const RING_PULSE_SECONDS = 0.5;
+/**
+ * The loop of the alert's glow, a flipbook. A glow that does not circle shows one picture of it still: the loop runs a
+ * frame, so the client cuts the picture out, and is stopped, its picture kept: while it runs, even paused, it holds the
+ * picture's opacity, so a fade could not change it.
+ */
+const LOOP_ATLAS = "UI-HUD-ActionBar-Proc-Loop-Flipbook";
+/** A still glow fades in and out this fast. */
+const STILL_FADE_SECONDS = 0.25;
 
 interface Overlay {
     frame: Frame;
     alert?: SpellAlertFrame;
     texture?: Texture;
+    /** The fading in and out of a still glow, and the breathing of a breathing one. */
+    fadeIn?: AnimationGroup;
+    fadeOut?: AnimationGroup;
+    breathe?: AnimationGroup;
     /** The glow is lit (it shows while its button does). */
     isWanted?: boolean;
     /** A frame beside the button, not its child (a button of the gamepad bars). */
@@ -58,10 +77,19 @@ export class GlowService {
     private readonly overlays = new LuaMap<ActionButton, LuaMap<string, Overlay>>();
     /** The gamepad buttons whose showing and hiding the glows beside them follow. */
     private readonly tracked = new LuaSet<ActionButton>();
-    /** The pulses of the round glows that show: they restart together, so every ring pulses in step. */
+    /** The breathing of the glows that show (round, or square and breathing): they restart together, in step. */
     private readonly pulses = new LuaSet<AnimationGroup>();
+    /** The style of the square glows, and of the round ones. A glow lit after a change shows the new way. */
+    private squareStyle: GlowStyle = "circling";
+    private roundStyle: GlowStyle = "breathing";
 
     constructor(private readonly actionBars: ActionBarsService) {}
+
+    /** The styles of the glows lit from now on: of the square buttons, and of the round ones (not circling: breathing). */
+    setStyles(squareStyle: GlowStyle, roundStyle: GlowStyle): void {
+        this.squareStyle = squareStyle;
+        this.roundStyle = roundStyle;
+    }
 
     /**
      * One glow on the buttons of some spells; each kind (the buff, the weapon buff) keeps its own overlays.
@@ -73,10 +101,7 @@ export class GlowService {
         const clearGlow = () => {
             for (const button of glowing) {
                 const entry = this.overlays.get(button)?.get(kind);
-                if (entry) {
-                    entry.isWanted = false;
-                    entry.frame.Hide();
-                }
+                if (entry) this.hideOverlay(entry);
                 glowing.delete(button);
             }
             last = undefined;
@@ -106,15 +131,28 @@ export class GlowService {
                 last = key;
                 for (const button of buttons) {
                     if (!glowing.has(button)) {
-                        const entry = this.getOverlay(button, kind, color);
-                        entry.isWanted = true;
-                        // A glow beside its button shows only while the button does (see trackButton)
-                        if (entry.isBeside !== true || button.IsVisible()) entry.frame.Show();
+                        this.showOverlay(this.getOverlay(button, kind, color), button);
                         glowing.add(button);
                     }
                 }
             },
         };
+    }
+
+    /** Lights a glow; one that is fading out is back at once, without fading in again. */
+    private showOverlay(entry: Overlay, button: ActionButton): void {
+        entry.isWanted = true;
+        // A glow beside its button shows only while the button does (see trackButton)
+        if (entry.isBeside === true && !button.IsVisible()) return;
+        if (entry.fadeOut?.IsPlaying() === true) entry.fadeOut.Stop();
+        else entry.frame.Show();
+    }
+
+    /** Puts a glow out; a still one fades out first. */
+    private hideOverlay(entry: Overlay): void {
+        entry.isWanted = false;
+        if (this.squareStyle === "still" && entry.fadeOut !== undefined && entry.frame.IsShown()) entry.fadeOut.Play();
+        else entry.frame.Hide();
     }
 
     /** Does the glow already light exactly these buttons? */
@@ -190,6 +228,63 @@ export class GlowService {
         });
     }
 
+    /**
+     * The alert as it shows: the animation from its start, or the loop of the glow stopped on its first picture, without the
+     * flash it starts with. The loop is stopped a frame after it starts: before, its flipbook shows the whole sheet.
+     */
+    private startAlert(alert: SpellAlertFrame, fades: Pick<Overlay, "fadeIn" | "breathe">): void {
+        alert.ProcLoop!.Stop();
+        const isCircling = this.squareStyle === "circling";
+        alert.ProcStartFlipbook?.SetShown(isCircling);
+        if (isCircling) {
+            // The whole flipbook again, hidden until the loop shows it (as the template has it)
+            alert.ProcLoopFlipbook?.SetAtlas(LOOP_ATLAS);
+            alert.ProcLoopFlipbook?.SetAlpha(0);
+            alert.ProcStartAnim!.Play();
+            return;
+        }
+        this.showLoopPicture(alert, () => {
+            if (this.squareStyle === "still") {
+                fades.fadeIn?.Play();
+            } else if (fades.breathe !== undefined) {
+                this.pulses.add(fades.breathe);
+                this.syncPulses();
+            }
+        });
+    }
+
+    /** A picture of the loop's flipbook, standing still; `then` runs once it stands (a frame later). */
+    private showLoopPicture(alert: SpellAlertFrame, then: (this: void) => void): void {
+        const picture = alert.ProcLoopFlipbook;
+        if (picture === undefined) return;
+        picture.Show();
+        alert.ProcLoop!.Play();
+        C_Timer.After(0, () => {
+            // Put out in the meantime: nothing to keep
+            if (!alert.IsShown()) return;
+            const [ulX, ulY, llX, llY, urX, urY, lrX, lrY] = picture.GetTexCoord();
+            alert.ProcLoop!.Stop();
+            picture.SetTexCoord(ulX, ulY, llX, llY, urX, urY, lrX, lrY);
+            picture.SetAlpha(1);
+            then();
+        });
+    }
+
+    /**
+     * A fade of a still alert's glow, on its loop's picture (the frame's opacity is the glow's own). Undefined where the
+     * client (or the fake game) has no animations: the glow then comes and goes at once.
+     */
+    private createFade(alert: SpellAlertFrame, fromAlpha: number, toAlpha: number, seconds: number): AnimationGroup | undefined {
+        const group = alert.CreateAnimationGroup() as AnimationGroup | undefined;
+        const fade = group?.CreateAnimation("Alpha") as AlphaAnimation | undefined;
+        if (group === undefined || fade === undefined || alert.ProcLoopFlipbook === undefined) return undefined;
+        fade.SetTarget(alert.ProcLoopFlipbook);
+        fade.SetFromAlpha(fromAlpha);
+        fade.SetToAlpha(toAlpha);
+        fade.SetDuration(seconds);
+        return group;
+    }
+
     private createOverlay(button: ActionButton): Overlay {
         if (!this.isGamepadButton(button)) return this.createOverlayIn(button, button);
         this.trackButton(button);
@@ -211,17 +306,24 @@ export class GlowService {
             alert.SetFrameStrata("MEDIUM");
             alert.SetFrameLevel(level);
             alert.SetPoint("CENTER", button, "CENTER", 0, 0);
-            alert.SetScript("OnShow", () => {
-                alert.ProcLoop!.Stop();
-                alert.ProcStartAnim!.Play();
-            });
+            const fades = {
+                fadeIn: this.createFade(alert, 0, 1, STILL_FADE_SECONDS),
+                fadeOut: this.createFade(alert, 1, 0, STILL_FADE_SECONDS),
+                breathe: this.createFade(alert, 1, RING_PULSE_ALPHA, RING_PULSE_SECONDS),
+            };
+            fades.breathe?.SetLooping("BOUNCE");
+            // Faded out, the glow goes
+            fades.fadeOut?.SetScript("OnFinished", () => alert.Hide());
+            alert.SetScript("OnShow", () => this.startAlert(alert, fades));
             alert.SetScript("OnHide", () => {
                 alert.ProcStartAnim!.Stop();
                 alert.ProcLoop!.Stop();
+                for (const fade of [fades.fadeIn, fades.fadeOut, fades.breathe]) fade?.Stop();
+                if (fades.breathe !== undefined) this.pulses.delete(fades.breathe);
             });
             alert.ProcAltGlow?.Hide();
             alert.Hide();
-            return { frame: alert, alert };
+            return { frame: alert, alert, ...fades };
         }
         const frame = CreateFrame("Frame", undefined, parent);
         frame.SetFrameStrata("MEDIUM");
@@ -262,6 +364,7 @@ export class GlowService {
             fade.SetDuration(RING_PULSE_SECONDS);
             pulse.SetLooping("BOUNCE");
             frame.SetScript("OnShow", () => {
+                if (this.roundStyle !== "breathing") return;
                 this.pulses.add(pulse);
                 this.syncPulses();
             });
@@ -274,7 +377,7 @@ export class GlowService {
         return { frame, texture, halo, isRing: true };
     }
 
-    /** Every round glow that shows pulses from the start again, in step with the one that just lit. */
+    /** Every breathing glow that shows breathes from the start again, in step with the one that just lit. */
     private syncPulses(): void {
         for (const pulse of this.pulses) {
             pulse.Stop();
