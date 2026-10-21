@@ -73,7 +73,8 @@ export class StyleRowsService {
         const add = (kind: ColorKey, spellId: number | undefined, extra: Partial<StyleRow> = {}, suffix?: string) => {
             if (spellId === undefined) return;
             const name = this.styles.getSpellKey(spellId);
-            const key = suffix !== undefined ? `${name}|${suffix}` : name;
+            // A spell the player added has a row of its own even when a list has it as another kind: it glows on its own too
+            const key = extra.isCustom === true ? `${kind}:${name}` : suffix !== undefined ? `${name}|${suffix}` : name;
             if (keys.has(key)) return;
             keys.add(key);
             const label = this.spells.getSpellLabel(spellId) ?? name;

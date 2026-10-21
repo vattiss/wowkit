@@ -68,3 +68,18 @@ describe("a character with no gathering profession", () => {
         expect(world.findFrame((frame) => frame.fontStrings.some((text) => text.text === "Missing tracking"))).toBeUndefined();
     });
 });
+
+describe("a miner who added Find Minerals as a missing buff before it was on the list", () => {
+    it("has a row for each, so the one added by hand can be seen, styled and taken out", () => {
+        const world = createWorld(
+            (state) => {
+                playAs(state, HUNTER);
+                learnSpell(state, FIND_MINERALS);
+            },
+            { customCues: [{ id: FIND_MINERALS.id, kind: "buff" }] },
+        );
+        SlashCmdList["GLOWINGBARS"]!("", undefined as never);
+        const rows = world.frames.filter((frame) => frame.fontStrings.some((text) => text.text === "Find Minerals"));
+        expect(rows.length).toBe(2);
+    });
+});
