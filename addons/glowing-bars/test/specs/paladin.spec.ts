@@ -249,3 +249,23 @@ describe("a paladin who uses Swift Judgement in a fight", () => {
         expect(world.glowsOn(1)).toBe(0);
     });
 });
+
+describe("a paladin who cancels the aura out of combat, with a target", () => {
+    const DEVOTION_AURA: SpellDefinition = { id: 465, name: "Devotion Aura", rank: 1, icon: 135893, isHelpful: true };
+
+    it("sees the aura glow: the game shows the auras out of combat, an empty list is no aura", () => {
+        const world = createWorld((state) => {
+            playAs(state, PALADIN);
+            learnSpell(state, DEVOTION_AURA);
+            state.bars[1] = DEVOTION_AURA.id;
+            state.auras.push({ name: DEVOTION_AURA.name, spellId: DEVOTION_AURA.id, expirationTime: 0 });
+            state.target = { name: "Training Dummy", isEnemy: true } as never;
+        });
+        world.advance(1);
+        expect(world.glowsOn(1)).toBe(0);
+        world.state.auras = [];
+        world.fire("UNIT_AURA", "player");
+        world.advance(1);
+        expect(world.glowsOn(1)).toBe(1);
+    });
+});

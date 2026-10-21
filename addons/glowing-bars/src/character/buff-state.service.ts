@@ -115,8 +115,8 @@ export class BuffStateService {
         const resolved = this.spells.resolve(spellId);
         const wantName = this.getBuffName(spellId);
         const scan = this.auras.scanAuras("player");
-        // No auras at all while buffs are remembered, in combat or with a target, or an aura whose name is secret: the client
-        // hides them, and the buff may be one of them
+        // No auras at all in combat while buffs are remembered, or an aura whose name is secret: the client hides them, and
+        // the buff may be one of them
         const hasHiddenAura = scan.auras.some((aura) => aura.isHidden || aura.name === undefined);
         const isUnreadable = scan.isUnreadable || hasHiddenAura || (scan.auras.length === 0 && this.isEmptyListSuspicious());
         const { names, ids, categories } = this.indexAuras(scan.auras);
@@ -150,8 +150,11 @@ export class BuffStateService {
         return { names, ids, categories };
     }
 
-    /** No auras at all while we remember some, in combat or with a target: the client hides them rather than the player having none. */
+    /**
+     * No auras at all in combat while we remember some: the client hides them rather than the player having none. Out of
+     * combat it shows them, with a target too: an empty list is no aura (a cancelled one).
+     */
     private isEmptyListSuspicious(): boolean {
-        return !this.memory.isEmpty() && (this.player.isInCombat() || this.player.hasTarget());
+        return !this.memory.isEmpty() && this.player.isInCombat();
     }
 }
