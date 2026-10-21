@@ -153,3 +153,18 @@ describe("the ranked spells of the table", () => {
         expect(findLabel(world, "Mind Blast")).toBeDefined();
     });
 });
+
+describe("the table of looks and the Escape key", () => {
+    it("closes on Escape by itself, not through the game's list of windows (that would taint the game's Escape)", () => {
+        const world = createWorld(setUpWarrior);
+        world.state.isInCombat = false;
+        toggleTable();
+        const window = world.findFrame((frame) => frame.name === "GlowingBarsLooks")!;
+        expect(window.isShown).toBe(true);
+        window.scripts.OnKeyDown!(window, "A");
+        expect(window.isShown).toBe(true);
+        window.scripts.OnKeyDown!(window, "ESCAPE");
+        expect(window.isShown).toBe(false);
+        expect((UISpecialFrames as string[]).includes("GlowingBarsLooks")).toBe(false);
+    });
+});

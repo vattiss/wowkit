@@ -219,3 +219,6 @@ declare function wipe<T extends object>(table: T): T;
 interface TextureBase {
     SetTexCoord(ulX: number, ulY: number, llX: number, llY: number, urX: number, urY: number, lrX: number, lrY: number): void;
 }
+
+/** Whether the client locks protected actions now (in combat): the documentation does not list it. */
+declare function InCombatLockdown(): boolean;

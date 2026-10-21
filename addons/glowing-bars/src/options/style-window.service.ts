@@ -27,8 +27,7 @@ export class StyleWindowService {
         window.RegisterForDrag("LeftButton");
         window.SetScript("OnDragStart", () => window.StartMoving());
         window.SetScript("OnDragStop", () => window.StopMovingOrSizing());
-        // Escape closes it
-        table.insert(UISpecialFrames, WINDOW_NAME);
+        this.connectEscape(window);
         const title = window.CreateFontString(undefined, "OVERLAY", "GameFontNormalLarge");
         title.SetPoint("TOP", window, "TOP", 0, -16);
         title.SetText(this.locale.getText("TABLE_TITLE"));
@@ -45,6 +44,24 @@ export class StyleWindowService {
         // A new frame is shown; the table opens when it is asked for
         window.Hide();
         return { window, content };
+    }
+
+    /**
+     * Escape closes the window: it takes the key itself while it is open, and lets every other key on to the game. Not
+     * through the game's list of windows Escape closes (UISpecialFrames): its own Escape handling reads that list, and a
+     * name an addon put there taints it, so the game then blocks what it does next (ClearTarget, the game menu...). In
+     * combat the game does not let the keys' passing on change: there every key goes on, and the close button closes.
+     */
+    private connectEscape(window: Frame): void {
+        if (InCombatLockdown()) return;
+        window.EnableKeyboard(true);
+        window.SetPropagateKeyboardInput(true);
+        window.SetScript("OnKeyDown", (_frame, key) => {
+            if (InCombatLockdown()) return;
+            const isEscape = key === "ESCAPE";
+            window.SetPropagateKeyboardInput(!isEscape);
+            if (isEscape) window.Hide();
+        });
     }
 
     /** A solid dark brown window, with the bronze border of the classic dialogs where the client has the art for it. */

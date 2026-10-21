@@ -119,6 +119,7 @@ export function installUnits(state: ClientState): void {
         UnitPowerType: (unit) => $multi(findMember(unit)?.power ?? 0, "POWER", undefined, undefined, undefined),
         UnitAffectingCombat: (unit) =>
             unit === "player" ? state.isInCombat : unit === "target" && state.target?.isAttackingPlayer === true,
+        InCombatLockdown: () => state.isInCombat,
         UnitOnTaxi: () => false,
         IsMounted: () => false,
         IsResting: () => state.isResting,
