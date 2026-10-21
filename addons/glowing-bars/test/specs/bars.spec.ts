@@ -223,3 +223,31 @@ describe("a priest who plays with Bartender4", () => {
         expect(other.alpha).toBe(0.5);
     });
 });
+
+describe("a priest who plays with Dominos", () => {
+    /** Dominos's bar 2 starts at its button 13 (slot 13); its bar 3 is MultiBarRightActionButton1 (slot 25). */
+    const DOMINOS_BAR_2_FIRST = 13;
+    const DOMINOS_BAR_3_FIRST = 25;
+
+    function setUp(state: Parameters<Parameters<typeof createWorld>[0]>[0]): void {
+        playAs(state, PRIEST);
+        learnSpell(state, FORTITUDE);
+        state.hasDominos = true;
+        state.bars[DOMINOS_BAR_2_FIRST] = FORTITUDE.id;
+        state.bars[DOMINOS_BAR_3_FIRST] = FORTITUDE.id;
+    }
+
+    it("sees the missing buff glow on Dominos's buttons, its own and the Blizzard-named ones", () => {
+        const world = createWorld(setUp);
+        world.advance(1);
+        expect(world.glowsOnFrame("DominosActionButton13")).toBe(1);
+        expect(world.glowsOnFrame("MultiBarRightActionButton1")).toBe(1);
+    });
+
+    it("sees no glow on Dominos's bar 3 once Action Bar 3 is switched off", () => {
+        const world = createWorld(setUp, { barOff: { "3": true } });
+        world.advance(1);
+        expect(world.glowsOnFrame("MultiBarRightActionButton1")).toBe(0);
+        expect(world.glowsOnFrame("DominosActionButton13")).toBe(1);
+    });
+});

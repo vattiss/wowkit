@@ -22,6 +22,19 @@ const OTHER_BARS: [bar: string, firstSlot: number][] = [
     ["MultiBar7", 169],
 ];
 
+/** The bars of the action bar addons the test loads: Bartender4's and Dominos's first ones. */
+function installAddonBars(state: ClientState, frames: FrameRegistry): void {
+    // Bartender4's buttons (LibActionButton keeps the slot in `action`, as Blizzard's buttons do)
+    if (state.hasBartender) {
+        for (let index = 1; index <= 24; index++) frames.create("CheckButton", `BT4Button${index}`).action = index;
+    }
+    // Dominos's buttons (Blizzard's template: the slot in `action`), under its names
+    if (state.hasDominos) {
+        for (let id = 13; id <= 24; id++) frames.create("CheckButton", `DominosActionButton${id}`).action = id;
+        for (let index = 1; index <= 12; index++) frames.create("CheckButton", `MultiBarRightActionButton${index}`).action = 24 + index;
+    }
+}
+
 export function installActionBars(state: ClientState, frames: FrameRegistry): void {
     defineNamespace<typeof C_ActionBar>("C_ActionBar", {
         HasAction: (slot) => state.bars[slot] !== undefined,
@@ -77,10 +90,7 @@ export function installActionBars(state: ClientState, frames: FrameRegistry): vo
     classButton.action = 0;
     (classButton as FakeFrame & { activeButtonShape?: string }).activeButtonShape = "Circle";
     (classButton as FakeFrame & { spellID?: number }).spellID = state.gamepadClassSpell;
-    // Bartender4's buttons (LibActionButton keeps the slot in `action`, as Blizzard's buttons do)
-    if (state.hasBartender) {
-        for (let index = 1; index <= 24; index++) frames.create("CheckButton", `BT4Button${index}`).action = index;
-    }
+    installAddonBars(state, frames);
     // The shaman's totem bar: MultiCastActionButton1..4 on the action slots after the main bar's pages
     for (let index = 1; index <= TOTEM_BAR_BUTTONS; index++) {
         frames.create("Button", `MultiCastActionButton${index}`).action = TOTEM_BAR_FIRST_SLOT + index - 1;

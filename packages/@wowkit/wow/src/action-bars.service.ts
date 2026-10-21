@@ -3,14 +3,14 @@
 //
 // Forever rules: never call C_TooltipInfo.GetAction while mapping the bars (tooltips froze the
 // client when many slots updated after a quest turn-in), and map the bars a few buttons per frame.
-// The client's own bars are mapped (Blizzard's, and the gamepad bars Forever draws in its gamepad mode), and Bartender4's:
-// its buttons (LibActionButton-1.0) keep their action slot where Blizzard's do.
+// The client's own bars are mapped (Blizzard's, and the gamepad bars Forever draws in its gamepad mode), and Bartender4's
+// and Dominos's: their buttons keep their action slot where Blizzard's do.
 import { type EventBus, type OnFirstLogin, trimText } from "@wowkit/core";
 import type { ClockService } from "./clock.service";
 import { attempt, attemptMulti } from "./utils/protected-call.utils";
 import { getReadableId, isReadable } from "./utils/secret-value.utils";
 import type { SpellsService } from "./spells.service";
-import { BARS, BARTENDER_BUTTONS, BARTENDER_PREFIX, findBarNumber } from "./bar-names";
+import { BARS, BARTENDER_BUTTONS, BARTENDER_PREFIX, DOMINOS_BUTTONS, findBarNumber, getDominosButtonName } from "./bar-names";
 
 declare module "@wowkit/core/event-bus" {
     interface AppEvents {
@@ -294,13 +294,15 @@ export class ActionBarsService implements OnFirstLogin {
         // The shaman's totem bar: its buttons are action buttons too
         for (let i = 1; i <= 12; i++) add(`MultiCastActionButton${i}`);
         for (let i = 1; i <= BARTENDER_BUTTONS; i++) add(`${BARTENDER_PREFIX}${i}`);
+        for (let i = 1; i <= DOMINOS_BUTTONS; i++) add(getDominosButtonName(i)!);
         for (const button of this.listGamepadButtons()) {
             queue.push(this.getActionSlot(button) === undefined ? { spellButton: button } : { button });
         }
         const forms = attempt(GetNumShapeshiftForms) ?? 0;
-        // The stance bar: Blizzard's, and Bartender4's, whose buttons stand for the same forms (a paladin's auras too)
+        // The stance bar: Blizzard's, and Bartender4's and Dominos's, whose buttons stand for the same forms (a paladin's
+        // auras too)
         for (let i = 1; i <= forms; i++) {
-            for (const name of [`StanceButton${i}`, `BT4StanceButton${i}`])
+            for (const name of [`StanceButton${i}`, `BT4StanceButton${i}`, `DominosStanceButton${i}`])
                 queue.push({ stance: i, button: this.getGlobal<ActionButton>(name) });
         }
         return queue;
