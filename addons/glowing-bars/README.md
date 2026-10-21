@@ -11,7 +11,7 @@ Your Rotation.
   (30 s), with an alarm sound by default.
 - **Paladin seals**: in a fight with no seal up, the seal you used last glows (gold); none before you have used one. The game hides auras in combat,
   so a seal counts for its 30 seconds from your cast.
-- **Gathering**: a miner or a herbalist with no tracking on sees Find Minerals or Find Herbs glow (cyan). Any tracking
+- **Gathering**: a miner or a herbalist with no tracking on sees Find Minerals or Find Herbs glow (turquoise). Any tracking
   counts, so a hunter tracking beasts is left alone.
 - **Not on your bars**: a message names missing buffs you have learned but put on no action bar.
 - **Party buffs** (party, not raid; out of combat): a message names the members in range who miss one of your buffs

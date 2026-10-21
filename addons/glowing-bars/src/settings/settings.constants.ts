@@ -38,8 +38,8 @@ export const STYLE_DEFAULTS: { [key in ColorKey]: Style } = {
     weapon: { color: [1, 0.55, 0.1], opacity: 100, isTextOn: false, sound: "alarm2" },
     // The paladin's gold
     seal: { color: [1, 0.85, 0.2], opacity: 100, isTextOn: false, sound: "none" },
-    // #67FFF8, the cyan of the minimap's tracking
-    tracking: { color: [0.4, 1, 0.97], opacity: 100, isTextOn: false, sound: "none" },
+    // #1AA6BF, a deep turquoise: a lighter cyan glows almost white
+    tracking: { color: [0.1, 0.65, 0.75], opacity: 100, isTextOn: false, sound: "none" },
     cooldown: { color: [1, 1, 1], opacity: 100, isTextOn: false, sound: "none" },
     proc: { color: [1, 0.12, 0.08], opacity: 100, isTextOn: false, sound: "none" },
     rank: { color: [1, 0.85, 0.2], opacity: 50, isTextOn: true, sound: "alarm1" },
