@@ -62,6 +62,7 @@ export class NoticesService {
             "TEXT_WEAPON",
         );
         this.addKindLines(lines, "seal", reminders.seals, "TEXT_SEAL");
+        this.addKindLines(lines, "tracking", reminders.trackings, "TEXT_TRACKING");
         this.addKindLines(lines, "cooldown", reminders.readyCooldowns, "TEXT_COOLDOWN");
         this.addKindLines(lines, "proc", reminders.procs, "TEXT_PROC");
         this.addKindLines(

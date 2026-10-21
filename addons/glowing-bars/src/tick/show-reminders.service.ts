@@ -12,7 +12,7 @@ import type { Reminders } from "./tick.interface";
 /** One kind of reminder: the setting that switches it on, and the spells of the reminders that make it glow. */
 interface GlowKind {
     category: ColorKey;
-    isOnSetting: "showBuff" | "showWeapon" | "showSeals" | "showCooldowns" | "showProcs" | "showRanks" | "showReagents";
+    isOnSetting: "showBuff" | "showWeapon" | "showSeals" | "showTracking" | "showCooldowns" | "showProcs" | "showRanks" | "showReagents";
     findSpells: (this: void, reminders: Reminders) => number[];
 }
 
@@ -27,6 +27,7 @@ const KINDS: GlowKind[] = [
         ],
     },
     { category: "seal", isOnSetting: "showSeals", findSpells: (reminders) => reminders.seals },
+    { category: "tracking", isOnSetting: "showTracking", findSpells: (reminders) => reminders.trackings },
     { category: "cooldown", isOnSetting: "showCooldowns", findSpells: (reminders) => reminders.readyCooldowns },
     { category: "proc", isOnSetting: "showProcs", findSpells: (reminders) => reminders.procs },
     { category: "rank", isOnSetting: "showRanks", findSpells: (reminders) => reminders.outdatedRanks.map((rank) => rank.id) },

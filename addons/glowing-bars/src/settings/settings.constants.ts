@@ -19,6 +19,7 @@ export function createDefaultSettings(): AddonSettings {
         cooldownGlowSeconds: 3,
         showProcs: true,
         showSeals: true,
+        showTracking: true,
         styles: {},
         spellStyles: {},
         buffOn: {},
@@ -37,6 +38,8 @@ export const STYLE_DEFAULTS: { [key in ColorKey]: Style } = {
     weapon: { color: [1, 0.55, 0.1], opacity: 100, isTextOn: false, sound: "alarm2" },
     // The paladin's gold
     seal: { color: [1, 0.85, 0.2], opacity: 100, isTextOn: false, sound: "none" },
+    // #67FFF8, the cyan of the minimap's tracking
+    tracking: { color: [0.4, 1, 0.97], opacity: 100, isTextOn: false, sound: "none" },
     cooldown: { color: [1, 1, 1], opacity: 100, isTextOn: false, sound: "none" },
     proc: { color: [1, 0.12, 0.08], opacity: 100, isTextOn: false, sound: "none" },
     rank: { color: [1, 0.85, 0.2], opacity: 50, isTextOn: true, sound: "alarm1" },
@@ -47,10 +50,10 @@ export const STYLE_DEFAULTS: { [key in ColorKey]: Style } = {
 export const COOLDOWN_GLOW_CHOICES = [2, 3, 5, 10, 0];
 
 /** The kinds a spell can be added as, in the order the add button goes through them. */
-export const CUE_KINDS: CueKind[] = ["cooldown", "proc", "buff", "weapon", "reagent", "seal"];
+export const CUE_KINDS: CueKind[] = ["cooldown", "proc", "buff", "weapon", "reagent", "seal", "tracking"];
 
 /** The kinds in the order the tables list them. */
-export const KIND_ORDER: ColorKey[] = ["buff", "weapon", "seal", "reagent", "cooldown", "proc", "rank"];
+export const KIND_ORDER: ColorKey[] = ["buff", "weapon", "seal", "tracking", "reagent", "cooldown", "proc", "rank"];
 
 /** The part of a saved look that can be used: a sound that is no longer in the list, or a color that is no color, is dropped. */
 function repairStyle(style: StyleOverride | undefined): StyleOverride | undefined {

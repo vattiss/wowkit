@@ -1,5 +1,5 @@
 // The rows of the table of looks: the kinds of reminder (their default look), and the spells of the player's class that
-// can have a look of their own: the buffs, the weapon buffs, the seals, the cooldowns, the procs, the group buffs with a reagent, and
+// can have a look of their own: the buffs, the weapon buffs, the seals, the gathering trackings, the cooldowns, the procs, the group buffs with a reagent, and
 // every spell of the book that has ranks. Plain lists; the window draws them.
 import type { PlayerService, SpellsService } from "@wowkit/wow";
 import type { CustomCuesService } from "../glows/custom-cues.service";
@@ -9,6 +9,7 @@ import type { TextKey } from "../locale/texts.constants";
 import type { ReagentsService } from "../reagents/reagents.service";
 import type { ClassBuffsService } from "../reminders/class-buffs.service";
 import type { SealReminderService } from "../reminders/seal-reminder.service";
+import type { TrackingReminderService } from "../reminders/tracking-reminder.service";
 import type { WeaponChoiceService } from "../reminders/weapon/weapon-choice.service";
 import { CUE_KINDS, KIND_ORDER } from "../settings/settings.constants";
 import type { ColorKey } from "../settings/settings.interface";
@@ -32,6 +33,7 @@ export const KIND_TEXTS: { [kind in ColorKey]: TextKey } = {
     buff: "KIND_BUFF",
     weapon: "KIND_WEAPON",
     seal: "KIND_SEAL",
+    tracking: "KIND_TRACKING",
     cooldown: "KIND_COOLDOWN",
     proc: "KIND_PROC",
     rank: "KIND_RANK",
@@ -50,6 +52,7 @@ export class StyleRowsService {
         private readonly glowCues: GlowCuesService,
         private readonly customCues: CustomCuesService,
         private readonly sealReminder: SealReminderService,
+        private readonly trackingReminder: TrackingReminderService,
     ) {}
 
     /** The default look of each kind of reminder this character has spells of (a warrior has no weapon buff to remind of). */
@@ -88,6 +91,7 @@ export class StyleRowsService {
         for (const classBuff of this.classBuffs.getClassBuffs()) addListed("buff", classBuff.id);
         for (const entry of this.weaponChoice.getWeaponChoices()) addListed("weapon", entry.id);
         for (const id of this.sealReminder.listSeals()) addListed("seal", id);
+        for (const id of this.trackingReminder.listTrackings()) addListed("tracking", id);
         for (const kind of ["cooldown", "proc"] as const) {
             for (const id of this.glowCues.listBuiltInIds(kind)) addListed(kind, id);
         }

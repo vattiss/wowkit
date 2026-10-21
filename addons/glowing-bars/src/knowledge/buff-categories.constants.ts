@@ -2,7 +2,7 @@
 // armor), others pair a buff with its group version (Prayer of Fortitude counts as Fortitude).
 // The members are spell IDs; their names are read from the client, so the categories hold in every language. They are
 // matched by name, not by the aura's ID: the client often hides the aura ID in combat, and every rank has its own ID.
-import { Hunter as H, Mage as M, Paladin as P, Priest as Pr, Druid as D, Warlock as L } from "@wowkit/wow-data";
+import { Hunter as H, Mage as M, Paladin as P, Priest as Pr, Druid as D, Warlock as L, Tracking } from "@wowkit/wow-data";
 
 export interface BuffCategory {
     key: string;
@@ -53,6 +53,8 @@ export const BUFF_CATEGORIES: BuffCategory[] = [
         ],
         seconds: 30,
     },
+    // Only one tracking is on at a time; it lasts until another one is put on
+    { key: "tracking", members: Object.values(Tracking), seconds: 1800 },
     { key: "aspect", members: [H.AspectHawk, H.AspectMonkey, H.AspectWild, H.AspectCheetah, H.AspectPack, H.AspectBeast], seconds: 1800 },
     { key: "magearmor", members: [M.MageArmor, M.IceArmor, M.FrostArmor], seconds: 1800 },
     { key: "lockarmor", members: [L.DemonArmor, L.DemonSkin], seconds: 1800 },

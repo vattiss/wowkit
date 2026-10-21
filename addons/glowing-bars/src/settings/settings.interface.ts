@@ -2,7 +2,7 @@ import type { SettingsService, SoundKey } from "@wowkit/ui";
 import type { Rgb } from "@wowkit/wow";
 
 /** The kinds of reminder. Each has a look (color, opacity, message, sound) the player can change for the kind and for a spell. */
-export type ColorKey = "buff" | "weapon" | "seal" | "cooldown" | "proc" | "rank" | "reagent";
+export type ColorKey = "buff" | "weapon" | "seal" | "tracking" | "cooldown" | "proc" | "rank" | "reagent";
 
 /** The settings service of this addon: a SettingsService that knows the shape of its settings. */
 export type AddonSettingsService = SettingsService<AddonSettings>;
@@ -19,7 +19,7 @@ export interface Style {
 }
 
 /** The kinds a spell can be added as by the player: every kind but the old ranks, which are found for every spell. */
-export type CueKind = "buff" | "weapon" | "seal" | "reagent" | "cooldown" | "proc";
+export type CueKind = "buff" | "weapon" | "seal" | "tracking" | "reagent" | "cooldown" | "proc";
 
 /** A spell the player added by its ID. */
 export interface CustomCue {
@@ -53,6 +53,8 @@ export interface AddonSettings {
     showProcs: boolean;
     /** A paladin in a fight with no seal up. */
     showSeals: boolean;
+    /** A miner or a herbalist with no tracking on. */
+    showTracking: boolean;
     /** The player's changes to the look of each kind of reminder (the default look of its spells). */
     styles: { [key in ColorKey]?: StyleOverride };
     /** The player's changes to the look of one spell in one kind, by the kind and the spell's name ("rank:Smite"). */

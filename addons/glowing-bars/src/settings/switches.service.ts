@@ -12,6 +12,7 @@ const KIND_SWITCHES = {
     buff: "showBuff",
     weapon: "showWeapon",
     seal: "showSeals",
+    tracking: "showTracking",
     reagent: "showReagents",
     cooldown: "showCooldowns",
     proc: "showProcs",

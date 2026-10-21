@@ -15,3 +15,4 @@ import "./looks.spec";
 import "./table.spec";
 import "./table-spells.spec";
 import "./bars.spec";
+import "./gathering.spec";

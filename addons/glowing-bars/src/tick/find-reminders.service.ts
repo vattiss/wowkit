@@ -9,6 +9,7 @@ import type { OutdatedRanksService } from "../reminders/outdated-ranks.service";
 import type { ReagentsService } from "../reagents/reagents.service";
 import type { CustomRemindersService } from "../reminders/custom-reminders.service";
 import type { SealReminderService } from "../reminders/seal-reminder.service";
+import type { TrackingReminderService } from "../reminders/tracking-reminder.service";
 import type { PartyBuffsService } from "../reminders/party-buffs.service";
 import type { MissingBuffs, PartySuggestion } from "../reminders/reminders.interface";
 import type { WeaponReminderService } from "../reminders/weapon/weapon-reminder.service";
@@ -31,6 +32,7 @@ export class FindRemindersService {
         private readonly reagents: ReagentsService,
         private readonly customReminders: CustomRemindersService,
         private readonly sealReminder: SealReminderService,
+        private readonly trackingReminder: TrackingReminderService,
         private readonly settings: AddonSettingsService,
     ) {}
 
@@ -57,6 +59,7 @@ export class FindRemindersService {
             weaponSpell: weaponCheck?.isNeeded ? weaponCheck.spellId : undefined,
             customWeaponSpells: this.settings.get("showWeapon") ? this.customReminders.findWeaponSpells() : [],
             seals: this.sealReminder.findMissingSeal(),
+            trackings: this.trackingReminder.findMissingTrackings(),
             buffsNotOnBars: missingBuffs.notOnBars,
             partySuggestions,
             outdatedRanks: this.settings.get("showRanks") ? this.outdatedRanks.findOutdatedRanks() : [],
@@ -97,6 +100,7 @@ export class FindRemindersService {
             weaponSpell: undefined,
             customWeaponSpells: [],
             seals: [],
+            trackings: [],
             buffsNotOnBars: [],
             partySuggestions: [],
             outdatedRanks: [],

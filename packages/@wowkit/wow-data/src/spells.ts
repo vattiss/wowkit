@@ -437,6 +437,26 @@ export const Racial = {
     RapidRegeneration: 1260270,
 };
 
+/**
+ * The trackings: the gathering professions' (Find Minerals, Find Herbs), the dwarf's, the hunter's, the paladin's and the
+ * warlock's. Only one can be on at a time.
+ */
+export const Tracking = {
+    FindMinerals: 2580,
+    FindHerbs: 2383,
+    FindTreasure: 2481,
+    TrackBeasts: 1494,
+    TrackHumanoids: 19883,
+    TrackUndead: 19884,
+    TrackHidden: 19885,
+    TrackElementals: 19880,
+    TrackDemons: 19878,
+    TrackGiants: 19882,
+    TrackDragonkin: 19879,
+    SenseUndead: 5502,
+    SenseDemons: 5500,
+};
+
 /** The cures of the classes (the paladin's, the priest's and the druid's; the shaman's and mage's are in their tables). */
 export const Cure = {
     Cleanse: 4987,
@@ -544,6 +564,7 @@ export const SPELLS = {
     Racial,
     Rogue,
     Shaman,
+    Tracking,
     Warlock,
     Warrior,
 };
