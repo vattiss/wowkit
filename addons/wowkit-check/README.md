@@ -42,4 +42,5 @@ list of them).
 
 `src/id-check.service.ts` is the check, with no game calls of its own (it uses the services of `@wowkit/wow`); the lists
 it asks about are the tables of `@wowkit/wow-data`. `src/options/check-command.ts` is the slash command, the only part
-that touches the game. `src/id-tooltip.service.ts` adds the ID lines to the tooltips, through `TooltipService` of `@wowkit/wow`. The spec in `test/` runs the check against the fake game.
+that touches the game. `src/id-tooltip.service.ts` adds the ID lines to the tooltips, through `TooltipService` of
+`@wowkit/wow`. The specs in `test/` run the check and the tooltips against the fake game.
