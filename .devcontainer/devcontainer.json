@@ -1,0 +1,23 @@
+{
+  "name": "wowkit",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:1-24-bookworm",
+  "features": {
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1": {}
+  },
+  "onCreateCommand": "sudo apt-get update && sudo apt-get install -y luajit && corepack enable",
+  "postCreateCommand": "pnpm install --frozen-lockfile",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "anthropic.claude-code",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "sumneko.lua"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+      }
+    }
+  }
+}
