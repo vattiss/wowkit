@@ -71,6 +71,8 @@ export interface AddonSettings {
     barFaded: { [bar: string]: boolean | undefined };
     /** How visible the buttons of a faded bar are while they do not glow, in percent. */
     fadedOpacity: number;
+    /** The spell IDs in the spell and item tooltips, to add a spell by its ID in the table. */
+    showTooltipIds: boolean;
     /** The action bars (1 to 8) whose buttons do not glow; only set where the player switched one off. */
     barOff: { [bar: string]: boolean | undefined };
     /** Per-spell switches of the cooldown and proc glows (by spell ID); only set where the player switched one off. */

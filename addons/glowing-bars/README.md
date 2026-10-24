@@ -28,6 +28,8 @@ Your Rotation.
   cooldown in combat, the addon remembers the one it saw or started with a cast.
 - **Procs**: a spell glows while the game says it can be used: Overpower, Revenge, Execute, Victory Rush, Riposte,
   Counterattack, Mongoose Bite, Hammer of Wrath.
+- **Spell IDs in tooltips** (off by default): every spell tooltip shows its ID, and an elixir's, potion's or food's
+  tooltip the spell it casts, to add a spell by its ID in the table (`/gb`).
 - **Old ranks**: a spell on your action bars that is a lower rank than the one you know glows, quietly.
 - Quiet while dead, mounted, on a taxi, eating, or (optionally) resting in town.
 - The glow runs around the button; on the Settings page it can breathe (stand still, slowly fading out and in) or stand
