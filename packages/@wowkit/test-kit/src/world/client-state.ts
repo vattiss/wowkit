@@ -116,6 +116,8 @@ export interface ClientState {
     reagentTexts: { [spellId: number]: string | undefined };
     /** Item IDs by name, for an item the addon counts by its name. */
     itemIds: { [name: string]: number | undefined };
+    /** The spell an item casts when it is used (an elixir's use spell), by item ID. */
+    itemUseSpells: { [itemId: number]: number | undefined };
     level: number;
     /** The race: its ID (4 Night Elf) and the client's race file name. */
     race: { id: number; file: string };
@@ -163,6 +165,7 @@ export function createClientState(): ClientState {
         bags: {},
         reagentTexts: {},
         itemIds: {},
+        itemUseSpells: {},
         level: 60,
         race: { id: 1, file: "Human" },
         target: undefined,

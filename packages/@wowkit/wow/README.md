@@ -21,6 +21,7 @@ quirks (secret values, hidden auras, protected calls, remapped IDs) into plain a
 | `weapon-enchants.service.ts` | Weapon enchants and imbues, and the weapon tooltips. |
 | `value-curves.service.ts` | Glows that follow a value the client hides (health, mana): the client evaluates a curve over the hidden value, and the result is handed to a glow's opacity without being read. |
 | `glow.service.ts`, `notice.service.ts` | The glow on action buttons (in a color, with an opacity); sounds, chat lines, the notice. The notice is one frame shared by every addon that uses the service (`NoticeService(addonName)`): each addon owns a block of lines in it, and two messages stack instead of drawing over each other. |
+| `tooltip.service.ts` | Lines added to the tooltips of every spell or item, and the spell an item casts when it is used. |
 | `clock.service.ts` | The game's clock and timers. |
 | `saved-variables.service.ts` | The saved data of the character. |
 

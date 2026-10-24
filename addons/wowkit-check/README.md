@@ -20,6 +20,10 @@ loads an item name from the server on the first ask.
 
 The game writes the saved variable to disk on `/reload` or logout. It is account-wide: `WowkitCheckDB`.
 
+**IDs in the tooltips.** While the addon is enabled, every spell tooltip (the spellbook, the action bars, links) ends
+with `Spell ID: <id>`, and the tooltip of an item with a use (an elixir, a potion, food) with `Use spell ID: <id>`, the
+spell the item casts. It is how an ID is read off the game before it is written in wow-data.
+
 ## On this machine
 
 ```
@@ -38,4 +42,4 @@ list of them).
 
 `src/id-check.service.ts` is the check, with no game calls of its own (it uses the services of `@wowkit/wow`); the lists
 it asks about are the tables of `@wowkit/wow-data`. `src/options/check-command.ts` is the slash command, the only part
-that touches the game. The spec in `test/` runs the check against the fake game.
+that touches the game. `src/id-tooltip.service.ts` adds the ID lines to the tooltips, through `TooltipService` of `@wowkit/wow`. The spec in `test/` runs the check against the fake game.
