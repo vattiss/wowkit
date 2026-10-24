@@ -100,6 +100,11 @@ export interface ClientState {
     hasBartender: boolean;
     /** Dominos is loaded: its bars 2 and 3 (DominosActionButton13 to 24, MultiBarRightActionButton1 to 12, slots 13 to 36). */
     hasDominos: boolean;
+    /**
+     * EllesmereUI is loaded: its Action Bar 2 (EABButton61 to 72, slots 61 to 72) and its bar 9 (EABButton13 to 24, slots
+     * 13 to 24), made one second after the login, as EllesmereUI makes them after the addon's first map of the bars.
+     */
+    hasEllesmere: boolean;
     isResting: boolean;
     /** Inventory slot (16 main hand, 17 off hand) -> the temporary enchant on it. */
     enchants: { [slot: number]: FakeEnchant | undefined };
@@ -153,6 +158,7 @@ export function createClientState(): ClientState {
         gamepadClassSpell: undefined,
         hasBartender: false,
         hasDominos: false,
+        hasEllesmere: false,
         isResting: false,
         enchants: {},
         areEnchantReadsBroken: false,

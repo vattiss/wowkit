@@ -6,6 +6,11 @@ import type { ClockService } from "./clock.service";
 
 /** The bars are mapped again this long after the last change (changes come in bursts). */
 const BAR_SETTLE = 0.5;
+/**
+ * The bars are mapped again this long after the first login too: some bar addons make their buttons only after it
+ * (EllesmereUI one frame after the login, past the first map), and making a button fires no bar event.
+ */
+const LATE_BUTTONS_DELAY = 3;
 
 export class BarRefreshService {
     private generation = 0;
@@ -14,6 +19,11 @@ export class BarRefreshService {
         private readonly actionBars: ActionBarsService,
         private readonly clock: ClockService,
     ) {}
+
+    /** Bar addons that make their buttons late: map the bars again once they have. */
+    onFirstLogin(): void {
+        this.clock.runAfter(LATE_BUTTONS_DELAY, () => this.actionBars.mapBars(true));
+    }
 
     /** The bars changed: map them again once they settle. */
     @OnGameEvent("SPELL_PUSHED_TO_ACTIONBAR", "ACTIONBAR_SLOT_CHANGED", "ACTIONBAR_PAGE_CHANGED")

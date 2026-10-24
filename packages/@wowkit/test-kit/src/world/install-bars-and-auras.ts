@@ -22,6 +22,17 @@ const OTHER_BARS: [bar: string, firstSlot: number][] = [
     ["MultiBar7", 169],
 ];
 
+/**
+ * EllesmereUI's buttons (Blizzard's template: the slot in `action`), named after their bar's first slot. It makes them
+ * after the login: the world calls this then.
+ */
+export function installEllesmereButtons(state: ClientState, frames: FrameRegistry): void {
+    if (!state.hasEllesmere) return;
+    for (const first of [61, 13]) {
+        for (let i = 0; i < 12; i++) frames.create("CheckButton", `EABButton${first + i}`).action = first + i;
+    }
+}
+
 /** The bars of the action bar addons the test loads: Bartender4's and Dominos's first ones. */
 function installAddonBars(state: ClientState, frames: FrameRegistry): void {
     // Bartender4's buttons (LibActionButton keeps the slot in `action`, as Blizzard's buttons do)

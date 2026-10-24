@@ -27,7 +27,7 @@ a Settings page (*Options > AddOns*) and saves its settings per character.
 It replaces Buff Reminder, Rank Reminder and Reagent Reminder (and retires Know Your Rotation); their last releases
 (`1.0.2`) point here. Their code is in the history, at the tags `buff-reminder-v1.0.2` and so on.
 
-Only Blizzard's own action bars are supported.
+Blizzard's own action bars are supported, and Bartender4's, Dominos's and EllesmereUI's.
 
 ## Development
 

@@ -251,3 +251,38 @@ describe("a priest who plays with Dominos", () => {
         expect(world.glowsOnFrame("DominosActionButton13")).toBe(1);
     });
 });
+
+describe("a priest who plays with EllesmereUI", () => {
+    /** EllesmereUI's Action Bar 2 starts at its button 61 (slot 61); its bar 9, of no Blizzard bar, at button 13. */
+    const ELLESMERE_BAR_2_FIRST = 61;
+    const ELLESMERE_BAR_9_FIRST = 13;
+
+    function setUp(state: Parameters<Parameters<typeof createWorld>[0]>[0]): void {
+        playAs(state, PRIEST);
+        learnSpell(state, FORTITUDE);
+        state.hasEllesmere = true;
+        state.bars[ELLESMERE_BAR_2_FIRST] = FORTITUDE.id;
+        state.bars[ELLESMERE_BAR_9_FIRST] = FORTITUDE.id;
+    }
+
+    it("sees the missing buff glow on EllesmereUI's buttons, made after the login", () => {
+        const world = createWorld(setUp);
+        world.advance(5);
+        expect(world.glowsOn(ELLESMERE_BAR_2_FIRST, "EAB")).toBe(1);
+        expect(world.glowsOn(ELLESMERE_BAR_9_FIRST, "EAB")).toBe(1);
+    });
+
+    it("sees no glow on EllesmereUI's Action Bar 2 once Action Bar 2 is switched off; its bar 9 still glows", () => {
+        const world = createWorld(setUp, { barOff: { "2": true } });
+        world.advance(5);
+        expect(world.glowsOn(ELLESMERE_BAR_2_FIRST, "EAB")).toBe(0);
+        expect(world.glowsOn(ELLESMERE_BAR_9_FIRST, "EAB")).toBe(1);
+    });
+
+    it("fades EllesmereUI's Action Bar 2 with Action Bar 2", () => {
+        const world = createWorld(setUp, { barFaded: { "2": true } });
+        world.advance(5);
+        const other = world.findFrame((frame) => frame.name === `EABButton${ELLESMERE_BAR_2_FIRST + 1}`)!;
+        expect(other.alpha).toBe(0.5);
+    });
+});
