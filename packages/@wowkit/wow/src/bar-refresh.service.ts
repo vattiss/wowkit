@@ -1,28 +1,43 @@
 // Keeps the map of the action bars fresh. The bars change in bursts (a form, a stance, a page, a slot), so they are
 // mapped again once the changes settle.
-import { OnEvent, OnGameEvent } from "@wowkit/core";
+import { Interval, OnEvent, OnGameEvent } from "@wowkit/core";
 import type { ActionBarsService } from "./action-bars.service";
+import { listAddonButtonNames } from "./bar-names";
 import type { ClockService } from "./clock.service";
+import { attempt } from "./utils/protected-call.utils";
 
 /** The bars are mapped again this long after the last change (changes come in bursts). */
 const BAR_SETTLE = 0.5;
 /**
- * The bars are mapped again this long after the first login too: some bar addons make their buttons only after it
- * (EllesmereUI one frame after the login, past the first map), and making a button fires no bar event.
+ * How often the buttons of the bar addons are counted: they make buttons with no bar event (EllesmereUI after the login,
+ * past the first map of the bars, and a bar switched on in its options), so a new count maps the bars again.
  */
-const LATE_BUTTONS_DELAY = 3;
+const BUTTON_COUNT_INTERVAL_MS = 2000;
 
 export class BarRefreshService {
     private generation = 0;
+    /** How many buttons of the bar addons there were when last counted. */
+    private addonButtonCount = 0;
+    private readonly addonButtonNames = listAddonButtonNames();
 
     constructor(
         private readonly actionBars: ActionBarsService,
         private readonly clock: ClockService,
     ) {}
 
-    /** Bar addons that make their buttons late: map the bars again once they have. */
+    /** The buttons of the bar addons as the first map of the bars finds them. */
     onFirstLogin(): void {
-        this.clock.runAfter(LATE_BUTTONS_DELAY, () => this.actionBars.mapBars(true));
+        this.addonButtonCount = this.countAddonButtons();
+    }
+
+    /** New buttons of a bar addon: map the bars again. No button can be made in a fight, so none is looked for then. */
+    @Interval(BUTTON_COUNT_INTERVAL_MS)
+    checkForNewButtons(): void {
+        if (attempt(InCombatLockdown) === true) return;
+        const count = this.countAddonButtons();
+        if (count === this.addonButtonCount) return;
+        this.addonButtonCount = count;
+        this.actionBars.mapBars(true);
     }
 
     /** The bars changed: map them again once they settle. */
@@ -41,5 +56,12 @@ export class BarRefreshService {
     @OnEvent("spells.refreshed")
     scheduleRemapAfterSpellRefresh(): void {
         this.scheduleBarRemap();
+    }
+
+    private countAddonButtons(): number {
+        const globals = _G as unknown as { [name: string]: unknown };
+        let count = 0;
+        for (const name of this.addonButtonNames) if (globals[name] !== undefined) count++;
+        return count;
     }
 }

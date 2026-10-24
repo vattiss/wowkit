@@ -54,7 +54,11 @@ function loadAddon(): void {
     (chunk as (...args: unknown[]) => unknown)(config.addonName, {});
 }
 
+/** The frames of the last world: their names are globals, which the next world takes away (a frame only it made stays gone). */
+let lastFrames: FakeFrame[] = [];
+
 export function createWorld(setup: (state: ClientState) => void, savedSettings?: Record<string, unknown>): World {
+    for (const frame of lastFrames) if (frame.name !== undefined) clearGlobal(frame.name);
     clearGlobal(config.savedVariables);
     // The notice area of the earlier world is gone with its frames
     clearGlobal("WowkitNotices");
@@ -64,6 +68,7 @@ export function createWorld(setup: (state: ClientState) => void, savedSettings?:
     setup(state);
     const clock = createClock();
     const frames = createFrameRegistry();
+    lastFrames = frames.all;
     const chat: string[] = [];
     const sounds: number[] = [];
     const proxySettings: ProxySettings = {};
