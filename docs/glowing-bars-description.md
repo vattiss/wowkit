@@ -2,6 +2,8 @@
 
 **Your action bars light up for what you forgot.** No window, no bars of its own: the button you should press glows, right where you would press it anyway. Made for World of Warcraft: Forever.
 
+[**Video**](https://www.youtube.com/watch?v=SRTQNBTOY_A)
+
 ## 🎮 Now with gamepad support (alpha)
 
 Play with a controller? The glows also show on **Forever's own gamepad bars**, the class button included. Round buttons get a round glow of their own, with their own animation setting. It's new, so please tell me what you see.
