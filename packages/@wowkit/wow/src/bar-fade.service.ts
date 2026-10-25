@@ -35,7 +35,10 @@ export class BarFadeService {
         }
     }
 
-    /** The buttons of a bar (1 the main bar, 2 to 8 the others): Blizzard's, and Bartender4's, Dominos's and EllesmereUI's of the same number. */
+    /**
+     * The buttons of a bar (1 the main bar, 2 to 8 the others): Blizzard's, and Bartender4's, Dominos's and EllesmereUI's
+     * of the same number.
+     */
     private listBarButtons(bar: number): ActionButton[] {
         const globals = _G as unknown as { [name: string]: ActionButton | undefined };
         const buttons: ActionButton[] = [];

@@ -23,10 +23,10 @@ const OTHER_BARS: [bar: string, firstSlot: number][] = [
 ];
 
 /**
- * EllesmereUI's buttons (Blizzard's template: the slot in `action`), named after their bar's first slot. It makes them
- * after the login: the world calls this then.
+ * The buttons a bar addon makes after the login, past the first map of the bars (installAddonBars' are there before it):
+ * the world calls this then. EllesmereUI's (Blizzard's template: the slot in `action`), named after their bar's first slot.
  */
-export function installEllesmereButtons(state: ClientState, frames: FrameRegistry): void {
+export function installLateAddonButtons(state: ClientState, frames: FrameRegistry): void {
     if (!state.hasEllesmere) return;
     for (const first of [61, 13]) {
         for (let i = 0; i < 12; i++) frames.create("CheckButton", `EABButton${first + i}`).action = first + i;

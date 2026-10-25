@@ -283,7 +283,10 @@ export class ActionBarsService implements OnFirstLogin {
         return found;
     }
 
-    /** Every button to map: the bars' (Blizzard's, the totem bar, Bartender4's, Dominos's, EllesmereUI's, the gamepad bars), then the stances. */
+    /**
+     * Every button to map: the bars' (Blizzard's, the totem bar, Bartender4's, Dominos's, EllesmereUI's, the gamepad
+     * bars), then the stances.
+     */
     private listButtonsToMap(): QueueEntry[] {
         const queue: QueueEntry[] = [];
         const add = (name: string) => {

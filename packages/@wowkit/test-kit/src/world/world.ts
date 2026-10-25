@@ -7,7 +7,7 @@ import { clearGlobal, readGlobal, defineValues } from "./define";
 import { createFrameRegistry, type FakeFrame } from "./frames";
 import { installClock } from "./install-clock";
 import { installCurves } from "./install-curves";
-import { installActionBars, installAuras, installEllesmereButtons } from "./install-bars-and-auras";
+import { installActionBars, installAuras, installLateAddonButtons } from "./install-bars-and-auras";
 import { installItems } from "./install-items";
 import { installSpells } from "./install-spells";
 import { installUi, type ProxySettings } from "./install-ui";
@@ -88,7 +88,7 @@ export function createWorld(setup: (state: ClientState) => void, savedSettings?:
     frames.fire("PLAYER_ENTERING_WORLD", true, false);
     clock.advance(1);
     // A bar addon that makes its buttons after the addon's first map of the bars
-    installEllesmereButtons(state, frames);
+    installLateAddonButtons(state, frames);
 
     return {
         state,

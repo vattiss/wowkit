@@ -1,6 +1,6 @@
 // Keeps the map of the action bars fresh. The bars change in bursts (a form, a stance, a page, a slot), so they are
 // mapped again once the changes settle.
-import { Interval, OnEvent, OnGameEvent } from "@wowkit/core";
+import { Interval, OnEvent, OnGameEvent, type OnFirstLogin } from "@wowkit/core";
 import type { ActionBarsService } from "./action-bars.service";
 import { listAddonButtonNames } from "./bar-names";
 import type { ClockService } from "./clock.service";
@@ -14,7 +14,7 @@ const BAR_SETTLE = 0.5;
  */
 const BUTTON_COUNT_INTERVAL_MS = 2000;
 
-export class BarRefreshService {
+export class BarRefreshService implements OnFirstLogin {
     private generation = 0;
     /** How many buttons of the bar addons there were when last counted. */
     private addonButtonCount = 0;
