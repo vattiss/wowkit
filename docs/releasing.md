@@ -13,6 +13,9 @@ project 1751392), `rank-reminder-v1.0.2` (1751395), `reagent-reminder-v1.0.2` (1
 
 The project ID is the `## X-Curse-Project-ID` line of the addon's TOC.
 
+The text of Glowing Bars' project page, the same on CurseForge and on Wago, is kept in
+[glowing-bars-description.md](glowing-bars-description.md): change it there first, then paste it on both sites.
+
 ## Releasing
 
 1. Set the new `version` in `addons/<addon>/package.json` (it goes into the TOC), write the release notes in

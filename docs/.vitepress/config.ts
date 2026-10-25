@@ -42,7 +42,10 @@ export default withMermaid(
                 },
                 {
                     text: "Working on it",
-                    items: [{ text: "Releasing an addon", link: "/releasing" }],
+                    items: [
+                        { text: "Releasing an addon", link: "/releasing" },
+                        { text: "Glowing Bars project page text", link: "/glowing-bars-description" },
+                    ],
                 },
                 {
                     text: "Reference",
