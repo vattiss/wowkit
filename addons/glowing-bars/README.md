@@ -28,8 +28,6 @@ Your Rotation.
   cooldown in combat, the addon remembers the one it saw or started with a cast.
 - **Procs**: a spell glows while the game says it can be used: Overpower, Revenge, Execute, Victory Rush, Riposte,
   Counterattack, Mongoose Bite, Hammer of Wrath.
-- **Spell IDs in tooltips** (off by default): every spell tooltip shows its ID, and an elixir's, potion's or food's
-  tooltip the spell it casts, to add a spell by its ID in the table (`/gb`).
 - **Old ranks**: a spell on your action bars that is a lower rank than the one you know glows, quietly.
 - Quiet while dead, mounted, on a taxi, eating, or (optionally) resting in town.
 - The glow runs around the button; on the Settings page it can breathe (stand still, slowly fading out and in) or stand
@@ -46,11 +44,13 @@ buff on no bar and the party members who miss one) and the reagent message are t
 It opens with `/gb` or from the Settings page, and shows only the kinds your character has spells of. Its Enabled column
 switches a whole kind or a single spell on and off. There you can also fix the spell ID of a spell of the lists, and add
 spells of your own by their ID, as any type but an old rank (those are found for every spell), a seal of Forever too; a kind the game says is
-wrong for the spell is refused or put right. Like the other settings, the looks are kept per character.
+wrong for the spell is refused or put right. To find a spell's ID, switch on the spell IDs in the tooltips on the Settings
+page: every spell tooltip then shows its ID, and an elixir's, potion's or food's the spell it casts. Like the other
+settings, the looks are kept per character.
 
-Settings (per character): *Options > AddOns > Glowing Bars*: the button that opens the table of looks, the action bars
-that glow, the party buff message, the weapon buff to keep up, when the cooldowns glow, and a Help section with links to
-report problems. Blizzard's own action bars are supported, Forever's gamepad bars, and Bartender4's and Dominos's bars (their bar N counts as Action Bar N).
+Settings (per character): *Options > AddOns > Glowing Bars*: the button that opens the table of looks, the spell IDs in
+the tooltips (off by default), the action bars that glow, the party buff message, the weapon buff to keep up, when the
+cooldowns glow, and a Help section with links to report problems. Blizzard's own action bars are supported, Forever's gamepad bars, and Bartender4's and Dominos's bars (their bar N counts as Action Bar N).
 
 How the code is organised: [src/](src/addon.ts), and [docs/architecture.md](../../docs/architecture.md). The old
 addons are in the history, at the tags `buff-reminder-v1.0.2`, `rank-reminder-v1.0.2`, `reagent-reminder-v1.0.2` and

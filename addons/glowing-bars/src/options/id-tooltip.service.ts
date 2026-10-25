@@ -2,11 +2,12 @@
 // spellbook, the action bars, links) gets "Spell ID", and an item with a use (an elixir, a potion, food) the spell it
 // casts. Off by default; the Settings page switches it on. The game has no way to take a tooltip call back, so a
 // switched-off one adds no line.
+import type { OnAddonLoaded } from "@wowkit/core";
 import type { TooltipService } from "@wowkit/wow";
 import type { AddonLocale } from "../locale/locale.interface";
 import type { AddonSettingsService } from "../settings/settings.interface";
 
-export class IdTooltipService {
+export class IdTooltipService implements OnAddonLoaded {
     constructor(
         private readonly tooltips: TooltipService,
         private readonly settings: AddonSettingsService,
