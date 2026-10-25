@@ -8,9 +8,9 @@
 
 Play with a controller? The glows also show on **Forever's own gamepad bars**, the class button included. Round buttons get a round glow of their own, with their own animation setting. It's new, so please tell me what you see.
 
-## 🧩 Works with Bartender4 and Dominos
+## 🧩 Works with Bartender4, Dominos and EllesmereUI
 
-Use **Bartender4** or **Dominos** for your bars? The glows show on their buttons too, their stance bar included. Their bar 1 to 8 counts as Action Bar 1 to 8, so the bar switches and the faded bars work on them as well.
+Use **Bartender4**, **Dominos** or **EllesmereUI** for your bars? The glows show on their buttons too, their stance bar included. Their bar 1 to 8 counts as Action Bar 1 to 8, so the bar switches and the faded bars work on them as well.
 
 ## What glows
 
@@ -43,7 +43,7 @@ The defaults: buffs blue, weapon buffs orange, seals gold, gathering turquoise, 
 On the Settings page (_Options > AddOns > Glowing Bars_):
 
 *   **Glow animation**: circling (Blizzard's own), breathing, or none
-*   **Action bars that glow**: turn any of the eight bars off (Bartender4's and Dominos's too)
+*   **Action bars that glow**: turn any of the eight bars off (Bartender4's, Dominos's and EllesmereUI's too)
 *   **Faded until they glow**: bars 2 to 8 stay faint until one of their buttons glows, so a bar in the middle of your screen shows only what's due
 *   The weapon buff to keep up, the party buff message, and when cooldowns glow
 
@@ -51,7 +51,7 @@ All settings are kept per character.
 
 ## Good to know
 
-*   Works with Blizzard's own action bars, Forever's gamepad bars, Bartender4 and Dominos.
+*   Works with Blizzard's own action bars, Forever's gamepad bars, Bartender4, Dominos and EllesmereUI.
 *   In combat the game hides some things from addons (your auras, some cooldowns). Glowing Bars remembers what it saw and what you cast, so it keeps working, but if something does not glow when it should, please tell me.
 
 ## Feedback
