@@ -36,7 +36,7 @@ Type **/gb** to open the table. Every kind of reminder has the same settings, an
 *   **Sound**, from a short list of game sounds
 *   **Enabled**: turn a whole kind, or one spell, on or off
 
-In the same table you can **add your own spells by their ID**, as any kind, or fix the ID of a listed spell if the game uses another one. A new spell of Forever the addon doesn't know yet is a few clicks away.
+In the same table you can **add your own spells by their ID**, as any kind, or fix the ID of a listed spell if the game uses another one. A new spell of Forever the addon doesn't know yet is a few clicks away. To find a spell's ID, turn on **Spell IDs in tooltips**.
 
 The defaults: buffs blue, weapon buffs orange, seals gold, gathering turquoise, cooldowns white, procs red, old ranks and low reagents a quieter yellow. Only the old ranks show a message by default; the glow is the reminder.
 
@@ -45,6 +45,7 @@ On the Settings page (_Options > AddOns > Glowing Bars_):
 *   **Glow animation**: circling (Blizzard's own), breathing, or none
 *   **Action bars that glow**: turn any of the eight bars off (Bartender4's and Dominos's too)
 *   **Faded until they glow**: bars 2 to 8 stay faint until one of their buttons glows, so a bar in the middle of your screen shows only what's due
+*   **Spell IDs in tooltips** (off by default): every spell's tooltip shows its ID, and an elixir's, potion's or food's the spell it casts
 *   The weapon buff to keep up, the party buff message, and when cooldowns glow
 
 All settings are kept per character.
