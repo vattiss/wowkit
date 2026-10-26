@@ -28,15 +28,15 @@ It stays quiet while you are dead, mounted, on a taxi or eating, and (if you lik
 
 ## Make it yours
 
-Type **/gb** to open the table. Every kind of reminder has the same settings, and every spell of your class can have its own:
+Type **/gb** to open the table. Every reminder type has the same settings, and every spell of your class can have its own:
 
 *   **Color** of the glow and of the message
 *   **Glow opacity**, 1 to 100 %
 *   **Message** at the top of the screen, on or off
 *   **Sound**, from a short list of game sounds
-*   **Enabled**: turn a whole kind, or one spell, on or off
+*   **Enabled**: turn a whole type, or one spell, on or off
 
-In the same table you can **add your own spells by their ID**, as any kind, or fix the ID of a listed spell if the game uses another one. A new spell of Forever the addon doesn't know yet is a few clicks away. To find a spell's ID, turn on **Spell IDs in tooltips**.
+In the same table you can **add your own spells by their ID**, as any type, or fix the ID of a listed spell if the game uses another one. A new spell of Forever the addon doesn't know yet is a few clicks away. To find a spell's ID, turn on **Spell IDs in tooltips**.
 
 The defaults: buffs blue, weapon buffs orange, seals gold, gathering turquoise, cooldowns white, procs red, old ranks and low reagents a quieter yellow. Only the old ranks show a message by default; the glow is the reminder.
 
