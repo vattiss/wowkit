@@ -3,14 +3,14 @@
 //
 // Forever rules: never call C_TooltipInfo.GetAction while mapping the bars (tooltips froze the
 // client when many slots updated after a quest turn-in), and map the bars a few buttons per frame.
-// The client's own bars are mapped (Blizzard's, and the gamepad bars Forever draws in its gamepad mode), and Bartender4's
-// and Dominos's: their buttons keep their action slot where Blizzard's do.
+// The client's own bars are mapped (Blizzard's, and the gamepad bars Forever draws in its gamepad mode), and Bartender4's,
+// Dominos's and EllesmereUI's: their buttons keep their action slot where Blizzard's do.
 import { type EventBus, type OnFirstLogin, trimText } from "@wowkit/core";
 import type { ClockService } from "./clock.service";
 import { attempt, attemptMulti } from "./utils/protected-call.utils";
 import { getReadableId, isReadable } from "./utils/secret-value.utils";
 import type { SpellsService } from "./spells.service";
-import { BARS, BARTENDER_BUTTONS, BARTENDER_PREFIX, DOMINOS_BUTTONS, findBarNumber, getDominosButtonName } from "./bar-names";
+import { BARS, findBarNumber, listAddonButtonNames } from "./bar-names";
 
 declare module "@wowkit/core/event-bus" {
     interface AppEvents {
@@ -283,7 +283,10 @@ export class ActionBarsService implements OnFirstLogin {
         return found;
     }
 
-    /** Every button to map: the bars' (Blizzard's, the totem bar, Bartender4's, the gamepad bars), then the stances. */
+    /**
+     * Every button to map: the bars' (Blizzard's, the totem bar, Bartender4's, Dominos's, EllesmereUI's, the gamepad
+     * bars), then the stances.
+     */
     private listButtonsToMap(): QueueEntry[] {
         const queue: QueueEntry[] = [];
         const add = (name: string) => {
@@ -293,8 +296,7 @@ export class ActionBarsService implements OnFirstLogin {
         for (const bar of BARS) for (let i = 1; i <= 12; i++) add(`${bar}Button${i}`);
         // The shaman's totem bar: its buttons are action buttons too
         for (let i = 1; i <= 12; i++) add(`MultiCastActionButton${i}`);
-        for (let i = 1; i <= BARTENDER_BUTTONS; i++) add(`${BARTENDER_PREFIX}${i}`);
-        for (let i = 1; i <= DOMINOS_BUTTONS; i++) add(getDominosButtonName(i)!);
+        for (const name of listAddonButtonNames()) add(name);
         for (const button of this.listGamepadButtons()) {
             queue.push(this.getActionSlot(button) === undefined ? { spellButton: button } : { button });
         }

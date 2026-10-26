@@ -50,7 +50,9 @@ settings, the looks are kept per character.
 
 Settings (per character): *Options > AddOns > Glowing Bars*: the button that opens the table of looks, the spell IDs in
 the tooltips (off by default), the action bars that glow, the party buff message, the weapon buff to keep up, when the
-cooldowns glow, and a Help section with links to report problems. Blizzard's own action bars are supported, Forever's gamepad bars, and Bartender4's and Dominos's bars (their bar N counts as Action Bar N).
+cooldowns glow, and a Help section with links to report problems. Blizzard's own action bars are supported, Forever's
+gamepad bars, and Bartender4's, Dominos's and EllesmereUI's bars (their bar N counts as Action Bar N; EllesmereUI's
+bars 9 and 10 glow, but have no switch of their own).
 
 How the code is organised: [src/](src/addon.ts), and [docs/architecture.md](../../docs/architecture.md). The old
 addons are in the history, at the tags `buff-reminder-v1.0.2`, `rank-reminder-v1.0.2`, `reagent-reminder-v1.0.2` and

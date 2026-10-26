@@ -7,7 +7,7 @@ import { clearGlobal, readGlobal, defineValues } from "./define";
 import { createFrameRegistry, type FakeFrame } from "./frames";
 import { installClock } from "./install-clock";
 import { installCurves } from "./install-curves";
-import { installActionBars, installAuras } from "./install-bars-and-auras";
+import { installActionBars, installAuras, installLateAddonButtons } from "./install-bars-and-auras";
 import { installItems } from "./install-items";
 import { installTooltips, type TooltipKind } from "./install-tooltips";
 import { installSpells } from "./install-spells";
@@ -57,7 +57,11 @@ function loadAddon(): void {
     (chunk as (...args: unknown[]) => unknown)(config.addonName, {});
 }
 
+/** The frames of the last world: their names are globals, which the next world takes away (a frame only it made stays gone). */
+let lastFrames: FakeFrame[] = [];
+
 export function createWorld(setup: (state: ClientState) => void, savedSettings?: Record<string, unknown>): World {
+    for (const frame of lastFrames) if (frame.name !== undefined) clearGlobal(frame.name);
     clearGlobal(config.savedVariables);
     // The notice area of the earlier world is gone with its frames
     clearGlobal("WowkitNotices");
@@ -67,6 +71,7 @@ export function createWorld(setup: (state: ClientState) => void, savedSettings?:
     setup(state);
     const clock = createClock();
     const frames = createFrameRegistry();
+    lastFrames = frames.all;
     const chat: string[] = [];
     const sounds: number[] = [];
     const proxySettings: ProxySettings = {};
@@ -86,6 +91,8 @@ export function createWorld(setup: (state: ClientState) => void, savedSettings?:
     frames.fire("PLAYER_LOGIN");
     frames.fire("PLAYER_ENTERING_WORLD", true, false);
     clock.advance(1);
+    // A bar addon that makes its buttons after the addon's first map of the bars
+    installLateAddonButtons(state, frames);
 
     return {
         state,
