@@ -37,6 +37,12 @@ export class RemindersPage implements OptionsPage {
             () => this.table.toggle(),
             this.locale.getText("TIP_TABLE"),
         );
+        this.controls.addSwitchCheckbox(
+            category,
+            "showTooltipIds",
+            this.locale.getText("OPT_TOOLTIP_IDS"),
+            this.locale.getText("TIP_TOOLTIP_IDS"),
+        );
 
         this.glowStyleSection.addGlowStyleSection(category);
 

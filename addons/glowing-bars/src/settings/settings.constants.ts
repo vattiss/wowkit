@@ -28,6 +28,7 @@ export function createDefaultSettings(): AddonSettings {
         barOff: {},
         barFaded: {},
         fadedOpacity: 50,
+        showTooltipIds: false,
         idOverrides: {},
         customCues: [],
         reagentOn: {},

@@ -19,9 +19,10 @@ interface AuraData {
     isStealable: boolean;
 }
 
-/** C_TooltipInfo result. */
+/** C_TooltipInfo result; also what the tooltip data processor hands to its calls (`id` is the spell or item ID). */
 interface TooltipData {
     lines: { leftText?: string; rightText?: string }[];
+    id?: number;
 }
 
 declare function GetActionInfo(
@@ -174,6 +175,12 @@ declare const ColorPickerFrame: Frame & {
 
 interface GameTooltip {
     SetOwner(owner: Frame, anchor: string): void;
+    AddLine(text: string, red?: number, green?: number, blue?: number, wrapText?: boolean): void;
+}
+
+/** The game's tooltip data processor: calls made after a tooltip of a kind (a spell, an item) is filled. */
+declare namespace TooltipDataProcessor {
+    function AddTooltipPostCall(dataType: Enum.TooltipDataType, call: (this: void, tooltip: GameTooltip, data: TooltipData) => void): void;
 }
 
 /** The game's own tooltip. */

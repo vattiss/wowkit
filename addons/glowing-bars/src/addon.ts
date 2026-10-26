@@ -30,6 +30,7 @@ import {
     SpellDetailsService,
     SpellRefreshService,
     SpellsService,
+    TooltipService,
     WeaponEnchantsService,
 } from "@wowkit/wow";
 import { AuraWatchService } from "./character/aura-watch.service";
@@ -47,6 +48,7 @@ import { TEXTS } from "./locale/texts.constants";
 import { BarsSection } from "./options/bars.section";
 import { GlowStyleSection } from "./options/glow-style.section";
 import { GlowsSection } from "./options/glows.section";
+import { IdTooltipService } from "./options/id-tooltip.service";
 import { ReminderControlsService } from "./options/reminder-controls.service";
 import { StyleChoicesService } from "./options/style-choices.service";
 import { StyleEditsService } from "./options/style-edits.service";
@@ -111,6 +113,7 @@ function makeGame(addon: Addon, addonName: string) {
     const glow = addon.register(new GlowService(actionBars));
     const barFade = addon.register(new BarFadeService(glow));
     const notice = addon.register(new NoticeService(addonName));
+    const tooltips = addon.register(new TooltipService());
     return {
         clock,
         player,
@@ -127,6 +130,7 @@ function makeGame(addon: Addon, addonName: string) {
         glow,
         barFade,
         notice,
+        tooltips,
     };
 }
 type Game = ReturnType<typeof makeGame>;
@@ -264,6 +268,7 @@ function makeOptions(addon: Addon, addonName: string, game: Game, texts: Texts, 
         new WidgetsService(messages, { copy: locale.getText("INFO_COPY"), copied: locale.getText("INFO_COPIED") }),
     );
     const reminderControls = addon.register(new ReminderControlsService(controls, locale));
+    addon.register(new IdTooltipService(game.tooltips, settings, locale));
     const weaponSection = addon.register(
         new WeaponSection(locale, game.spells, reminders.weaponChoice, settings, controls, reminderControls),
     );
