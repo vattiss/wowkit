@@ -19,6 +19,7 @@ export * from "./spell-book.service";
 export * from "./spell-cast.service";
 export * from "./spell-details.service";
 export * from "./spells.service";
+export * from "./tooltip.service";
 export * from "./totems.service";
 export * from "./units.service";
 export * from "./value-curves.service";

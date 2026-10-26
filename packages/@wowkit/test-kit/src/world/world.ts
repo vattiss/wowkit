@@ -9,6 +9,7 @@ import { installClock } from "./install-clock";
 import { installCurves } from "./install-curves";
 import { installActionBars, installAuras, installLateAddonButtons } from "./install-bars-and-auras";
 import { installItems } from "./install-items";
+import { installTooltips, type TooltipKind } from "./install-tooltips";
 import { installSpells } from "./install-spells";
 import { installUi, type ProxySettings } from "./install-ui";
 import { installUnits } from "./install-units";
@@ -42,6 +43,8 @@ export interface World {
     glowAlphasOn(button: number): number[];
     /** The text of the notice at the top of the screen; empty when it is not showing. */
     notice(): string;
+    /** The lines the addon adds to the tooltip of a spell or an item (the player points at it); an ID of undefined is a tooltip without one. */
+    tooltipLines(kind: TooltipKind, id: number | undefined): string[];
     /** What the addon keeps in the character's saved variables. */
     getSavedSettings(): Record<string, unknown> | undefined;
     findFrame(matches: (frame: FakeFrame) => boolean): FakeFrame | undefined;
@@ -80,6 +83,7 @@ export function createWorld(setup: (state: ClientState) => void, savedSettings?:
     installActionBars(state, frames);
     installAuras(state);
     installItems(state, sounds);
+    const tooltips = installTooltips();
     installCurves(state);
 
     loadAddon();
@@ -122,6 +126,7 @@ export function createWorld(setup: (state: ClientState) => void, savedSettings?:
                 .filter((frame) => frame.parent === buttonFrame && frame.template === "ActionButtonSpellAlertTemplate" && frame.isShown)
                 .map((frame) => frame.alpha);
         },
+        tooltipLines: (kind, id) => tooltips.show(kind, id),
         notice() {
             const shared = readGlobal("WowkitNotices") as { frame: FakeFrame; text: FakeFrame } | undefined;
             return shared?.frame.isShown ? (shared.text.text ?? "") : "";

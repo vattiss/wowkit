@@ -59,6 +59,7 @@ export function installUi(frames: FrameRegistry, chat: string[], proxySettings: 
             ItemClass: { Weapon: 2 },
             PowerType: { Mana: 0, Rage: 1, Focus: 2, Energy: 3, ComboPoints: 4 },
             LuaCurveType: { Linear: 0, Step: 1, Cosine: 2 },
+            TooltipDataType: { Item: 0, Spell: 1 },
         },
     });
 

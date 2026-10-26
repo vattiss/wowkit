@@ -8,3 +8,4 @@ export * from "./world/basic-game";
 export { GAMEPAD_BAR, TOTEM_BAR_FIRST_SLOT } from "./world/install-bars-and-auras";
 export type { FakeColorPicker } from "./world/install-ui";
 export type { FakeFrame } from "./world/frames";
+export type { TooltipKind } from "./world/install-tooltips";

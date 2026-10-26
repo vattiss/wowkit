@@ -74,10 +74,15 @@ export const TEXTS = {
     TIP_ID_EDIT:
         "The spell ID the addon looks for. Change it if the game uses a different ID for this spell, e.g. after a patch the addon hasn't caught up with yet.",
     TIP_ADD_ID:
-        "Add a spell the addon doesn't know yet by its ID (you can find it on Wowhead), e.g. a new or changed spell of Forever. Pick its type with the button next to it.",
+        "Add a spell the addon doesn't know yet by its ID, e.g. a new or changed spell of Forever. Pick its type with the button next to it. To see a spell's ID in its tooltip, turn on \"Show spell IDs in tooltips\" in the Settings (Options > AddOns > Glowing Bars).",
     TIP_ID_RANK: "Old ranks are checked using the spells on your action bars and in your spellbook, so this ID can't be changed.",
     TIP_ENABLED_SPELL: "Turns the reminder for this spell on or off.",
     HDR_TABLE_ADD: "Add a spell by ID",
+    OPT_TOOLTIP_IDS: "Show spell IDs in tooltips",
+    TIP_TOOLTIP_IDS:
+        "Adds the ID to every spell tooltip (spellbook, action bars, links), and to the tooltip of an item with a use (an elixir, a potion, food) the ID of the spell it casts. Handy to add a spell by its ID in the table.",
+    TOOLTIP_SPELL_ID: "Spell ID: %d",
+    TOOLTIP_USE_SPELL_ID: "Use spell ID: %d",
     BTN_ADD: "Add",
     MSG_UNKNOWN_SPELL: "No spell found with ID %d.",
     MSG_ALREADY_LISTED: "%s is already in the list.",

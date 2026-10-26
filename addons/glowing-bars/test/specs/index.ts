@@ -16,3 +16,4 @@ import "./table.spec";
 import "./table-spells.spec";
 import "./bars.spec";
 import "./gathering.spec";
+import "./id-tooltip.spec";
