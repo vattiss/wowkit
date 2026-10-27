@@ -1,6 +1,6 @@
 // GENERATED FILE - do not edit. Regenerate with "pnpm gen:types".
 // Type names the documentation references but never defines.
-// Source: https://github.com/Gethe/wow-ui-source.git (forever @ 172a387e3a), game version 1.60.1.70450
+// Source: https://github.com/Gethe/wow-ui-source.git (forever @ ca8368f2f2), game version 1.60.1.70532
 
 // Add proper definitions to PRIMITIVES in scripts/generate-types/knowledge.ts or to types/wow-manual.d.ts.
 

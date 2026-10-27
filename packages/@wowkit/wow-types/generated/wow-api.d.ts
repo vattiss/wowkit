@@ -1,6 +1,6 @@
 // GENERATED FILE - do not edit. Regenerate with "pnpm gen:types".
 // Global functions and C_* namespaces.
-// Source: https://github.com/Gethe/wow-ui-source.git (forever @ 172a387e3a), game version 1.60.1.70450
+// Source: https://github.com/Gethe/wow-ui-source.git (forever @ ca8368f2f2), game version 1.60.1.70532
 
 /** @noSelfInFile */
 
