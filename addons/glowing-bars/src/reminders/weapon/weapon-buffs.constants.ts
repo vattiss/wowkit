@@ -147,6 +147,11 @@ export const WEAPON_PRIORITY: { [classToken: string]: string[] | undefined } = {
     ROGUE: ["InstantPoison", "DeadlyPoison", "WoundPoison", "CripplingPoison", "MindNumbingPoison"],
 };
 
+/** The weapon buff each talent tree (by its place: a shaman's Elemental, Enhancement, Restoration) wants, before any is put on. */
+export const TALENT_WEAPON_BUFFS: { [classToken: string]: { [tree: number]: string | undefined } | undefined } = {
+    SHAMAN: { 1: "Flametongue", 2: "Windfury", 3: "Flametongue" },
+};
+
 /** Classes that coat both weapons, and what goes on the off-hand by default. */
 export const OFFHAND_PRIORITY: { [classToken: string]: string[] | undefined } = {
     ROGUE: ["DeadlyPoison", "InstantPoison", "CripplingPoison", "WoundPoison", "MindNumbingPoison"],

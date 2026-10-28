@@ -73,13 +73,30 @@ describe("a rogue with two weapons", () => {
         expect(world.glowsOn(6)).toBe(1);
     });
 
-    it("is asked for the wanted poison when another one is on the weapon", () => {
-        // Deadly Poison on the main hand, where Instant Poison is wanted
+    it("is asked for the poison picked on the Settings page when another one is on the weapon", () => {
+        world.setOption("weaponBuff", "InstantPoison");
+        // Deadly Poison on the main hand, where Instant Poison is picked
         world.state.enchants[MAIN_HAND] = poisonLasting(DEADLY_ENCHANT, ONE_HOUR_MS / 1000);
         world.state.enchants[OFF_HAND] = poisonLasting(DEADLY_ENCHANT, ONE_HOUR_MS / 1000);
         world.fire("WEAPON_ENCHANT_CHANGED");
         world.advance(4);
         expect(world.glowsOn(5)).toBe(1);
+    });
+
+    it("keeps the poison put on last, on its own, when it is on the automatic pick", () => {
+        // Deadly Poison on both hands, Instant Poison first in the automatic order of the main hand
+        world.state.enchants[MAIN_HAND] = poisonLasting(DEADLY_ENCHANT, ONE_HOUR_MS / 1000);
+        world.state.enchants[OFF_HAND] = poisonLasting(DEADLY_ENCHANT, ONE_HOUR_MS / 1000);
+        world.fire("WEAPON_ENCHANT_CHANGED");
+        world.advance(4);
+        expect(world.glowsOn(5)).toBe(0);
+        expect(world.glowsOn(6)).toBe(0);
+        // The main hand runs dry: Deadly Poison, put on it last, is asked for, not Instant Poison
+        world.state.enchants[MAIN_HAND] = undefined;
+        world.fire("WEAPON_ENCHANT_CHANGED");
+        world.advance(4);
+        expect(world.glowsOn(6)).toBe(1);
+        expect(world.glowsOn(5)).toBe(0);
     });
 
     it("stays quiet when the client gives no answer", () => {

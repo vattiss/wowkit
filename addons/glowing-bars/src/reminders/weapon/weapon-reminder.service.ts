@@ -36,9 +36,13 @@ export class WeaponReminderService {
         if (!entry) return;
         this.memory.rememberApply(entry, this.clock.getCurrentTime());
         this.enchants.clearWeaponTooltipCache();
+        // With one weapon to coat the cast is for the main hand; a rogue's hand is told by the enchant it then shows
+        if (!this.choice.isCoatingBothWeapons()) this.choice.noteWeaponBuffPut(entry, false);
     }
 
     noteEnchantChanged(): void {
+        this.choice.noteWeaponEnchant(this.enchants.getWeaponEnchant(false).enchantId, false);
+        if (this.choice.isCoatingBothWeapons()) this.choice.noteWeaponEnchant(this.enchants.getWeaponEnchant(true).enchantId, true);
         const pick = this.choice.findSelectedWeaponBuff();
         if (!pick) return;
         const now = this.clock.getCurrentTime();

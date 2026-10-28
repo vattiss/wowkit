@@ -207,3 +207,38 @@ describe("a shaman who switched Flametongue off in the table", () => {
         expect(world.glowsOn(2)).toBe(0);
     });
 });
+
+describe("a shaman with Flametongue and Windfury on the bars", () => {
+    const FLAMETONGUE = { id: 8024, name: "Flametongue Weapon", rank: 1, icon: 135814, isHelpful: true };
+    const WINDFURY = { id: 8232, name: "Windfury Weapon", rank: 1, icon: 136018, isHelpful: true };
+
+    function createShamanWorld(talentPoints: number[], savedSettings?: Record<string, unknown>): World {
+        const world = createWorld((state) => {
+            playAs(state, SHAMAN);
+            state.talentPoints = talentPoints;
+            learnSpell(state, FLAMETONGUE);
+            learnSpell(state, WINDFURY);
+            state.bars[2] = FLAMETONGUE.id;
+            state.bars[3] = WINDFURY.id;
+            state.equippedItems[MAIN_HAND] = 1234;
+        }, savedSettings);
+        world.advance(2);
+        return world;
+    }
+
+    it("sees Flametongue glow with no talents, the first of the automatic order", () => {
+        expect(createShamanWorld([0, 0, 0]).glowsOn(2)).toBe(1);
+    });
+
+    it("sees Windfury glow as an Enhancement shaman", () => {
+        const world = createShamanWorld([5, 31, 15]);
+        expect(world.glowsOn(3)).toBe(1);
+        expect(world.glowsOn(2)).toBe(0);
+    });
+
+    it("sees the weapon buff put on last glow, over the talent tree's", () => {
+        const world = createShamanWorld([5, 31, 15], { lastBuffs: { "weapon:main": FLAMETONGUE.id } });
+        expect(world.glowsOn(2)).toBe(1);
+        expect(world.glowsOn(3)).toBe(0);
+    });
+});

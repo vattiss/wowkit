@@ -1,12 +1,24 @@
-// Which weapon buff the player should keep up: the player's pick if learned, else the best one
-// already learned. A buff put on with an item (a rogue poison, a warlock stone) glows on the item while the player has
+// Which weapon buff the player should keep up: the player's pick if learned; else, of the learned ones, the one last put
+// on that hand (kept per character), the main talent tree's, or the best. A buff put on with an item (a rogue poison, a warlock stone) glows on the item while the player has
 // some of it, else on the spell that makes it (a warlock's), else on the item.
 import { OnEvent, contains } from "@wowkit/core";
 import type { AddonSettingsService } from "../../settings/settings.interface";
 import type { ActionBarsService, BagsService, PlayerService, SpellsService } from "@wowkit/wow";
 import type { PickedWeaponBuff } from "../reminders.interface";
 import type { WeaponBuff } from "./weapon-buff.interface";
-import { OFFHAND_PRIORITY, WEAPON_BUFF_BY_SPELL, WEAPON_BUFFS, WEAPON_PRIORITY } from "./weapon-buffs.constants";
+import {
+    OFFHAND_PRIORITY,
+    TALENT_WEAPON_BUFFS,
+    WEAPON_BUFF_BY_ENCHANT,
+    WEAPON_BUFF_BY_SPELL,
+    WEAPON_BUFFS,
+    WEAPON_PRIORITY,
+} from "./weapon-buffs.constants";
+
+/** The key of the weapon buff last put on a hand, in the saved settings. */
+function getLastWeaponKey(isOffhand: boolean): string {
+    return isOffhand ? "weapon:off" : "weapon:main";
+}
 
 export class WeaponChoiceService {
     private weaponNames: LuaSet<string> | undefined;
@@ -46,9 +58,24 @@ export class WeaponChoiceService {
         return this.hasOffhandChoice() && this.player.isOffhandWeaponEquipped();
     }
 
-    /** The automatic pick: the best weapon buff already learned. */
+    /** A weapon buff was put on a hand (by its spell, or by the enchant the hand now shows): it is the one to glow next. */
+    noteWeaponBuffPut(entry: WeaponBuff | undefined, isOffhand: boolean): void {
+        if (entry === undefined || !this.getWeaponChoices().includes(entry)) return;
+        const lastBuffs = this.settings.get("lastBuffs");
+        const key = getLastWeaponKey(isOffhand);
+        if (lastBuffs[key] !== entry.id) this.settings.change("lastBuffs", { ...lastBuffs, [key]: entry.id });
+    }
+
+    /** The enchant a hand shows now: the weapon buff of it, if it is one of the class. */
+    noteWeaponEnchant(enchantId: number | undefined, isOffhand: boolean): void {
+        if (enchantId !== undefined) this.noteWeaponBuffPut(WEAPON_BUFF_BY_ENCHANT.get(enchantId), isOffhand);
+    }
+
+    /** The automatic pick: the one last put on the hand, else the main talent tree's, else the best already learned. */
     findAutomaticWeaponBuff(isOffhand: boolean): PickedWeaponBuff | undefined {
         const choices = this.getWeaponChoices();
+        const preferred = this.findPreferredWeaponBuff(choices, isOffhand);
+        if (preferred) return preferred;
         const token = this.player.getClassToken();
         const order = token !== undefined ? (isOffhand ? OFFHAND_PRIORITY : WEAPON_PRIORITY)[token] : undefined;
         for (const key of order ?? []) {
@@ -60,6 +87,17 @@ export class WeaponChoiceService {
             if (found) return found;
         }
         return undefined;
+    }
+
+    /** The weapon buff last put on the hand, else the main talent tree's; undefined when neither can be picked. */
+    private findPreferredWeaponBuff(choices: WeaponBuff[], isOffhand: boolean): PickedWeaponBuff | undefined {
+        const last = this.settings.get("lastBuffs")[getLastWeaponKey(isOffhand)];
+        const lastPick = this.createPickedWeaponBuff(choices.find((choice) => choice.id === last));
+        if (lastPick) return lastPick;
+        const token = this.player.getClassToken();
+        const tree = this.player.findMainTalentTree();
+        const talentKey = token !== undefined && tree !== undefined ? TALENT_WEAPON_BUFFS[token]?.[tree] : undefined;
+        return this.createPickedWeaponBuff(choices.find((choice) => choice.key === talentKey));
     }
 
     /** The player's pick if it is learned, otherwise the automatic one. */
