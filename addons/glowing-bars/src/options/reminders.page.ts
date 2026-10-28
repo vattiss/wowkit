@@ -58,9 +58,6 @@ export class RemindersPage implements OptionsPage {
         );
         this.reminderControls.addSwitch(category, "hideResting", "OPT_HIDE_RESTING", "TIP_HIDE_RESTING");
 
-        this.barsSection.addBarsSection(category, layout);
-        this.barsSection.addFadedSection(category, layout);
-
         // The party members: a part of the buff reminder that is not one buff
         if (this.classBuffs.getClassBuffs().some((classBuff) => classBuff.party !== undefined)) {
             this.reminderControls.addHeader(layout, "HDR_BUFFS");
@@ -69,6 +66,10 @@ export class RemindersPage implements OptionsPage {
 
         this.weaponSection.addWeaponSection(category, layout);
         this.glowsSection.addGlowsSection(category, layout);
+
+        // The bars last: eight switches and eight more for the faded bars
+        this.barsSection.addBarsSection(category, layout);
+        this.barsSection.addFadedSection(category, layout);
 
         this.about.addAboutSection(layout);
     }
