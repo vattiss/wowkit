@@ -29,8 +29,9 @@ export const COLUMN = {
     opacity: { x: 396, width: 60 },
     message: { x: 456, width: 66 },
     sound: { x: 522, width: 130 },
-    enabled: { x: 652, width: 66 },
-    actions: { x: 718, width: 72 },
+    repeat: { x: 652, width: 62 },
+    enabled: { x: 714, width: 66 },
+    actions: { x: 780, width: 72 },
 } satisfies { [name: string]: Column };
 
 /** A row is as wide as its columns. The last one (Reset and X) is there only while a row shows one of its buttons. */

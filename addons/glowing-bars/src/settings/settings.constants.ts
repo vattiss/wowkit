@@ -39,17 +39,23 @@ export function createDefaultSettings(): AddonSettings {
 
 /** The look of each kind of reminder until the player changes it. The old ranks and the low reagents are a quiet hint. */
 export const STYLE_DEFAULTS: { [key in ColorKey]: Style } = {
-    buff: { color: [0.2, 0.55, 1], opacity: 100, isTextOn: false, sound: "none" },
-    weapon: { color: [1, 0.55, 0.1], opacity: 100, isTextOn: false, sound: "alarm2" },
+    buff: { color: [0.2, 0.55, 1], opacity: 100, isTextOn: false, sound: "none", repeat: 0 },
+    weapon: { color: [1, 0.55, 0.1], opacity: 100, isTextOn: false, sound: "alarm2", repeat: 0 },
     // The paladin's gold
-    seal: { color: [1, 0.85, 0.2], opacity: 100, isTextOn: false, sound: "none" },
+    seal: { color: [1, 0.85, 0.2], opacity: 100, isTextOn: false, sound: "none", repeat: 0 },
     // #1AA6BF, a deep turquoise: a lighter cyan glows almost white
-    tracking: { color: [0.1, 0.65, 0.75], opacity: 100, isTextOn: false, sound: "none" },
-    cooldown: { color: [1, 1, 1], opacity: 100, isTextOn: false, sound: "none" },
-    proc: { color: [1, 0.12, 0.08], opacity: 100, isTextOn: false, sound: "none" },
-    rank: { color: [1, 0.85, 0.2], opacity: 50, isTextOn: true, sound: "alarm1" },
-    reagent: { color: [1, 0.85, 0.2], opacity: 50, isTextOn: false, sound: "none" },
+    tracking: { color: [0.1, 0.65, 0.75], opacity: 100, isTextOn: false, sound: "none", repeat: 0 },
+    cooldown: { color: [1, 1, 1], opacity: 100, isTextOn: false, sound: "none", repeat: 0 },
+    proc: { color: [1, 0.12, 0.08], opacity: 100, isTextOn: false, sound: "none", repeat: 0 },
+    rank: { color: [1, 0.85, 0.2], opacity: 50, isTextOn: true, sound: "alarm1", repeat: 0 },
+    reagent: { color: [1, 0.85, 0.2], opacity: 50, isTextOn: false, sound: "none", repeat: 0 },
 };
+
+/** The choices of how often a sound repeats while its glow is on (seconds; 0 = once). */
+export const REPEAT_CHOICES = [0, 5, 10, 30, 60];
+
+/** The kinds whose sound can repeat: their glow stays on until the player does something about it. */
+export const REPEAT_KINDS: ColorKey[] = ["buff", "weapon", "tracking", "rank"];
 
 /** The choices of how visible a faded bar's buttons are, in percent. */
 export const FADED_OPACITY_CHOICES = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90];
@@ -69,6 +75,7 @@ function repairStyle(style: StyleOverride | undefined): StyleOverride | undefine
     const repaired: StyleOverride = {};
     if (isSoundKey(style.sound)) repaired.sound = style.sound;
     if (type(style.isTextOn) === "boolean") repaired.isTextOn = style.isTextOn;
+    if (REPEAT_CHOICES.includes(style.repeat as number)) repaired.repeat = style.repeat;
     const opacity = tonumber(style.opacity);
     if (opacity !== undefined) repaired.opacity = math.max(1, math.min(100, math.floor(opacity + 0.5)));
     const color = style.color;

@@ -16,6 +16,8 @@ export interface Style {
     /** Does a short message at the top of the screen say so? */
     isTextOn: boolean;
     sound: SoundKey;
+    /** Seconds between the sound's repeats while the glow is on; 0 plays it once, as the glow starts. */
+    repeat: number;
 }
 
 /** The kinds a spell can be added as by the player: every kind but the old ranks, which are found for every spell. */

@@ -94,6 +94,11 @@ export const TEXTS = {
     COL_OPACITY: "Glow %",
     COL_MESSAGE: "Message",
     COL_SOUND: "Sound (click)",
+    COL_REPEAT: "Repeat",
+    REPEAT_OFF: "Off",
+    REPEAT_SECONDS: "%d s",
+    TIP_REPEAT:
+        "Plays the sound again every few seconds while the glow is on. Off plays it once, as the glow starts. Click for the next choice, right-click for the one before.",
     NO_COLOR_PICKER: "No color picker available on this client.",
     KIND_BUFF: "Missing buff",
     KIND_WEAPON: "Weapon buff",

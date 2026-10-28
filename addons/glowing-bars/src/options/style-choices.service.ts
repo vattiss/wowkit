@@ -1,7 +1,9 @@
-// What a click in the table of looks chooses: the next sound, and a color from the game's picker.
+// What a click in the table of looks chooses: the next sound, how often it repeats, and a color from the game's picker.
 import { SOUNDS, type MessagesService, type SoundKey } from "@wowkit/ui";
 import type { AddonLocale } from "../locale/locale.interface";
+import { REPEAT_CHOICES, REPEAT_KINDS } from "../settings/settings.constants";
 import type { StyleService } from "../settings/style.service";
+import { COLUMN, findCenteredX } from "./style-table.constants";
 import type { StyleRow } from "./style-rows.service";
 
 export class StyleChoicesService {
@@ -21,6 +23,39 @@ export class StyleChoicesService {
         const chosen: SoundKey = SOUNDS[(index + step + SOUNDS.length) % SOUNDS.length]!.key;
         this.styles.changeStyle(row.kind, row.spellId, { sound: chosen });
         this.messages.playAlertSound(chosen);
+    }
+
+    /** The repeat button of a row: left click the next choice, right click the one before. */
+    createRepeatButton(frame: Frame, getRow: () => StyleRow | undefined): Button {
+        const button = CreateFrame("Button", undefined, frame, "UIPanelButtonTemplate");
+        button.SetSize(54, 24);
+        button.SetPoint("LEFT", frame, "LEFT", findCenteredX(COLUMN.repeat, 54), 0);
+        button.RegisterForClicks("LeftButtonUp", "RightButtonUp");
+        button.SetScript("OnClick", (_button, mouseButton) => {
+            const row = getRow();
+            if (row !== undefined) this.chooseNextRepeat(row, mouseButton === "RightButton" ? -1 : 1);
+        });
+        button.SetScript("OnEnter", () => {
+            GameTooltip.SetOwner(button, "ANCHOR_RIGHT");
+            GameTooltip.SetText(this.locale.getText("TIP_REPEAT"), 1, 1, 1, 1, true);
+            GameTooltip.Show();
+        });
+        button.SetScript("OnLeave", () => GameTooltip.Hide());
+        return button;
+    }
+
+    /** What the repeat button shows: only the kinds whose glow stays on until the player acts have one. */
+    fillRepeat(button: Button, row: StyleRow): void {
+        button.SetShown(REPEAT_KINDS.includes(row.kind));
+        const seconds = this.styles.getStyle(row.kind, row.spellId).repeat;
+        button.SetText(seconds === 0 ? this.locale.getText("REPEAT_OFF") : string.format(this.locale.getText("REPEAT_SECONDS"), seconds));
+    }
+
+    /** The repeat after (or, with a negative step, before) the current one. */
+    private chooseNextRepeat(row: StyleRow, step: number): void {
+        const index = math.max(0, REPEAT_CHOICES.indexOf(this.styles.getStyle(row.kind, row.spellId).repeat));
+        const chosen = REPEAT_CHOICES[(index + step + REPEAT_CHOICES.length) % REPEAT_CHOICES.length]!;
+        this.styles.changeStyle(row.kind, row.spellId, { repeat: chosen });
     }
 
     /** The game's color picker; every move of it changes the color, and cancelling puts the old one back. */

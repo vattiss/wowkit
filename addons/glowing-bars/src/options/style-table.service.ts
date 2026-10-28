@@ -1,6 +1,6 @@
 // The window with the table of looks: one row for each kind of reminder (its default look) and one for each spell of the
 // player's class (a look of its own where the player changed it, else the kind's). A row shows the color, the opacity of
-// the glow in percent, whether a message says so, and the sound; a click or an entry changes it. Opened by /gb and by
+// the glow in percent, whether a message says so, the sound and how often it repeats; a click or an entry changes it. Opened by /gb and by
 // the button on the Settings page. Like the Settings page, this folder may call the game.
 import { OnEvent } from "@wowkit/core";
 import { SOUNDS, type MessagesService } from "@wowkit/ui";
@@ -43,6 +43,8 @@ interface RowWidgets {
     spellIdBox: EditBox;
     message: CheckButton;
     sound: Button;
+    /** How often the sound repeats while the glow is on; only on the kinds whose glow stays on. */
+    repeat: Button;
     reset: Button;
     /** Takes out a spell the player added. */
     remove: Button;
@@ -202,6 +204,7 @@ export class StyleTableService {
         widgets.opacity.SetText(string.format("%d", style.opacity));
         widgets.message.SetChecked(style.isTextOn);
         widgets.sound.SetText(SOUNDS.find((sound) => sound.key === style.sound)?.label ?? "");
+        this.choices.fillRepeat(widgets.repeat, row);
         widgets.reset.SetShown(isOverridden);
         widgets.remove.SetShown(row.isCustom === true);
         this.edits.fillEnabled(widgets.enabled, widgets.frame, row);
@@ -225,6 +228,7 @@ export class StyleTableService {
             reset: CreateFrame("Button", undefined, frame, "UIPanelButtonTemplate"),
             remove: CreateFrame("Button", undefined, frame, "UIPanelButtonTemplate"),
             enabled: CreateFrame("CheckButton", undefined, frame, "UICheckButtonTemplate"),
+            repeat: this.choices.createRepeatButton(frame, () => widgets.row),
             spellIdBox: this.edits.createIdBox(frame, () => widgets.row),
             row: undefined,
         };

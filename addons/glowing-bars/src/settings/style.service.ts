@@ -6,7 +6,7 @@ import { STYLE_DEFAULTS } from "./settings.constants";
 import type { AddonSettingsService, ColorKey, Style, StyleOverride } from "./settings.interface";
 
 /** The parts of a look. */
-const PARTS: (keyof Style)[] = ["color", "opacity", "isTextOn", "sound"];
+const PARTS: (keyof Style)[] = ["color", "opacity", "isTextOn", "sound", "repeat"];
 
 export class StyleService {
     constructor(
@@ -26,6 +26,7 @@ export class StyleService {
             opacity: this.pickPart(layers, "opacity"),
             isTextOn: this.pickPart(layers, "isTextOn"),
             sound: this.pickPart(layers, "sound"),
+            repeat: this.pickPart(layers, "repeat"),
         };
     }
 

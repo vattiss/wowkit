@@ -1,11 +1,12 @@
-// Stage 2 of a tick: show the reminders. A sound when something new appears, the notice text, and
+// Stage 2 of a tick: show the reminders. A sound when something new appears (and again every few seconds, where the
+// player chose so), the notice text, and
 // the glows on the action buttons. It remembers what it showed last time, so only a change is
 // shown again.
 
 import type { MessagesService, SoundKey } from "@wowkit/ui";
 import type { StyleService } from "../settings/style.service";
 import type { AddonSettingsService, ColorKey } from "../settings/settings.interface";
-import type { ActionBarsService, BarFadeService, GlowService, ButtonGlow, Rgb } from "@wowkit/wow";
+import type { ActionBarsService, BarFadeService, ClockService, GlowService, ButtonGlow, Rgb } from "@wowkit/wow";
 import type { NoticesService } from "./notices.service";
 import type { Reminders } from "./tick.interface";
 
@@ -48,6 +49,8 @@ export class ShowRemindersService {
     private readonly glows = new LuaMap<string, ButtonGlow>();
     /** The spells of each kind in the previous tick, to tell what is new. */
     private previous: number[][] = KINDS.map(() => []);
+    /** When the sound of each glowing spell last played ("buff:21562"), for the ones that repeat. */
+    private soundPlayedAt = new LuaMap<string, number>();
     /** The glows of the previous tick as one text; undefined makes the next tick set the glows again. */
     private shownGlowKey: string | undefined;
 
@@ -59,6 +62,7 @@ export class ShowRemindersService {
         private readonly styles: StyleService,
         private readonly actionBars: ActionBarsService,
         private readonly barFade: BarFadeService,
+        private readonly clock: ClockService,
     ) {}
 
     showReminders(reminders: Reminders): void {
@@ -101,18 +105,29 @@ export class ShowRemindersService {
         this.markGlowsStale();
     }
 
-    /** A sound when a glow starts for a spell, in the spell's own sound; not each time another one goes out. */
+    /**
+     * A sound when a glow starts for a spell, in the spell's own sound; not each time another one goes out. Where the
+     * player chose a repeat, it plays again every so many seconds while the glow is on.
+     */
     private playSoundsForNewReminders(reminders: Reminders): void {
+        const now = this.clock.getCurrentTime();
+        const playedAt = new LuaMap<string, number>();
         const sounds: SoundKey[] = [];
         KINDS.forEach((kind, index) => {
             const spells = kind.findSpells(reminders);
             for (const id of spells) {
-                if (this.previous[index]!.includes(id)) continue;
-                const sound = this.styles.getStyle(kind.category, id).sound;
-                if (!sounds.includes(sound)) sounds.push(sound);
+                const key = `${kind.category}:${id}`;
+                const style = this.styles.getStyle(kind.category, id);
+                const lastAt = this.soundPlayedAt.get(key);
+                const isNew = !this.previous[index]!.includes(id) || lastAt === undefined;
+                const isDue = style.repeat > 0 && lastAt !== undefined && now - lastAt >= style.repeat;
+                playedAt.set(key, isNew || isDue ? now : lastAt!);
+                if ((isNew || isDue) && !sounds.includes(style.sound)) sounds.push(style.sound);
             }
             this.previous[index] = spells;
         });
+        // A spell that stopped glowing is forgotten: when it glows again, its sound is new
+        this.soundPlayedAt = playedAt;
         for (const sound of sounds) this.messages.playAlertSound(sound);
     }
 
