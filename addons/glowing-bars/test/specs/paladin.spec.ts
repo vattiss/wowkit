@@ -119,6 +119,17 @@ describe("a paladin with two seals on the bars", () => {
         expect(world.glowsOn(1)).toBe(0);
     });
 
+    it("sees the seal glow a global cooldown before it runs out, to cast the next one in time", () => {
+        startFight();
+        cast(CRUSADER);
+        // 27.5 seconds after the cast: 2.5 left
+        world.advance(27);
+        expect(world.glowsOn(2)).toBe(0);
+        // 29 seconds after the cast: 1 left
+        world.advance(1.5);
+        expect(world.glowsOn(2)).toBe(1);
+    });
+
     it("keeps the seal up after a Judgement: in Forever it does not use the seal up", () => {
         startFight();
         cast(RIGHTEOUSNESS);

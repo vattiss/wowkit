@@ -30,7 +30,7 @@ export class BuffReminderService {
             if (this.auras.hasAura(other)) return { isWanted: false };
         }
         // hasAura reads the aura, and falls back on what was seen or cast while the client hides auras
-        if (this.auras.hasAura(id)) return { isWanted: false };
+        if (this.auras.hasAura(id, classBuff.lead)) return { isWanted: false };
         return { isWanted: true };
     }
 

@@ -52,11 +52,11 @@ export class BuffMemoryService {
         }
     }
 
-    /** Is the buff (or a member of its category) remembered as up? */
-    isRemembered(spellId: number): boolean {
+    /** Is the buff (or a member of its category) remembered as up, with more than `lead` seconds left? */
+    isRemembered(spellId: number, lead = 0): boolean {
         const name = this.spells.getSpellName(spellId);
         if (name === undefined || name === "") return false;
-        const now = this.clock.getCurrentTime();
+        const now = this.clock.getCurrentTime() + lead;
         if (now < (this.heldNames.get(buildNameKey(name)) ?? 0)) return true;
         const category = this.knowledge.findCategory(name);
         return category !== undefined && now < (this.heldCategories.get(category.key) ?? 0);

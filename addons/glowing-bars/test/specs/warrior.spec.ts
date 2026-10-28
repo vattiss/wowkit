@@ -27,3 +27,20 @@ describe("a warrior without rage", () => {
         expect(world.glowsOn(1)).toBe(1);
     });
 });
+
+describe("a warrior with Battle Shout running out in a fight", () => {
+    it("sees Battle Shout glow a few seconds before it runs out, not only once it is gone", () => {
+        const world = createWorld((state) => {
+            playAs(state, WARRIOR);
+            learnSpell(state, BATTLE_SHOUT);
+            state.bars[1] = BATTLE_SHOUT.id;
+            state.isInCombat = true;
+        });
+        world.state.auras.push(world.makeAura(BATTLE_SHOUT.name, BATTLE_SHOUT.id, 10));
+        world.advance(1);
+        expect(world.glowsOn(1)).toBe(0);
+        // 2 seconds left
+        world.advance(7);
+        expect(world.glowsOn(1)).toBe(1);
+    });
+});

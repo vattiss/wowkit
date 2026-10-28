@@ -9,6 +9,7 @@ import {
     type SpellsService,
     isReadable,
     buildNameKey,
+    hasKnownExpiry,
 } from "@wowkit/wow";
 import type { BuffCategory } from "../knowledge/buff-categories.constants";
 import type { BuffKnowledgeService } from "../knowledge/buff-knowledge.service";
@@ -44,16 +45,19 @@ export class BuffStateService {
         return this.auras.readPlayerAura(spellId) ?? this.readFromScan(spellId);
     }
 
-    /** Is the buff on the player, counting the remembered state while the client hides auras? */
-    hasAura(spellId: number): boolean {
+    /**
+     * Is the buff on the player, counting the remembered state while the client hides auras? `lead`: a buff with no more
+     * than this many seconds left counts as gone already, so its reminder comes in time to cast it again.
+     */
+    hasAura(spellId: number, lead = 0): boolean {
         const read = this.findAura(spellId);
         if (read.isFound) {
             this.memory.remember(spellId, undefined, read.remain, false);
-            return true;
+            return lead === 0 || !hasKnownExpiry(read.remain) || read.remain > lead;
         }
         // The client hides auras in combat (none at all, or some whose name and ID are secret): a buff we saw or cast is
         // trusted until it runs out. A list it shows in full is believed, in combat too: a buff the player cancelled is gone.
-        if (read.isUnreadable) return this.memory.isRemembered(spellId);
+        if (read.isUnreadable) return this.memory.isRemembered(spellId, lead);
         this.memory.release(spellId, read.categories);
         return false;
     }

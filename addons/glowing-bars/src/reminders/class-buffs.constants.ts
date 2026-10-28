@@ -45,6 +45,9 @@ export const TALENT_BUFFS: { [classToken: string]: { [tree: number]: number[] | 
     MAGE: { 1: [M.MageArmor], 2: [M.MageArmor], 3: [M.IceArmor] },
 };
 
+/** Battle Shout's reminder comes this many seconds before it runs out: it runs out in a fight, and needs rage. */
+const BATTLE_SHOUT_LEAD = 3;
+
 /** In list order: of a category, the first one that is learned and on the bars is the one asked for. */
 export const BUFF_LISTS: { [classToken: string]: ClassBuff[] | undefined } = {
     DRUID: [
@@ -74,7 +77,7 @@ export const BUFF_LISTS: { [classToken: string]: ClassBuff[] | undefined } = {
         }),
         createClassBuff("RighteousFury", P.RighteousFury, { last: 1800 }, false),
     ],
-    WARRIOR: [createClassBuff("BattleShout", W.BattleShout, { last: 120 })],
+    WARRIOR: [createClassBuff("BattleShout", W.BattleShout, { last: 120, lead: BATTLE_SHOUT_LEAD })],
     HUNTER: [
         createClassBuff("AspectHawk", H.AspectHawk, { categoryMembers: hunterAspects }),
         createClassBuff("AspectMonkey", H.AspectMonkey, { categoryMembers: hunterAspects }),

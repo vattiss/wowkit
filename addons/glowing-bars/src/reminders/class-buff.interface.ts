@@ -20,6 +20,8 @@ export interface ClassBuff {
      * hides the auras.
      */
     last?: number;
+    /** The reminder comes this many seconds before the buff runs out (a short buff the player keeps up in a fight). */
+    lead?: number;
     /** Only asked for while swimming. */
     isSwimmingOnly?: boolean;
     /** Off by default: a buff only one role wants. */

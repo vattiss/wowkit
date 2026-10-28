@@ -20,6 +20,9 @@ export const SEALS = [
     Paladin.SealOfFury,
 ];
 
+/** A seal's reminder comes this many seconds before it runs out: one global cooldown, to cast the next in time. */
+const SEAL_LEAD = 1.5;
+
 export class SealReminderService {
     /** The seal the player last cast, as the ID the buttons hold. */
     private lastSeal: number | undefined;
@@ -59,7 +62,7 @@ export class SealReminderService {
         for (const listId of this.listAllSeals()) {
             const id = this.spells.resolve(listId) ?? listId;
             // Any seal counts for every other (one category)
-            if (this.buffState.hasAura(id)) return [];
+            if (this.buffState.hasAura(id, SEAL_LEAD)) return [];
             if (glowOn[string.format("%d", listId)] !== false && this.actionBars.isOnBars(id)) onBars.push(id);
         }
         return this.lastSeal !== undefined && onBars.includes(this.lastSeal) ? [this.lastSeal] : [];
