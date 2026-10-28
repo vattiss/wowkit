@@ -113,7 +113,7 @@ export class ActionBarsService implements OnFirstLogin {
         return name !== undefined ? findBarNumber(name) : undefined;
     }
 
-    /** The buttons a spell sits on: by ID, resolved ID, name, and (rarely shared) icon. */
+    /** The buttons a spell sits on: by ID, resolved ID and name; by its (rarely shared) icon only when none is found so. */
     findButtonsOf(spellId: number | undefined): ActionButton[] {
         const out: ActionButton[] = [];
         const seen = new LuaSet<ActionButton>();
@@ -135,14 +135,23 @@ export class ActionBarsService implements OnFirstLogin {
             const key = this.buildButtonKey(name);
             if (key !== undefined) take(this.buttonsByNameKey.get(key));
         }
+        // The icon is the last resort: a button found by the spell or its name is the one (the ranks of a poison share
+        // one icon, and only the one rank asked for glows)
+        if (out.length === 0) for (const list of this.listIconButtons(id, resolved)) take(list);
+        return out;
+    }
+
+    /** The buttons that show the spell's icon, where few do (an icon many buttons share tells nothing). */
+    private listIconButtons(id: number | undefined, resolved: number | undefined): ActionButton[][] {
         const icons = new LuaSet<number | string>();
         this.addIconKeys(id, icons);
         this.addIconKeys(resolved ?? id, icons);
+        const lists: ActionButton[][] = [];
         for (const key of icons) {
             const list = this.buttonsByIcon.get(key);
-            if (list && list.length > 0 && list.length <= MAX_BUTTONS_PER_ICON) take(list);
+            if (list && list.length > 0 && list.length <= MAX_BUTTONS_PER_ICON) lists.push(list);
         }
-        return out;
+        return lists;
     }
 
     /** The action slot of a button the spell sits on (for the client's range check); undefined when none. */

@@ -154,6 +154,18 @@ describe("a rogue with the poison items on the bars, as in the game", () => {
         expect(world.glowsOn(11)).toBe(0);
     });
 
+    it("sees only rank VI glow beside a button of the first rank's spell, which shares its icon", () => {
+        const world = createRogueWorld([6], [5]);
+        world.state.knownSpells[8679] = true;
+        world.state.spells[8679] = { id: 8679, name: "Instant Poison", rank: 1, icon: 132273, isHelpful: true };
+        world.state.bars[12] = 8679;
+        world.fire("ACTIONBAR_SLOT_CHANGED", 12);
+        world.advance(2);
+        // Rank I sits on the bars now (the spell button): with none of its item, rank VI, which the player has, glows
+        expect(world.glowsOn(11)).toBe(1);
+        expect(world.glowsOn(12)).toBe(0);
+    });
+
     it("sees no glow with no poison on the bars", () => {
         expect(createRogueWorld([], []).glowsOn(11)).toBe(0);
     });
