@@ -27,11 +27,6 @@ export class SwitchesService {
         private readonly settings: AddonSettingsService,
     ) {}
 
-    /** Can the row be switched on and off? The weapon buffs of the class are picked, not switched, one by one. */
-    isSwitchable(row: StyleRow): boolean {
-        return row.spellId === undefined || row.kind !== "weapon" || row.isCustom === true;
-    }
-
     /** Is the whole kind on? While it is off, none of its spells glow, whatever their own switch says. */
     isKindOn(kind: ColorKey): boolean {
         return this.settings.get(KIND_SWITCHES[kind]);

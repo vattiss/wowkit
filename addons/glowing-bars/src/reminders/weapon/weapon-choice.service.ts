@@ -147,7 +147,9 @@ export class WeaponChoiceService {
         return undefined;
     }
 
+    /** A weapon buff switched off in the table is never picked: the next one takes its place. */
     private createPickedWeaponBuff(entry: WeaponBuff | undefined): PickedWeaponBuff | undefined {
+        if (entry !== undefined && this.settings.get("glowOn")[string.format("%d", entry.id)] === false) return undefined;
         const spellId = this.findUsableId(entry);
         return entry && spellId !== undefined ? { entry, spellId } : undefined;
     }

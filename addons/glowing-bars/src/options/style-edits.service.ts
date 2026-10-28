@@ -57,7 +57,7 @@ export class StyleEditsService {
 
     /** Shows whether the row is on, and fades the spell rows of a kind that is off: they will not glow. */
     fillEnabled(box: CheckButton, frame: Frame, row: StyleRow): void {
-        box.SetShown(this.switches.isSwitchable(row));
+        box.Show();
         box.SetChecked(this.switches.isOn(row));
         const isKindOff = row.spellId !== undefined && !this.switches.isKindOn(row.kind);
         frame.SetAlpha(isKindOff ? KIND_OFF_ALPHA : 1);

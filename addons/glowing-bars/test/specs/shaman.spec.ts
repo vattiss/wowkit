@@ -186,3 +186,24 @@ describe("a shaman whose saved weapon sound has gone from the list", () => {
         expect((world.getSavedSettings()?.styles as { weapon?: { sound?: string } } | undefined)?.weapon?.sound).toBeUndefined();
     });
 });
+
+describe("a shaman who switched Flametongue off in the table", () => {
+    const FLAMETONGUE = { id: 8024, name: "Flametongue Weapon", rank: 1, icon: 135814, isHelpful: true };
+
+    it("sees Rockbiter glow in its place", () => {
+        const world = createWorld(
+            (state) => {
+                playAs(state, SHAMAN);
+                learnSpell(state, FLAMETONGUE);
+                learnSpell(state, ROCKBITER_WEAPON);
+                state.bars[2] = FLAMETONGUE.id;
+                state.bars[3] = ROCKBITER_WEAPON.id;
+                state.equippedItems[MAIN_HAND] = 1234;
+            },
+            { glowOn: { [String(FLAMETONGUE.id)]: false } },
+        );
+        world.advance(2);
+        expect(world.glowsOn(3)).toBe(1);
+        expect(world.glowsOn(2)).toBe(0);
+    });
+});
