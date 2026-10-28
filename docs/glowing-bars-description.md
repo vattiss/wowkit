@@ -17,7 +17,7 @@ Use **Bartender4**, **Dominos** or **EllesmereUI** for your bars? The glows show
 *   **Missing buffs** – Fortitude, Mark of the Wild, Arcane Intellect, aspects, paladin auras, armors… Of a group (one aspect, one aura) any one counts. In combat, when the game hides your buffs, the ones you saw or cast are remembered.
 *   **Party buffs** – out of combat, in a party: a member in range who misses your buff makes its button glow. With two or more missing and the reagent in your bags, the group version is suggested (Prayer of Fortitude, Gift of the Wild, a Greater Blessing per class).
 *   **Weapon buffs** – shaman imbues, rogue poisons (per hand) and warlock stones, when missing or about to run out.
-*   **Paladin seals** – in a fight with no seal up, the seal you used last glows gold, already a moment before it runs out.
+*   **Paladin seals** – in a fight with no seal up, the seal you used last glows gold, already a moment before it runs out. Before your first seal, the one of your talent tree.
 *   **Gathering** – a miner or a herbalist with no tracking on sees Find Minerals or Find Herbs glow. Any tracking counts, so a hunter tracking beasts is left alone.
 *   **Low reagents** – the group buff on your bar glows quietly while its reagent runs low, so you remember it in town.
 *   **Cooldowns that are back** – in a fight, an important cooldown of your class or your race (Recklessness, Rapid Fire, Adrenaline Rush, Innervate, Swift Judgement, Blood Fury, Stoneform, Desperate Prayer…) glows for a few seconds when it is ready again. If you like, the ready ones also glow as a fight starts.

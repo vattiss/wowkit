@@ -102,10 +102,22 @@ describe("a paladin with two seals on the bars", () => {
         expect(world.glowsOn(2)).toBe(0);
     });
 
-    it("sees no seal glow in a fight before using one: the addon does not know which one the player wants", () => {
+    it("sees the first seal on the bars glow in a fight before using one, with no talent points to go by", () => {
         startFight();
-        expect(world.glowsOn(1)).toBe(0);
+        expect(world.glowsOn(1)).toBe(1);
         expect(world.glowsOn(2)).toBe(0);
+    });
+
+    it("sees the seal of the main talent tree glow before using one: Retribution wants Seal of Righteousness here", () => {
+        world.state.talentPoints = [0, 5, 31];
+        world.state.bars[1] = CRUSADER.id;
+        world.state.bars[2] = RIGHTEOUSNESS.id;
+        world.fire("ACTIONBAR_SLOT_CHANGED", 1);
+        world.fire("ACTIONBAR_SLOT_CHANGED", 2);
+        startFight();
+        world.advance(1);
+        expect(world.glowsOn(2)).toBe(1);
+        expect(world.glowsOn(1)).toBe(0);
     });
 
     it("sees no seal glow once one is cast, until its 30 seconds are over", () => {
@@ -201,7 +213,8 @@ describe("a paladin who added a seal of Forever by its ID", () => {
     });
 
     it("sees it glow 30 seconds after it is cast", () => {
-        expect(world.glowsOn(1)).toBe(0);
+        // The only seal on the bars: it glows before it is cast too
+        expect(world.glowsOn(1)).toBe(1);
         world.fire("UNIT_SPELLCAST_SUCCEEDED", "player", "cast-guid", SEAL_OF_THE_DAWN.id);
         world.advance(1);
         expect(world.glowsOn(1)).toBe(0);
