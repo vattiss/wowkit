@@ -39,8 +39,8 @@ Your Rotation.
 
 Every kind of reminder has the same four settings: the **color** of its glow and message, the **opacity** of the glow
 (1 to 100 percent), whether a short **message** at the top of the screen says so, and a **sound**. Missing buffs, weapon
-buffs, missing tracking and old ranks can also **repeat** their sound every 5, 10, 30 or 60 seconds while the glow is on
-(off by default). The defaults: missing
+buffs, missing tracking and old ranks can also **repeat** their sound every 5, 10, 30 or 60 seconds while the glow is on,
+the message coming again with it (off by default). The defaults: missing
 buffs blue, weapon buffs orange, ready cooldowns white, procs red, old ranks and low reagents yellow (and a quieter glow
 than the others). By default only the old ranks show a message; the buff messages (including the ones that name a
 buff on no bar and the party members who miss one) and the reagent message are there to switch on. They are set in a table, and every spell of your class can have a look of its own in the same table.

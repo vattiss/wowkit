@@ -1,6 +1,7 @@
 // The notice at the top of the screen: one message with a short line for each kind of reminder whose message the player
 // switched on, in the color of its glow. A line says what kind of reminder it is, not which spell; only a reminder with
-// no button to glow (a buff on no bar, a party member) names what it is about.
+// no button to glow (a buff on no bar, a party member) names what it is about. The same message comes again after a
+// while; sooner where the player chose its sound to repeat, together with the sound.
 
 import type { AddonLocale } from "../locale/locale.interface";
 import type { TextKey } from "../locale/texts.constants";
@@ -9,7 +10,7 @@ import type { StyleService } from "../settings/style.service";
 import type { ActionBarsService, ClockService, NoticeService, Rgb, SpellsService } from "@wowkit/wow";
 import type { Reminders } from "./tick.interface";
 
-/** The same message is shown again only after this long. */
+/** The same message is shown again only after this long, unless one of its lines repeats sooner. */
 const NOTICE_REPEAT = 30;
 /** After the bars changed they are mapped again; until then the old map would call every spell missing. */
 const NOTICE_AFTER_BAR_CHANGE = 1.5;
@@ -19,6 +20,15 @@ interface Line {
     key: string;
     /** Already in its color. */
     text: string;
+    /** Seconds between its repeats, the sound's (0: the usual NOTICE_REPEAT). */
+    repeat: number;
+}
+
+/** The soonest repeat of the lines: the one of a line whose sound repeats, else NOTICE_REPEAT. */
+function findRepeatSeconds(lines: Line[]): number {
+    let seconds = NOTICE_REPEAT;
+    for (const line of lines) if (line.repeat > 0) seconds = math.min(seconds, line.repeat);
+    return seconds;
 }
 
 export class NoticesService {
@@ -46,7 +56,7 @@ export class NoticesService {
         }
         const key = lines.map((line) => line.key).join(";");
         const now = this.clock.getCurrentTime();
-        if (key === this.lastNoticeKey && now - this.lastNoticeAt <= NOTICE_REPEAT) return;
+        if (key === this.lastNoticeKey && now - this.lastNoticeAt < findRepeatSeconds(lines)) return;
         this.lastNoticeKey = key;
         this.lastNoticeAt = now;
         this.notice.showNotice(lines.map((line) => line.text).join("\n"));
@@ -86,22 +96,28 @@ export class NoticesService {
 
     /** A line for a kind of reminder: one for each color its spells (whose message is on) are shown in. */
     private addKindLines(lines: Line[], kind: ColorKey, spellIds: number[], text: TextKey): void {
-        const groups: { color: Rgb; ids: number[] }[] = [];
+        const groups: { color: Rgb; ids: number[]; repeat: number }[] = [];
         for (const id of spellIds) {
             const style = this.styles.getStyle(kind, id);
             if (!style.isTextOn) continue;
             const group = groups.find((candidate) => candidate.color.join(",") === style.color.join(","));
-            if (group === undefined) groups.push({ color: style.color, ids: [id] });
-            else group.ids.push(id);
+            if (group === undefined) {
+                groups.push({ color: style.color, ids: [id], repeat: style.repeat });
+            } else {
+                group.ids.push(id);
+                // The line comes again with the sound that repeats soonest
+                if (style.repeat > 0 && (group.repeat === 0 || style.repeat < group.repeat)) group.repeat = style.repeat;
+            }
         }
         for (const group of groups) {
-            lines.push({ key: `${kind}:${group.ids.join(",")}`, text: this.styles.applyTextColor(group.color, this.locale.getText(text)) });
+            const lineText = this.styles.applyTextColor(group.color, this.locale.getText(text));
+            lines.push({ key: `${kind}:${group.ids.join(",")}`, text: lineText, repeat: group.repeat });
         }
     }
 
     /** A line that names what it is about, in the buff color of the spell. */
     private addNamedLine(lines: Line[], spellId: number, key: string, text: string): void {
         const style = this.styles.getStyle("buff", spellId);
-        if (style.isTextOn) lines.push({ key, text: this.styles.applyTextColor(style.color, text) });
+        if (style.isTextOn) lines.push({ key, text: this.styles.applyTextColor(style.color, text), repeat: style.repeat });
     }
 }

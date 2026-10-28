@@ -52,3 +52,21 @@ describe("the sound of a missing buff", () => {
         expect(world.sounds).toEqual([ALARM_1]);
     });
 });
+
+describe("the message of a missing buff", () => {
+    it("comes again with the sound that repeats", () => {
+        const world = createPriestWorld({ buff: { sound: "alarm1", repeat: 10, isTextOn: true } });
+        expect(world.notice()).toContain("Missing buff");
+        // The message is gone after its 10 seconds; the repeat at 10 seconds shows it again
+        world.advance(11);
+        expect(world.notice()).toContain("Missing buff");
+    });
+
+    it("comes again only after 30 seconds when the sound does not repeat", () => {
+        const world = createPriestWorld({ buff: { sound: "alarm1", isTextOn: true } });
+        world.advance(11);
+        expect(world.notice()).not.toContain("Missing buff");
+        world.advance(20);
+        expect(world.notice()).toContain("Missing buff");
+    });
+});

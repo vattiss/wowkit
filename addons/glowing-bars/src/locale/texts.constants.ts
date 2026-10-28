@@ -103,7 +103,7 @@ export const TEXTS = {
     REPEAT_OFF: "Off",
     REPEAT_SECONDS: "%d s",
     TIP_REPEAT:
-        "Plays the sound again every few seconds while the glow is on. Off plays it once, as the glow starts. Click for the next choice, right-click for the one before.",
+        "Plays the sound again every few seconds while the glow is on, and shows the message again with it. Off plays it once, as the glow starts. Click for the next choice, right-click for the one before.",
     NO_COLOR_PICKER: "No color picker available on this client.",
     KIND_BUFF: "Missing buff",
     KIND_WEAPON: "Weapon buff",
