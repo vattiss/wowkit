@@ -53,9 +53,15 @@ export class BuffReminderService {
     noteCast(cast: PlayerSpellCast): void {
         if (cast.spellId === undefined) return;
         const id = this.spells.resolveOrSame(cast.spellId);
+        const castName = this.spells.getSpellName(id);
+        // A higher rank than the list's ID by its name
         const castBuff = this.classBuffs
             .getClassBuffs()
-            .find((classBuff) => classBuff.categoryMembers !== undefined && (this.spells.resolve(classBuff.id) ?? classBuff.id) === id);
+            .find(
+                (classBuff) =>
+                    classBuff.categoryMembers !== undefined &&
+                    ((this.spells.resolve(classBuff.id) ?? classBuff.id) === id || this.spells.getSpellName(classBuff.id) === castName),
+            );
         if (castBuff === undefined) return;
         const group = this.getGroupKey(castBuff);
         const lastBuffs = this.settings.get("lastBuffs");

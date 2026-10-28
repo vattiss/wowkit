@@ -59,7 +59,11 @@ export class SealReminderService {
     noteCast(cast: PlayerSpellCast): void {
         if (cast.spellId === undefined) return;
         const id = this.spells.resolveOrSame(cast.spellId);
-        const listId = this.listAllSeals().find((sealId) => (this.spells.resolve(sealId) ?? sealId) === id);
+        const castName = this.spells.getSpellName(id);
+        // A higher rank than the list's ID by its name
+        const listId = this.listAllSeals().find(
+            (sealId) => (this.spells.resolve(sealId) ?? sealId) === id || this.spells.getSpellName(sealId) === castName,
+        );
         const lastBuffs = this.settings.get("lastBuffs");
         if (listId !== undefined && lastBuffs[LAST_SEAL_KEY] !== listId) {
             this.settings.change("lastBuffs", { ...lastBuffs, [LAST_SEAL_KEY]: listId });
