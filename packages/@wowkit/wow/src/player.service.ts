@@ -52,6 +52,44 @@ export class PlayerService {
     }
 
     /** The player's class token ("PRIEST"). */
+    /**
+     * The talent tree with the most points, by its place (1 to 3: a paladin's Holy, Protection, Retribution); undefined
+     * with no points, or when the client does not say. Forever keeps the three classic trees side by side in one tree of
+     * the trait system, each a third of its width, so a talent's tree is the third its position falls in.
+     */
+    findMainTalentTree(): number | undefined {
+        const nodes = this.listTalentNodes();
+        if (nodes.length === 0) return undefined;
+        let left = math.huge;
+        let right = -math.huge;
+        for (const node of nodes) {
+            left = math.min(left, node.posX);
+            right = math.max(right, node.posX);
+        }
+        const width = (right - left) / 3;
+        const points = [0, 0, 0];
+        for (const node of nodes) {
+            const tree = width > 0 ? math.min(2, math.floor((node.posX - left) / width)) : 0;
+            points[tree] = points[tree]! + node.rank;
+        }
+        const best = math.max(points[0]!, points[1]!, points[2]!);
+        return best > 0 ? points.indexOf(best) + 1 : undefined;
+    }
+
+    /** The talents of the active talent setup: where each sits in the tree, and its rank. */
+    private listTalentNodes(): { posX: number; rank: number }[] {
+        const configId = attempt(() => C_ClassTalents.GetActiveConfigID());
+        const treeId = configId !== undefined ? attempt(() => C_Traits.GetConfigInfo(configId)?.treeIDs[0]) : undefined;
+        if (configId === undefined || treeId === undefined) return [];
+        const nodes: { posX: number; rank: number }[] = [];
+        for (const nodeId of attempt(() => C_Traits.GetTreeNodes(treeId)) ?? []) {
+            const info = attempt(() => C_Traits.GetNodeInfo(configId, nodeId));
+            const posX = info !== undefined ? tonumber(getReadable(info.posX)) : undefined;
+            if (posX !== undefined) nodes.push({ posX, rank: tonumber(getReadable(info!.currentRank)) ?? 0 });
+        }
+        return nodes;
+    }
+
     getClassToken(): string | undefined {
         const [, classFile] = UnitClass("player");
         if (classFile !== undefined && isReadable(classFile)) return string.upper(classFile);

@@ -9,6 +9,7 @@ import { installClock } from "./install-clock";
 import { installCurves } from "./install-curves";
 import { installActionBars, installAuras, installLateAddonButtons } from "./install-bars-and-auras";
 import { installItems } from "./install-items";
+import { installTalents } from "./install-talents";
 import { installTooltips, type TooltipKind } from "./install-tooltips";
 import { installSpells } from "./install-spells";
 import { installUi, type ProxySettings } from "./install-ui";
@@ -85,6 +86,7 @@ export function createWorld(setup: (state: ClientState) => void, savedSettings?:
     installItems(state, sounds);
     const tooltips = installTooltips();
     installCurves(state);
+    installTalents(state);
 
     loadAddon();
     frames.fire("ADDON_LOADED", config.addonName, false);

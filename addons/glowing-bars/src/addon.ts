@@ -162,7 +162,9 @@ type Buffs = ReturnType<typeof makeBuffs>;
 /** What the addon reminds about. */
 function makeReminders(addon: Addon, addonName: string, game: Game, texts: Texts, buffs: Buffs) {
     const { settings } = texts;
-    const buff = addon.register(new BuffReminderService(buffs.state, game.spells, game.player, game.actionBars, buffs.classBuffs));
+    const buff = addon.register(
+        new BuffReminderService(buffs.state, game.spells, game.player, game.actionBars, buffs.classBuffs, settings),
+    );
     const reagents = addon.register(new ReagentsService(game.bags, game.spells));
     const party = addon.register(
         new PartyBuffsService(buffs.state, game.spells, game.clock, game.party, game.player, buffs.classBuffs, reagents, settings),

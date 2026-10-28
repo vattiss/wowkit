@@ -31,6 +31,20 @@ const palaAuras = [
 const palaBlessings = [P.BlessingMight, P.BlessingKings, P.BlessingWisdom, P.BlessingSalvation, P.BlessingLight];
 const hunterAspects = [H.AspectHawk, H.AspectMonkey, H.AspectWild, H.AspectCheetah, H.AspectPack, H.AspectBeast];
 
+/**
+ * Of a group, the buff each talent tree (by its place in the client's list) wants first, before the player has cast one:
+ * the list of the tree, in order; a buff of another group in the same list is skipped.
+ */
+export const TALENT_BUFFS: { [classToken: string]: { [tree: number]: number[] | undefined } | undefined } = {
+    PALADIN: {
+        1: [P.ConcentrationAura, P.BlessingWisdom],
+        2: [P.DevotionAura, P.BlessingKings],
+        3: [P.SanctityAura, P.RetributionAura, P.BlessingMight],
+    },
+    SHAMAN: { 1: [Sh.LightningShield], 2: [Sh.LightningShield], 3: [Sh.WaterShield] },
+    MAGE: { 1: [M.MageArmor], 2: [M.MageArmor], 3: [M.IceArmor] },
+};
+
 /** In list order: of a category, the first one that is learned and on the bars is the one asked for. */
 export const BUFF_LISTS: { [classToken: string]: ClassBuff[] | undefined } = {
     DRUID: [

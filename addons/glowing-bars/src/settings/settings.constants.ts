@@ -34,6 +34,7 @@ export function createDefaultSettings(): AddonSettings {
         reagentOn: {},
         rankOff: {},
         glowOn: {},
+        lastBuffs: {},
     };
 }
 

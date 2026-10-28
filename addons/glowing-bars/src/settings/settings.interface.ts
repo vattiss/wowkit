@@ -79,6 +79,8 @@ export interface AddonSettings {
     barOff: { [bar: string]: boolean | undefined };
     /** Per-spell switches of the cooldown and proc glows (by spell ID); only set where the player switched one off. */
     glowOn: { [spellId: string]: boolean | undefined };
+    /** The buff of a group (one aura, one armor) the player cast last, by the group's first spell ID: the one that glows. */
+    lastBuffs: { [group: string]: number | undefined };
     /** The spells whose old rank is not reminded of, by name; only set where the player switched one off. */
     rankOff: { [spellName: string]: boolean | undefined };
     /** Per-reagent switches (by item ID); only set where the player switched one off. */

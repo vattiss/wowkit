@@ -105,6 +105,8 @@ export interface ClientState {
      * 13 to 24), made one second after the login, as EllesmereUI makes them after the addon's first map of the bars.
      */
     hasEllesmere: boolean;
+    /** The points spent in each of the three talent trees (a paladin's Holy, Protection, Retribution). */
+    talentPoints: number[];
     isResting: boolean;
     /** Inventory slot (16 main hand, 17 off hand) -> the temporary enchant on it. */
     enchants: { [slot: number]: FakeEnchant | undefined };
@@ -161,6 +163,7 @@ export function createClientState(): ClientState {
         hasBartender: false,
         hasDominos: false,
         hasEllesmere: false,
+        talentPoints: [0, 0, 0],
         isResting: false,
         enchants: {},
         areEnchantReadsBroken: false,
