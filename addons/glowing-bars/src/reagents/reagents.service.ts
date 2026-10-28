@@ -3,8 +3,9 @@
 // that dropped the reagent cost never nags about it.
 import { OnEvent, contains } from "@wowkit/core";
 import type { BagsService, SpellsService } from "@wowkit/wow";
+import type { AddonSettingsService } from "../settings/settings.interface";
 import type { Reagent, ReagentStock } from "./reagent.interface";
-import { REAGENT_LOW, REAGENTS } from "./reagents.constants";
+import { REAGENTS } from "./reagents.constants";
 
 export class ReagentsService {
     private readonly reagentBySpell = new LuaMap<number, Reagent>();
@@ -14,6 +15,7 @@ export class ReagentsService {
     constructor(
         private readonly bags: BagsService,
         private readonly spells: SpellsService,
+        private readonly settings: AddonSettingsService,
     ) {
         for (const reagent of REAGENTS) for (const spellId of reagent.spells) this.reagentBySpell.set(spellId, reagent);
     }
@@ -53,7 +55,7 @@ export class ReagentsService {
     }
 
     /**
-     * Reagents of spells the player knows, with REAGENT_LOW or fewer in the bags. `isWanted` leaves out the reagents
+     * Reagents of spells the player knows, with the player's limit or fewer in the bags. `isWanted` leaves out the reagents
      * the player does not want to hear about.
      */
     findLowReagents(isWanted: (reagent: Reagent) => boolean = () => true): ReagentStock[] {
@@ -61,8 +63,8 @@ export class ReagentsService {
         for (const reagent of REAGENTS) {
             if (!isWanted(reagent)) continue;
             const usedBy = reagent.spells.find((spellId) => this.spells.isLearned(spellId) && this.findReagentFor(spellId) !== undefined);
-            const count = usedBy !== undefined ? this.getReagentCount(reagent) : REAGENT_LOW + 1;
-            if (count <= REAGENT_LOW) low.push({ reagent, name: this.getReagentName(reagent), count });
+            const count = this.getReagentCount(reagent);
+            if (usedBy !== undefined && this.isLow(count)) low.push({ reagent, name: this.getReagentName(reagent), count });
         }
         return low;
     }
@@ -78,6 +80,11 @@ export class ReagentsService {
             }
         }
         return spellIds;
+    }
+
+    /** This many of a reagent in the bags is running low: the player's limit or fewer. */
+    isLow(count: number): boolean {
+        return count <= this.settings.get("reagentLow");
     }
 
     /** The name of the item (the client's, else the English one). */

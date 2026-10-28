@@ -21,6 +21,3 @@ export const REAGENTS: Reagent[] = [
         spells: [...Paladin.GreaterBlessingMight, ...Paladin.GreaterBlessingKings, ...Paladin.GreaterBlessingWisdom],
     },
 ];
-
-/** You are warned when you have this many or fewer. */
-export const REAGENT_LOW = 5;

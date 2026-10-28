@@ -55,6 +55,8 @@ export interface AddonSettings {
     showCooldownsAtFightStart: boolean;
     /** How long a cooldown glows in a fight once it is back, in seconds; 0 = until it is pressed. */
     cooldownGlowSeconds: number;
+    /** A group buff's reagent runs low with this many or fewer in the bags. */
+    reagentLow: number;
     /** Spells the game says are usable now (Overpower, Revenge, Execute...). */
     showProcs: boolean;
     /** A paladin in a fight with no seal up. */

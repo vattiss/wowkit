@@ -49,6 +49,11 @@ export const TEXTS = {
     OPT_SECONDS: "%d seconds",
     OPT_UNTIL_PRESSED: "Until pressed",
 
+    HDR_REAGENTS: "Reagents",
+    OPT_REAGENT_LOW: "Low at",
+    TIP_REAGENT_LOW: "A group buff glows, and the town message names its reagent, once you have this many or fewer in your bags.",
+    OPT_OR_FEWER: "%d or fewer",
+
     HDR_LOOKS: "Reminders",
     OPT_TABLE: "Colors, sounds and on/off per spell",
     TIP_TABLE: "Set the color, glow, message and sound of each reminder type and each spell, and turn them on or off. Also /gb.",

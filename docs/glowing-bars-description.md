@@ -19,7 +19,7 @@ Use **Bartender4**, **Dominos** or **EllesmereUI** for your bars? The glows show
 *   **Weapon buffs** – shaman imbues, rogue poisons (per hand) and warlock stones, when missing or about to run out.
 *   **Paladin seals** – in a fight with no seal up, the seal you used last glows gold, already a moment before it runs out. Before your first seal, the one of your talent tree.
 *   **Gathering** – a miner or a herbalist with no tracking on sees Find Minerals or Find Herbs glow. Any tracking counts, so a hunter tracking beasts is left alone.
-*   **Low reagents** – the group buff on your bar glows quietly while its reagent runs low, so you remember it in town.
+*   **Low reagents** – the group buff on your bar glows quietly while its reagent runs low (5 or fewer, or the limit you set), so you remember it in town.
 *   **Cooldowns that are back** – in a fight, an important cooldown of your class or your race (Recklessness, Rapid Fire, Adrenaline Rush, Innervate, Swift Judgement, Blood Fury, Stoneform, Desperate Prayer…) glows for a few seconds when it is ready again. If you like, the ready ones also glow as a fight starts.
 *   **Procs** – Overpower, Revenge, Execute, Victory Rush, Riposte, Counterattack, Mongoose Bite and Hammer of Wrath glow while you can use them.
 *   **Old ranks** – a spell on your bars at a lower rank than the one you know glows quietly, and a short message tells you.
@@ -47,7 +47,7 @@ On the Settings page (_Options > AddOns > Glowing Bars_):
 *   **Action bars that glow**: turn any of the eight bars off (Bartender4's, Dominos's and EllesmereUI's too)
 *   **Faded until they glow**: bars 2 to 8 stay faint until one of their buttons glows, so a bar in the middle of your screen shows only what's due
 *   **Spell IDs in tooltips** (off by default): every spell's tooltip shows its ID, and an elixir's, potion's or food's the spell it casts
-*   The weapon buff to keep up, the party buff message, and when cooldowns glow
+*   The weapon buff to keep up, the party buff message, when cooldowns glow, and how few reagents are low
 
 All settings are kept per character.
 

@@ -48,6 +48,7 @@ import { TEXTS } from "./locale/texts.constants";
 import { BarsSection } from "./options/bars.section";
 import { GlowStyleSection } from "./options/glow-style.section";
 import { GlowsSection } from "./options/glows.section";
+import { ReagentsSection } from "./options/reagents.section";
 import { IdTooltipService } from "./options/id-tooltip.service";
 import { ReminderControlsService } from "./options/reminder-controls.service";
 import { StyleChoicesService } from "./options/style-choices.service";
@@ -165,7 +166,7 @@ function makeReminders(addon: Addon, addonName: string, game: Game, texts: Texts
     const buff = addon.register(
         new BuffReminderService(buffs.state, game.spells, game.player, game.actionBars, buffs.classBuffs, settings),
     );
-    const reagents = addon.register(new ReagentsService(game.bags, game.spells));
+    const reagents = addon.register(new ReagentsService(game.bags, game.spells, settings));
     const party = addon.register(
         new PartyBuffsService(buffs.state, game.spells, game.clock, game.party, game.player, buffs.classBuffs, reagents, settings),
     );
@@ -277,6 +278,9 @@ function makeOptions(addon: Addon, addonName: string, game: Game, texts: Texts, 
         new WeaponSection(locale, game.spells, reminders.weaponChoice, settings, controls, reminderControls),
     );
     const glowsSection = addon.register(new GlowsSection(locale, settings, controls, reminderControls, reminders.glowCues));
+    const reagentsSection = addon.register(
+        new ReagentsSection(locale, settings, controls, reminderControls, game.player, reminders.reagents, reminders.customCues),
+    );
     const table = makeTable(addon, addonName, game, texts, buffs, reminders);
     const barsSection = addon.register(new BarsSection(locale, settings, controls, reminderControls));
     const glowStyleSection = addon.register(new GlowStyleSection(locale, settings, controls));
@@ -300,6 +304,7 @@ function makeOptions(addon: Addon, addonName: string, game: Game, texts: Texts, 
             reminderControls,
             weaponSection,
             glowsSection,
+            reagentsSection,
             about,
             widgets,
             table,

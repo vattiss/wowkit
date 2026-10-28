@@ -20,7 +20,7 @@ Your Rotation.
   missing and the reagent in your bags, it suggests the group version (Prayer of Fortitude, Gift of the Wild, Arcane
   Brilliance; a Greater Blessing per class). A group version on you counts as the buff.
 - **Reagents**: the group buff on your action bar (Prayer of Fortitude, Gift of the Wild...) glows, quietly, while its
-  reagent runs low, also in a town; on arriving in a town or an inn a chat line names the reagents.
+  reagent runs low (5 or fewer by default, set on the Settings page), also in a town; on arriving in a town or an inn a chat line names the reagents.
 - **Ready cooldowns**: in a fight, an important cooldown of your class (Recklessness, Rapid Fire, Adrenaline Rush,
   Innervate...) or of your race (Blood Fury, Stoneform, Desperate Prayer...) glows when it is ready again after you used
   it, or after it was running as the fight began: for 3 seconds by default (2, 5, 10, or until you press it). If you like, the ready

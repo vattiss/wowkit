@@ -5,7 +5,6 @@
 import type { ActionBarsService, BagsService, SpellsService, WeaponEnchantsService } from "@wowkit/wow";
 import type { BuffStateService } from "../character/buff-state.service";
 import type { CustomCuesService } from "../glows/custom-cues.service";
-import { REAGENT_LOW } from "../reagents/reagents.constants";
 import type { ReagentsService } from "../reagents/reagents.service";
 import type { AddonSettingsService, CueKind } from "../settings/settings.interface";
 
@@ -37,7 +36,7 @@ export class CustomRemindersService {
     findReagentSpells(): number[] {
         return this.listOnBars("reagent").filter((id) => {
             const reagent = this.reagents.findTooltipReagent(id);
-            return reagent !== undefined && this.bags.getItemCountByName(reagent) <= REAGENT_LOW;
+            return reagent !== undefined && this.reagents.isLow(this.bags.getItemCountByName(reagent));
         });
     }
 

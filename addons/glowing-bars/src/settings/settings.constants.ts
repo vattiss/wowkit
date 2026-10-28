@@ -19,6 +19,7 @@ export function createDefaultSettings(): AddonSettings {
         showCooldownsOutOfCombat: false,
         showCooldownsAtFightStart: false,
         cooldownGlowSeconds: 3,
+        reagentLow: 5,
         showProcs: true,
         showSeals: true,
         showTracking: true,
@@ -64,6 +65,9 @@ export const FADED_OPACITY_CHOICES = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90];
 /** The choices of how long a cooldown glows once it is back (seconds; 0 = until it is pressed). */
 export const COOLDOWN_GLOW_CHOICES = [2, 3, 5, 10, 0];
 
+/** The choices of how few of a reagent in the bags is running low. */
+export const REAGENT_LOW_CHOICES = [5, 10, 20, 40];
+
 /** The kinds a spell can be added as, in the order the add button goes through them. */
 export const CUE_KINDS: CueKind[] = ["cooldown", "proc", "buff", "weapon", "reagent", "seal", "tracking"];
 
@@ -99,6 +103,7 @@ export function repairSettings(values: AddonSettings): void {
     );
     if (!COOLDOWN_GLOW_CHOICES.includes(values.cooldownGlowSeconds))
         values.cooldownGlowSeconds = createDefaultSettings().cooldownGlowSeconds;
+    if (!REAGENT_LOW_CHOICES.includes(values.reagentLow)) values.reagentLow = defaults.reagentLow;
     for (const kind of KIND_ORDER) values.styles[kind] = repairStyle(values.styles[kind]);
     for (const [name, style] of pairs(values.spellStyles)) values.spellStyles[name as string] = repairStyle(style);
 }
