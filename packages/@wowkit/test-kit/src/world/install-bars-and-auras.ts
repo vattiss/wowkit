@@ -48,13 +48,15 @@ function installAddonBars(state: ClientState, frames: FrameRegistry): void {
 
 export function installActionBars(state: ClientState, frames: FrameRegistry): void {
     defineNamespace<typeof C_ActionBar>("C_ActionBar", {
-        HasAction: (slot) => state.bars[slot] !== undefined,
+        HasAction: (slot) => state.bars[slot] !== undefined || state.barItems[slot] !== undefined,
         GetActionTexture: (slot) => state.spells[state.bars[slot] ?? 0]?.icon ?? 0,
         // The bar does not answer: the addon then asks the spell
         IsActionInRange: () => undefined,
     });
     defineGlobals({
         GetActionInfo: (slot) => {
+            const itemId = state.barItems[slot];
+            if (itemId !== undefined) return $multi("item", itemId, undefined, undefined);
             const spellId = state.bars[slot];
             if (spellId === undefined) return $multi(undefined, undefined, undefined, undefined);
             return $multi("spell", spellId, undefined, spellId);

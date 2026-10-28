@@ -1,8 +1,8 @@
 // Which weapon buff the player should keep up: the player's pick if learned, else the best one
-// already learned.
+// already learned. A buff put on with an item (a rogue poison) counts as learned while an item of it is on the bars.
 import { OnEvent, contains } from "@wowkit/core";
 import type { AddonSettingsService } from "../../settings/settings.interface";
-import type { PlayerService, SpellsService } from "@wowkit/wow";
+import type { ActionBarsService, BagsService, PlayerService, SpellsService } from "@wowkit/wow";
 import type { PickedWeaponBuff } from "../reminders.interface";
 import type { WeaponBuff } from "./weapon-buff.interface";
 import { OFFHAND_PRIORITY, WEAPON_BUFF_BY_SPELL, WEAPON_BUFFS, WEAPON_PRIORITY } from "./weapon-buffs.constants";
@@ -15,6 +15,8 @@ export class WeaponChoiceService {
         private readonly player: PlayerService,
         private readonly spells: SpellsService,
         private readonly settings: AddonSettingsService,
+        private readonly actionBars: ActionBarsService,
+        private readonly bags: BagsService,
     ) {}
 
     @OnEvent("spells.invalidated")
@@ -29,7 +31,7 @@ export class WeaponChoiceService {
     }
 
     isWeaponBuffLearned(entry: WeaponBuff): boolean {
-        return this.findLearnedId(entry) !== undefined;
+        return this.findUsableId(entry) !== undefined;
     }
 
     /** The class coats both weapons (rogue). */
@@ -101,6 +103,21 @@ export class WeaponChoiceService {
         return tokens;
     }
 
+    /**
+     * The rank of a buff put on with an item that glows, as the spell the item casts: the highest on the bars that the
+     * player has some of, else the highest on the bars; undefined with none on the bars.
+     */
+    private findItemRank(items: { item: number; spell: number }[]): number | undefined {
+        const onBars = items.filter(({ spell }) => this.actionBars.isOnBars(spell));
+        const owned = onBars.filter(({ item }) => this.bags.getItemCount(item) > 0);
+        return (owned.length > 0 ? owned : onBars)[(owned.length > 0 ? owned : onBars).length - 1]?.spell;
+    }
+
+    /** The rank to cast of this weapon buff: of an item, the one on the bars; else the highest learned. */
+    private findUsableId(entry: WeaponBuff | undefined): number | undefined {
+        return entry?.items !== undefined ? this.findItemRank(entry.items) : this.findLearnedId(entry);
+    }
+
     /** The highest learned rank of this weapon buff. */
     private findLearnedId(entry: WeaponBuff | undefined): number | undefined {
         if (!entry) return undefined;
@@ -124,7 +141,7 @@ export class WeaponChoiceService {
     }
 
     private createPickedWeaponBuff(entry: WeaponBuff | undefined): PickedWeaponBuff | undefined {
-        const spellId = this.findLearnedId(entry);
+        const spellId = this.findUsableId(entry);
         return entry && spellId !== undefined ? { entry, spellId } : undefined;
     }
 

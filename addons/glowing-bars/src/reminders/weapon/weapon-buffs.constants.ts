@@ -44,6 +44,14 @@ export const WEAPON_BUFFS: { [classToken: string]: WeaponBuff[] | undefined } = 
             key: "InstantPoison",
             name: "Instant Poison",
             id: Rogue.InstantPoison,
+            items: [
+                { item: 6947, spell: 8679 },
+                { item: 6949, spell: 8686 },
+                { item: 6950, spell: 8688 },
+                { item: 8926, spell: 11338 },
+                { item: 8927, spell: 11339 },
+                { item: 8928, spell: 11340 },
+            ],
             duration: 1800,
             enchants: [323, 324, 325, 623, 624, 625],
             match: ["instant poison"],
@@ -52,6 +60,13 @@ export const WEAPON_BUFFS: { [classToken: string]: WeaponBuff[] | undefined } = 
             key: "DeadlyPoison",
             name: "Deadly Poison",
             id: Rogue.DeadlyPoison,
+            items: [
+                { item: 2892, spell: 2823 },
+                { item: 2893, spell: 2824 },
+                { item: 8984, spell: 11355 },
+                { item: 8985, spell: 11356 },
+                { item: 20844, spell: 25351 },
+            ],
             duration: 1800,
             enchants: [7, 8, 626, 627, 2630],
             match: ["deadly poison"],
@@ -60,6 +75,10 @@ export const WEAPON_BUFFS: { [classToken: string]: WeaponBuff[] | undefined } = 
             key: "CripplingPoison",
             name: "Crippling Poison",
             id: Rogue.CripplingPoison,
+            items: [
+                { item: 3775, spell: 3408 },
+                { item: 3776, spell: 11202 },
+            ],
             duration: 1800,
             enchants: [22, 603],
             match: ["crippling"],
@@ -68,6 +87,12 @@ export const WEAPON_BUFFS: { [classToken: string]: WeaponBuff[] | undefined } = 
             key: "WoundPoison",
             name: "Wound Poison",
             id: Rogue.WoundPoison,
+            items: [
+                { item: 10918, spell: 13219 },
+                { item: 10920, spell: 13225 },
+                { item: 10921, spell: 13226 },
+                { item: 10922, spell: 13227 },
+            ],
             duration: 1800,
             enchants: [703, 704, 705, 706],
             match: ["wound poison"],
@@ -76,6 +101,11 @@ export const WEAPON_BUFFS: { [classToken: string]: WeaponBuff[] | undefined } = 
             key: "MindNumbingPoison",
             name: "Mind-numbing Poison",
             id: Rogue.MindNumbingPoison,
+            items: [
+                { item: 5237, spell: 5761 },
+                { item: 6951, spell: 8693 },
+                { item: 9186, spell: 11399 },
+            ],
             duration: 1800,
             enchants: [23, 35, 643],
             match: ["mind-numbing", "mind numbing"],
@@ -104,6 +134,7 @@ for (const [, list] of pairs(WEAPON_BUFFS)) {
     for (const entry of list ?? []) {
         WEAPON_BUFF_BY_SPELL.set(entry.id, entry);
         for (const rankId of entry.ranks ?? []) WEAPON_BUFF_BY_SPELL.set(rankId, entry);
+        for (const { spell } of entry.items ?? []) WEAPON_BUFF_BY_SPELL.set(spell, entry);
         for (const enchantId of entry.enchants) WEAPON_BUFF_BY_ENCHANT.set(enchantId, entry);
     }
 }

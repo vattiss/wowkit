@@ -169,7 +169,7 @@ function makeReminders(addon: Addon, addonName: string, game: Game, texts: Texts
     const party = addon.register(
         new PartyBuffsService(buffs.state, game.spells, game.clock, game.party, game.player, buffs.classBuffs, reagents, settings),
     );
-    const weaponChoice = addon.register(new WeaponChoiceService(game.player, game.spells, settings));
+    const weaponChoice = addon.register(new WeaponChoiceService(game.player, game.spells, settings, game.actionBars, game.bags));
     const weaponMemory = addon.register(new WeaponMemoryService());
     const weaponReading = addon.register(new WeaponReadingService(buffs.state, game.weaponEnchants, weaponChoice));
     const weapon = addon.register(new WeaponReminderService(game.clock, game.weaponEnchants, weaponChoice, weaponMemory, weaponReading));

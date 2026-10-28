@@ -97,3 +97,64 @@ describe("a rogue with two weapons", () => {
         expect(world.glowsOn(5)).toBe(1);
     });
 });
+
+describe("a rogue with the poison items on the bars, as in the game", () => {
+    /** The items of Instant Poison and the spells they cast, rank I to VI (from the game). */
+    const INSTANT = [
+        { item: 6947, spell: 8679, name: "Instant Poison" },
+        { item: 6949, spell: 8686, name: "Instant Poison II" },
+        { item: 6950, spell: 8688, name: "Instant Poison III" },
+        { item: 8926, spell: 11338, name: "Instant Poison IV" },
+        { item: 8927, spell: 11339, name: "Instant Poison V" },
+        { item: 8928, spell: 11340, name: "Instant Poison VI" },
+    ];
+
+    /** A rogue with one weapon, nothing learned of the poisons, and these ranks (1 to 6) on buttons 11 and on, with these many in the bags. */
+    function createRogueWorld(ranks: number[], counts: number[]): World {
+        const world = createWorld((state) => {
+            playAs(state, ROGUE);
+            ranks.forEach((rank, index) => {
+                const poison = INSTANT[rank - 1]!;
+                state.spells[poison.spell] = { id: poison.spell, name: poison.name, rank: 1, icon: 132273, isHelpful: true };
+                state.itemUseSpells[poison.item] = poison.spell;
+                state.barItems[11 + index] = poison.item;
+                state.bags[poison.item] = counts[index];
+            });
+            state.equippedItems[MAIN_HAND] = 1234;
+        });
+        world.advance(2);
+        return world;
+    }
+
+    it("sees the item of the missing poison glow, although nothing of it is learned", () => {
+        expect(createRogueWorld([6], [20]).glowsOn(11)).toBe(1);
+    });
+
+    it("sees only the highest rank glow while there is some of it", () => {
+        const world = createRogueWorld([5, 6], [5, 5]);
+        expect(world.glowsOn(12)).toBe(1);
+        expect(world.glowsOn(11)).toBe(0);
+    });
+
+    it("sees the lower rank glow once the higher one is used up", () => {
+        const world = createRogueWorld([5, 6], [5, 0]);
+        expect(world.glowsOn(11)).toBe(1);
+        expect(world.glowsOn(12)).toBe(0);
+    });
+
+    it("sees the highest rank glow when there is none of either", () => {
+        const world = createRogueWorld([5, 6], [0, 0]);
+        expect(world.glowsOn(12)).toBe(1);
+        expect(world.glowsOn(11)).toBe(0);
+    });
+
+    it("sees only rank VI glow beside the first rank, which has no numeral", () => {
+        const world = createRogueWorld([1, 6], [5, 5]);
+        expect(world.glowsOn(12)).toBe(1);
+        expect(world.glowsOn(11)).toBe(0);
+    });
+
+    it("sees no glow with no poison on the bars", () => {
+        expect(createRogueWorld([], []).glowsOn(11)).toBe(0);
+    });
+});

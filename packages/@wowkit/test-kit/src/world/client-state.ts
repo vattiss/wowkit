@@ -85,6 +85,8 @@ export interface ClientState {
     /** Every spell that exists in the test, learned or not. */
     spells: { [spellId: number]: SpellDefinition | undefined };
     knownSpells: { [spellId: number]: true | undefined };
+    /** Items on the action buttons (slot -> item ID), as a rogue keeps the poisons. */
+    barItems: { [slot: number]: number | undefined };
     /** Action slot (1-12 for the main bar) -> the spell on it. */
     bars: { [slot: number]: number | undefined };
     /** The buffs on the player, in the order the game lists them. */
@@ -154,6 +156,7 @@ export function createClientState(): ClientState {
         character: { name: "Priest", token: "PRIEST", id: 5 },
         spells: {},
         knownSpells: {},
+        barItems: {},
         bars: {},
         auras: [],
         isInCombat: false,
