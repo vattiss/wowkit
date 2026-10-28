@@ -1,9 +1,10 @@
-// The buff list of the player's class and the per-character switch of each buff.
+// The buff list of the player's class, the per-character switch of each buff, and which buff of a group (one paladin aura,
+// one blessing, one armor) the player wants: the one cast last, else the main talent tree's, else the first.
 
 import type { AddonSettingsService } from "../settings/settings.interface";
 import type { PlayerService, SpellsService } from "@wowkit/wow";
 import type { ClassBuff } from "./class-buff.interface";
-import { BUFF_LISTS } from "./class-buffs.constants";
+import { BUFF_LISTS, TALENT_BUFFS } from "./class-buffs.constants";
 
 export class ClassBuffsService {
     constructor(
@@ -40,5 +41,27 @@ export class ClassBuffsService {
         const buffOn = { ...this.settings.get("buffOn") };
         buffOn[classBuff.key] = isOn === classBuff.isOnByDefault ? undefined : isOn;
         this.settings.change("buffOn", buffOn);
+    }
+
+    /** Of the buffs of a group that could glow: the one cast last, else the main talent tree's, else the first. */
+    pickGroupBuff(members: ClassBuff[]): ClassBuff {
+        const first = members[0]!;
+        if (members.length === 1) return first;
+        const last = this.settings.get("lastBuffs")[this.getGroupKey(first)];
+        const castLast = members.find((member) => member.id === last);
+        if (castLast !== undefined) return castLast;
+        const tree = this.player.findMainTalentTree();
+        const token = this.player.getClassToken();
+        const wanted = tree !== undefined && token !== undefined ? (TALENT_BUFFS[token]?.[tree] ?? []) : [];
+        for (const id of wanted) {
+            const found = members.find((member) => member.id === id);
+            if (found !== undefined) return found;
+        }
+        return first;
+    }
+
+    /** The key of a buff's group in the saved settings: the group's first spell ID. */
+    getGroupKey(classBuff: ClassBuff): string {
+        return string.format("%d", classBuff.categoryMembers?.[0] ?? classBuff.id);
     }
 }

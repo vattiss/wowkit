@@ -7,7 +7,6 @@ import type { BuffStateService } from "../character/buff-state.service";
 import type { ActionBarsService, PlayerService, PlayerSpellCast, SpellsService } from "@wowkit/wow";
 import type { AddonSettingsService } from "../settings/settings.interface";
 import type { ClassBuff } from "./class-buff.interface";
-import { TALENT_BUFFS } from "./class-buffs.constants";
 import type { ClassBuffsService } from "./class-buffs.service";
 import type { BuffCheck, MissingBuffs } from "./reminders.interface";
 
@@ -54,16 +53,18 @@ export class BuffReminderService {
         if (cast.spellId === undefined) return;
         const id = this.spells.resolveOrSame(cast.spellId);
         const castName = this.spells.getSpellName(id);
-        // A higher rank than the list's ID by its name
+        // A group version (a Greater Blessing) counts as its buff; a higher rank than the list's ID by its name
         const castBuff = this.classBuffs
             .getClassBuffs()
             .find(
                 (classBuff) =>
                     classBuff.categoryMembers !== undefined &&
-                    ((this.spells.resolve(classBuff.id) ?? classBuff.id) === id || this.spells.getSpellName(classBuff.id) === castName),
+                    [classBuff.id, ...(classBuff.party?.groupIds ?? [])].some(
+                        (buffId) => (this.spells.resolve(buffId) ?? buffId) === id || this.spells.getSpellName(buffId) === castName,
+                    ),
             );
         if (castBuff === undefined) return;
-        const group = this.getGroupKey(castBuff);
+        const group = this.classBuffs.getGroupKey(castBuff);
         const lastBuffs = this.settings.get("lastBuffs");
         if (lastBuffs[group] !== castBuff.id) this.settings.change("lastBuffs", { ...lastBuffs, [group]: castBuff.id });
     }
@@ -99,7 +100,7 @@ export class BuffReminderService {
             members.push(classBuff);
         }
         const glow = groups.map((members) => {
-            const picked = this.pickGroupBuff(members);
+            const picked = this.classBuffs.pickGroupBuff(members);
             return this.spells.resolve(picked.id) ?? picked.id;
         });
         const notOnBars: number[] = [];
@@ -111,27 +112,5 @@ export class BuffReminderService {
             }
         }
         return { glow, notOnBars };
-    }
-
-    /** Of the buffs of a group that could glow: the one cast last, else the main talent tree's, else the first. */
-    private pickGroupBuff(members: ClassBuff[]): ClassBuff {
-        const first = members[0]!;
-        if (members.length === 1) return first;
-        const last = this.settings.get("lastBuffs")[this.getGroupKey(first)];
-        const castLast = members.find((member) => member.id === last);
-        if (castLast !== undefined) return castLast;
-        const tree = this.player.findMainTalentTree();
-        const token = this.player.getClassToken();
-        const wanted = tree !== undefined && token !== undefined ? (TALENT_BUFFS[token]?.[tree] ?? []) : [];
-        for (const id of wanted) {
-            const found = members.find((member) => member.id === id);
-            if (found !== undefined) return found;
-        }
-        return first;
-    }
-
-    /** The key of a buff's group in the saved settings: the group's first spell ID. */
-    private getGroupKey(classBuff: ClassBuff): string {
-        return string.format("%d", classBuff.categoryMembers?.[0] ?? classBuff.id);
     }
 }

@@ -1,7 +1,8 @@
 // Party members missing one of the player's buffs. Out of combat only (in combat the client hides
 // other units' auras), party only (not raids), members online, alive and in range. When two or
 // more miss a buff (of one class, for Greater Blessings) and the reagent is in the bags, the
-// group version is suggested.
+// group version is suggested. Of a group (one blessing) the one the player wants is asked for: the one cast last, else
+// the main talent tree's, else the first.
 
 import type { BuffStateService } from "../character/buff-state.service";
 import type { AddonSettingsService } from "../settings/settings.interface";
@@ -56,23 +57,22 @@ export class PartyBuffsService {
         this.cachedAt = -10;
     }
 
-    /** The buffs to check: enabled, learned, castable on others; one per category (the first). */
+    /** The buffs to check: enabled, learned, castable on others; one per category, the one the player wants (cast last...). */
     private getPartyBuffs(): ClassBuff[] {
-        const classBuffs: ClassBuff[] = [];
-        const categories = new LuaSet<object>();
+        const groups: ClassBuff[][] = [];
+        const groupOf = new LuaMap<object, ClassBuff[]>();
         for (const classBuff of this.classBuffs.getClassBuffs()) {
+            if (!classBuff.party || !this.classBuffs.isBuffEnabled(classBuff) || !this.spells.isLearned(classBuff.id)) continue;
             const category = classBuff.categoryMembers ?? classBuff;
-            if (
-                classBuff.party &&
-                this.classBuffs.isBuffEnabled(classBuff) &&
-                this.spells.isLearned(classBuff.id) &&
-                !categories.has(category)
-            ) {
-                categories.add(category);
-                classBuffs.push(classBuff);
+            let members = groupOf.get(category);
+            if (members === undefined) {
+                members = [];
+                groupOf.set(category, members);
+                groups.push(members);
             }
+            members.push(classBuff);
         }
-        return classBuffs;
+        return groups.map((members) => this.classBuffs.pickGroupBuff(members));
     }
 
     /** The highest learned rank of the group version that has its reagent. */
