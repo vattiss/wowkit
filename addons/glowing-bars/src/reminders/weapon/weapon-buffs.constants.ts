@@ -112,8 +112,32 @@ export const WEAPON_BUFFS: { [classToken: string]: WeaponBuff[] | undefined } = 
         },
     ],
     WARLOCK: [
-        { key: "Firestone", id: Warlock.Firestone, duration: 7200, enchants: [1803, 1823, 1824, 1825], match: ["firestone"] },
-        { key: "Spellstone", id: Warlock.Spellstone, duration: 7200, enchants: [8059, 8060, 8061], match: ["spellstone"] },
+        // The ID is the spell that makes the stone; the items are the stones, each with the spell that puts it on
+        {
+            key: "Firestone",
+            id: Warlock.Firestone,
+            items: [
+                { item: 1254, spell: 758 },
+                { item: 13699, spell: 17945 },
+                { item: 13700, spell: 17947 },
+                { item: 13701, spell: 17949 },
+            ],
+            duration: 7200,
+            enchants: [1803, 1823, 1824, 1825],
+            match: ["firestone"],
+        },
+        {
+            key: "Spellstone",
+            id: Warlock.Spellstone,
+            items: [
+                { item: 5522, spell: 1237152 },
+                { item: 13602, spell: 1237156 },
+                { item: 13603, spell: 1237159 },
+            ],
+            duration: 7200,
+            enchants: [8059, 8060, 8061],
+            match: ["spellstone"],
+        },
     ],
 };
 

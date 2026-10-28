@@ -8,8 +8,8 @@ export interface WeaponBuff {
     /** Spell IDs of every rank, lowest first. */
     ranks?: number[];
     /**
-     * A buff put on with an item (rogue poisons), every rank lowest first: the item and the spell it casts when used.
-     * The player has the buff when an item of it is on the bars; nothing of it is learned.
+     * A buff put on with an item (rogue poisons, warlock stones), every rank lowest first: the item and the spell it casts
+     * when used. Of a rogue poison nothing is learned; a warlock learns the spell that makes the stone (`id`).
      */
     items?: { item: number; spell: number }[];
     enchants: number[];

@@ -1,5 +1,6 @@
 // Which weapon buff the player should keep up: the player's pick if learned, else the best one
-// already learned. A buff put on with an item (a rogue poison) counts as learned while an item of it is on the bars.
+// already learned. A buff put on with an item (a rogue poison, a warlock stone) glows on the item while the player has
+// some of it, else on the spell that makes it (a warlock's), else on the item.
 import { OnEvent, contains } from "@wowkit/core";
 import type { AddonSettingsService } from "../../settings/settings.interface";
 import type { ActionBarsService, BagsService, PlayerService, SpellsService } from "@wowkit/wow";
@@ -104,18 +105,24 @@ export class WeaponChoiceService {
     }
 
     /**
-     * The rank of a buff put on with an item that glows, as the spell the item casts: the highest on the bars that the
-     * player has some of, else the highest on the bars; undefined with none on the bars.
+     * What glows of a buff put on with an item: the highest rank on the bars that the player has some of (as the spell
+     * the item casts); with none in the bags, the spell that makes the item (a warlock's stone) if it can be cast now, else the highest rank on
+     * the bars; undefined with neither on the bars.
      */
-    private findItemRank(items: { item: number; spell: number }[]): number | undefined {
+    private findItemRank(entry: WeaponBuff, items: { item: number; spell: number }[]): number | undefined {
         const onBars = items.filter(({ spell }) => this.actionBars.isOnBars(spell));
         const owned = onBars.filter(({ item }) => this.bags.getItemCount(item) > 0);
-        return (owned.length > 0 ? owned : onBars)[(owned.length > 0 ? owned : onBars).length - 1]?.spell;
+        if (owned.length > 0) return owned[owned.length - 1]!.spell;
+        const maker = this.findLearnedId(entry);
+        // A stone that cannot be made now (no Soul Shard) is no reminder: nothing of it glows
+        if (maker !== undefined && this.spells.isCastable(maker) === false) return undefined;
+        if (maker !== undefined && (onBars.length === 0 || this.actionBars.isOnBars(maker))) return maker;
+        return onBars[onBars.length - 1]?.spell;
     }
 
     /** The rank to cast of this weapon buff: of an item, the one on the bars; else the highest learned. */
     private findUsableId(entry: WeaponBuff | undefined): number | undefined {
-        return entry?.items !== undefined ? this.findItemRank(entry.items) : this.findLearnedId(entry);
+        return entry?.items !== undefined ? this.findItemRank(entry, entry.items) : this.findLearnedId(entry);
     }
 
     /** The highest learned rank of this weapon buff. */

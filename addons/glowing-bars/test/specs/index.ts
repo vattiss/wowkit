@@ -19,3 +19,4 @@ import "./gathering.spec";
 import "./id-tooltip.spec";
 import "./sound-repeat.spec";
 import "./buff-groups.spec";
+import "./warlock.spec";
