@@ -293,7 +293,7 @@ export class ActionBarsService implements OnFirstLogin {
     }
 
     /**
-     * Every button to map: the bars' (Blizzard's, the totem bar, Bartender4's, Dominos's, EllesmereUI's, the gamepad
+     * Every button to map: the bars' (Blizzard's, the totem bar, Bartender4's, Dominos's, EllesmereUI's, ElvUI's, the gamepad
      * bars), then the stances.
      */
     private listButtonsToMap(): QueueEntry[] {
@@ -310,10 +310,10 @@ export class ActionBarsService implements OnFirstLogin {
             queue.push(this.getActionSlot(button) === undefined ? { spellButton: button } : { button });
         }
         const forms = attempt(GetNumShapeshiftForms) ?? 0;
-        // The stance bar: Blizzard's, and Bartender4's and Dominos's, whose buttons stand for the same forms (a paladin's
-        // auras too)
+        // The stance bar: Blizzard's, and Bartender4's, Dominos's and ElvUI's, whose buttons stand for the same forms (a
+        // paladin's auras too)
         for (let i = 1; i <= forms; i++) {
-            for (const name of [`StanceButton${i}`, `BT4StanceButton${i}`, `DominosStanceButton${i}`])
+            for (const name of [`StanceButton${i}`, `BT4StanceButton${i}`, `DominosStanceButton${i}`, `ElvUI_StanceBarButton${i}`])
                 queue.push({ stance: i, button: this.getGlobal<ActionButton>(name) });
         }
         return queue;

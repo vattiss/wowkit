@@ -1,5 +1,5 @@
-// The names of the action buttons of the numbered bars: Blizzard's eight bars of Edit Mode, and Bartender4's, Dominos's
-// and EllesmereUI's, which count as the bars of the same number (their bar 2 is Action Bar 2).
+// The names of the action buttons of the numbered bars: Blizzard's eight bars of Edit Mode, and Bartender4's, Dominos's,
+// EllesmereUI's and ElvUI's, which count as the bars of the same number (their bar 2 is Action Bar 2).
 
 /** The bars of Edit Mode, 1 to 8, by the prefix of their buttons' names. */
 export const BARS = [
@@ -52,6 +52,19 @@ function findEllesmereBar(slot: number): number | undefined {
     return index >= 0 ? index + 1 : undefined;
 }
 
+/**
+ * ElvUI's action buttons (LibActionButton-1.0, the slot in `action`): ElvUI_Bar1Button1 to ElvUI_Bar15Button12, its bar N
+ * on the slots of page N by default (its AB.barDefaults); so its bar 6 (slots 61 to 72) is Action Bar 2, as the first
+ * slots of Blizzard's bars say. Its bars 2 and 7 to 10 are of no Blizzard bar; 11 and 12 it does not make.
+ */
+export const ELVUI_PREFIX = "ElvUI_Bar";
+const ELVUI_BARS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 13, 14, 15];
+
+/** The name of ElvUI's button `index` (1 to 12) of its bar `bar`. */
+function getElvUIButtonName(bar: number, index: number): string {
+    return `${ELVUI_PREFIX}${bar}Button${index}`;
+}
+
 /** Dominos's button numbers by name, made when first asked. */
 let dominosNumbers: LuaMap<string, number> | undefined;
 
@@ -74,13 +87,14 @@ function findDominosNumber(name: string): number | undefined {
     return dominosNumbers.get(name);
 }
 
-/** The names of every action button of the bar addons: Bartender4's, Dominos's, then EllesmereUI's (its bars 1 to 10). */
+/** The names of every action button of the bar addons: Bartender4's, Dominos's, EllesmereUI's (its bars 1 to 10), ElvUI's. */
 export function listAddonButtonNames(): string[] {
     const names: string[] = [];
     for (let i = 1; i <= BARTENDER_BUTTONS; i++) names.push(`${BARTENDER_PREFIX}${i}`);
     for (let i = 1; i <= DOMINOS_BUTTONS; i++) names.push(getDominosButtonName(i)!);
     for (const offset of [...ELLESMERE_BAR_OFFSETS, ...ELLESMERE_EXTRA_OFFSETS])
         for (let i = 1; i <= 12; i++) names.push(`${ELLESMERE_PREFIX}${offset + i}`);
+    for (const bar of ELVUI_BARS) for (let i = 1; i <= 12; i++) names.push(getElvUIButtonName(bar, i));
     return names;
 }
 
@@ -95,6 +109,9 @@ export function findBarNumber(name: string): number | undefined {
     // An EllesmereUI button: its bar is the one whose slots its number falls in
     const [ellesmereSlot] = string.match(name, `^${ELLESMERE_PREFIX}(%d+)$`);
     if (ellesmereSlot !== undefined) return findEllesmereBar(tonumber(ellesmereSlot)!);
+    // An ElvUI button: its bar is the one whose slots its bar's page has
+    const [elvBar] = string.match(name, `^${ELVUI_PREFIX}(%d+)Button%d+$`);
+    if (elvBar !== undefined) return findEllesmereBar((tonumber(elvBar)! - 1) * 12 + 1);
     // A Bartender4 button: its bar is the twelve its number falls in
     const [bartenderIndex] = string.match(name, `^${BARTENDER_PREFIX}(%d+)$`);
     if (bartenderIndex !== undefined) {
@@ -106,7 +123,7 @@ export function findBarNumber(name: string): number | undefined {
     return index >= 0 ? index + 1 : undefined;
 }
 
-/** The names of the buttons of a bar (1 to 8): Blizzard's, and Bartender4's, Dominos's and EllesmereUI's of the same number. */
+/** The names of the buttons of a bar (1 to 8): Blizzard's, and Bartender4's, Dominos's, EllesmereUI's and ElvUI's of the same number. */
 export function listBarButtonNames(bar: number): string[] {
     const prefix = BARS[bar - 1];
     if (prefix === undefined) return [];
@@ -118,6 +135,7 @@ export function listBarButtonNames(bar: number): string[] {
             `${BARTENDER_PREFIX}${id}`,
             getDominosButtonName(id)!,
             `${ELLESMERE_PREFIX}${ELLESMERE_BAR_OFFSETS[bar - 1]! + i}`,
+            getElvUIButtonName(ELLESMERE_BAR_OFFSETS[bar - 1]! / 12 + 1, i),
         );
     }
     return names;

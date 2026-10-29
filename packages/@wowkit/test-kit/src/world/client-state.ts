@@ -107,6 +107,8 @@ export interface ClientState {
      * 13 to 24), made one second after the login, as EllesmereUI makes them after the addon's first map of the bars.
      */
     hasEllesmere: boolean;
+    /** ElvUI is loaded: its bar 6 (ElvUI_Bar6Button1 to 12, slots 61 to 72: Action Bar 2) and its bar 2 (slots 13 to 24, of no Blizzard bar). */
+    hasElvUI: boolean;
     /** The points spent in each of the three talent trees (a paladin's Holy, Protection, Retribution). */
     talentPoints: number[];
     isResting: boolean;
@@ -174,6 +176,7 @@ export function createClientState(): ClientState {
         hasBartender: false,
         hasDominos: false,
         hasEllesmere: false,
+        hasElvUI: false,
         talentPoints: [0, 0, 0],
         isResting: false,
         enchants: {},
