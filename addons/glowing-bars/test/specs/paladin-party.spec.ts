@@ -256,6 +256,10 @@ describe("a paladin's party blessings, by class and by group", () => {
         return world;
     }
 
+    it("asks Might for a hunter: mana, but a weapon fighter", () => {
+        expect(createPaladinWorld("HUNTER").notice()).toContain("Blessing of Might missing on: Friend");
+    });
+
     it("forgets the blessings given in the party once in a raid: there they are shared out again", () => {
         const world = createPaladinWorld("PRIEST");
         world.state.party[0]!.auras.push({ name: WISDOM.name, spellId: WISDOM.id, expirationTime: 99999, sourceUnit: "player" });

@@ -47,8 +47,12 @@ export const TALENT_BUFFS: { [classToken: string]: { [tree: number]: number[] | 
 
 /**
  * The blessing a party member wants before the player has given one to its class (the first of these the player
- * knows): Wisdom for a class with mana (a healer or a caster runs out of it), Kings for the others (a tank), else Might.
+ * knows): Wisdom for a class with mana (a healer or a caster runs out of it), Kings for the others (a tank, a hunter),
+ * else Might.
  */
+/** Classes with mana that fight with weapons: Kings or Might, not Wisdom. */
+export const WEAPON_MANA_CLASSES = ["HUNTER"];
+
 export const PARTY_BLESSINGS = {
     mana: [P.BlessingWisdom, P.BlessingKings, P.BlessingMight],
     other: [P.BlessingKings, P.BlessingMight, P.BlessingWisdom],

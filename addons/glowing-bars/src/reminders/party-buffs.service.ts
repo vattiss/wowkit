@@ -11,7 +11,7 @@ import type { AddonSettingsService } from "../settings/settings.interface";
 import type { ReagentsService } from "../reagents/reagents.service";
 import type { ClockService, PartyService, PlayerService, SpellsService } from "@wowkit/wow";
 import type { ClassBuff } from "./class-buff.interface";
-import { PARTY_BLESSINGS } from "./class-buffs.constants";
+import { PARTY_BLESSINGS, WEAPON_MANA_CLASSES } from "./class-buffs.constants";
 import type { ClassBuffsService } from "./class-buffs.service";
 import type { PartySuggestion } from "./reminders.interface";
 
@@ -141,7 +141,8 @@ export class PartyBuffsService {
      */
     private pickMemberBlessing(group: ClassBuff[], member: Member, isInRaid: boolean): ClassBuff | undefined {
         const last = this.settings.get("lastBuffs")[this.getClassKey(group, member.classToken)];
-        const order = isInRaid ? [] : this.party.doesUseMana(member.unit) ? PARTY_BLESSINGS.mana : PARTY_BLESSINGS.other;
+        const shouldGetWisdom = this.party.doesUseMana(member.unit) && !WEAPON_MANA_CLASSES.includes(member.classToken);
+        const order = isInRaid ? [] : shouldGetWisdom ? PARTY_BLESSINGS.mana : PARTY_BLESSINGS.other;
         for (const id of [...(last !== undefined ? [last] : []), ...order]) {
             const found = group.find((buff) => buff.id === id);
             if (found !== undefined) return found;
