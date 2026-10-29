@@ -23,6 +23,19 @@ describe("a priest who plays with DaylightUI", () => {
         expect(world.glowsOnFrame("DaylightUIBar2Button1")).toBe(0);
     });
 
+    it("shows the glowing button in full on a bar DaylightUI faded, and the others faded with it", () => {
+        // DaylightUI fades a bar's holder, the buttons' parent
+        const world = createWorld(setUp);
+        world.advance(1);
+        const findButton = (index: number) => world.findFrame((frame) => frame.name === `DaylightUIBar2Button${index}`)!;
+        expect(findButton(1).isIgnoringParentAlpha).toBe(true);
+        expect(findButton(2).isIgnoringParentAlpha).toBe(false);
+        world.state.auras.push({ name: FORTITUDE.name, spellId: FORTITUDE.id, expirationTime: 99999 });
+        world.fire("UNIT_AURA", "player");
+        world.advance(1);
+        expect(findButton(1).isIgnoringParentAlpha).toBe(false);
+    });
+
     it("fades DaylightUI's bar 2 with Action Bar 2", () => {
         const world = createWorld(setUp, { barFaded: { "2": true } });
         world.advance(1);

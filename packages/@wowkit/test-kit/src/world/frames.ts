@@ -14,6 +14,8 @@ export interface FakeFrame {
     isShown: boolean;
     /** The opacity the addon set (a glow faded by a hidden value). */
     alpha: number;
+    /** Drawn in full whatever its parent's opacity (SetIgnoreParentAlpha). */
+    isIgnoringParentAlpha: boolean;
     text: string | undefined;
     /** The frame the addon last anchored this one to (SetPoint). */
     anchor?: FakeFrame;
@@ -36,6 +38,7 @@ export interface FakeFrame {
     SetShown(isShown: boolean): void;
     SetAlpha(alpha: number): void;
     GetAlpha(): number;
+    SetIgnoreParentAlpha(ignore: boolean): void;
     SetScript(script: string, handler: Script | undefined): void;
     GetName(): string | undefined;
     GetFrameLevel(): number;
@@ -88,6 +91,7 @@ function createFakeFrame(init: FrameInit): FakeFrame {
         action: undefined,
         isShown: true,
         alpha: 1,
+        isIgnoringParentAlpha: false,
         text: undefined,
         width: 36,
         isChecked: false,
@@ -113,6 +117,9 @@ function createFakeFrame(init: FrameInit): FakeFrame {
         },
         GetAlpha() {
             return this.alpha;
+        },
+        SetIgnoreParentAlpha(ignore) {
+            this.isIgnoringParentAlpha = ignore;
         },
         IsShown() {
             return this.isShown;

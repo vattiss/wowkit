@@ -162,6 +162,13 @@ export class GlowService {
         else entry.frame.Hide();
     }
 
+    /** The buttons a glow is lit on, but those of the gamepad bars: their glow is beside them. */
+    listGlowing(): ActionButton[] {
+        const buttons: ActionButton[] = [];
+        for (const [button] of this.overlays) if (this.isGlowing(button) && !this.isGamepadButton(button)) buttons.push(button);
+        return buttons;
+    }
+
     /** Is a glow lit on the button? */
     isGlowing(button: ActionButton): boolean {
         for (const [, entry] of this.overlays.get(button) ?? new LuaMap<string, Overlay>()) if (entry.isWanted === true) return true;

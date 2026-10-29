@@ -1,6 +1,7 @@
 // Bars faded until their buttons glow: the buttons of a faded bar are drawn faint while no glow is lit on them, and in full
 // while one is, so a bar in the middle of the screen shows only what is due. Only the opacity this service set is changed
-// back: a bar no longer faded shows in full again.
+// back: a bar no longer faded shows in full again. A glowing button shows in full on a bar its addon faded too (DaylightUI
+// fades the holder of a bar's buttons, and the glow with it).
 import { listBarButtonNames } from "./bar-names";
 import type { GlowService } from "./glow.service";
 import { getReadable } from "./utils/secret-value.utils";
@@ -11,6 +12,8 @@ const ALPHA_MARGIN = 0.01;
 export class BarFadeService {
     /** The buttons this service faded, with the opacity it gave them. */
     private readonly faded = new LuaMap<ActionButton, number>();
+    /** The glowing buttons this service drew in full whatever their parent's opacity. */
+    private readonly opaque = new LuaSet<ActionButton>();
 
     constructor(private readonly glow: GlowService) {}
 
@@ -31,6 +34,23 @@ export class BarFadeService {
             if (!wanted.has(button)) {
                 button.SetAlpha(1);
                 this.faded.delete(button);
+            }
+        }
+        this.ignoreParentAlphaOfGlowing();
+    }
+
+    /** Glowing buttons ignore their parent's opacity; the others follow it again. */
+    private ignoreParentAlphaOfGlowing(): void {
+        const glowing = new LuaSet<ActionButton>();
+        for (const button of this.glow.listGlowing()) {
+            glowing.add(button);
+            if (!this.opaque.has(button)) button.SetIgnoreParentAlpha(true);
+            this.opaque.add(button);
+        }
+        for (const button of this.opaque) {
+            if (!glowing.has(button)) {
+                button.SetIgnoreParentAlpha(false);
+                this.opaque.delete(button);
             }
         }
     }
