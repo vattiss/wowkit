@@ -66,7 +66,7 @@ describe("a paladin in a party", () => {
     });
 });
 
-describe("a paladin in a party who knows two blessings", () => {
+describe("a paladin in a party who knows Might and Wisdom", () => {
     const BLESSING_OF_MIGHT: SpellDefinition = {
         id: BLESSING_OF_MIGHT_ID,
         name: "Blessing of Might",
@@ -74,42 +74,56 @@ describe("a paladin in a party who knows two blessings", () => {
         icon: 135906,
         isHelpful: true,
     };
+    const BLESSING_OF_WISDOM: SpellDefinition = { id: 19742, name: "Blessing of Wisdom", rank: 1, icon: 135970, isHelpful: true };
     let world!: World;
 
-    beforeEach(() => {
-        world = createWorld(
+    function createPaladinWorld(spells: SpellDefinition[]): World {
+        return createWorld(
             (state) => {
                 playAs(state, PALADIN);
-                for (const spell of [BLESSING_OF_MIGHT, BLESSING_OF_KINGS, GREATER_BLESSING_OF_KINGS]) learnSpell(state, spell);
-                state.reagentTexts[GREATER_BLESSING_OF_KINGS.id] = "Symbol of Kings";
-                state.bags[SYMBOL_OF_KINGS] = 10;
-                state.party = [{ name: "Caster", classToken: "MAGE", power: POWER.Mana, auras: [] }];
+                for (const spell of spells) learnSpell(state, spell);
+                state.party = [
+                    { name: "Caster", classToken: "MAGE", power: POWER.Mana, auras: [] },
+                    { name: "Tank", classToken: "WARRIOR", power: POWER.Rage, auras: [] },
+                ];
             },
             { styles: { buff: { isTextOn: true } } },
         );
-    });
-
-    function cast(spellId: number): void {
-        world.fire("UNIT_SPELLCAST_SUCCEEDED", "player", "cast-guid", spellId);
-        world.fire("GROUP_ROSTER_UPDATE");
-        world.advance(1);
     }
 
-    it("is asked for the first blessing of the list before casting one, with no talent points to go by", () => {
-        expect(world.notice()).toContain("Blessing of Might missing on: Caster");
+    /** The player's blessing on the mage, then gone again. */
+    function giveAndLose(name: string, spellId: number): void {
+        world.state.party[0]!.auras.push({ name, spellId, expirationTime: 99999, sourceUnit: "player" });
+        world.fire("UNIT_AURA", "party1");
+        world.advance(2);
+        world.state.party[0]!.auras = [];
+        world.fire("UNIT_AURA", "party1");
+        world.advance(2);
+    }
+
+    beforeEach(() => {
+        world = createPaladinWorld([BLESSING_OF_MIGHT, BLESSING_OF_WISDOM]);
     });
 
-    it("is asked for the blessing of the main talent tree before casting one: Protection wants Kings", () => {
-        world.state.talentPoints = [0, 31, 5];
-        world.fire("GROUP_ROSTER_UPDATE");
-        world.advance(1);
-        expect(world.notice()).toContain("Blessing of Kings missing on: Caster");
+    it("is asked for Wisdom on a class with mana and Might on the others before giving them one", () => {
+        expect(world.notice()).toContain("Blessing of Wisdom missing on: Caster");
+        expect(world.notice()).toContain("Blessing of Might missing on: Tank");
     });
 
-    it("is asked for the blessing cast last", () => {
-        cast(BLESSING_OF_KINGS.id);
-        expect(world.notice()).toContain("Blessing of Kings missing on: Caster");
-        expect(world.notice()).not.toContain("Might missing on");
+    it("is asked for Kings on the ones with no mana once it is learned, still Wisdom on the others", () => {
+        world = createPaladinWorld([BLESSING_OF_MIGHT, BLESSING_OF_WISDOM, BLESSING_OF_KINGS]);
+        expect(world.notice()).toContain("Blessing of Wisdom missing on: Caster");
+        expect(world.notice()).toContain("Blessing of Kings missing on: Tank");
+    });
+
+    it("is asked for the blessing last given to the class", () => {
+        giveAndLose("Blessing of Might", BLESSING_OF_MIGHT_ID);
+        expect(world.notice()).toContain("Blessing of Might missing on: Caster, Tank");
+    });
+
+    it("counts a Greater Blessing given to the class as its blessing", () => {
+        giveAndLose("Greater Blessing of Might", 25782);
+        expect(world.notice()).toContain("Blessing of Might missing on: Caster, Tank");
     });
 
     it("is asked for nothing on a member who has the player's Greater Blessing of Light: one blessing of the player each", () => {
@@ -119,13 +133,8 @@ describe("a paladin in a party who knows two blessings", () => {
             expirationTime: 99999,
             sourceUnit: "player",
         });
-        world.fire("GROUP_ROSTER_UPDATE");
-        world.advance(1);
-        expect(world.notice()).not.toContain("missing on");
-    });
-
-    it("counts a Greater Blessing as its blessing", () => {
-        cast(GREATER_BLESSING_OF_KINGS.id);
-        expect(world.notice()).toContain("Blessing of Kings missing on: Caster");
+        world.fire("UNIT_AURA", "party1");
+        world.advance(2);
+        expect(world.notice()).not.toContain("Caster");
     });
 });

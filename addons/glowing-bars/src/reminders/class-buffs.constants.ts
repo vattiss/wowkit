@@ -45,6 +45,15 @@ export const TALENT_BUFFS: { [classToken: string]: { [tree: number]: number[] | 
     MAGE: { 1: [M.MageArmor], 2: [M.MageArmor], 3: [M.IceArmor] },
 };
 
+/**
+ * The blessing a party member wants before the player has given one to its class (the first of these the player
+ * knows): Wisdom for a class with mana (a healer or a caster runs out of it), Kings for the others (a tank), else Might.
+ */
+export const PARTY_BLESSINGS = {
+    mana: [P.BlessingWisdom, P.BlessingKings, P.BlessingMight],
+    other: [P.BlessingKings, P.BlessingMight, P.BlessingWisdom],
+};
+
 /** Battle Shout's reminder comes this many seconds before it runs out: it runs out in a fight, and needs rage. */
 const BATTLE_SHOUT_LEAD = 3;
 

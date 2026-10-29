@@ -94,6 +94,24 @@ export class BuffStateService {
         return isUnreadable ? "unknown" : "missing";
     }
 
+    /**
+     * Which of these buffs the player put on another unit: the key of the first whose spells (the buff, its group
+     * version) name an aura the player cast on it; undefined for none, or while the client hides the auras.
+     */
+    findOwnUnitBuff(unit: UnitToken, buffs: [key: number, spellIds: number[]][]): number | undefined {
+        for (const aura of this.auras.scanAuras(unit).auras) {
+            if (aura.isHidden || aura.name === undefined || aura.caster !== "player") continue;
+            const auraKey = buildNameKey(aura.name);
+            for (const [key, spellIds] of buffs) {
+                if (
+                    spellIds.some((id) => this.getBuffName(id) === aura.name || buildNameKey(this.spells.getHintName(id) ?? "") === auraKey)
+                )
+                    return key;
+            }
+        }
+        return undefined;
+    }
+
     /** What one aura of another unit says about the wanted buff: it is the buff, it hides what it is, or it is another one. */
     private judgeUnitAura(
         aura: AuraEntry,
