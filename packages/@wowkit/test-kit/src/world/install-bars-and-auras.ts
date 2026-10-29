@@ -33,7 +33,7 @@ export function installLateAddonButtons(state: ClientState, frames: FrameRegistr
     }
 }
 
-/** The bars of the action bar addons the test loads: Bartender4's and Dominos's first ones, two of ElvUI's. */
+/** The bars of the action bar addons the test loads: Bartender4's and Dominos's first ones, two of ElvUI's, DaylightUI's bar 2. */
 function installAddonBars(state: ClientState, frames: FrameRegistry): void {
     // Bartender4's buttons (LibActionButton keeps the slot in `action`, as Blizzard's buttons do)
     if (state.hasBartender) {
@@ -43,6 +43,10 @@ function installAddonBars(state: ClientState, frames: FrameRegistry): void {
     if (state.hasDominos) {
         for (let id = 13; id <= 24; id++) frames.create("CheckButton", `DominosActionButton${id}`).action = id;
         for (let index = 1; index <= 12; index++) frames.create("CheckButton", `MultiBarRightActionButton${index}`).action = 24 + index;
+    }
+    // DaylightUI's buttons (Blizzard's template: the slot in `action`): its bar 2 on Action Bar 2's slots
+    if (state.hasDaylight) {
+        for (let index = 1; index <= 12; index++) frames.create("CheckButton", `DaylightUIBar2Button${index}`).action = 60 + index;
     }
     // ElvUI's buttons (LibActionButton keeps the slot in `action`): its bar N on the slots of page N
     if (state.hasElvUI) {

@@ -17,6 +17,7 @@ import "./table.spec";
 import "./table-spells.spec";
 import "./bars.spec";
 import "./elvui.spec";
+import "./daylightui.spec";
 import "./gathering.spec";
 import "./id-tooltip.spec";
 import "./sound-repeat.spec";

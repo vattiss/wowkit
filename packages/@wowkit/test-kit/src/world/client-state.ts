@@ -109,6 +109,8 @@ export interface ClientState {
     hasEllesmere: boolean;
     /** ElvUI is loaded: its bar 6 (ElvUI_Bar6Button1 to 12, slots 61 to 72: Action Bar 2) and its bar 2 (slots 13 to 24, of no Blizzard bar). */
     hasElvUI: boolean;
+    /** DaylightUI is loaded: its bar 2 (DaylightUIBar2Button1 to 12, on Action Bar 2's slots 61 to 72). */
+    hasDaylight: boolean;
     /** The points spent in each of the three talent trees (a paladin's Holy, Protection, Retribution). */
     talentPoints: number[];
     isResting: boolean;
@@ -177,6 +179,7 @@ export function createClientState(): ClientState {
         hasDominos: false,
         hasEllesmere: false,
         hasElvUI: false,
+        hasDaylight: false,
         talentPoints: [0, 0, 0],
         isResting: false,
         enchants: {},
