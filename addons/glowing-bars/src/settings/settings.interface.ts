@@ -73,7 +73,7 @@ export interface AddonSettings {
     idOverrides: { [listId: string]: number | undefined };
     /** Cooldowns and procs the player added by their ID. */
     customCues: CustomCue[];
-    /** The action bars (2 to 8) whose buttons are faded until they glow; only set where the player switched one on. */
+    /** The action bars (1 to 8) whose buttons are faded until they glow; only set where the player switched one on. */
     barFaded: { [bar: string]: boolean | undefined };
     /** How visible the buttons of a faded bar are while they do not glow, in percent. */
     fadedOpacity: number;

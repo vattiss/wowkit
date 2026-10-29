@@ -175,6 +175,25 @@ describe("a priest with Action Bar 7 faded until it glows", () => {
     });
 });
 
+describe("a priest who fades the main bar until it glows", () => {
+    const SMITE: SpellDefinition = { id: 585, name: "Smite", rank: 1, icon: 135924, isHelpful: false };
+
+    it("sees the glowing button in full and the other one faded, once Action Bar 1 is switched to faded", () => {
+        const world = createWorld((state) => {
+            playAs(state, PRIEST);
+            learnSpell(state, FORTITUDE);
+            learnSpell(state, SMITE);
+            state.bars[1] = FORTITUDE.id;
+            state.bars[2] = SMITE.id;
+        });
+        world.setOption("fade_1", true);
+        world.advance(1);
+        const readAlpha = (index: number) => world.findFrame((frame) => frame.name === `ActionButton${index}`)!.alpha;
+        expect(readAlpha(1)).toBe(1);
+        expect(readAlpha(2)).toBe(0.5);
+    });
+});
+
 describe("a priest in a fight, where the client keeps the buttons' size secret", () => {
     it("still sees the missing buff glow, and the next ticks run on", () => {
         const world = createWorld((state) => {

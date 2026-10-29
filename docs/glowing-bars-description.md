@@ -47,7 +47,7 @@ On the Settings page (_Options > AddOns > Glowing Bars_):
 
 *   **Glow animation**: circling (Blizzard's own), breathing, or none
 *   **Action bars that glow**: turn any of the eight bars off (your UI addon's bars too)
-*   **Faded until they glow**: bars 2 to 8 stay faint until one of their buttons glows, so a bar in the middle of your screen shows only what's due
+*   **Faded until they glow**: any of the eight bars stays faint until one of their buttons glows, so a bar in the middle of your screen shows only what's due
 *   **Spell IDs in tooltips** (off by default): every spell's tooltip shows its ID, and an elixir's, potion's or food's the spell it casts
 *   The weapon buff to keep up, the party buff message, when cooldowns glow, and how few reagents are low
 

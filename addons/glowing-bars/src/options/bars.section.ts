@@ -1,6 +1,6 @@
 // Which action bars glow: a switch for each of the eight bars of the game, all on by default. A player who keeps a big bar of
-// cooldowns next to the character can have the glow there and not on the usual bars. And the bars 2 to 8 can be faded
-// until their buttons glow, so a bar in the middle of the screen shows only what is due.
+// cooldowns next to the character can have the glow there and not on the usual bars. And every bar can be faded
+// until its buttons glow, so a bar in the middle of the screen shows only what is due.
 
 import type { AddonLocale } from "../locale/locale.interface";
 import { FADED_OPACITY_CHOICES } from "../settings/settings.constants";
@@ -35,10 +35,10 @@ export class BarsSection {
         }
     }
 
-    /** A switch for each of the bars 2 to 8 to be faded until its buttons glow, and how faded. */
+    /** A switch for each bar to be faded until its buttons glow, and how faded. */
     addFadedSection(category: SettingsCategory, layout: SettingsLayout): void {
         this.reminderControls.addHeader(layout, "HDR_FADED");
-        for (let bar = 2; bar <= BAR_COUNT; bar++) {
+        for (let bar = 1; bar <= BAR_COUNT; bar++) {
             const key = string.format("%d", bar);
             this.controls.addCheckbox(
                 category,
