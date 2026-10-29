@@ -15,7 +15,9 @@ Use **Bartender4**, **Dominos**, **EllesmereUI** or **ElvUI** for your bars? The
 ## What glows
 
 *   **Missing buffs** – Fortitude, Mark of the Wild, Arcane Intellect, aspects, paladin auras, armors… Of a group (one aspect, one aura) any one counts. In combat, when the game hides your buffs, the ones you saw or cast are remembered.
-*   **Party buffs** – out of combat, in a party: a member in range who misses your buff makes its button glow. With two or more missing and the reagent in your bags, the group version is suggested (Prayer of Fortitude, Gift of the Wild, a Greater Blessing per class). A blessing goes by the class: the one you last gave it, else Wisdom for healers and casters, Kings (or Might) for the others and hunters. In a raid the whole raid counts (Prayer of Fortitude covers it in Forever), but a blessing only on the classes you gave one in that raid, and the Greater Blessing for one member too (in a party if you switch it on).
+*   **Party buffs** – out of combat, a group member in range who misses your buff makes its button glow.
+    *   **Group versions**: with two or more missing and the reagent in your bags, Prayer of Fortitude, Gift of the Wild or Arcane Brilliance glows instead.
+    *   **Paladins**: each class gets the blessing you last gave it; before that, Wisdom for casters and healers, Kings or Might for the rest. A Greater Blessing when two of a class miss it (or one, if you turn that on). In a raid only the classes you buffed there.
 *   **Weapon buffs** – shaman imbues, rogue poisons (per hand) and warlock stones, when missing or about to run out.
 *   **Paladin seals** – in a fight with no seal up, the seal you used last glows gold, already a moment before it runs out. Before your first seal, the one of your talent tree.
 *   **Gathering** – a miner or a herbalist with no tracking on sees Find Minerals or Find Herbs glow. Any tracking counts, so a hunter tracking beasts is left alone.

@@ -15,14 +15,13 @@ Your Rotation.
 - **Gathering**: a miner or a herbalist with no tracking on sees Find Minerals or Find Herbs glow (turquoise). Any tracking
   counts, so a hunter tracking beasts is left alone.
 - **Not on your bars**: a message names missing buffs you have learned but put on no action bar.
-- **Party buffs** (out of combat): a message names the members in range who miss one of your buffs
-  (Fortitude, Mark of the Wild, Arcane Intellect for mana users, your blessing), and its button glows. With two or more
-  missing and the reagent in your bags, it suggests the group version (Prayer of Fortitude, Gift of the Wild, Arcane
-  Brilliance; a Greater Blessing per class). A group version on you counts as the buff. A blessing goes by the
-  member's class: the one you last gave that class, else Wisdom for a class with mana, Kings (or Might) for the others and hunters.
-  In a raid every member counts (a group version covers the raid around you in Forever), with the number of them past
-  five; but a blessing only on the classes you gave one in that raid: the others are another paladin's.
-  There the Greater Blessing is suggested for one member too; in a party too if you switch it on in the settings.
+- **Party buffs** (out of combat): a group member in range who misses one of your buffs (Fortitude, Mark of the Wild,
+  Arcane Intellect for mana users, your blessing) makes its button glow; the message names them (their number past five).
+  - **Group versions**: with two or more missing and the reagent in your bags, Prayer of Fortitude, Gift of the Wild or
+    Arcane Brilliance glows instead.
+  - **Paladins**: each class gets the blessing you last gave it; before that, Wisdom for casters and healers, Kings or
+    Might for the rest. A Greater Blessing when two of a class miss it (or one, if you turn that on). In a raid only the
+    classes you buffed there.
 - **Reagents**: the group buff on your action bar (Prayer of Fortitude, Gift of the Wild...) glows, quietly, while its
   reagent runs low (5 or fewer by default, set on the Settings page), also in a town; on arriving in a town or an inn a message on the screen names the reagents.
 - **Ready cooldowns**: in a fight, an important cooldown of your class (Recklessness, Rapid Fire, Adrenaline Rush,
