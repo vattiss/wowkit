@@ -39,7 +39,7 @@ Type **/gb** to open the table. Every reminder type has the same settings, and e
 
 In the same table you can **add your own spells by their ID**, as any type, or fix the ID of a listed spell if the game uses another one. A new spell of Forever the addon doesn't know yet is a few clicks away. To find a spell's ID, turn on **Spell IDs in tooltips**.
 
-The defaults: buffs blue, weapon buffs orange, seals gold, gathering turquoise, cooldowns white, procs red, old ranks and low reagents a quieter yellow. Only the old ranks show a message by default; the glow is the reminder.
+The defaults: buffs blue, weapon buffs orange, seals gold, gathering turquoise, cooldowns white, procs red, old ranks and low reagents a quieter yellow. Only the old ranks and the low reagents (in a town) show a message by default; the glow is the reminder.
 
 On the Settings page (_Options > AddOns > Glowing Bars_):
 

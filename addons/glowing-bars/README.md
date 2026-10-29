@@ -24,7 +24,7 @@ Your Rotation.
   five; but a blessing only on the classes you gave one in that raid: the others are another paladin's.
   There the Greater Blessing is suggested for one member too; in a party too if you switch it on in the settings.
 - **Reagents**: the group buff on your action bar (Prayer of Fortitude, Gift of the Wild...) glows, quietly, while its
-  reagent runs low (5 or fewer by default, set on the Settings page), also in a town; on arriving in a town or an inn a chat line names the reagents.
+  reagent runs low (5 or fewer by default, set on the Settings page), also in a town; on arriving in a town or an inn a message on the screen names the reagents.
 - **Ready cooldowns**: in a fight, an important cooldown of your class (Recklessness, Rapid Fire, Adrenaline Rush,
   Innervate...) or of your race (Blood Fury, Stoneform, Desperate Prayer...) glows when it is ready again after you used
   it, or after it was running as the fight began: for 3 seconds by default (2, 5, 10, or until you press it). If you like, the ready
@@ -46,8 +46,8 @@ Every kind of reminder has the same four settings: the **color** of its glow and
 buffs, missing tracking and old ranks can also **repeat** their sound every 5, 10, 30 or 60 seconds while the glow is on,
 the message coming again with it (off by default). The defaults: missing
 buffs blue, weapon buffs orange, ready cooldowns white, procs red, old ranks and low reagents yellow (and a quieter glow
-than the others). By default only the old ranks show a message; the buff messages (including the ones that name a
-buff on no bar and the party members who miss one) and the reagent message are there to switch on. They are set in a table, and every spell of your class can have a look of its own in the same table.
+than the others). By default only the old ranks and the reagents show a message; the buff messages (including the ones that name a
+buff on no bar and the party members who miss one) are there to switch on. They are set in a table, and every spell of your class can have a look of its own in the same table.
 It opens with `/gb` or from the Settings page, and shows only the kinds your character has spells of. Its Enabled column
 switches a whole kind or a single spell on and off. There you can also fix the spell ID of a spell of the lists, and add
 spells of your own by their ID, as any type but an old rank (those are found for every spell), a seal of Forever too; a kind the game says is

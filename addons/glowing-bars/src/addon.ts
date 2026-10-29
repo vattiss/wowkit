@@ -184,7 +184,7 @@ function makeReminders(addon: Addon, addonName: string, game: Game, texts: Texts
     );
     // Its own block of the shared notice: the tick clearing its lines must not take the town message with them
     const townNotice = addon.register(new NoticeService(`${addonName}-town`));
-    addon.register(new TownVisitService(game.player, reagents, settings, texts.messages, townNotice, texts.locale, texts.styles));
+    addon.register(new TownVisitService(game.player, reagents, settings, townNotice, texts.locale, texts.styles));
     const custom = addon.register(
         new CustomRemindersService(
             customCues,

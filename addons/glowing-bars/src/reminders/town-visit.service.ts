@@ -1,8 +1,7 @@
-// Arriving in a town or an inn, where reagents are sold: name the ones that are running low (their glow, on the group
-// buffs, is the finder's).
+// Arriving in a town or an inn, where reagents are sold: a message on the screen names the ones that are running low,
+// if the reagent's message is on (their glow, on the group buffs, is the finder's).
 import { OnGameEvent, type OnReady } from "@wowkit/core";
 import type { StyleService } from "../settings/style.service";
-import type { MessagesService } from "@wowkit/ui";
 import type { ReagentsService } from "../reagents/reagents.service";
 import type { NoticeService, PlayerService } from "@wowkit/wow";
 import type { AddonLocale } from "../locale/locale.interface";
@@ -15,7 +14,6 @@ export class TownVisitService implements OnReady {
         private readonly player: PlayerService,
         private readonly reagents: ReagentsService,
         private readonly settings: AddonSettingsService,
-        private readonly messages: MessagesService,
         private readonly notice: NoticeService,
         private readonly locale: AddonLocale,
         private readonly styles: StyleService,
@@ -31,14 +29,13 @@ export class TownVisitService implements OnReady {
         const isRestingNow = this.player.isResting();
         const hasArrived = isRestingNow && !this.wasResting;
         this.wasResting = isRestingNow;
-        if (!hasArrived || this.settings.get("isMuted") || !this.settings.get("showReagents")) return;
+        const style = this.styles.getStyle("reagent");
+        if (!hasArrived || this.settings.get("isMuted") || !this.settings.get("showReagents") || !style.isTextOn) return;
         const reagentOn = this.settings.get("reagentOn");
         const low = this.reagents.findLowReagents((reagent) => reagentOn[String(reagent.itemId)] !== false);
         if (low.length === 0) return;
         const names = low.map((stock) => `${stock.name} (${stock.count})`).join(", ");
         const message = string.format(this.locale.getText("NOTICE_REAGENTS_LOW"), names);
-        this.messages.say(message);
-        const style = this.styles.getStyle("reagent");
-        if (style.isTextOn) this.notice.showNotice(this.styles.applyTextColor(style.color, message));
+        this.notice.showNotice(this.styles.applyTextColor(style.color, message));
     }
 }

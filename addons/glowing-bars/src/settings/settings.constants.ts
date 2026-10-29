@@ -51,7 +51,8 @@ export const STYLE_DEFAULTS: { [key in ColorKey]: Style } = {
     cooldown: { color: [1, 1, 1], opacity: 100, isTextOn: false, sound: "none", repeat: 0 },
     proc: { color: [1, 0.12, 0.08], opacity: 100, isTextOn: false, sound: "none", repeat: 0 },
     rank: { color: [1, 0.85, 0.2], opacity: 50, isTextOn: true, sound: "alarm1", repeat: 0 },
-    reagent: { color: [1, 0.85, 0.2], opacity: 50, isTextOn: false, sound: "none", repeat: 0 },
+    // Its message is the town's: it names the reagents to buy
+    reagent: { color: [1, 0.85, 0.2], opacity: 50, isTextOn: true, sound: "none", repeat: 0 },
 };
 
 /** The choices of how often a sound repeats while its glow is on (seconds; 0 = once). */

@@ -34,12 +34,12 @@ describe("a priest who arrives in a town", () => {
         world = createWorld((state) => setUpPriest(state, true), { styles: { reagent: { isTextOn: true } } });
     });
 
-    it("is told which reagents run low", () => {
-        expect(world.chat.join("\n")).toContain("Reagents running low: Holy Candle (0)");
+    it("is told on the screen which reagents run low", () => {
+        expect(world.notice()).toContain("Reagents running low: Holy Candle (0)");
     });
 
-    it("sees the message on the screen too", () => {
-        expect(world.notice()).toContain("Reagents running low: Holy Candle (0)");
+    it("is told nothing in the chat", () => {
+        expect(world.chat.join("\n")).not.toContain("Reagents running low");
     });
 
     it("is told nothing when the player muted the addon", () => {
@@ -47,7 +47,7 @@ describe("a priest who arrives in a town", () => {
         world.setOption("isMuted", true);
         world.state.isResting = true;
         world.fire("PLAYER_UPDATE_RESTING");
-        expect(world.chat.join("\n")).not.toContain("Reagents running low");
+        expect(world.notice()).not.toContain("Reagents running low");
     });
 
     it("keeps its settings in the character's saved variables", () => {
@@ -56,17 +56,17 @@ describe("a priest who arrives in a town", () => {
 });
 
 describe("the reagent message on the screen", () => {
-    it("is off unless the player switched it on; the chat line stays", () => {
-        const world = createWorld((state) => setUpPriest(state, true));
+    it("is on unless the player switched it off", () => {
+        expect(createWorld((state) => setUpPriest(state, true)).notice()).toContain("Reagents running low");
+        const world = createWorld((state) => setUpPriest(state, true), { styles: { reagent: { isTextOn: false } } });
         expect(world.notice()).not.toContain("Reagents running low");
-        expect(world.chat.join("\n")).toContain("Reagents running low");
     });
 });
 
 describe("a priest who is not in a town", () => {
     it("is told nothing", () => {
         const world = createWorld((state) => setUpPriest(state, false));
-        expect(world.chat.join("\n")).not.toContain("Reagents running low");
+        expect(world.notice()).not.toContain("Reagents running low");
     });
 
     it("is told nothing when the candles are in the bags", () => {
@@ -74,7 +74,7 @@ describe("a priest who is not in a town", () => {
             setUpPriest(state, true);
             state.bags[HOLY_CANDLE] = 20;
         });
-        expect(world.chat.join("\n")).not.toContain("Reagents running low");
+        expect(world.notice()).not.toContain("Reagents running low");
     });
 });
 
@@ -164,7 +164,7 @@ describe("the reagents of a priest in the table", () => {
         const world = createWorld((state) => setUpPriest(state, false), { styles: { reagent: { isTextOn: true } } });
         switchInTable(world, "Prayer of Fortitude (Holy Candle)", false);
         arriveInTown(world);
-        expect(world.chat.join("\n")).not.toContain("Reagents running low");
+        expect(world.notice()).not.toContain("Reagents running low");
     });
 
     it("are stored only where they differ from the default", () => {
