@@ -24,6 +24,8 @@ export const BUFF_CATEGORIES: BuffCategory[] = [
             ...P.GreaterBlessingMight,
             ...P.GreaterBlessingKings,
             ...P.GreaterBlessingWisdom,
+            ...P.GreaterBlessingSalvation,
+            ...P.GreaterBlessingLight,
         ],
         seconds: 300,
     },

@@ -2,6 +2,7 @@
 import "./priest.spec";
 import "./party.spec";
 import "./paladin.spec";
+import "./paladin-party.spec";
 import "./mage.spec";
 import "./warrior.spec";
 import "./druid.spec";

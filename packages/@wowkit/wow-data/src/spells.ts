@@ -72,9 +72,11 @@ export const Paladin = {
     BlessingLight: 19977,
     RighteousFury: 25780,
     // The group versions of the blessings (one cast for a class of the party, needs a reagent)
-    GreaterBlessingMight: [25782],
+    GreaterBlessingMight: [25782, 25916],
     GreaterBlessingKings: [25898],
-    GreaterBlessingWisdom: [25894],
+    GreaterBlessingWisdom: [25894, 25918],
+    GreaterBlessingSalvation: [25895],
+    GreaterBlessingLight: [25890],
     // Heals
     HolyLight: 635,
     FlashOfLight: 19750,
@@ -488,6 +490,8 @@ export const SPELL_NAME_HINT: { [spellId: number]: string | string[] | undefined
     [Paladin.GreaterBlessingMight[0]!]: "Greater Blessing of Might",
     [Paladin.GreaterBlessingKings[0]!]: "Greater Blessing of Kings",
     [Paladin.GreaterBlessingWisdom[0]!]: "Greater Blessing of Wisdom",
+    [Paladin.GreaterBlessingSalvation[0]!]: "Greater Blessing of Salvation",
+    [Paladin.GreaterBlessingLight[0]!]: "Greater Blessing of Light",
     [Warrior.VictoryRush]: "Victory Rush",
     [Warrior.SpearingStrike]: "Spearing Strike",
     [Paladin.HolyStrike]: "Holy Strike",
