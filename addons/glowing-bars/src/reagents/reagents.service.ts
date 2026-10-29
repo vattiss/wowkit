@@ -56,17 +56,30 @@ export class ReagentsService {
 
     /**
      * Reagents of spells the player knows, with the player's limit or fewer in the bags. `isWanted` leaves out the reagents
-     * the player does not want to hear about.
+     * the player does not want to hear about. A rank the player has outgrown does not count (Prayer of Fortitude 1, with
+     * rank 2 learned: no Holy Candle needed).
      */
     findLowReagents(isWanted: (reagent: Reagent) => boolean = () => true): ReagentStock[] {
         const low: ReagentStock[] = [];
-        for (const reagent of REAGENTS) {
-            if (!isWanted(reagent)) continue;
-            const usedBy = reagent.spells.find((spellId) => this.spells.isLearned(spellId) && this.findReagentFor(spellId) !== undefined);
+        REAGENTS.forEach((reagent, index) => {
+            if (!isWanted(reagent)) return;
+            const usedBy = reagent.spells.find(
+                (spellId) =>
+                    this.spells.isLearned(spellId) && this.findReagentFor(spellId) !== undefined && !this.isOutranked(spellId, index),
+            );
             const count = this.getReagentCount(reagent);
             if (usedBy !== undefined && this.isLow(count)) low.push({ reagent, name: this.getReagentName(reagent), count });
-        }
+        });
         return low;
+    }
+
+    /** Does the player know a higher rank of the spell, one with a later reagent of the list (its ranks are in order)? */
+    private isOutranked(spellId: number, index: number): boolean {
+        const name = this.spells.getSpellName(spellId);
+        if (name === undefined) return false;
+        return REAGENTS.slice(index + 1).some((later) =>
+            later.spells.some((id) => this.spells.isLearned(id) && this.spells.getSpellName(id) === name),
+        );
     }
 
     /** The learned group buffs, as the IDs the buttons hold, whose reagent is running low. */

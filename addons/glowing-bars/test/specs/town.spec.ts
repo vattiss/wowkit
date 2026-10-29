@@ -204,3 +204,16 @@ describe("a priest with an old rank on the bar who arrives in a town", () => {
         expect(world.notice()).not.toContain("Old spell rank");
     });
 });
+
+describe("a priest who knows both ranks of Prayer of Fortitude", () => {
+    it("is told about the candle of the higher rank only: the lower one is not cast any more", () => {
+        const world = createWorld((state) => {
+            setUpPriest(state, true);
+            const rank2 = { ...PRAYER_OF_FORTITUDE, id: 21564, rank: 2 };
+            learnSpell(state, rank2);
+            state.reagentTexts[rank2.id] = "Sacred Candle";
+        });
+        expect(world.notice()).toContain("Sacred Candle (0)");
+        expect(world.notice()).not.toContain("Holy Candle");
+    });
+});
