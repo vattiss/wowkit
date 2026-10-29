@@ -10,7 +10,8 @@ import { attempt } from "./utils/protected-call.utils";
 const BAR_SETTLE = 0.5;
 /**
  * How often the buttons of the bar addons are counted: they make buttons with no bar event (EllesmereUI after the login,
- * past the first map of the bars, and a bar switched on in its options), so a new count maps the bars again.
+ * past the first map of the bars, a bar switched on in its options, and the buttons an addon registers), so a new count
+ * maps the bars again.
  */
 const BUTTON_COUNT_INTERVAL_MS = 2000;
 
@@ -62,6 +63,6 @@ export class BarRefreshService implements OnFirstLogin {
         const globals = _G as unknown as { [name: string]: unknown };
         let count = 0;
         for (const name of this.addonButtonNames) if (globals[name] !== undefined) count++;
-        return count;
+        return count + this.actionBars.listRegisteredButtons().length;
     }
 }

@@ -46,6 +46,10 @@ export class ActionBarsService implements OnFirstLogin {
     private readonly buttonsByIcon = new LuaMap<number | string, ActionButton[]>();
     /** The action slot each mapped button shows. */
     private readonly slotByButton = new LuaMap<ActionButton, number>();
+    /** The buttons other addons registered (see registerButton), with the bar each counts as: 1 to 8, or 0 for none. */
+    private readonly registered = new LuaMap<ActionButton, number>();
+    /** The stance buttons other addons registered (see registerStanceButton), with the stance each stands for. */
+    private readonly registeredStances = new LuaMap<ActionButton, number>();
     private lastMapAt = 0;
     private mapGeneration = 0;
     /** When the player last changed the bars (a form, a stance, a page, a slot); the map is old until it is mapped again. */
@@ -109,8 +113,32 @@ export class ActionBarsService implements OnFirstLogin {
      * Undefined for the buttons of no numbered bar (the totem bar, the stance bar).
      */
     getBarNumber(button: ActionButton): number | undefined {
+        const registeredBar = this.registered.get(button);
+        if (registeredBar !== undefined) return registeredBar > 0 ? registeredBar : undefined;
+        if (this.registeredStances.has(button)) return undefined;
         const name = button.GetName();
         return name !== undefined ? findBarNumber(name) : undefined;
+    }
+
+    /**
+     * A button of another addon (a bar addon of its own), mapped as the bars' are from the next map of the bars on: it keeps
+     * its action slot where Blizzard's buttons do. It counts as the bar `bar` (1 to 8), or as no bar.
+     */
+    registerButton(button: ActionButton, bar: number | undefined): void {
+        this.registered.set(button, bar ?? 0);
+    }
+
+    /** A stance button of another addon, standing for the stance `stance` (1 the first form, a paladin's first aura). */
+    registerStanceButton(button: ActionButton, stance: number): void {
+        this.registeredStances.set(button, stance);
+    }
+
+    /** The buttons other addons registered: every one (the stance buttons too), or those that count as the bar `bar`. */
+    listRegisteredButtons(bar?: number): ActionButton[] {
+        const buttons: ActionButton[] = [];
+        for (const [button, buttonBar] of this.registered) if (bar === undefined || buttonBar === bar) buttons.push(button);
+        if (bar === undefined) for (const [button] of this.registeredStances) buttons.push(button);
+        return buttons;
     }
 
     /** The buttons a spell sits on: by ID, resolved ID and name; by its (rarely shared) icon only when none is found so. */
@@ -293,8 +321,8 @@ export class ActionBarsService implements OnFirstLogin {
     }
 
     /**
-     * Every button to map: the bars' (Blizzard's, the totem bar, Bartender4's, Dominos's, EllesmereUI's, ElvUI's, the gamepad
-     * bars), then the stances.
+     * Every button to map: the bars' (Blizzard's, the totem bar, Bartender4's, Dominos's, EllesmereUI's, ElvUI's, DaylightUI's,
+     * the ones other addons registered, the gamepad bars), then the stances.
      */
     private listButtonsToMap(): QueueEntry[] {
         const queue: QueueEntry[] = [];
@@ -306,6 +334,7 @@ export class ActionBarsService implements OnFirstLogin {
         // The shaman's totem bar: its buttons are action buttons too
         for (let i = 1; i <= 12; i++) add(`MultiCastActionButton${i}`);
         for (const name of listAddonButtonNames()) add(name);
+        for (const [button] of this.registered) queue.push({ button });
         for (const button of this.listGamepadButtons()) {
             queue.push(this.getActionSlot(button) === undefined ? { spellButton: button } : { button });
         }
@@ -316,6 +345,7 @@ export class ActionBarsService implements OnFirstLogin {
             for (const name of [`StanceButton${i}`, `BT4StanceButton${i}`, `DominosStanceButton${i}`, `ElvUI_StanceBarButton${i}`])
                 queue.push({ stance: i, button: this.getGlobal<ActionButton>(name) });
         }
+        for (const [button, stance] of this.registeredStances) if (stance <= forms) queue.push({ stance, button });
         return queue;
     }
 

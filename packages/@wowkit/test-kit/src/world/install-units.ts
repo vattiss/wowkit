@@ -124,7 +124,9 @@ export function installUnits(state: ClientState): void {
         IsResting: () => state.isResting,
         IsSwimming: () => false,
         GetInventoryItemID: (_unit, slot) => state.equippedItems[slot],
-        GetNumShapeshiftForms: () => 0,
+        GetNumShapeshiftForms: () => state.stances.length,
+        // icon, active, castable, spell
+        GetShapeshiftFormInfo: (index) => $multi(0, false, true, state.stances[index - 1]!),
         GetBuildInfo: () => $multi("1.60.1", "70425", "Oct 16 2026", 16001, "1.60.1 (70425)", "1.60.1"),
         // name first, notInterruptible eighth (castID is seventh)
         UnitCastingInfo: ((unit: UnitToken) => {

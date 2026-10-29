@@ -96,6 +96,8 @@ export interface ClientState {
     areAurasHidden: boolean;
     /** In combat the game hides the spell cooldowns: no answer. */
     areCooldownsHidden: boolean;
+    /** The spells of the stance bar (forms, a paladin's auras), the first stance first. */
+    stances: number[];
     /** The spell on the class button of the gamepad bars (the paladin's aura, picked from a flyout). */
     gamepadClassSpell: number | undefined;
     /** Bartender4 is loaded: its first two bars (BT4Button1 to 24, on the action slots 1 to 24). */
@@ -174,6 +176,7 @@ export function createClientState(): ClientState {
         isInCombat: false,
         areAurasHidden: false,
         areCooldownsHidden: false,
+        stances: [],
         gamepadClassSpell: undefined,
         hasBartender: false,
         hasDominos: false,

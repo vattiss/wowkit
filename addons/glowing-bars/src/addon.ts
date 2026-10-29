@@ -33,6 +33,7 @@ import {
     TooltipService,
     WeaponEnchantsService,
 } from "@wowkit/wow";
+import { installPublicApi } from "./api/public-api";
 import { AuraWatchService } from "./character/aura-watch.service";
 import { BlockedActionService } from "./character/blocked-action.service";
 import { BuffMemoryService } from "./character/buff-memory.service";
@@ -109,10 +110,11 @@ function makeGame(addon: Addon, addonName: string) {
     const cooldowns = addon.register(new CooldownsService());
     const auras = addon.register(new AurasService(spells));
     const actionBars = addon.register(new ActionBarsService(clock, spells, addon.events));
+    installPublicApi(actionBars);
     const barRefresh = addon.register(new BarRefreshService(actionBars, clock));
     const weaponEnchants = addon.register(new WeaponEnchantsService());
     const glow = addon.register(new GlowService(actionBars));
-    const barFade = addon.register(new BarFadeService(glow));
+    const barFade = addon.register(new BarFadeService(glow, actionBars));
     const notice = addon.register(new NoticeService(addonName));
     const tooltips = addon.register(new TooltipService());
     return {

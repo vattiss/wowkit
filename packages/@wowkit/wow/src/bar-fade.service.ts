@@ -2,6 +2,7 @@
 // while one is, so a bar in the middle of the screen shows only what is due. Only the opacity this service set is changed
 // back: a bar no longer faded shows in full again. A glowing button shows in full on a bar its addon faded too (DaylightUI
 // fades the holder of a bar's buttons, and the glow with it).
+import type { ActionBarsService } from "./action-bars.service";
 import { listBarButtonNames } from "./bar-names";
 import type { GlowService } from "./glow.service";
 import { getReadable } from "./utils/secret-value.utils";
@@ -15,7 +16,10 @@ export class BarFadeService {
     /** The glowing buttons this service drew in full whatever their parent's opacity. */
     private readonly opaque = new LuaSet<ActionButton>();
 
-    constructor(private readonly glow: GlowService) {}
+    constructor(
+        private readonly glow: GlowService,
+        private readonly actionBars: ActionBarsService,
+    ) {}
 
     /** Fades the buttons of some bars (bar number, as Edit Mode numbers them -> opacity, 0 to 1) while they do not glow. */
     applyBarFades(opacityByBar: LuaMap<number, number>): void {
@@ -56,12 +60,12 @@ export class BarFadeService {
     }
 
     /**
-     * The buttons of a bar (1 the main bar, 2 to 8 the others): Blizzard's, and Bartender4's, Dominos's and EllesmereUI's
-     * of the same number.
+     * The buttons of a bar (1 the main bar, 2 to 8 the others): Blizzard's, the bar addons' of the same number, and the ones
+     * other addons registered as that bar.
      */
     private listBarButtons(bar: number): ActionButton[] {
         const globals = _G as unknown as { [name: string]: ActionButton | undefined };
-        const buttons: ActionButton[] = [];
+        const buttons = this.actionBars.listRegisteredButtons(bar);
         for (const name of listBarButtonNames(bar)) {
             const button = globals[name];
             if (button) buttons.push(button);
