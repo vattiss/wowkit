@@ -138,3 +138,39 @@ describe("a paladin in a party who knows Might and Wisdom", () => {
         expect(world.notice()).not.toContain("Caster");
     });
 });
+
+describe("a paladin with Might and Wisdom on the bars, and no blessing", () => {
+    const MIGHT: SpellDefinition = { id: BLESSING_OF_MIGHT_ID, name: "Blessing of Might", rank: 1, icon: 135906, isHelpful: true };
+    const WISDOM: SpellDefinition = { id: 19742, name: "Blessing of Wisdom", rank: 1, icon: 135970, isHelpful: true };
+    const GREATER_WISDOM: SpellDefinition = { id: 25894, name: "Greater Blessing of Wisdom", rank: 1, icon: 135912, isHelpful: true };
+    let world!: World;
+
+    beforeEach(() => {
+        world = createWorld((state) => {
+            playAs(state, PALADIN);
+            for (const spell of [MIGHT, WISDOM, GREATER_WISDOM]) learnSpell(state, spell);
+            state.bars[1] = MIGHT.id;
+            state.bars[2] = WISDOM.id;
+        });
+        world.advance(1);
+    });
+
+    it("keeps its own blessing when it gives a Greater Blessing to another class", () => {
+        expect(world.glowsOn(1)).toBe(1);
+        world.fire("UNIT_SPELLCAST_SUCCEEDED", "player", "cast-guid", GREATER_WISDOM.id);
+        world.advance(1);
+        expect(world.glowsOn(1)).toBe(1);
+        expect(world.glowsOn(2)).toBe(0);
+    });
+
+    it("goes by the blessing it had on itself", () => {
+        world.state.auras.push({ name: WISDOM.name, spellId: WISDOM.id, expirationTime: 99999, sourceUnit: "player" });
+        world.fire("UNIT_AURA", "player");
+        world.advance(1);
+        world.state.auras = [];
+        world.fire("UNIT_AURA", "player");
+        world.advance(1);
+        expect(world.glowsOn(2)).toBe(1);
+        expect(world.glowsOn(1)).toBe(0);
+    });
+});

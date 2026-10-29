@@ -39,15 +39,24 @@ export class BuffReminderService {
      */
     rememberSelfBuffs(): void {
         if (this.player.isInCombat()) return;
+        const blessings: [number, number[]][] = [];
         for (const classBuff of this.classBuffs.getClassBuffs()) {
             if (this.classBuffs.isBuffEnabled(classBuff)) {
                 const id = this.spells.resolve(classBuff.id);
                 if (id !== undefined) this.auras.hasAura(id);
             }
+            if (classBuff.party?.isPerClass) blessings.push([classBuff.id, [classBuff.id, ...(classBuff.party.groupIds ?? [])]]);
         }
+        // A blessing is also cast on others: the one of the player is the one on the player
+        const onPlayer = blessings.length > 0 ? this.auras.findOwnUnitBuff("player", blessings) : undefined;
+        const castBuff = this.classBuffs.getClassBuffs().find((classBuff) => classBuff.id === onPlayer);
+        if (castBuff !== undefined) this.noteGroupBuff(castBuff);
     }
 
-    /** A buff of a group the player casts is the one of the group to glow from now on (kept per character). */
+    /**
+     * A buff of a group the player casts is the one of the group to glow from now on (kept per character). Not a
+     * blessing: it may go on another, so the one seen on the player counts (rememberSelfBuffs).
+     */
     @OnEvent("player.spell-cast")
     noteCast(cast: PlayerSpellCast): void {
         if (cast.spellId === undefined) return;
@@ -59,14 +68,19 @@ export class BuffReminderService {
             .find(
                 (classBuff) =>
                     classBuff.categoryMembers !== undefined &&
+                    classBuff.party?.isPerClass !== true &&
                     [classBuff.id, ...(classBuff.party?.groupIds ?? [])].some(
                         (buffId) => (this.spells.resolve(buffId) ?? buffId) === id || this.spells.getSpellName(buffId) === castName,
                     ),
             );
-        if (castBuff === undefined) return;
-        const group = this.classBuffs.getGroupKey(castBuff);
+        if (castBuff !== undefined) this.noteGroupBuff(castBuff);
+    }
+
+    /** The buff of its group to glow from now on (kept per character). */
+    private noteGroupBuff(classBuff: ClassBuff): void {
+        const group = this.classBuffs.getGroupKey(classBuff);
         const lastBuffs = this.settings.get("lastBuffs");
-        if (lastBuffs[group] !== castBuff.id) this.settings.change("lastBuffs", { ...lastBuffs, [group]: castBuff.id });
+        if (lastBuffs[group] !== classBuff.id) this.settings.change("lastBuffs", { ...lastBuffs, [group]: classBuff.id });
     }
 
     /**
