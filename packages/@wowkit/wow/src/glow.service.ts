@@ -115,13 +115,9 @@ export class GlowService {
         return {
             clear: clearGlow,
             setAlpha: (alpha) => {
-                for (const button of glowing) {
-                    // The client accepts the secret curve result here; addon code never reads it
-                    this.overlays
-                        .get(button)
-                        ?.get(kind)
-                        ?.frame.SetAlpha((alpha ?? GLOW_ALPHA) as number);
-                }
+                // The client accepts the secret curve result here; addon code never reads it
+                const value = (alpha ?? GLOW_ALPHA) as number;
+                for (const button of glowing) this.overlays.get(button)?.get(kind)?.frame.SetAlpha(value);
             },
             show: (spellIds, color) => {
                 if (spellIds.length === 0) return clearGlow();

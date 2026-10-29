@@ -2,8 +2,7 @@
 // and they glow as Blizzard's do. A button keeps its action slot where Blizzard's buttons do (made from
 // ActionBarButtonTemplate, or LibActionButton-1.0); a stance button has no slot, so it says which stance it stands for.
 // An addon that lists GlowingBars in its OptionalDeps loads after it, and finds the API there.
-import type { ActionBarsService } from "@wowkit/wow";
-import { BARS } from "@wowkit/wow";
+import { BARS, type ButtonRegistryService, setGlobal } from "@wowkit/wow";
 
 export interface GlowingBarsApi {
     /**
@@ -21,17 +20,17 @@ function readWhole(value: unknown, low: number): number | undefined {
 }
 
 /** Puts the API in the global GlowingBars. */
-export function installPublicApi(actionBars: ActionBarsService): void {
+export function registerPublicApi(registry: ButtonRegistryService): void {
     const api: GlowingBarsApi = {
         RegisterButton: (button, bar) => {
             if (type(button) !== "table") return;
             const number = readWhole(bar, 1);
-            actionBars.registerButton(button, number !== undefined && number <= BARS.length ? number : undefined);
+            registry.registerButton(button, number !== undefined && number <= BARS.length ? number : undefined);
         },
         RegisterStanceButton: (button, stance) => {
             const index = readWhole(stance, 1);
-            if (type(button) === "table" && index !== undefined) actionBars.registerStanceButton(button, index);
+            if (type(button) === "table" && index !== undefined) registry.registerStanceButton(button, index);
         },
     };
-    (_G as unknown as { GlowingBars?: GlowingBarsApi }).GlowingBars = api;
+    setGlobal("GlowingBars", api);
 }

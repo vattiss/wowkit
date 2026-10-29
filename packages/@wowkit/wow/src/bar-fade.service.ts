@@ -2,8 +2,8 @@
 // while one is, so a bar in the middle of the screen shows only what is due. Only the opacity this service set is changed
 // back: a bar no longer faded shows in full again. A glowing button shows in full on a bar its addon faded too (DaylightUI
 // fades the holder of a bar's buttons, and the glow with it).
-import type { ActionBarsService } from "./action-bars.service";
 import { listBarButtonNames } from "./bar-names";
+import type { ButtonRegistryService } from "./button-registry.service";
 import type { GlowService } from "./glow.service";
 import { getReadable } from "./utils/secret-value.utils";
 
@@ -18,7 +18,7 @@ export class BarFadeService {
 
     constructor(
         private readonly glow: GlowService,
-        private readonly actionBars: ActionBarsService,
+        private readonly registry: ButtonRegistryService,
     ) {}
 
     /** Fades the buttons of some bars (bar number, as Edit Mode numbers them -> opacity, 0 to 1) while they do not glow. */
@@ -40,11 +40,11 @@ export class BarFadeService {
                 this.faded.delete(button);
             }
         }
-        this.ignoreParentAlphaOfGlowing();
+        this.showGlowingInFull();
     }
 
     /** Glowing buttons ignore their parent's opacity; the others follow it again. */
-    private ignoreParentAlphaOfGlowing(): void {
+    private showGlowingInFull(): void {
         const glowing = new LuaSet<ActionButton>();
         for (const button of this.glow.listGlowing()) {
             glowing.add(button);
@@ -65,7 +65,7 @@ export class BarFadeService {
      */
     private listBarButtons(bar: number): ActionButton[] {
         const globals = _G as unknown as { [name: string]: ActionButton | undefined };
-        const buttons = this.actionBars.listRegisteredButtons(bar);
+        const buttons = this.registry.listActionButtons(bar);
         for (const name of listBarButtonNames(bar)) {
             const button = globals[name];
             if (button) buttons.push(button);

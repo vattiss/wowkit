@@ -4,7 +4,8 @@
 //   booleans:   isFound, hasArrived, shouldRecheckDrop           (not: found, arrived, recheck)
 //
 // Decorators (packages/@wowkit/core/src/decorators.ts) are the exception: they are written in PascalCase and read as
-// annotations (@OnEvent, @Every), so their names are not checked.
+// annotations (@OnEvent, @Every), so their names are not checked. So is an addon's API for other addons (addons/*/src/api/):
+// it is written in PascalCase, as the game's own API (GlowingBars.RegisterButton).
 //
 // What counts as a function: declarations, methods, and properties or variables holding a function.
 // What counts as a boolean: anything whose type is exactly `boolean`. Fields that may also be
@@ -83,7 +84,8 @@ function checkDeclaration(source: ts.SourceFile, node: ts.Node, name: ts.Identif
     const text = name.text;
     const isFunction = isFunctionLike(node);
     const isDecorator = toPosix(source.fileName) === "packages/@wowkit/core/src/decorators.ts" && /^[A-Z]/.test(text);
-    if (isFunction && !isDecorator && !startsWithWord(text, VERBS)) {
+    const isAddonApi = /^addons\/[^/]+\/src\/api\//.test(toPosix(source.fileName)) && /^[A-Z]/.test(text);
+    if (isFunction && !isDecorator && !isAddonApi && !startsWithWord(text, VERBS)) {
         report(source, name, `function "${text}" should start with a verb`);
     }
     const isBooleanDeclaration =

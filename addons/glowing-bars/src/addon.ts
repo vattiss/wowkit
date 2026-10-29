@@ -18,6 +18,7 @@ import {
     BagsService,
     BarFadeService,
     BarRefreshService,
+    ButtonRegistryService,
     ClockService,
     CooldownsService,
     GlowService,
@@ -33,7 +34,7 @@ import {
     TooltipService,
     WeaponEnchantsService,
 } from "@wowkit/wow";
-import { installPublicApi } from "./api/public-api";
+import { registerPublicApi } from "./api/public-api";
 import { AuraWatchService } from "./character/aura-watch.service";
 import { BlockedActionService } from "./character/blocked-action.service";
 import { BuffMemoryService } from "./character/buff-memory.service";
@@ -109,12 +110,13 @@ function makeGame(addon: Addon, addonName: string) {
     const spellDetails = addon.register(new SpellDetailsService());
     const cooldowns = addon.register(new CooldownsService());
     const auras = addon.register(new AurasService(spells));
-    const actionBars = addon.register(new ActionBarsService(clock, spells, addon.events));
-    installPublicApi(actionBars);
-    const barRefresh = addon.register(new BarRefreshService(actionBars, clock));
+    const buttonRegistry = addon.register(new ButtonRegistryService());
+    registerPublicApi(buttonRegistry);
+    const actionBars = addon.register(new ActionBarsService(clock, spells, addon.events, buttonRegistry));
+    const barRefresh = addon.register(new BarRefreshService(actionBars, clock, buttonRegistry));
     const weaponEnchants = addon.register(new WeaponEnchantsService());
     const glow = addon.register(new GlowService(actionBars));
-    const barFade = addon.register(new BarFadeService(glow, actionBars));
+    const barFade = addon.register(new BarFadeService(glow, buttonRegistry));
     const notice = addon.register(new NoticeService(addonName));
     const tooltips = addon.register(new TooltipService());
     return {

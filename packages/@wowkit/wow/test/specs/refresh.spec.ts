@@ -1,5 +1,12 @@
 import { Addon } from "@wowkit/core";
-import { BarRefreshService, ClockService, SpellRefreshService, type ActionBarsService, type SpellsService } from "@wowkit/wow";
+import {
+    BarRefreshService,
+    ButtonRegistryService,
+    ClockService,
+    SpellRefreshService,
+    type ActionBarsService,
+    type SpellsService,
+} from "@wowkit/wow";
 import { beforeEach, createBasicGame, describe, expect, it, type BasicGame } from "@wowkit/test-kit";
 
 /** What BarRefreshService asks of the action bars. */
@@ -35,7 +42,7 @@ describe("the map of the action bars", () => {
         game = createBasicGame();
         bars = new StubBars();
         addon = new Addon("Test");
-        addon.register(new BarRefreshService(bars as unknown as ActionBarsService, new ClockService()));
+        addon.register(new BarRefreshService(bars as unknown as ActionBarsService, new ClockService(), new ButtonRegistryService()));
         addon.start();
         game.frames.fire("PLAYER_LOGIN");
     });

@@ -3,6 +3,7 @@
 import { Interval, OnEvent, OnGameEvent, type OnFirstLogin } from "@wowkit/core";
 import type { ActionBarsService } from "./action-bars.service";
 import { listAddonButtonNames } from "./bar-names";
+import type { ButtonRegistryService } from "./button-registry.service";
 import type { ClockService } from "./clock.service";
 import { attempt } from "./utils/protected-call.utils";
 
@@ -24,6 +25,7 @@ export class BarRefreshService implements OnFirstLogin {
     constructor(
         private readonly actionBars: ActionBarsService,
         private readonly clock: ClockService,
+        private readonly registry: ButtonRegistryService,
     ) {}
 
     /** The buttons of the bar addons as the first map of the bars finds them. */
@@ -63,6 +65,6 @@ export class BarRefreshService implements OnFirstLogin {
         const globals = _G as unknown as { [name: string]: unknown };
         let count = 0;
         for (const name of this.addonButtonNames) if (globals[name] !== undefined) count++;
-        return count + this.actionBars.listRegisteredButtons().length;
+        return count + this.registry.countButtons();
     }
 }

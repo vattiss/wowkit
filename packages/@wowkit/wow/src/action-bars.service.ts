@@ -6,11 +6,13 @@
 // The client's own bars are mapped (Blizzard's, and the gamepad bars Forever draws in its gamepad mode), and Bartender4's,
 // Dominos's and EllesmereUI's: their buttons keep their action slot where Blizzard's do.
 import { type EventBus, type OnFirstLogin, trimText } from "@wowkit/core";
+import type { ButtonRegistryService } from "./button-registry.service";
 import type { ClockService } from "./clock.service";
 import { attempt, attemptMulti } from "./utils/protected-call.utils";
 import { getReadableId, isReadable } from "./utils/secret-value.utils";
 import type { SpellsService } from "./spells.service";
 import { BARS, findBarNumber, listAddonButtonNames } from "./bar-names";
+import { listGamepadButtons } from "./gamepad-buttons";
 
 declare module "@wowkit/core/event-bus" {
     interface AppEvents {
@@ -19,13 +21,6 @@ declare module "@wowkit/core/event-bus" {
     }
 }
 
-/**
- * The gamepad bars Forever draws in gamepad mode, in place of the usual ones: their buttons are action buttons under names
- * of their own ("GamepadMainActionBarFramePageUnitLeft...ActionButton1"), found among the frame's children.
- */
-const GAMEPAD_BAR = "GamepadMainActionBarFrame";
-/** How deep the buttons of the gamepad bars sit under their frame, at most. */
-const GAMEPAD_DEPTH = 6;
 /** Buttons mapped per frame. */
 const MAP_BUDGET = 20;
 /** Mapping is skipped when the last one is more recent than this (unless forced). */
@@ -46,10 +41,6 @@ export class ActionBarsService implements OnFirstLogin {
     private readonly buttonsByIcon = new LuaMap<number | string, ActionButton[]>();
     /** The action slot each mapped button shows. */
     private readonly slotByButton = new LuaMap<ActionButton, number>();
-    /** The buttons other addons registered (see registerButton), with the bar each counts as: 1 to 8, or 0 for none. */
-    private readonly registered = new LuaMap<ActionButton, number>();
-    /** The stance buttons other addons registered (see registerStanceButton), with the stance each stands for. */
-    private readonly registeredStances = new LuaMap<ActionButton, number>();
     private lastMapAt = 0;
     private mapGeneration = 0;
     /** When the player last changed the bars (a form, a stance, a page, a slot); the map is old until it is mapped again. */
@@ -59,6 +50,7 @@ export class ActionBarsService implements OnFirstLogin {
         private readonly clock: ClockService,
         private readonly spells: SpellsService,
         private readonly bus: EventBus,
+        private readonly registry: ButtonRegistryService,
     ) {}
 
     /** The bars are mapped once, at the first login. */
@@ -113,32 +105,9 @@ export class ActionBarsService implements OnFirstLogin {
      * Undefined for the buttons of no numbered bar (the totem bar, the stance bar).
      */
     getBarNumber(button: ActionButton): number | undefined {
-        const registeredBar = this.registered.get(button);
-        if (registeredBar !== undefined) return registeredBar > 0 ? registeredBar : undefined;
-        if (this.registeredStances.has(button)) return undefined;
+        if (this.registry.isRegistered(button)) return this.registry.findBar(button);
         const name = button.GetName();
         return name !== undefined ? findBarNumber(name) : undefined;
-    }
-
-    /**
-     * A button of another addon (a bar addon of its own), mapped as the bars' are from the next map of the bars on: it keeps
-     * its action slot where Blizzard's buttons do. It counts as the bar `bar` (1 to 8), or as no bar.
-     */
-    registerButton(button: ActionButton, bar: number | undefined): void {
-        this.registered.set(button, bar ?? 0);
-    }
-
-    /** A stance button of another addon, standing for the stance `stance` (1 the first form, a paladin's first aura). */
-    registerStanceButton(button: ActionButton, stance: number): void {
-        this.registeredStances.set(button, stance);
-    }
-
-    /** The buttons other addons registered: every one (the stance buttons too), or those that count as the bar `bar`. */
-    listRegisteredButtons(bar?: number): ActionButton[] {
-        const buttons: ActionButton[] = [];
-        for (const [button, buttonBar] of this.registered) if (bar === undefined || buttonBar === bar) buttons.push(button);
-        if (bar === undefined) for (const [button] of this.registeredStances) buttons.push(button);
-        return buttons;
     }
 
     /** The buttons a spell sits on: by ID, resolved ID and name; by its (rarely shared) icon only when none is found so. */
@@ -304,22 +273,6 @@ export class ActionBarsService implements OnFirstLogin {
         for (const [key] of map) map.delete(key);
     }
 
-    /** The action buttons of the gamepad bars: every child of their frame, at any depth, that shows an action slot. */
-    private listGamepadButtons(): ActionButton[] {
-        const found: ActionButton[] = [];
-        const addButtonsUnder = (frame: Frame, depth: number) => {
-            if (depth > GAMEPAD_DEPTH) return;
-            for (const child of [...frame.GetChildren()]) {
-                // An action button shows a slot; the class button a spell (`action` 0 and a `spellID`)
-                if (type((child as { action?: unknown }).action) === "number") found.push(child as unknown as ActionButton);
-                else addButtonsUnder(child, depth + 1);
-            }
-        };
-        const root = this.getGlobal<Frame>(GAMEPAD_BAR);
-        if (root !== undefined) addButtonsUnder(root, 0);
-        return found;
-    }
-
     /**
      * Every button to map: the bars' (Blizzard's, the totem bar, Bartender4's, Dominos's, EllesmereUI's, ElvUI's, DaylightUI's,
      * the ones other addons registered, the gamepad bars), then the stances.
@@ -334,8 +287,7 @@ export class ActionBarsService implements OnFirstLogin {
         // The shaman's totem bar: its buttons are action buttons too
         for (let i = 1; i <= 12; i++) add(`MultiCastActionButton${i}`);
         for (const name of listAddonButtonNames()) add(name);
-        for (const [button] of this.registered) queue.push({ button });
-        for (const button of this.listGamepadButtons()) {
+        for (const button of listGamepadButtons()) {
             queue.push(this.getActionSlot(button) === undefined ? { spellButton: button } : { button });
         }
         const forms = attempt(GetNumShapeshiftForms) ?? 0;
@@ -345,7 +297,14 @@ export class ActionBarsService implements OnFirstLogin {
             for (const name of [`StanceButton${i}`, `BT4StanceButton${i}`, `DominosStanceButton${i}`, `ElvUI_StanceBarButton${i}`])
                 queue.push({ stance: i, button: this.getGlobal<ActionButton>(name) });
         }
-        for (const [button, stance] of this.registeredStances) if (stance <= forms) queue.push({ stance, button });
+        queue.push(...this.listRegisteredToMap(forms));
+        return queue;
+    }
+
+    /** The buttons other addons registered: the action buttons, and the stance buttons of the stances there are. */
+    private listRegisteredToMap(forms: number): QueueEntry[] {
+        const queue: QueueEntry[] = this.registry.listActionButtons().map((button) => ({ button }));
+        for (const [button, stance] of this.registry.listStanceButtons()) if (stance <= forms) queue.push({ stance, button });
         return queue;
     }
 
