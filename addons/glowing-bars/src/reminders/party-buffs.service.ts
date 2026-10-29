@@ -1,6 +1,7 @@
 // Party members missing one of the player's buffs. Out of combat only (in combat the client hides
-// other units' auras), members online, alive and in range. In a raid only the blessings, and only on the classes the
-// player gave one before (the others are another paladin's). When two or
+// other units' auras), members online, alive and in range. In a raid every member: a group version (Prayer of
+// Fortitude) covers the raid around the caster in Forever; but a blessing only on the classes the player gave one there
+// (the others are another paladin's). When two or
 // more miss a buff (of one class, for Greater Blessings; in a raid one is enough for those) and the reagent is in the
 // bags, the group version is suggested. Of a group the one the player wants is asked for: the one cast last, else the main talent
 // tree's, else the first. A blessing goes by the member's class: the one the player last gave that class (seen on its
@@ -43,7 +44,7 @@ export class PartyBuffsService {
         private readonly settings: AddonSettingsService,
     ) {}
 
-    /** What to cast on whom; empty in combat, or when the feature is off. In a raid only the blessings. */
+    /** What to cast on whom; empty in combat, or when the feature is off. */
     findPartyBuffSuggestions(): PartySuggestion[] {
         if (!this.settings.get("showPartyBuffs") || this.player.isInCombat()) return [];
         const now = this.clock.getCurrentTime();
@@ -55,8 +56,8 @@ export class PartyBuffsService {
         const members: Member[] = (isInRaid ? this.party.getRaidUnits() : this.party.getPartyUnits())
             .filter((unit) => this.party.isReachable(unit))
             .map((unit) => ({ unit, ...this.party.getUnitIdentity(unit) }));
-        const groups = this.listPartyGroups().filter((group) => !isInRaid || group[0]!.party!.isPerClass === true);
-        this.cached = members.length === 0 ? [] : groups.flatMap((group) => this.buildGroupSuggestions(group, members, isInRaid));
+        this.cached =
+            members.length === 0 ? [] : this.listPartyGroups().flatMap((group) => this.buildGroupSuggestions(group, members, isInRaid));
         return this.cached;
     }
 

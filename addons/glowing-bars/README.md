@@ -20,7 +20,8 @@ Your Rotation.
   missing and the reagent in your bags, it suggests the group version (Prayer of Fortitude, Gift of the Wild, Arcane
   Brilliance; a Greater Blessing per class). A group version on you counts as the buff. A blessing goes by the
   member's class: the one you last gave that class, else Wisdom for a class with mana, Kings (or Might) for the others and hunters.
-  In a raid only the blessings, and only on the classes you gave one in that raid: the others are another paladin's.
+  In a raid every member counts (a group version covers the raid around you in Forever), with the number of them past
+  five; but a blessing only on the classes you gave one in that raid: the others are another paladin's.
   There the Greater Blessing is suggested for one member too; in a party too if you switch it on in the settings.
 - **Reagents**: the group buff on your action bar (Prayer of Fortitude, Gift of the Wild...) glows, quietly, while its
   reagent runs low (5 or fewer by default, set on the Settings page), also in a town; on arriving in a town or an inn a chat line names the reagents.

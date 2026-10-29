@@ -143,3 +143,37 @@ describe("a priest alone", () => {
         });
     });
 });
+
+describe("a priest in a raid with candles", () => {
+    function createRaidWorld(hasOtherFortitude: boolean): World {
+        const world = createWorld(
+            (state) => {
+                playAs(state, PRIEST);
+                learnSpell(state, FORTITUDE);
+                learnSpell(state, PRAYER_OF_FORTITUDE);
+                state.reagentTexts[PRAYER_OF_FORTITUDE.id] = "Holy Candle";
+                state.bags[HOLY_CANDLE] = 20;
+                state.auras.push({ name: FORTITUDE.name, spellId: FORTITUDE.id, expirationTime: 1000 + 1800 });
+                state.isInRaid = true;
+                for (let i = 1; i <= 7; i++) {
+                    // Another priest's Fortitude counts as well: two do not stack
+                    const auras = hasOtherFortitude
+                        ? [{ name: FORTITUDE.name, spellId: FORTITUDE.id, expirationTime: 1000 + 1800, sourceUnit: "raid9" }]
+                        : [];
+                    state.party.push({ name: `Member${i}`, classToken: "WARRIOR", power: POWER.Rage, auras });
+                }
+            },
+            { styles: { buff: { isTextOn: true } } },
+        );
+        world.advance(1);
+        return world;
+    }
+
+    it("is told to cast the group version on the raid, counting the members rather than naming them", () => {
+        expect(createRaidWorld(false).notice()).toContain("Prayer of Fortitude missing on 7 members");
+    });
+
+    it("is told nothing when another priest has buffed the raid", () => {
+        expect(createRaidWorld(true).notice()).not.toContain("missing on");
+    });
+});

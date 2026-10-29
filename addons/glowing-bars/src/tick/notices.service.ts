@@ -12,6 +12,8 @@ import type { Reminders } from "./tick.interface";
 
 /** The same message is shown again only after this long, unless one of its lines repeats sooner. */
 const NOTICE_REPEAT = 30;
+/** A party message names this many members at most; past them, it counts them (a raid). */
+const NAMES_MAX = 5;
 /** After the bars changed they are mapped again; until then the old map would call every spell missing. */
 const NOTICE_AFTER_BAR_CHANGE = 1.5;
 
@@ -88,7 +90,11 @@ export class NoticesService {
         for (const suggestion of reminders.partySuggestions) {
             const names = suggestion.names.join(", ");
             const spellName = this.spells.getSpellName(suggestion.spellId) ?? "?";
-            const text = string.format(this.locale.getText("NOTICE_PARTY"), spellName, names);
+            const count = suggestion.names.length;
+            const text =
+                count > NAMES_MAX
+                    ? string.format(this.locale.getText("NOTICE_PARTY_COUNT"), spellName, count)
+                    : string.format(this.locale.getText("NOTICE_PARTY"), spellName, names);
             this.addNamedLine(lines, suggestion.spellId, `party:${suggestion.spellId}:${names}`, text);
         }
         return lines;
