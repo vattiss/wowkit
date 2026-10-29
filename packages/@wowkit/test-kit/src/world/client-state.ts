@@ -151,6 +151,14 @@ export interface ClientState {
     nameplates: number;
 }
 
+/** The member of the test's party a unit stands for: party1..4, or raid1..n in a raid (the player is none of them). */
+export function findPartyMember(state: ClientState, unit: string | undefined): FakePartyMember | undefined {
+    const [digit] = string.match(unit ?? "", "^party(%d)$");
+    if (digit !== undefined) return state.party[tonumber(digit)! - 1];
+    const [index] = string.match(unit ?? "", "^raid(%d+)$");
+    return index !== undefined && state.isInRaid ? state.party[tonumber(index)! - 1] : undefined;
+}
+
 export function createClientState(): ClientState {
     return {
         character: { name: "Priest", token: "PRIEST", id: 5 },

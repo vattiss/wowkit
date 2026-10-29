@@ -1,5 +1,5 @@
 // Spells, the spellbook and spell tooltips.
-import type { ClientState, SpellDefinition } from "./client-state";
+import { findPartyMember, type ClientState, type SpellDefinition } from "./client-state";
 import { defineGlobals, defineNamespace, fake } from "./define";
 
 /** A melee spell (range 0) reaches this far. */
@@ -54,8 +54,7 @@ export function installSpells(state: ClientState): void {
         GetOverrideSpell: (idOrName) => (type(idOrName) === "number" ? (idOrName as number) : 0),
         IsSpellInRange: (idOrName, unit) => {
             if (unit === "target") return isTargetInRange(findSpell(idOrName));
-            const [digit] = string.match(unit ?? "", "^party(%d)$");
-            return digit !== undefined ? state.party[tonumber(digit)! - 1]?.isOutOfRange !== true : true;
+            return findPartyMember(state, unit)?.isOutOfRange !== true;
         },
         IsSpellHarmful: (idOrName) => findSpell(idOrName)?.isHarmful === true,
         IsSpellHelpful: (idOrName) => findSpell(idOrName)?.isHelpful === true,

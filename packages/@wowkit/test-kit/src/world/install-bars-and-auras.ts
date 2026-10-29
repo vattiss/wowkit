@@ -1,5 +1,5 @@
 // The action bars (which spell is on which slot) and the auras on the player and the party.
-import type { ClientState, FakeAura } from "./client-state";
+import { findPartyMember, type ClientState, type FakeAura } from "./client-state";
 import { defineGlobals, defineNamespace } from "./define";
 import type { FakeFrame, FrameRegistry } from "./frames";
 
@@ -136,8 +136,7 @@ export function installAuras(state: ClientState): void {
     function listUnitAuras(unit: UnitToken, isHarmful: boolean): FakeAura[] {
         if (unit === "target") return (isHarmful ? state.target?.debuffs : state.target?.buffs) ?? [];
         if (unit === "player") return isHarmful ? state.playerDebuffs : listPlayerAuras();
-        const [digit] = string.match(unit, "^party(%d)$");
-        return digit !== undefined && !isHarmful ? (state.party[tonumber(digit)! - 1]?.auras ?? []) : [];
+        return isHarmful ? [] : (findPartyMember(state, unit)?.auras ?? []);
     }
 
     /** The auras of a unit by filter: buffs ("HELPFUL"), debuffs ("HARMFUL"), the player's own debuffs ("HARMFUL|PLAYER"). */

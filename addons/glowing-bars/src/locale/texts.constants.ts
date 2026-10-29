@@ -29,7 +29,7 @@ export const TEXTS = {
     HDR_BUFFS: "Buffs",
     OPT_PARTY_BUFFS: "Party members missing your buffs",
     TIP_PARTY_BUFFS:
-        "Out of combat, lists party members in range who are missing one of your buffs, and the buff's button glows. If two or more are missing it and you have the reagent, the group version (Prayer of Fortitude, Gift of the Wild...) is suggested. Not in raids.",
+        "Out of combat, lists party members in range who are missing one of your buffs, and the buff's button glows. If two or more are missing it and you have the reagent, the group version (Prayer of Fortitude, Gift of the Wild...) is suggested. In a raid only your blessings, on the classes you gave one there.",
 
     HDR_WEAPON: "Weapon buff",
     OPT_WEAPON_PICK: "Weapon buff to keep up",

@@ -1,7 +1,8 @@
 // Party members missing one of the player's buffs. Out of combat only (in combat the client hides
-// other units' auras), party only (not raids), members online, alive and in range. When two or
-// more miss a buff (of one class, for Greater Blessings) and the reagent is in the bags, the
-// group version is suggested. Of a group the one the player wants is asked for: the one cast last, else the main talent
+// other units' auras), members online, alive and in range. In a raid only the blessings, and only on the classes the
+// player gave one before (the others are another paladin's). When two or
+// more miss a buff (of one class, for Greater Blessings; in a raid one is enough for those) and the reagent is in the
+// bags, the group version is suggested. Of a group the one the player wants is asked for: the one cast last, else the main talent
 // tree's, else the first. A blessing goes by the member's class: the one the player last gave that class (seen on its
 // members), else Wisdom for a class with mana and Kings, else Might, for the others.
 
@@ -27,6 +28,8 @@ interface Member {
 
 export class PartyBuffsService {
     private cachedAt = -10;
+    /** Was the player in a raid at the last look; undefined before the first (a reload in a raid forgets nothing). */
+    private wasInRaid: boolean | undefined;
     private cached: PartySuggestion[] = [];
 
     constructor(
@@ -40,17 +43,20 @@ export class PartyBuffsService {
         private readonly settings: AddonSettingsService,
     ) {}
 
-    /** What to cast on whom; empty in combat, in raids, or when the feature is off. */
+    /** What to cast on whom; empty in combat, or when the feature is off. In a raid only the blessings. */
     findPartyBuffSuggestions(): PartySuggestion[] {
-        if (!this.settings.get("showPartyBuffs") || this.player.isInCombat() || this.party.isInRaid()) return [];
+        if (!this.settings.get("showPartyBuffs") || this.player.isInCombat()) return [];
         const now = this.clock.getCurrentTime();
         if (now - this.cachedAt < REFRESH_SECONDS) return this.cached;
         this.cachedAt = now;
-        const members: Member[] = this.party
-            .getPartyUnits()
+        const isInRaid = this.party.isInRaid();
+        if (this.wasInRaid !== undefined && this.wasInRaid !== isInRaid) this.forgetGivenBlessings();
+        this.wasInRaid = isInRaid;
+        const members: Member[] = (isInRaid ? this.party.getRaidUnits() : this.party.getPartyUnits())
             .filter((unit) => this.party.isReachable(unit))
             .map((unit) => ({ unit, ...this.party.getUnitIdentity(unit) }));
-        this.cached = members.length === 0 ? [] : this.listPartyGroups().flatMap((group) => this.buildGroupSuggestions(group, members));
+        const groups = this.listPartyGroups().filter((group) => !isInRaid || group[0]!.party!.isPerClass === true);
+        this.cached = members.length === 0 ? [] : groups.flatMap((group) => this.buildGroupSuggestions(group, members, isInRaid));
         return this.cached;
     }
 
@@ -78,19 +84,39 @@ export class PartyBuffsService {
     }
 
     /** The suggestions of one category: the buff the player wants for all, or a blessing for each member's class. */
-    private buildGroupSuggestions(group: ClassBuff[], members: Member[]): PartySuggestion[] {
+    private buildGroupSuggestions(group: ClassBuff[], members: Member[], isInRaid: boolean): PartySuggestion[] {
         if (!group[0]!.party!.isPerClass) return this.buildSuggestionsFor(this.classBuffs.pickGroupBuff(group), members);
         this.noteGivenBlessings(group, members);
         const buffs: ClassBuff[] = [];
         const membersOf = new LuaMap<ClassBuff, Member[]>();
         for (const member of members) {
-            const buff = this.pickMemberBlessing(group, member);
+            const buff = this.pickMemberBlessing(group, member, isInRaid);
+            if (buff === undefined) continue;
             const list = membersOf.get(buff) ?? [];
             if (list.length === 0) buffs.push(buff);
             list.push(member);
             membersOf.set(buff, list);
         }
-        return buffs.flatMap((buff) => this.buildSuggestionsFor(buff, membersOf.get(buff)!));
+        return buffs.flatMap((buff) => this.buildSuggestionsFor(buff, membersOf.get(buff)!, isInRaid));
+    }
+
+    /**
+     * Into a raid or out of one: the blessings given to each class are forgotten. A raid shares them out again, and a
+     * class given one in the party may be another paladin's there.
+     */
+    private forgetGivenBlessings(): void {
+        const lastBuffs = { ...this.settings.get("lastBuffs") };
+        let hasForgotten = false;
+        for (const group of this.listPartyGroups()) {
+            const prefix = this.getClassKey(group, "");
+            for (const [key] of pairs(lastBuffs)) {
+                if (string.sub(key as string, 1, prefix.length) === prefix) {
+                    lastBuffs[key as string] = undefined;
+                    hasForgotten = true;
+                }
+            }
+        }
+        if (hasForgotten) this.settings.change("lastBuffs", lastBuffs);
     }
 
     /** The key of the blessing last given to a class, in the saved settings ("19740:PRIEST"). */
@@ -109,15 +135,18 @@ export class PartyBuffsService {
         }
     }
 
-    /** The blessing for a member: the one last given to its class, else the first of PARTY_BLESSINGS the player knows. */
-    private pickMemberBlessing(group: ClassBuff[], member: Member): ClassBuff {
+    /**
+     * The blessing for a member: the one last given to its class, else the first of PARTY_BLESSINGS the player knows. In
+     * a raid only the one last given: the blessings are shared out there, a class the player gave none is another's.
+     */
+    private pickMemberBlessing(group: ClassBuff[], member: Member, isInRaid: boolean): ClassBuff | undefined {
         const last = this.settings.get("lastBuffs")[this.getClassKey(group, member.classToken)];
-        const order = this.party.doesUseMana(member.unit) ? PARTY_BLESSINGS.mana : PARTY_BLESSINGS.other;
+        const order = isInRaid ? [] : this.party.doesUseMana(member.unit) ? PARTY_BLESSINGS.mana : PARTY_BLESSINGS.other;
         for (const id of [...(last !== undefined ? [last] : []), ...order]) {
             const found = group.find((buff) => buff.id === id);
             if (found !== undefined) return found;
         }
-        return group[0]!;
+        return isInRaid ? undefined : group[0]!;
     }
 
     /** The highest learned rank of the group version that has its reagent. */
@@ -130,7 +159,7 @@ export class PartyBuffsService {
         return undefined;
     }
 
-    private buildSuggestionsFor(classBuff: ClassBuff, members: Member[]): PartySuggestion[] {
+    private buildSuggestionsFor(classBuff: ClassBuff, members: Member[], isInRaid = false): PartySuggestion[] {
         const party = classBuff.party!;
         const missing = members.filter(
             (member) =>
@@ -144,7 +173,15 @@ export class PartyBuffsService {
         if (!party.isPerClass) {
             return [{ spellId: missing.length >= GROUP_MIN ? groupSpell : classBuff.id, names: missing.map((m) => m.name) }];
         }
-        // Greater Blessings cover one class: the group version for classes with enough members missing
+        return this.buildGreaterSuggestions(classBuff.id, groupSpell, missing, isInRaid);
+    }
+
+    /**
+     * Greater Blessings cover one class: the group version for classes with enough members missing, the single blessing
+     * for the rest. One is enough in a raid (it lasts longer, and covers the class's members to come).
+     */
+    private buildGreaterSuggestions(spellId: number, groupSpell: number, missing: Member[], isInRaid: boolean): PartySuggestion[] {
+        const greaterMin = isInRaid ? 1 : GROUP_MIN;
         const byClass = new LuaMap<string, string[]>();
         for (const member of missing) {
             const names = byClass.get(member.classToken) ?? [];
@@ -154,10 +191,10 @@ export class PartyBuffsService {
         const out: PartySuggestion[] = [];
         const singles: string[] = [];
         for (const [, names] of byClass) {
-            if (names.length >= GROUP_MIN) out.push({ spellId: groupSpell, names });
+            if (names.length >= greaterMin) out.push({ spellId: groupSpell, names });
             else singles.push(...names);
         }
-        if (singles.length > 0) out.push({ spellId: classBuff.id, names: singles });
+        if (singles.length > 0) out.push({ spellId, names: singles });
         return out;
     }
 }

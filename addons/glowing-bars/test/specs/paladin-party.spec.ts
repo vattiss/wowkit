@@ -174,3 +174,97 @@ describe("a paladin with Might and Wisdom on the bars, and no blessing", () => {
         expect(world.glowsOn(1)).toBe(0);
     });
 });
+
+describe("a paladin in a raid", () => {
+    const MIGHT: SpellDefinition = { id: BLESSING_OF_MIGHT_ID, name: "Blessing of Might", rank: 1, icon: 135906, isHelpful: true };
+    const WISDOM: SpellDefinition = { id: 19742, name: "Blessing of Wisdom", rank: 1, icon: 135970, isHelpful: true };
+    let world!: World;
+
+    beforeEach(() => {
+        world = createWorld(
+            (state) => {
+                playAs(state, PALADIN);
+                for (const spell of [MIGHT, WISDOM]) learnSpell(state, spell);
+                state.isInRaid = true;
+                state.party = [
+                    { name: "Healer", classToken: "PRIEST", power: POWER.Mana, auras: [] },
+                    { name: "Tank", classToken: "WARRIOR", power: POWER.Rage, auras: [] },
+                ];
+            },
+            { styles: { buff: { isTextOn: true } } },
+        );
+        world.advance(1);
+    });
+
+    it("is asked for nothing on a class it has given no blessing: another paladin's", () => {
+        expect(world.notice()).not.toContain("missing on");
+    });
+
+    it("is asked for the blessing it gave the class, once it is gone", () => {
+        world.state.party[0]!.auras.push({ name: WISDOM.name, spellId: WISDOM.id, expirationTime: 99999, sourceUnit: "player" });
+        world.fire("UNIT_AURA", "raid1");
+        world.advance(2);
+        expect(world.notice()).not.toContain("missing on");
+        world.state.party[0]!.auras = [];
+        world.fire("UNIT_AURA", "raid1");
+        world.advance(2);
+        expect(world.notice()).toContain("Blessing of Wisdom missing on: Healer");
+        expect(world.notice()).not.toContain("Tank");
+    });
+
+    it("is asked for the Greater Blessing for one member, with the reagent in the bags", () => {
+        const greater: SpellDefinition = { id: 25894, name: "Greater Blessing of Wisdom", rank: 1, icon: 135912, isHelpful: true };
+        world = createWorld(
+            (state) => {
+                playAs(state, PALADIN);
+                for (const spell of [MIGHT, WISDOM, greater]) learnSpell(state, spell);
+                state.reagentTexts[greater.id] = "Symbol of Kings";
+                state.bags[SYMBOL_OF_KINGS] = 10;
+                state.isInRaid = true;
+                state.party = [{ name: "Healer", classToken: "PRIEST", power: POWER.Mana, auras: [] }];
+            },
+            { styles: { buff: { isTextOn: true } } },
+        );
+        world.advance(1);
+        world.state.party[0]!.auras.push({ name: WISDOM.name, spellId: WISDOM.id, expirationTime: 99999, sourceUnit: "player" });
+        world.fire("UNIT_AURA", "raid1");
+        world.advance(2);
+        world.state.party[0]!.auras = [];
+        world.fire("UNIT_AURA", "raid1");
+        world.advance(2);
+        expect(world.notice()).toContain("Greater Blessing of Wisdom missing on: Healer");
+    });
+});
+
+describe("a paladin's party blessings, by class and by group", () => {
+    const MIGHT: SpellDefinition = { id: BLESSING_OF_MIGHT_ID, name: "Blessing of Might", rank: 1, icon: 135906, isHelpful: true };
+    const WISDOM: SpellDefinition = { id: 19742, name: "Blessing of Wisdom", rank: 1, icon: 135970, isHelpful: true };
+    const GREATER_WISDOM: SpellDefinition = { id: 25894, name: "Greater Blessing of Wisdom", rank: 1, icon: 135912, isHelpful: true };
+
+    function createPaladinWorld(classToken: string): World {
+        const world = createWorld(
+            (state) => {
+                playAs(state, PALADIN);
+                for (const spell of [MIGHT, WISDOM, GREATER_WISDOM]) learnSpell(state, spell);
+                state.reagentTexts[GREATER_WISDOM.id] = "Symbol of Kings";
+                state.bags[SYMBOL_OF_KINGS] = 10;
+                state.party = [{ name: "Friend", classToken, power: POWER.Mana, auras: [] }];
+            },
+            { styles: { buff: { isTextOn: true } } },
+        );
+        world.advance(1);
+        return world;
+    }
+
+    it("forgets the blessings given in the party once in a raid: there they are shared out again", () => {
+        const world = createPaladinWorld("PRIEST");
+        world.state.party[0]!.auras.push({ name: WISDOM.name, spellId: WISDOM.id, expirationTime: 99999, sourceUnit: "player" });
+        world.fire("UNIT_AURA", "party1");
+        world.advance(2);
+        world.state.party[0]!.auras = [];
+        world.state.isInRaid = true;
+        world.fire("GROUP_ROSTER_UPDATE");
+        world.advance(2);
+        expect(world.notice()).not.toContain("missing on");
+    });
+});

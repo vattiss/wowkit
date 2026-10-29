@@ -15,11 +15,13 @@ Your Rotation.
 - **Gathering**: a miner or a herbalist with no tracking on sees Find Minerals or Find Herbs glow (turquoise). Any tracking
   counts, so a hunter tracking beasts is left alone.
 - **Not on your bars**: a message names missing buffs you have learned but put on no action bar.
-- **Party buffs** (party, not raid; out of combat): a message names the members in range who miss one of your buffs
+- **Party buffs** (out of combat): a message names the members in range who miss one of your buffs
   (Fortitude, Mark of the Wild, Arcane Intellect for mana users, your blessing), and its button glows. With two or more
   missing and the reagent in your bags, it suggests the group version (Prayer of Fortitude, Gift of the Wild, Arcane
   Brilliance; a Greater Blessing per class). A group version on you counts as the buff. A blessing goes by the
   member's class: the one you last gave that class, else Wisdom for a class with mana, Kings (or Might) for the others.
+  In a raid only the blessings, and only on the classes you gave one in that raid: the others are another paladin's.
+  There the Greater Blessing is suggested for one member too.
 - **Reagents**: the group buff on your action bar (Prayer of Fortitude, Gift of the Wild...) glows, quietly, while its
   reagent runs low (5 or fewer by default, set on the Settings page), also in a town; on arriving in a town or an inn a chat line names the reagents.
 - **Ready cooldowns**: in a fight, an important cooldown of your class (Recklessness, Rapid Fire, Adrenaline Rush,

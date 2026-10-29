@@ -1,4 +1,4 @@
-// The other members of the player's party.
+// The other members of the player's party or raid.
 
 import { attempt, attemptMulti } from "./utils/protected-call.utils";
 import { getReadable, isReadable } from "./utils/secret-value.utils";
@@ -19,6 +19,16 @@ export class PartyService {
         for (let i = 1; i <= 4; i++) {
             const unit: UnitToken = `party${i as 1 | 2 | 3 | 4}`;
             if (attempt(UnitExists, unit) === true) units.push(unit);
+        }
+        return units;
+    }
+
+    /** The raid members (raid1..40) that exist, but the player. */
+    getRaidUnits(): UnitToken[] {
+        const units: UnitToken[] = [];
+        for (let i = 1; i <= 40; i++) {
+            const unit = `raid${i}` as UnitToken;
+            if (attempt(UnitExists, unit) === true && attempt(UnitIsUnit, unit, "player") !== true) units.push(unit);
         }
         return units;
     }

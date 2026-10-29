@@ -1,6 +1,6 @@
 // The player, the target, the pet and the party: who they are, whether they fight, rest, are alive and in range, how
 // hurt they are, what they cast.
-import { POWER, type ClientState, type FakePartyMember } from "./client-state";
+import { POWER, findPartyMember, type ClientState, type FakePartyMember } from "./client-state";
 import { defineGlobals } from "./define";
 
 /** Health points behind a percent (the fake game keeps percents). */
@@ -9,10 +9,9 @@ const MAX_HEALTH = 1000;
 const INTERACT_YARDS: { [index: number]: number | undefined } = { 1: 28, 2: 11, 3: 10 };
 
 export function installUnits(state: ClientState): void {
-    /** party1..party4 are the members of the test's party, the player is everyone else. */
+    /** party1..party4 (raid1..n in a raid) are the members of the test's party, the player is everyone else. */
     function findMember(unit: UnitToken): FakePartyMember | undefined {
-        const [digit] = string.match(unit, "^party(%d)$");
-        return digit !== undefined ? state.party[tonumber(digit)! - 1] : undefined;
+        return findPartyMember(state, unit);
     }
 
     /** nameplate1..n are the enemies around that fight the player. */
