@@ -13,6 +13,7 @@ export function createDefaultSettings(): AddonSettings {
         showBuff: true,
         showWeapon: true,
         showPartyBuffs: true,
+        showGreaterForOne: false,
         showRanks: true,
         showReagents: true,
         showCooldowns: true,

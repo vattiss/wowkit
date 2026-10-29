@@ -64,6 +64,9 @@ export class RemindersPage implements OptionsPage {
         if (this.classBuffs.getClassBuffs().some((classBuff) => classBuff.party !== undefined)) {
             this.reminderControls.addHeader(layout, "HDR_BUFFS");
             this.reminderControls.addSwitch(category, "showPartyBuffs", "OPT_PARTY_BUFFS", "TIP_PARTY_BUFFS");
+            if (this.classBuffs.getClassBuffs().some((classBuff) => classBuff.party?.isPerClass === true)) {
+                this.reminderControls.addSwitch(category, "showGreaterForOne", "OPT_GREATER_FOR_ONE", "TIP_GREATER_FOR_ONE");
+            }
         }
 
         this.weaponSection.addWeaponSection(category, layout);

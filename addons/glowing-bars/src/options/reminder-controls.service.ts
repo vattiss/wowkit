@@ -10,6 +10,7 @@ type FeatureKey =
     | "showBuff"
     | "showWeapon"
     | "showPartyBuffs"
+    | "showGreaterForOne"
     | "showRanks"
     | "showReagents"
     | "showCooldowns"
@@ -27,7 +28,7 @@ export class ReminderControlsService {
         this.controls.addHeader(layout, this.locale.getText(label));
     }
 
-    /** A switch of a feature, on by default. */
+    /** A switch of a feature, on or off by default as the settings say. */
     addSwitch(category: SettingsCategory, key: FeatureKey, label: TextKey, tooltip: TextKey): void {
         this.controls.addSwitchCheckbox(category, key, this.locale.getText(label), this.locale.getText(tooltip));
     }

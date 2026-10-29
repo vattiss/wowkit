@@ -43,6 +43,8 @@ export interface AddonSettings {
     showWeapon: boolean;
     /** Party members missing the player's buffs. */
     showPartyBuffs: boolean;
+    /** In a party, a Greater Blessing for one member of a class too (it lasts longer); in a raid it always is. */
+    showGreaterForOne: boolean;
     /** Spells on the bars at a lower rank than the one the player knows. */
     showRanks: boolean;
     /** The reagents of the group buffs running low, on arriving in a town. */

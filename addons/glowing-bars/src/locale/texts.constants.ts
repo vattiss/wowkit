@@ -30,6 +30,9 @@ export const TEXTS = {
     OPT_PARTY_BUFFS: "Party members missing your buffs",
     TIP_PARTY_BUFFS:
         "Out of combat, lists party members in range who are missing one of your buffs, and the buff's button glows. If two or more are missing it and you have the reagent, the group version (Prayer of Fortitude, Gift of the Wild...) is suggested. In a raid only your blessings, on the classes you gave one there.",
+    OPT_GREATER_FOR_ONE: "Greater Blessing for a single member",
+    TIP_GREATER_FOR_ONE:
+        "In a party, suggests the Greater Blessing also when only one member of a class misses it: it lasts 15 minutes, but costs a Symbol of Kings. In a raid it always does.",
 
     HDR_WEAPON: "Weapon buff",
     OPT_WEAPON_PICK: "Weapon buff to keep up",

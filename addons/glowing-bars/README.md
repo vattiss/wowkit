@@ -21,7 +21,7 @@ Your Rotation.
   Brilliance; a Greater Blessing per class). A group version on you counts as the buff. A blessing goes by the
   member's class: the one you last gave that class, else Wisdom for a class with mana, Kings (or Might) for the others and hunters.
   In a raid only the blessings, and only on the classes you gave one in that raid: the others are another paladin's.
-  There the Greater Blessing is suggested for one member too.
+  There the Greater Blessing is suggested for one member too; in a party too if you switch it on in the settings.
 - **Reagents**: the group buff on your action bar (Prayer of Fortitude, Gift of the Wild...) glows, quietly, while its
   reagent runs low (5 or fewer by default, set on the Settings page), also in a town; on arriving in a town or an inn a chat line names the reagents.
 - **Ready cooldowns**: in a fight, an important cooldown of your class (Recklessness, Rapid Fire, Adrenaline Rush,

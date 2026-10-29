@@ -179,10 +179,11 @@ export class PartyBuffsService {
 
     /**
      * Greater Blessings cover one class: the group version for classes with enough members missing, the single blessing
-     * for the rest. One is enough in a raid (it lasts longer, and covers the class's members to come).
+     * for the rest. One is enough in a raid (it lasts longer, and covers the class's members to come), or where the player
+     * wants it.
      */
     private buildGreaterSuggestions(spellId: number, groupSpell: number, missing: Member[], isInRaid: boolean): PartySuggestion[] {
-        const greaterMin = isInRaid ? 1 : GROUP_MIN;
+        const greaterMin = isInRaid || this.settings.get("showGreaterForOne") ? 1 : GROUP_MIN;
         const byClass = new LuaMap<string, string[]>();
         for (const member of missing) {
             const names = byClass.get(member.classToken) ?? [];
