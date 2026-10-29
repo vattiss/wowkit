@@ -60,6 +60,20 @@ cooldowns glow, and a Help section with links to report problems. Blizzard's own
 gamepad bars, and Bartender4's, Dominos's, EllesmereUI's, ElvUI's and DaylightUI's bars (their bar N counts as Action Bar N;
 EllesmereUI's bars 9 and 10 and ElvUI's bars of no Blizzard bar glow, but have no switch of their own).
 
+**For UI addons** ([the whole guide](../../docs/glowing-bars-api.md)): an addon with action buttons of its own registers them with `GlowingBars.RegisterButton(button, bar)`,
+`bar` being the Action Bar (1 to 8) the button counts as, for its switch and its fading, or `nil` for none. The button
+keeps its action slot where Blizzard's do (`action`, as buttons made from `ActionBarButtonTemplate` or
+LibActionButton-1.0 have it). A stance button has no slot: `GlowingBars.RegisterStanceButton(button, stance)` says
+which stance (1 the first form, or a paladin's first aura) it stands for. List `GlowingBars` in `## OptionalDeps`, so
+the API is there when your addon loads:
+
+```lua
+if GlowingBars then
+    for i = 1, 12 do GlowingBars.RegisterButton(_G["MyBarButton" .. i], 2) end
+    for i = 1, GetNumShapeshiftForms() do GlowingBars.RegisterStanceButton(_G["MyStanceButton" .. i], i) end
+end
+```
+
 How the code is organised: [src/](src/addon.ts), and [docs/architecture.md](../../docs/architecture.md). The old
 addons are in the history, at the tags `buff-reminder-v1.0.2`, `rank-reminder-v1.0.2`, `reagent-reminder-v1.0.2` and
 `know-your-rotation-v1.0.2`.

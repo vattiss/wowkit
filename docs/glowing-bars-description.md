@@ -56,6 +56,7 @@ All settings are kept per character.
 ## Good to know
 
 *   Works with Blizzard's own action bars, Forever's gamepad bars and the UI addons above.
+*   Making a UI addon? Your action buttons can glow too: register them as the [Glowing Bars API](https://vattiss.github.io/wowkit/glowing-bars-api) page shows.
 *   In combat the game hides some things from addons (your auras, some cooldowns). Glowing Bars remembers what it saw and what you cast, so it keeps working, but if something does not glow when it should, please tell me.
 
 ## Feedback

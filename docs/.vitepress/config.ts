@@ -48,6 +48,10 @@ export default withMermaid(
                     ],
                 },
                 {
+                    text: "For other addons",
+                    items: [{ text: "Glowing Bars API for UI addons", link: "/glowing-bars-api" }],
+                },
+                {
                     text: "Reference",
                     items: [{ text: "API reference", link: "/api/index.html", target: "_self" }],
                 },
