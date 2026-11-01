@@ -65,8 +65,8 @@ end
 - `"Square"`: the square glow, even on a button whose `activeButtonShape` says otherwise.
 - Nothing, or anything else: as without a shape.
 
-The shape you give comes first. The glow is made the first time the button glows, so give the shape when you
-register it.
+If you pass a shape, Glowing Bars uses it and ignores `activeButtonShape`. Pass it when you register the button: the
+glow is made the first time the button glows, and keeps its shape after that.
 
 ## Checking it
 
