@@ -88,6 +88,8 @@ export class NoticesService {
             this.addNamedLine(lines, spellId, `bar:${spellId}`, string.format(this.locale.getText("NOTICE_NOT_ON_BAR"), name));
         }
         for (const suggestion of reminders.partySuggestions) {
+            // A group version for the player alone names nobody: its glow says it
+            if (suggestion.names.length === 0) continue;
             const names = suggestion.names.join(", ");
             const spellName = this.spells.getSpellName(suggestion.spellId) ?? "?";
             const count = suggestion.names.length;
