@@ -28,9 +28,21 @@ if GlowingBars then
 end
 ```
 
-- `RegisterButton(button, bar)`: `bar` is the Action Bar (1 to 8) the button counts as, so the player's settings for that
-  bar apply to it. Leave it out for a button of no bar.
-- `RegisterStanceButton(button, stance)`: `stance` is the stance the button stands for, 1 the first.
+- `RegisterButton(button, bar, shape)`: `bar` is the Action Bar (1 to 8) the button counts as, so the player's settings
+  for that bar apply to it. Pass `nil` for a button of no bar.
+- `RegisterStanceButton(button, stance, shape)`: `stance` is the stance the button stands for, 1 the first.
+- `shape` (optional, both functions): `"Circle"` for a round button, which then gets a round glow (the client's own
+  gamepad highlight) instead of Blizzard's square proc glow. `"Square"`, or nothing, keeps the square glow.
+
+Round buttons, a gamepad addon's for example:
+
+```lua
+if GlowingBars then
+    for i = 1, 12 do
+        GlowingBars.RegisterButton(_G["MyPadButton" .. i], nil, "Circle")
+    end
+end
+```
 
 The button needs its action slot where Blizzard's buttons keep it (`button.action` or the `action` attribute). Buttons
 made from `ActionBarButtonTemplate` or with LibActionButton-1.0 have it.

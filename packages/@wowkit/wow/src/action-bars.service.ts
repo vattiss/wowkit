@@ -6,7 +6,7 @@
 // The client's own bars are mapped (Blizzard's, and the gamepad bars Forever draws in its gamepad mode), and Bartender4's,
 // Dominos's and EllesmereUI's: their buttons keep their action slot where Blizzard's do.
 import { type EventBus, type OnFirstLogin, trimText } from "@wowkit/core";
-import type { ButtonRegistryService } from "./button-registry.service";
+import type { ButtonRegistryService, ButtonShape } from "./button-registry.service";
 import type { ClockService } from "./clock.service";
 import { attempt, attemptMulti } from "./utils/protected-call.utils";
 import { getReadableId, isReadable } from "./utils/secret-value.utils";
@@ -108,6 +108,14 @@ export class ActionBarsService implements OnFirstLogin {
         if (this.registry.isRegistered(button)) return this.registry.findBar(button);
         const name = button.GetName();
         return name !== undefined ? findBarNumber(name) : undefined;
+    }
+
+    /**
+     * The shape of a button: the one it was registered with (another addon's), else the one it says itself (the gamepad
+     * bars of Forever keep it in `activeButtonShape`); undefined for the others, which are square.
+     */
+    getButtonShape(button: ActionButton): ButtonShape | undefined {
+        return this.registry.findShape(button) ?? (button as { activeButtonShape?: ButtonShape }).activeButtonShape;
     }
 
     /** The buttons a spell sits on: by ID, resolved ID and name; by its (rarely shared) icon only when none is found so. */
