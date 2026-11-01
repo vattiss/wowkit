@@ -35,9 +35,9 @@ export const TEXTS = {
         "Out of combat, in a raid, lists members in range who are missing one of your buffs, and the buff's button glows. Your blessings only on the classes you gave one there. Off: only your own buffs are watched.",
     OPT_GROUP_MIN: "Group version from",
     TIP_PARTY_GROUP_MIN:
-        "In a party, how many missing a buff (you counted) make the group version glow instead: Prayer of Fortitude, Gift of the Wild, Arcane Brilliance, or a Greater Blessing (counting one class). It needs its reagent in your bags.",
+        "In a party, how many missing a buff (you counted, but never you alone) make the group version glow instead: Prayer of Fortitude, Gift of the Wild, Arcane Brilliance, or a Greater Blessing (counting one class). It needs its reagent in your bags.",
     TIP_RAID_GROUP_MIN:
-        "In a raid, how many missing a buff (you counted) make the group version glow instead: Prayer of Fortitude, Gift of the Wild, Arcane Brilliance, or a Greater Blessing (counting one class). It needs its reagent in your bags.",
+        "In a raid, how many missing a buff (you counted, but never you alone) make the group version glow instead: Prayer of Fortitude, Gift of the Wild, Arcane Brilliance, or a Greater Blessing (counting one class). It needs its reagent in your bags.",
     OPT_MEMBER_MISSING: "%d member missing",
     OPT_MEMBERS_MISSING: "%d members missing",
 

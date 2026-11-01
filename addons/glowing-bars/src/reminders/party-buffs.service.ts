@@ -3,7 +3,8 @@
 // (Prayer of Fortitude) covers the raid around the caster in Forever; but a blessing only on the classes the player gave
 // one there (the others are another paladin's). When enough miss a buff (the player's setting, for a party and for a raid;
 // of one class, for Greater Blessings) and the reagent is in the bags, the group version is suggested. The player counts
-// too, as the buff reminder sees it: the group version buffs the player as well. Of a group the one the player wants is
+// too, as the buff reminder sees it: the group version buffs the player as well; but never for the player alone, for whom
+// the single buff does. Of a group the one the player wants is
 // asked for: the one cast last, else the main talent tree's, else the first. A blessing goes by the member's class: the one
 // the player last gave that class (seen on its members), else Wisdom for a class with mana and Kings, else Might, for the
 // others; the player's own is the one the buff reminder asks for.
@@ -50,12 +51,16 @@ export class PartyBuffsService {
     /** What to cast on whom; empty in combat, or when the feature is off (for a party, or for a raid). */
     findPartyBuffSuggestions(): PartySuggestion[] {
         const isInRaid = this.party.isInRaid();
+        // Before the switches: the blessings of a raid are forgotten on leaving it, with the switch of the new place off too
+        if (this.wasInRaid !== undefined && this.wasInRaid !== isInRaid) {
+            this.forgetGivenBlessings();
+            this.cachedAt = -10;
+        }
+        this.wasInRaid = isInRaid;
         if (!this.settings.get(isInRaid ? "showRaidBuffs" : "showPartyBuffs") || this.player.isInCombat()) return [];
         const now = this.clock.getCurrentTime();
-        if (now - this.cachedAt < REFRESH_SECONDS && this.wasInRaid === isInRaid) return this.cached;
+        if (now - this.cachedAt < REFRESH_SECONDS) return this.cached;
         this.cachedAt = now;
-        if (this.wasInRaid !== undefined && this.wasInRaid !== isInRaid) this.forgetGivenBlessings();
-        this.wasInRaid = isInRaid;
         const others: Member[] = (isInRaid ? this.party.getRaidUnits() : this.party.getPartyUnits())
             .filter((unit) => this.party.isReachable(unit))
             .map((unit) => ({ unit, ...this.party.getUnitIdentity(unit) }));
@@ -177,9 +182,14 @@ export class PartyBuffsService {
         if (groupSpell === undefined) return this.buildSuggestion(classBuff, classBuff.id, missing);
         const groupMin = this.settings.get(isInRaid ? "raidGroupMin" : "partyGroupMin");
         if (!classBuff.party!.isPerClass) {
-            return this.buildSuggestion(classBuff, missing.length >= groupMin ? groupSpell : classBuff.id, missing);
+            return this.buildSuggestion(classBuff, this.isGroupWorth(missing, groupMin) ? groupSpell : classBuff.id, missing);
         }
         return this.buildGreaterSuggestions(classBuff, groupSpell, missing, groupMin);
+    }
+
+    /** Enough miss the buff for its group version, and not the player alone: the single buff does for that. */
+    private isGroupWorth(missing: Member[], groupMin: number): boolean {
+        return missing.length >= groupMin && missing.some((member) => member.isPlayer !== true);
     }
 
     /** Does the member miss the buff? The player as the buff reminder sees it: anyone's buff of its group counts. */
@@ -219,7 +229,7 @@ export class PartyBuffsService {
         const out: PartySuggestion[] = [];
         const singles: Member[] = [];
         for (const [, list] of byClass) {
-            if (list.length >= groupMin) out.push(...this.buildSuggestion(classBuff, groupSpell, list));
+            if (this.isGroupWorth(list, groupMin)) out.push(...this.buildSuggestion(classBuff, groupSpell, list));
             else singles.push(...list);
         }
         out.push(...this.buildSuggestion(classBuff, classBuff.id, singles));

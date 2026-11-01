@@ -19,7 +19,7 @@ Your Rotation.
   Arcane Intellect for mana users, your blessing) makes its button glow; the message names them (their number past five).
   - **Party and raid**: each has its own switch. Off, only your own buffs are watched (a buff someone else cast on you
     counts).
-  - **Group versions**: when enough miss the buff (you counted) and the reagent is in your bags, Prayer of Fortitude,
+  - **Group versions**: when enough miss the buff (you counted, but never you alone) and the reagent is in your bags, Prayer of Fortitude,
     Gift of the Wild or Arcane Brilliance glows instead. How many is yours to set, 1 to 5, for a party (2 by default)
     and for a raid (1 by default).
   - **Paladins**: each class gets the blessing you last gave it; before that, Wisdom for casters and healers, Kings or
