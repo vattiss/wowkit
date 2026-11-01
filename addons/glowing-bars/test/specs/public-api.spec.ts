@@ -21,14 +21,15 @@ interface GlowingBarsApi {
 const BAR_2_FIRST = 61;
 
 /** A priest with Fortitude on the slot of a button of a bar addon nobody knows, which registers it once the addons load. */
-function setUpWithButton(options?: Parameters<typeof createWorld>[1], bar?: number, shape?: unknown): World {
+function setUpWithButton(options?: Parameters<typeof createWorld>[1], bar?: number, shape?: unknown, ownShape?: string): World {
     const world = createWorld((state) => {
         playAs(state, PRIEST);
         learnSpell(state, FORTITUDE);
         state.bars[BAR_2_FIRST] = FORTITUDE.id;
     }, options);
-    const button = CreateFrame("CheckButton", "MyBarsButton1") as unknown as { action: number };
+    const button = CreateFrame("CheckButton", "MyBarsButton1") as unknown as { action: number; activeButtonShape?: string };
     button.action = BAR_2_FIRST;
+    button.activeButtonShape = ownShape;
     (_G as unknown as { GlowingBars: GlowingBarsApi }).GlowingBars.RegisterButton(button, bar, shape);
     // The bar addons' buttons are counted every two seconds
     world.advance(3);
@@ -74,6 +75,18 @@ describe("a bar addon that registers its buttons", () => {
             expect(world.glowsOnFrame("MyBarsButton1")).toBe(1);
             expect(hasSquareAlert(world, "MyBarsButton1")).toBe(true);
         }
+    });
+
+    it("has a button that says it is round itself glow as one registered round: on the button, and in full on a faded bar", () => {
+        const world = setUpWithButton(undefined, undefined, undefined, "Circle");
+        expect(world.glowsOnFrame("MyBarsButton1")).toBe(1);
+        expect(hasSquareAlert(world, "MyBarsButton1")).toBe(false);
+        expect(world.findFrame((frame) => frame.name === "MyBarsButton1")!.isIgnoringParentAlpha).toBe(true);
+    });
+
+    it("has its button glow square on the button when it says square, whatever the button says itself", () => {
+        const world = setUpWithButton(undefined, undefined, "Square", "Circle");
+        expect(hasSquareAlert(world, "MyBarsButton1")).toBe(true);
     });
 
     it("is ignored when it registers something that is no button, and the bars glow as before", () => {

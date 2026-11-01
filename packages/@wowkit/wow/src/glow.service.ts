@@ -229,9 +229,9 @@ export class GlowService {
         return this.sizes.get(button) ?? [36, 36, 1];
     }
 
-    /** A button of the gamepad bars (Forever): they say their shape, round or square. */
+    /** A button of the gamepad bars (Forever): they say their shape, round or square. Another addon's may too, but it is no such button. */
     private isGamepadButton(button: ActionButton): boolean {
-        return (button as { activeButtonShape?: unknown }).activeButtonShape !== undefined;
+        return (button as { activeButtonShape?: unknown }).activeButtonShape !== undefined && !this.actionBars.isRegistered(button);
     }
 
     /** The glows beside a gamepad button hide with it, and show again with it while they are lit. */

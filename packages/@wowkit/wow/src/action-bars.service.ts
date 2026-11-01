@@ -106,8 +106,12 @@ export class ActionBarsService implements OnFirstLogin {
      */
     getBarNumber(button: ActionButton): number | undefined {
         if (this.registry.isRegistered(button)) return this.registry.findBar(button);
-        const name = button.GetName();
-        return name !== undefined ? findBarNumber(name) : undefined;
+        return findBarNumber(button.GetName() ?? "");
+    }
+
+    /** Did another addon register the button? */
+    isRegistered(button: ActionButton): boolean {
+        return this.registry.isRegistered(button);
     }
 
     /**
