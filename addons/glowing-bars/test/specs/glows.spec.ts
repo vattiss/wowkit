@@ -227,3 +227,10 @@ describe("a warrior who added Recklessness as a cooldown and as a proc", () => {
         expect(world.proxySettings["GlowingBars_isMuted"]).toBeDefined();
     });
 });
+
+describe("a warrior who saved the shortest glow of a cooldown", () => {
+    it("keeps it after a reload: 1 second is one of the choices", () => {
+        const world = createWorld(setUpWarrior, { cooldownGlowSeconds: 1 });
+        expect(world.getSavedSettings()?.cooldownGlowSeconds).toBe(1);
+    });
+});
