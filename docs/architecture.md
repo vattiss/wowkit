@@ -419,7 +419,7 @@ the bar code knows nothing about the manager: `GlowService.useExtraTargets` (whe
 `ButtonRegistryService.useOtherPlaces` (does the spell count as being on a bar, for a spell only in the manager). `CooldownManagerService` fills
 both. A glow is a frame of our own on `UIParent` anchored to the icon, never a child of it. The pool reuses icons
 for other spells, so `ShowRemindersService` redraws when the key of the icons changes. Glowing and fading are switches in the same lists as the bars
-(`barsThatGlow`, `fadedBars`), under the keys `cooldownManager` and `stance` (`BarKeysService`).
+(`barsThatGlow`, `fadedBars`), one for each window of icons (`essential`, `utility`, `trackedBuffs`) and `stance` (`BarKeysService`).
 
 **Next to EllesmereUI.** Its Cooldown Manager module keeps Blizzard's frames and moves them onto its own bars. While it is loaded the addon
 does not turn the manager on, hide it or touch the mouse on its icons, and by default it moves nothing. The icons are still Blizzard's, so

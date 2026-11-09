@@ -40,7 +40,9 @@ export const TEXTS = {
     HDR_BARS: "Action Bars That Glow",
     OPT_BAR: "Action Bar %d",
     OPT_BAR_STANCE: "Stance Bar",
-    OPT_BAR_COOLDOWN_MANAGER: "Cooldown Manager",
+    OPT_BAR_ESSENTIAL: "Essential Cooldowns",
+    OPT_BAR_UTILITY: "Utility Cooldowns",
+    OPT_BAR_TRACKED_BUFFS: "Tracked Buffs",
     TIP_BAR:
         "Buttons on this bar can glow. Turn a bar off to keep it quiet, e.g. if you have the same spells on a cooldown bar next to your character.",
 

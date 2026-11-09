@@ -3,14 +3,21 @@
 // until its buttons glow, so a bar in the middle of the screen shows only what is due.
 
 import type { AddonLocale } from "../locale/locale.interface";
-import { STANCE_BAR_KEY } from "@wowkit/wow";
-import { COOLDOWN_MANAGER_BAR_KEY, FADED_OPACITY_CHOICES } from "../settings/settings.constants";
+import { COOLDOWN_WINDOWS, STANCE_BAR_KEY, type CooldownWindow } from "@wowkit/wow";
+import type { TextKey } from "../locale/texts.constants";
+import { FADED_OPACITY_CHOICES } from "../settings/settings.constants";
 import type { AddonSettings, AddonSettingsService } from "../settings/settings.interface";
 import type { ControlsService } from "@wowkit/ui";
 import type { ReminderControlsService } from "./reminder-controls.service";
 
 /** The bars of the game, numbered as Edit Mode numbers them. */
 const BAR_COUNT = 8;
+/** The windows of the Cooldown Manager, as Blizzard names them. */
+const WINDOW_TEXTS: { [window in CooldownWindow]: TextKey } = {
+    essential: "OPT_BAR_ESSENTIAL",
+    utility: "OPT_BAR_UTILITY",
+    trackedBuffs: "OPT_BAR_TRACKED_BUFFS",
+};
 
 export class BarsSection {
     constructor(
@@ -43,15 +50,17 @@ export class BarsSection {
             () => this.settings.get("barsThatGlow")[STANCE_BAR_KEY] !== false,
             (isChecked) => this.setBarOn(STANCE_BAR_KEY, isChecked),
         );
-        this.controls.addCheckbox(
-            category,
-            `bar_${COOLDOWN_MANAGER_BAR_KEY}`,
-            this.locale.getText("OPT_BAR_COOLDOWN_MANAGER"),
-            this.locale.getText("TIP_BAR"),
-            false,
-            () => this.settings.get("barsThatGlow")[COOLDOWN_MANAGER_BAR_KEY] === true,
-            (isChecked) => this.setCooldownManagerOn(isChecked),
-        );
+        for (const window of COOLDOWN_WINDOWS) {
+            this.controls.addCheckbox(
+                category,
+                `bar_${window}`,
+                this.locale.getText(WINDOW_TEXTS[window]),
+                this.locale.getText("TIP_BAR"),
+                true,
+                () => this.settings.get("barsThatGlow")[window] !== false,
+                (isChecked) => this.setBarOn(window, isChecked),
+            );
+        }
     }
 
     /** A switch for each bar to be faded until its buttons glow, and how faded. */
@@ -69,10 +78,11 @@ export class BarsSection {
                 (isChecked) => this.setBarFaded(key, isChecked),
             );
         }
-        for (const [key, label] of [
+        const others: [key: string, label: TextKey][] = [
             [STANCE_BAR_KEY, "OPT_BAR_STANCE"],
-            [COOLDOWN_MANAGER_BAR_KEY, "OPT_BAR_COOLDOWN_MANAGER"],
-        ] as const) {
+            ...COOLDOWN_WINDOWS.map((window): [string, TextKey] => [window, WINDOW_TEXTS[window]]),
+        ];
+        for (const [key, label] of others) {
             this.controls.addCheckbox(
                 category,
                 `fade_${key}`,
@@ -108,13 +118,6 @@ export class BarsSection {
     }
 
     /** Switches one bar on or off; the default (on) is not stored. */
-    /** Off by default, unlike the bars. Set on the copy: in Lua, a nil in a table literal would leave the old value standing. */
-    private setCooldownManagerOn(isOn: boolean): void {
-        const barsThatGlow = { ...this.settings.get("barsThatGlow") };
-        barsThatGlow[COOLDOWN_MANAGER_BAR_KEY] = isOn ? true : undefined;
-        this.settings.change("barsThatGlow", barsThatGlow);
-    }
-
     private setBarOn(key: string, isOn: boolean): void {
         const barsThatGlow = { ...this.settings.get("barsThatGlow") };
         barsThatGlow[key] = isOn ? undefined : false;

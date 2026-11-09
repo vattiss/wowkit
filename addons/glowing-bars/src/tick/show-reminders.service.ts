@@ -5,7 +5,6 @@
 
 import type { MessagesService, SoundKey } from "@wowkit/ui";
 import type { StyleService } from "../settings/style.service";
-import { COOLDOWN_MANAGER_BAR_KEY } from "../settings/settings.constants";
 import type { AddonSettingsService, ReminderType, Style } from "../settings/settings.interface";
 import {
     type ActionBarsService,
@@ -19,6 +18,7 @@ import {
     type Rgb,
     isOutOfItem,
     STANCE_BAR_KEY,
+    COOLDOWN_WINDOWS,
 } from "@wowkit/wow";
 import type { NoticesService } from "./notices.service";
 import type { FedBuffsService } from "../reminders/fed-buffs.service";
@@ -191,7 +191,7 @@ export class ShowRemindersService {
         const fadedBars = this.settings.get("fadedBars");
         const others: ActionButton[] = [];
         if (fadedBars[STANCE_BAR_KEY] === true) others.push(...this.barKeys.listStanceButtons());
-        if (fadedBars[COOLDOWN_MANAGER_BAR_KEY] === true) others.push(...this.cooldownViewer.listIcons());
+        others.push(...this.cooldownViewer.listIcons(COOLDOWN_WINDOWS.filter((window) => fadedBars[window] === true)));
         this.barFade.applyBarFades(opacityByBar, others, glowPercent);
     }
 

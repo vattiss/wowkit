@@ -20,8 +20,14 @@ const ENABLED_CVAR = "cooldownViewerEnabled";
 const OTHER_MANAGER_ADDON = "EllesmereUICooldownManager";
 const BUFF_VIEWERS = ["BuffIconCooldownViewer", "BuffBarCooldownViewer"];
 const ALL_VIEWERS = ["EssentialCooldownViewer", "UtilityCooldownViewer", ...BUFF_VIEWERS];
-/** The windows of icons a glow fits: the bars of the fourth are wide strips. */
-const ICON_VIEWERS = ["EssentialCooldownViewer", "UtilityCooldownViewer", "BuffIconCooldownViewer"];
+/** The windows of icons a glow fits, by the key the settings know them by: the bars of the fourth are wide strips. */
+const ICON_VIEWERS = {
+    essential: "EssentialCooldownViewer",
+    utility: "UtilityCooldownViewer",
+    trackedBuffs: "BuffIconCooldownViewer",
+};
+export type CooldownWindow = keyof typeof ICON_VIEWERS;
+export const COOLDOWN_WINDOWS: CooldownWindow[] = ["trackedBuffs", "essential", "utility"];
 /** Enum.CooldownViewerCategory: Tracked Buffs, and the groups of the Buffs and the Spells tab that the addon can use. */
 const TRACKED_BUFF_CATEGORY = 2;
 const BUFF_CATEGORIES = [TRACKED_BUFF_CATEGORY, 3, 6];
@@ -112,31 +118,31 @@ export class CooldownViewerService {
         return this.iconStates.get(spellName);
     }
 
-    /** The icons that show this spell or buff. Read only: they are Blizzard's frames. */
-    findIconsOf(spellName: string): ActionButton[] {
-        return this.listIcons().filter((icon) => {
+    /** The icons in these windows that show this spell or buff. Read only: they are Blizzard's frames. */
+    findIconsOf(spellName: string, windows: CooldownWindow[]): ActionButton[] {
+        return this.listIcons(windows).filter((icon) => {
             const cooldownId = getReadable((icon as unknown as CooldownViewerItem).cooldownID);
             return cooldownId !== undefined && this.findEntry(cooldownId)?.names.includes(spellName) === true;
         });
     }
 
     /** Is an icon of this spell or buff drawn now? One of a buff that is down is not, with Hide When Inactive on. */
-    hasDrawnIcon(spellName: string): boolean {
-        return this.findIconsOf(spellName).some((icon) => getReadable(attempt(() => icon.IsVisible())) === true);
+    hasDrawnIcon(spellName: string, windows: CooldownWindow[]): boolean {
+        return this.findIconsOf(spellName, windows).some((icon) => getReadable(attempt(() => icon.IsVisible())) === true);
     }
 
-    listIcons(): ActionButton[] {
+    listIcons(windows: CooldownWindow[]): ActionButton[] {
         const icons: ActionButton[] = [];
-        for (const name of ICON_VIEWERS) {
-            const viewer = this.getViewer(name);
+        for (const window of windows) {
+            const viewer = this.getViewer(ICON_VIEWERS[window]);
             if (viewer !== undefined) icons.push(...(this.listItems(viewer) as unknown as ActionButton[]));
         }
         return icons;
     }
 
     /** Changes when an icon gets another spell: the window reuses its icons. */
-    getIconsKey(): string {
-        return this.listIcons()
+    getIconsKey(windows: CooldownWindow[]): string {
+        return this.listIcons(windows)
             .map((icon) => tostring(getReadable((icon as unknown as CooldownViewerItem).cooldownID)))
             .join(",");
     }

@@ -7,7 +7,7 @@ The addon's page in the game's Settings panel: one main page with every control,
 |---|---|
 | `reminders.page.ts`, `weapon.section.ts`, `reagents.section.ts`, `glows.section.ts` | The page (an `OptionsPage` of `@wowkit/ui`): the switches per feature and per buff; its weapon buff, reagents, and cooldown and proc parts. |
 | `cooldown-manager.section.ts` | How far the addon may use Blizzard's Cooldown Manager, and whether its icons show. |
-| `bars.section.ts` | Which bars glow and which are faded until they glow: the eight bars, the Stance Bar and the Cooldown Manager. |
+| `bars.section.ts` | Which bars glow and which are faded until they glow: the eight bars, the Stance Bar and each window of the Cooldown Manager. |
 | `choice-menu.ts` | A button that opens a dropdown list of its choices, with the game's own menu. |
 | `custom-sounds-section.ts` | The Custom sounds section of the table: the folders in AddOns with sounds of the player's own, and how many each has. |
 | `style-table.service.ts`, `style-rows.service.ts`, `style-row-layout.ts`, `table-command.ts` | The table of looks (`/gb`): a window with a row for each type of reminder and each spell of the class: color, glow %, message, sound. The rows are plain lists; the window draws them. |
