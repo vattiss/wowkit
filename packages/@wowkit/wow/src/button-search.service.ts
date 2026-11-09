@@ -5,7 +5,7 @@
 // scan, so an unreadable answer counts as "not this".
 import type { OnFirstLogin } from "@wowkit/core";
 import type { ActionBarsService } from "./action-bars.service";
-import { BARS, listAddonButtonNames, STANCE_BUTTONS, STANCE_PREFIXES } from "./bar-names";
+import { BARS, listAddonButtonNames, listTotemButtonNames, STANCE_BUTTONS, STANCE_PREFIXES } from "./bar-names";
 import type { ButtonRegistryService } from "./button-registry.service";
 import { attempt } from "./utils/protected-call.utils";
 import { getReadable } from "./utils/secret-value.utils";
@@ -130,6 +130,7 @@ export class ButtonSearchService implements OnFirstLogin {
         if (this.knownNames !== undefined) return this.knownNames;
         this.knownNames = new LuaSet<string>();
         for (const bar of BARS) for (let i = 1; i <= 12; i++) this.orderedNames.push(`${bar}Button${i}`);
+        for (const name of listTotemButtonNames()) this.orderedNames.push(name);
         for (const name of listAddonButtonNames()) this.orderedNames.push(name);
         for (const prefix of STANCE_PREFIXES) for (let i = 1; i <= STANCE_BUTTONS; i++) this.orderedNames.push(`${prefix}${i}`);
         for (const name of this.orderedNames) this.knownNames.add(name);

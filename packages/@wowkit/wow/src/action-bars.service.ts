@@ -13,7 +13,7 @@ import { findMacroOfSlot, readMacroSpells } from "./utils/macro-text.utils";
 import { attempt, attemptMulti } from "./utils/protected-call.utils";
 import { getReadableId, isReadable } from "./utils/secret-value.utils";
 import type { SpellsService } from "./spells.service";
-import { BARS, findBarNumber, listAddonButtonNames } from "./bar-names";
+import { BARS, findBarNumber, listAddonButtonNames, listTotemButtonNames } from "./bar-names";
 import { listGamepadButtons } from "./gamepad-buttons";
 
 declare module "@wowkit/core/event-bus" {
@@ -314,7 +314,7 @@ export class ActionBarsService implements OnFirstLogin {
         };
         for (const bar of BARS) for (let i = 1; i <= 12; i++) add(`${bar}Button${i}`);
         // The shaman's totem bar: its buttons are action buttons too
-        for (let i = 1; i <= 12; i++) add(`MultiCastActionButton${i}`);
+        for (const name of listTotemButtonNames()) add(name);
         for (const name of listAddonButtonNames()) add(name);
         for (const button of listGamepadButtons()) {
             queue.push(this.getActionSlot(button) === undefined ? { spellButton: button } : { button });

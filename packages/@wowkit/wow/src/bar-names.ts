@@ -6,6 +6,13 @@
 export const STANCE_PREFIXES = ["StanceButton", "BT4StanceButton", "DominosStanceButton", "ElvUI_StanceBarButton"];
 export const STANCE_BUTTONS = 10;
 
+/** The buttons of a shaman's totem bar. */
+export function listTotemButtonNames(): string[] {
+    const names: string[] = [];
+    for (let i = 1; i <= 12; i++) names.push(`MultiCastActionButton${i}`);
+    return names;
+}
+
 export const BARS = [
     "Action",
     "MultiBarBottomLeft",
