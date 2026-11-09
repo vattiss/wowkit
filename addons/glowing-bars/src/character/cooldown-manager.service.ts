@@ -22,6 +22,8 @@ import type { AddonSettingsService } from "../settings/settings.interface";
 
 /** After login or a new spec Blizzard is still loading its layouts. */
 const TRACK_DELAY = 5;
+/** How often the windows kept out of sight are looked after. */
+const HIDE_CHECK_SECONDS = 1;
 
 export class CooldownManagerService implements OnLogin {
     private isTrackingDue = false;
@@ -49,6 +51,7 @@ export class CooldownManagerService implements OnLogin {
             () => (this.listGlowWindows().length > 0 ? this.viewer.getIconsKey(this.listGlowWindows()) : ""),
         );
         this.applyAccess();
+        this.ensureIconsHidden();
         this.waitToTrackBuffs();
     }
 
@@ -103,6 +106,12 @@ export class CooldownManagerService implements OnLogin {
     private listHiddenWindows(): CooldownWindow[] {
         if (this.viewer.isRunByOtherAddon() || this.settings.get("cooldownManagerAccess") === "off") return [];
         return COOLDOWN_WINDOWS.filter((window) => this.settings.get(WINDOW_ICONS_SETTINGS[window]) === "hide");
+    }
+
+    /** Edit Mode gives a window its opacity back whenever it applies its settings, and not every time is announced by an event. */
+    private ensureIconsHidden(): void {
+        if (!this.player.isInCombat()) this.viewer.hideIcons(this.listHiddenWindows());
+        this.clock.runAfter(HIDE_CHECK_SECONDS, () => this.ensureIconsHidden());
     }
 
     /** The game can show them again with a new layout; a fight is when new icons would be seen. */

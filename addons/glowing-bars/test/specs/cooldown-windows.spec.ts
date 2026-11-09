@@ -57,6 +57,39 @@ describe("hiding the windows one by one", () => {
     });
 });
 
+describe("a window kept out of sight that the game shows again", () => {
+    function createWorldWithHiddenWindow(): World {
+        const world = createWorld((state) => playAs(state, SHAMAN), {
+            isCooldownManagerSetUp: true,
+            essentialIcons: "hide",
+            utilityIcons: "show",
+        });
+        world.advance(1);
+        return world;
+    }
+
+    it("is hidden again soon after", () => {
+        const world = createWorldWithHiddenWindow();
+        world.state.windowAlphas["EssentialCooldownViewer"] = 1;
+        world.advance(2);
+        expect(world.state.windowAlphas["EssentialCooldownViewer"]).toBe(0);
+    });
+
+    it("leaves the windows the player chose to show", () => {
+        const world = createWorldWithHiddenWindow();
+        world.advance(2);
+        expect(world.state.windowAlphas["UtilityCooldownViewer"]).toBe(1);
+    });
+
+    it("waits for the end of a fight", () => {
+        const world = createWorldWithHiddenWindow();
+        world.state.isInCombat = true;
+        world.state.windowAlphas["EssentialCooldownViewer"] = 1;
+        world.advance(2);
+        expect(world.state.windowAlphas["EssentialCooldownViewer"]).toBe(1);
+    });
+});
+
 describe("repairing the hidden windows", () => {
     const ACCOUNT_LAYOUT = 1;
 
