@@ -20,6 +20,8 @@ loads an item name from the server on the first ask.
 
 The game writes the saved variable to disk on `/reload` or logout. It is account-wide: `WowkitCheckDB`.
 
+**What the Cooldown Manager offers.** About 8 seconds after each login the addon also saves Blizzard's list for that class and spec: every group of the Spells and Buffs tabs and the Group Buffs tab, one line an entry (group, IDs, name, marked as a buff on yourself, hidden by default, known, linked spells). Log in once on each class, low level is enough since unlearned spells are listed, then `/reload` or log out. It is saved in `WowkitCheckCooldownsDB`, in the same file.
+
 ## On this machine
 
 ```
@@ -37,5 +39,5 @@ list of them).
 ## Code
 
 `src/id-check.service.ts` is the check, with no game calls of its own (it uses the services of `@wowkit/wow`); the lists
-it asks about are the tables of `@wowkit/wow-data`. `src/options/check-command.ts` is the slash command, the only part
+it asks about are the tables of `@wowkit/wow-data`. `src/cooldown-list.service.ts` is the Cooldown Manager list. `src/options/check-command.ts` is the slash command, the only part
 that touches the game. The spec in `test/` runs the check against the fake game.

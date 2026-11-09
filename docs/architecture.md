@@ -124,7 +124,7 @@ flowchart TB
 
         subgraph features["features (glowing-bars)"]
             tick["tick/<br/>a tick every 0.5 s in combat, 1 s out of it: find what is due,<br/>show it; when to look sooner"]
-            character["character/<br/>weapons, auras and casts,<br/>party roster, blocked actions"]
+            character["character/<br/>weapons, auras and casts, the Cooldown Manager,<br/>party roster, blocked actions"]
             options["options/<br/>the Settings panel pages"]
             reminders["reminders/<br/>missing buffs, weapon buff,<br/>party buffs, old ranks, reagents"]
             glows["glows/<br/>ready cooldowns and procs,<br/>the cooldown tracker"]
@@ -133,7 +133,7 @@ flowchart TB
 
         subgraph toolkit["packages (could serve any Forever addon)"]
             ui["packages/@wowkit/ui/src/<br/>settings, texts, chat lines, sounds,<br/>the Settings panel pages"]
-            wow["packages/@wowkit/wow/src/<br/>the only code that calls the game<br/>spells, auras, action bars, player, party, bags,<br/>glows, notices, saved variables"]
+            wow["packages/@wowkit/wow/src/<br/>the only code that calls the game<br/>spells, auras, action bars, the Cooldown Manager,<br/>player, party, bags, glows, notices, saved variables"]
             wowdata["packages/@wowkit/wow-data/src/<br/>spell and item IDs<br/>by category"]
             core["packages/@wowkit/core/src/<br/>Addon, lifecycle hooks, EventBus,<br/>@OnGameEvent, @Interval"]
         end
@@ -313,7 +313,8 @@ classDiagram
 shows: the player's aura of a spell, or the list of a unit's auras, and which of them the client hid. What that means
 is Buff Reminder's (purple): `BuffStateService` puts it together with the buff categories (`BuffKnowledgeService`: any
 aspect counts for an aspect, a group version for the single buff) and the memory that fills in while the client hides
-the auras in combat (`BuffMemoryService`).
+the auras in combat (`BuffMemoryService`). While the client hides them, the icons of Blizzard's Cooldown Manager answer first
+([below](#blizzard-s-cooldown-manager-one-source-with-the-old-checks-behind-it)).
 
 ```mermaid
 %%{init: {"theme":"base","themeVariables":{"background":"#ffffff","lineColor":"#6b7280","textColor":"#111827","primaryColor":"#f1f5f9","primaryTextColor":"#111827","primaryBorderColor":"#94a3b8","secondaryColor":"#e2e8f0","tertiaryColor":"#ffffff","mainBkg":"#f1f5f9","nodeBorder":"#94a3b8","nodeTextColor":"#111827","titleColor":"#111827","edgeLabelBackground":"#ffffff","labelBackground":"#ffffff","labelTextColor":"#111827","clusterBkg":"#ffffff","clusterBorder":"#d1d5db","classText":"#111827","actorBkg":"#f1f5f9","actorTextColor":"#111827","actorBorder":"#94a3b8","actorLineColor":"#6b7280","signalColor":"#374151","signalTextColor":"#111827","noteBkgColor":"#fef9c3","noteTextColor":"#111827","noteBorderColor":"#ca8a04"}}}%%
@@ -340,14 +341,89 @@ classDiagram
             findCategory()
             isFormKey()
         }
+        class CooldownViewerService {
+            isBuffActive()
+        }
     }
     BuffStateService --> AurasService : what the game shows
     BuffStateService --> BuffMemoryService : what was seen or cast
     BuffStateService --> BuffKnowledgeService : which buffs count for each other
+    BuffStateService --> CooldownViewerService : what the icons say, first
     BuffMemoryService --> BuffKnowledgeService
-    cssClass "AurasService" facade
+    cssClass "AurasService,CooldownViewerService" facade
     cssClass "BuffStateService,BuffMemoryService,BuffKnowledgeService" state
 ```
+
+## Blizzard's Cooldown Manager: one source, with the old checks behind it
+
+In a fight the game hides the player's buffs and cooldowns from addon code, so the addon used to work them out: what it saw
+before the fight, what was cast, how long it should last. Blizzard's Cooldown Manager is not limited that way: its icons
+know. So the addon asks the icons first, for everything they can answer, and keeps the old checks as the fallback. The rule
+that holds this together: **an icon answers up, gone, or has no say, and only "no say" reaches the older logic.**
+
+```mermaid
+%%{init: {"theme":"base","themeVariables":{"background":"#ffffff","lineColor":"#6b7280","textColor":"#111827","primaryColor":"#f1f5f9","primaryTextColor":"#111827","primaryBorderColor":"#94a3b8","secondaryColor":"#e2e8f0","tertiaryColor":"#ffffff","mainBkg":"#f1f5f9","nodeBorder":"#94a3b8","nodeTextColor":"#111827","titleColor":"#111827","edgeLabelBackground":"#ffffff","labelBackground":"#ffffff","labelTextColor":"#111827","clusterBkg":"#ffffff","clusterBorder":"#d1d5db","classText":"#111827","actorBkg":"#f1f5f9","actorTextColor":"#111827","actorBorder":"#94a3b8","actorLineColor":"#6b7280","signalColor":"#374151","signalTextColor":"#111827","noteBkgColor":"#fef9c3","noteTextColor":"#111827","noteBorderColor":"#ca8a04"}}}%%
+flowchart LR
+    classDef default fill:#f1f5f9,stroke:#94a3b8,color:#111827
+    subgraph PANEL[" "]
+        setup["CooldownManagerService<br/>turns it on, hides it,<br/>puts what is wanted on display"] --> layout[("saved layout<br/>C_CooldownViewer only")]
+        layout -. "next login or /reload" .-> icons["Blizzard's icons"]
+        icons --> reader["CooldownViewerService<br/>up / gone / no say,<br/>read once a frame"]
+        reader --> buff["BuffStateService<br/>is the buff up"]
+        reader --> proc["GlowCuesService<br/>is the proc up"]
+        reader --> cooldown["CooldownTrackerService<br/>is it on cooldown"]
+        buff -- "no say" --> memory["aura memory,<br/>Shield Block's count"]
+        proc -- "no say" --> spell["free or instant,<br/>usable now"]
+        cooldown -- "no say" --> tracker["last read + cast time"]
+    end
+    classDef panel fill:#ffffff,stroke:#d1d5db,color:#111827
+    class PANEL panel
+```
+
+**How much the addon may do** is the player's choice, per character (the "Cooldown Manager" section of the Settings page):
+
+| Setting | Value | What happens |
+|---|---|---|
+| `cooldownManagerAccess` | `full` ("Add what Glowing Bars needs") | Turns the manager on, moves what the addon reminds about into it, reads the icons. |
+| | `readOnly` ("Only use what's already there") | Turns it on, reads the icons that exist, moves nothing. |
+| | `off` ("Don't use it") | Reads nothing. If the addon was the one that turned the manager on (`isCooldownManagerOurs`), it turns it off again. |
+| `cooldownManagerIcons` | `hide` / `show` | Whether the windows are on screen. Greyed out with EllesmereUI's module, which runs them itself. |
+
+The first login on a character picks the defaults once (`isCooldownManagerSetUp`), so that nothing changes for a player who
+already uses the manager: off means `full` and `hide`; already on, or EllesmereUI's module loaded, means `readOnly` and `show`.
+
+**Reading an icon** (`CooldownViewerService`). All four windows are read together once a frame, so asking about many buffs costs
+one pass.
+
+- *Which spell:* an entry is matched by the name of its spell **or of a spell linked to it**, from the client by ID, so it holds in
+  every language. Blessing of Might's entry is also Greater Blessing of Might's; Arcane Concentration's is also Clearcasting's.
+- *Buffs windows:* `IsActive()`.
+- *Spells tab (Essential, Utility):* `IsActive()` is always true there. The buff shows as an aura on the icon (`auraInstanceID`,
+  `wasSetFromAura`), and only an entry marked `selfAura` has a say, or every plain cooldown would read as "gone".
+- *Cooldowns:* the field `isOnActualCooldown`, not `IsOnCooldown()` ([quirk 19](./forever-quirks.md)).
+- *What an icon cannot be trusted for:* `BuffStateService` handles these. An icon only follows the player's own casts, so "out" is not
+  believed for a buff last seen cast by someone else. An icon also lights for the player's buff on a friendly target, so it only
+  counts with `auraDataUnit` of `player`. All shapeshift forms share one icon, so forms get no say. In a buff category (`BuffKnowledgeService`), any
+  member's icon being up is enough; members with no icon have no say.
+- The time left stays hidden, so `BuffMemoryService` still decides when a buff is about to run out.
+
+**Writing the layout** (`cooldown-layouts.ts`). Blizzard only makes an icon for an entry on display, and most buffs are hidden by
+default, so they have to be moved. The addon never goes through Blizzard's Lua for this: it reads the saved string, changes
+it and writes it back with `C_CooldownViewer.GetLayoutData` / `SetLayoutData`, for save format 5 only. The change shows from the
+next login or `/reload`. The saved layout is looked at again at each login and spec change, so a buff taken out comes back, and
+there is no note of its own that could go stale. A character on Blizzard's built-in layout, which cannot be changed, gets a layout
+of the addon's, named "Glowing Bars".
+
+**Glowing and fading the icons.** The icons are extra places a spell can light up, reached through two small seams so
+the bar code knows nothing about the manager: `GlowService.useExtraTargets` (where else to glow) and
+`ButtonRegistryService.useOtherPlaces` (does the spell count as being on a bar, for a spell only in the manager). `CooldownManagerService` fills
+both. A glow is a frame of our own on `UIParent` anchored to the icon, never a child of it. The pool reuses icons
+for other spells, so `ShowRemindersService` redraws when the key of the icons changes. Glowing and fading are switches in the same lists as the bars
+(`barsThatGlow`, `fadedBars`), under the keys `cooldownManager` and `stance` (`BarKeysService`).
+
+**Next to EllesmereUI.** Its Cooldown Manager module keeps Blizzard's frames and moves them onto its own bars. While it is loaded the addon
+does not turn the manager on, hide it or touch the mouse on its icons, and by default it moves nothing. The icons are still Blizzard's, so
+reading, glowing and fading work on them.
 
 ## Lifecycle: when a service runs
 
@@ -442,7 +518,7 @@ sequenceDiagram
         Tick->>Show: showReminders(reminders)
         Show->>Screen: playAlertSound() for what is new
         Show->>Screen: showNotice(lines) (the same message not again within 30 s)
-        Show->>Screen: glow.show(spells, color) (only when the set changed)
+        Show->>Screen: glow.show(spells, color) (only when the set, or the Cooldown Manager's icons, changed)
     end
 ```
 
@@ -485,5 +561,16 @@ change its record here.
 - **`@wowkit/wow` is the game's door and nothing else.** Logic about what the reminders remind of does not live there: the spell and
   item IDs are written once in `@wowkit/wow-data`, what an addon needs (the reagents of the group buffs, when to keep quiet) is in that addon. Reading the auras is a facade too: `AurasService` says what the game shows, and Buff Reminder's `BuffStateService` decides
   what it means (the memory while the client hides the auras, the buff categories).
-- **`@wowkit/core` stays small:** `Addon`, the events and timers, the lifecycle hooks and the text helpers. Anything that talks
+- **The Cooldown Manager comes first, the old checks stay.** Its icons know what the game hides from addons, so they answer
+  first for buffs, procs and cooldowns. The older logic is not removed: it is what runs when an icon has no say, which covers a
+  buff Blizzard does not list, a player who says no, and a client that changes.
+- **Nothing goes through Blizzard's Cooldown Manager code.** Its aura table refuses tainted access, so moving an entry
+  through its Lua raised errors. The layout is changed as saved data, through the client's own functions, at the price of showing
+  from the next login. Its frames are read and hooked, and no field of theirs is written.
+- **The player decides how far the addon reaches into the manager,** and an update changes nothing for anyone already using it.
+  Turning it on and hiding it silently leaves its menu option ticked with no icons; it cannot be avoided, because a window
+  switched off stops following its auras.
+- **Other places to glow arrive through seams, not imports.** The bar and glow code stays about buttons;
+  `CooldownManagerService` hands it the icons. Another target would be one more function.
+$1 `Addon`, the events and timers, the lifecycle hooks and the text helpers. Anything that talks
   to the game's API belongs in `@wowkit/wow`, and anything for the Settings panel in `@wowkit/ui`.

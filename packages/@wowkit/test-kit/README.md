@@ -9,7 +9,8 @@ run against a **fake game**. No Lua to read or write.
   area (units, spells, bars and auras, items, ui, clock, curves). `createWorld(setup)` gives a fresh game with the addon
   loaded and logged in; the test then changes `world.state`, fires events and moves time. For a fight there is a
   target (`targetEnemy(state, changes)`: how far, how hurt, its buffs and debuffs, what it casts, whether it attacks the
-  player), the player's health, mana, combo points and cooldowns, a pet, and spells with a cast time and a range.
+  player), the player's health, mana, combo points and cooldowns, a pet, and spells with a cast time and a range. The Cooldown
+  Manager is there too: `trackedBuffs` are its icons, `buffCatalog` Blizzard's list, `layoutData` the saved layouts (the encoding is not real).
 - **`src/world/basic-game.ts`**: `createBasicGame()`, a game with only a clock, frames and the chat, for the tests of a package (see `packages/@wowkit/core/test` and `packages/@wowkit/wow/test`); no addon needs to be loaded.
 - **`src/config.ts`**: where the built addon is (set by the addon's `test/run.ts` from the command line).
 

@@ -20,6 +20,10 @@ The words this project uses in its own sense, in plain terms. One word means one
 | **protected call** | A call to the game made so that an error does not stop the addon. | `attempt`, `tryCall` in `packages/@wowkit/wow/src/utils/protected-call.utils.ts` |
 | **aura memory** | While the game hides auras (in combat), the addon remembers which buffs it saw or cast, for as long as they last. | `BuffMemoryService` (Buff Reminder) |
 | **idle** | Dead, mounted, on a taxi, eating, or resting in town: nothing is shown then. | `IdleService` in `addons/glowing-bars/src/character/` |
+| **Cooldown Manager** | Blizzard's own window of cooldown and buff icons. Its icons know what the game hides from addons in a fight. | `CooldownViewerService` |
+| **icon has no say** | The icon cannot answer: there is none, or the game hides its answer. Only then the older checks run. | `undefined` from `isBuffActive`, `isSpellOnCooldown` |
+| **fallback** | The older checks behind the icons: the aura memory, Shield Block's count, the cooldown tracker, the free-or-instant check. | `BuffMemoryService`, `CooldownTrackerService` |
+| **Stance Bar** | Any bar of stances: a paladin's auras, a warrior's stances, a druid's forms. It has no bar number. | `STANCE_BAR_KEY`, `BarKeysService` |
 
 ## How the code is organised
 

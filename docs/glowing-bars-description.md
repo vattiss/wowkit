@@ -66,8 +66,8 @@ On the Settings page (_Options > AddOns > Glowing Bars_):
 *   **Rainbow when AFK** (off by default): your buttons light up in rainbow colors while you are away
 *   **Blizzard Cooldown Manager**: Glowing Bars reads your buffs from it in a fight. Choose whether it adds what it needs, only uses what's already there, or leaves it alone, and whether its icons show
 *   **Circling on round buttons**: breathing or none, where a glow cannot run around the button
-*   **Action bars that glow**: turn any of the eight bars off (your UI addon's bars too)
-*   **Faded until they glow**: any of the eight bars stays faint until one of its buttons glows, so a bar in the middle of your screen shows only what's due
+*   **Action Bars That Glow**: turn any of the eight bars or the Stance Bar off (your UI addon's bars too), or turn on the glow on Blizzard's Cooldown Manager, which also lights spells that are only there
+*   **Faded Until They Glow**: any of the eight bars, the Stance Bar or the Cooldown Manager stays faint until one of its buttons glows, so a bar in the middle of your screen shows only what's due
 *   **Spell and item IDs in tooltips** (off by default): spell tooltips show the Spell ID and item tooltips the Item ID; an elixir, potion, food or drink also shows the ID of the spell it casts
 *   The weapon buff to keep up, the party and raid buffs with their group version counts, and whether the ready cooldowns also glow as a fight starts
 

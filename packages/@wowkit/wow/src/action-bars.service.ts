@@ -199,6 +199,7 @@ export class ActionBarsService implements OnFirstLogin {
         return this.lastMapAt > 0;
     }
 
+    /** Is the spell on a button, or somewhere else it can light up (see ButtonRegistryService.useOtherPlaces)? */
     isOnBars(spellId: number | undefined): boolean {
         return this.findButtonsOf(spellId).length > 0 || this.registry.isInOtherPlace(spellId);
     }
