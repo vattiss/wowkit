@@ -21,12 +21,16 @@ export class BarFadeService {
         private readonly registry: ButtonRegistryService,
     ) {}
 
-    /** Fades the buttons of some bars (bar number, as Edit Mode numbers them -> opacity, 0 to 1) while they do not glow. */
-    applyBarFades(opacityByBar: LuaMap<number, number>): void {
+    /**
+     * Fades the buttons of some bars (bar number, as Edit Mode numbers them -> opacity, 0 to 1) while they do not glow, and
+     * these other ones (a stance bar, the icons of the Cooldown Manager) to `otherOpacity`.
+     */
+    applyBarFades(opacityByBar: LuaMap<number, number>, others: ActionButton[], otherOpacity: number): void {
         const wanted = new LuaMap<ActionButton, number>();
         for (const [bar, opacity] of opacityByBar) {
             for (const button of this.listBarButtons(bar)) wanted.set(button, this.glow.isGlowing(button) ? 1 : opacity);
         }
+        for (const button of others) wanted.set(button, this.glow.isGlowing(button) ? 1 : otherOpacity);
         for (const [button, opacity] of wanted) {
             // The game sets a button's opacity too (as it updates the bars): the button's own is the one to compare, when
             // the client lets it be read (in combat it may keep it secret: then it is set all the same)

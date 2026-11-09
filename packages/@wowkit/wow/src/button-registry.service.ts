@@ -11,6 +11,7 @@ export class ButtonRegistryService {
     private readonly bars = new LuaMap<ActionButton, number>();
     /** The stance buttons, with the stance each stands for. */
     private readonly stances = new LuaMap<ActionButton, number>();
+    private isThereElse: ((this: void, spellId: number) => boolean) | undefined;
     /** The shape each button said it has, when it said one. */
     private readonly shapes = new LuaMap<ActionButton, ButtonShape>();
 
@@ -37,6 +38,15 @@ export class ButtonRegistryService {
     private setShape(button: ActionButton, shape: ButtonShape | undefined): void {
         if (shape !== undefined) this.shapes.set(button, shape);
         else this.shapes.delete(button);
+    }
+
+    /** Lets a spell count as on the bars when it can light up somewhere else (an icon of the Cooldown Manager). */
+    useOtherPlaces(isThere: (this: void, spellId: number) => boolean): void {
+        this.isThereElse = isThere;
+    }
+
+    isInOtherPlace(spellId: number | undefined): boolean {
+        return spellId !== undefined && this.isThereElse?.(spellId) === true;
     }
 
     /** Was the button registered (as an action button or a stance button)? */

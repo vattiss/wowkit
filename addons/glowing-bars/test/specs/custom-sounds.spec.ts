@@ -65,7 +65,7 @@ describe("the Custom sounds section of the table", () => {
 
     it("has one line by default, with the folder filled in and no sounds yet", () => {
         openTable({});
-        expect(findLabel(world, "Custom sounds") === undefined).toBe(false);
+        expect(findLabel(world, "Custom Sounds") === undefined).toBe(false);
         const boxes = listFolderBoxes();
         expect(boxes.length).toBe(1);
         expect(boxes[0]!.text).toBe(MAIN_FOLDER);

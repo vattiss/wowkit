@@ -144,7 +144,7 @@ describe("the Below column", () => {
 describe("the list of spells of the table", () => {
     it("has a small heading above each type it has, and none for the others", () => {
         const world = createOpenTable();
-        const content = world.frames.find((frame) => frame.fontStrings.some((text) => text.text === "Spells (override the defaults)"))!;
+        const content = world.frames.find((frame) => frame.fontStrings.some((text) => text.text === "Spells (Override the Defaults)"))!;
         const shown = content.fontStrings.filter((text) => text.isShown !== false).map((text) => text.text);
         expect(shown.includes("Ready cooldown")).toBe(true);
         expect(shown.includes("Missing seal")).toBe(false);
@@ -152,9 +152,9 @@ describe("the list of spells of the table", () => {
 
     it("has them under the header of the spells, in the order of the types", () => {
         const world = createOpenTable();
-        const content = world.frames.find((frame) => frame.fontStrings.some((text) => text.text === "Spells (override the defaults)"))!;
+        const content = world.frames.find((frame) => frame.fontStrings.some((text) => text.text === "Spells (Override the Defaults)"))!;
         const texts = content.fontStrings.map((text) => text.text);
-        expect(texts.indexOf("Spells (override the defaults)") < texts.indexOf("Ready cooldown")).toBe(true);
+        expect(texts.indexOf("Spells (Override the Defaults)") < texts.indexOf("Ready cooldown")).toBe(true);
     });
 });
 

@@ -28,6 +28,7 @@ import "./food-buff-learning.spec";
 import "./gathering.spec";
 import "./shield-block.spec";
 import "./cooldown-manager.spec";
+import "./glow-targets.spec";
 import "./cooldown-access.spec";
 import "./cooldown-reader.spec";
 import "./defensive-execute.spec";

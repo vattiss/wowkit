@@ -20,6 +20,8 @@ const ENABLED_CVAR = "cooldownViewerEnabled";
 const OTHER_MANAGER_ADDON = "EllesmereUICooldownManager";
 const BUFF_VIEWERS = ["BuffIconCooldownViewer", "BuffBarCooldownViewer"];
 const ALL_VIEWERS = ["EssentialCooldownViewer", "UtilityCooldownViewer", ...BUFF_VIEWERS];
+/** The windows of icons a glow fits: the bars of the fourth are wide strips. */
+const ICON_VIEWERS = ["EssentialCooldownViewer", "UtilityCooldownViewer", "BuffIconCooldownViewer"];
 /** Enum.CooldownViewerCategory: Tracked Buffs, and the groups of the Buffs and the Spells tab that the addon can use. */
 const TRACKED_BUFF_CATEGORY = 2;
 const BUFF_CATEGORIES = [TRACKED_BUFF_CATEGORY, 3, 6];
@@ -110,6 +112,35 @@ export class CooldownViewerService {
         return this.iconStates.get(spellName);
     }
 
+    /** The icons that show this spell or buff. Read only: they are Blizzard's frames. */
+    findIconsOf(spellName: string): ActionButton[] {
+        return this.listIcons().filter((icon) => {
+            const cooldownId = getReadable((icon as unknown as CooldownViewerItem).cooldownID);
+            return cooldownId !== undefined && this.findEntry(cooldownId)?.names.includes(spellName) === true;
+        });
+    }
+
+    /** Is an icon of this spell or buff drawn now? One of a buff that is down is not, with Hide When Inactive on. */
+    hasDrawnIcon(spellName: string): boolean {
+        return this.findIconsOf(spellName).some((icon) => getReadable(attempt(() => icon.IsVisible())) === true);
+    }
+
+    listIcons(): ActionButton[] {
+        const icons: ActionButton[] = [];
+        for (const name of ICON_VIEWERS) {
+            const viewer = this.getViewer(name);
+            if (viewer !== undefined) icons.push(...(this.listItems(viewer) as unknown as ActionButton[]));
+        }
+        return icons;
+    }
+
+    /** Changes when an icon gets another spell: the window reuses its icons. */
+    getIconsKey(): string {
+        return this.listIcons()
+            .map((icon) => tostring(getReadable((icon as unknown as CooldownViewerItem).cooldownID)))
+            .join(",");
+    }
+
     /** Is the spell on its own cooldown (the global cooldown ignored), by its icon on the Spells tab? Undefined with no such icon. */
     isSpellOnCooldown(spellName: string): boolean | undefined {
         if (!this.isUsingIcons) return undefined;
@@ -148,7 +179,8 @@ export class CooldownViewerService {
 
     /** The cooldown is of the entry's own spell, not of the spells linked to it. */
     private noteCooldownState(item: CooldownViewerItem, entry: ViewerEntry): void {
-        const isOnCooldown = getReadable(attempt(() => item.IsOnCooldown()));
+        // The field, not IsOnCooldown(): that one tests it, and on a secret it fails in addon code
+        const isOnCooldown = getReadable(item.isOnActualCooldown);
         const name = entry.names[0];
         if (isOnCooldown === undefined || name === undefined) return;
         if (isOnCooldown || !this.cooldownStates.has(name)) this.cooldownStates.set(name, isOnCooldown);

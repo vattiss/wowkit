@@ -8,6 +8,20 @@
 // SetPreferredGamepadInteractTarget). The glow follows the button through hooks on its showing and hiding instead.
 
 import { isSameButtons } from "./utils/glow-buttons.utils";
+import type { Overlay } from "./utils/glow-overlay.interface";
+import { isBreathing, isStill, type GlowAnimation } from "./utils/glow-animation.utils";
+import {
+    GLOW_FALLBACK,
+    GLOW_SCALE,
+    GLOW_ALPHA,
+    RING_ATLAS,
+    RING_SCALE,
+    HALO_ATLAS,
+    HALO_SCALE,
+    RING_PULSE_ALPHA,
+    RING_PULSE_SECONDS,
+    LOOP_ATLAS,
+} from "./utils/glow-look.constants";
 import { showLoopPicture } from "./utils/glow-picture.utils";
 import { createLineGlow } from "./utils/glow-line.utils";
 import { BORDER_SCALE, createSoftFrame } from "./utils/glow-border.utils";
@@ -20,69 +34,6 @@ import type { HiddenAlpha } from "./value-curves.service";
 /** A color as red, green and blue between 0 and 1. */
 export type Rgb = [r: number, g: number, b: number];
 
-/**
- * How a glow moves, in two looks: ants (Blizzard's proc glow) or clean (the clean line running around, and Blizzard's soft
- * square frame standing still). Circling runs around the button; breathing stands still, slowly fading out and in; none
- * stands still, fading in as it lights and out as it goes. The ants that stand still are Blizzard's glow stopped on a picture.
- */
-export type GlowAnimation = "circling" | "clean" | "breathing" | "breathingClean" | "none" | "noneClean";
-
-/** Does the glow breathe (in either look)? */
-export function isBreathing(animation: GlowAnimation): boolean {
-    return animation === "breathing" || animation === "breathingClean";
-}
-
-/** Does the glow stand still, only fading in and out (in either look)? */
-export function isStill(animation: GlowAnimation): boolean {
-    return animation === "none" || animation === "noneClean";
-}
-
-/** Fallback art if the spell-alert glow template is missing; built-in client art only. */
-const GLOW_FALLBACK = "Interface\\Cooldown\\star4";
-const GLOW_SCALE = 1.45;
-const GLOW_ALPHA = 0.95;
-/**
- * The glow of a round gamepad button, in two layers of the client's own gamepad art: a soft round halo well around the
- * button (the glow it flashes when a cast completes), and the ring it highlights the button with.
- */
-const RING_ATLAS = "gamepad-actionbar-circleslot-border-hover";
-const RING_SCALE = 1.2;
-const HALO_ATLAS = "gamepad-hud-actionbar-casting-complete-glow";
-/** The halo's size, against the ring's. */
-const HALO_SCALE = 1.35;
-/** A breathing glow fades between full and this opacity, half a second each way. */
-const RING_PULSE_ALPHA = 0.45;
-const RING_PULSE_SECONDS = 0.5;
-/**
- * The loop of the alert's glow, a flipbook. A glow that does not circle shows one picture of it still: the loop runs a
- * frame, so the client cuts the picture out, and is stopped, its picture kept: while it runs, even paused, it holds the
- * picture's opacity, so a fade could not change it.
- */
-const LOOP_ATLAS = "UI-HUD-ActionBar-Proc-Loop-Flipbook";
-
-interface Overlay {
-    frame: Frame;
-    alert?: SpellAlertFrame;
-    texture?: Texture;
-    /** The strips of the drawn border of a still glow, tinted together. */
-    parts?: Texture[];
-    /** Its size against the button's, where it is not the glow's own (the drawn border). */
-    scale?: number;
-    /** The fading in and out of a still glow, and the breathing of a breathing one. */
-    fadeIn?: AnimationGroup;
-    fadeOut?: AnimationGroup;
-    breathe?: AnimationGroup;
-    /** The glow is lit (it shows while its button does). */
-    isWanted?: boolean;
-    /** A frame beside the button, not its child (a button of the gamepad bars). */
-    isBeside?: boolean;
-    /** The ring of a round button; its halo is drawn around it. */
-    isRing?: boolean;
-    halo?: Texture;
-    /** How it moves: the animation of its glow (on a round button, circling is the round buttons' animation). */
-    animation: GlowAnimation;
-}
-
 export interface ButtonGlow {
     /** Glows the buttons of these spells in the color; an empty list clears. */
     show: (this: void, spellIds: number[], color: Rgb) => void;
@@ -93,6 +44,8 @@ export interface ButtonGlow {
      */
     setAlpha: (this: void, alpha: HiddenAlpha | number | undefined) => void;
 }
+
+export { isBreathing, isStill, type GlowAnimation };
 
 export class GlowService {
     /** Overlays per button and reminder type. Kept here, never written onto Blizzard's buttons. */
@@ -106,6 +59,11 @@ export class GlowService {
     private readonly tracked = new LuaSet<ActionButton>();
     /** The breathing of the glows that show (round, or square and breathing): they restart together, in step. */
     private readonly pulses = new LuaSet<AnimationGroup>();
+    /** Other frames a spell can glow on (icons of the Cooldown Manager), and a text that changes when they do. */
+    private findExtraTargets: ((this: void, spellId: number) => ActionButton[]) | undefined;
+    private getExtraKey: ((this: void) => string) | undefined;
+    /** Those frames: their glow is beside them, as they are not the addon's to add children to. */
+    private readonly extraTargets = new LuaSet<ActionButton>();
     /** What a circling glow does on a round button, where it cannot circle: breathe, or stand still. */
     private roundAnimation: GlowAnimation = "breathing";
 
@@ -114,6 +72,17 @@ export class GlowService {
     /** What a circling glow does on a round button from now on: breathe, or stand still. */
     setRoundAnimation(roundAnimation: GlowAnimation): void {
         this.roundAnimation = roundAnimation;
+    }
+
+    /** Lets spells glow on more than their action buttons. */
+    useExtraTargets(find: (this: void, spellId: number) => ActionButton[], getKey: (this: void) => string): void {
+        this.findExtraTargets = find;
+        this.getExtraKey = getKey;
+    }
+
+    /** Changes when the extra targets do; empty while there are none to follow. */
+    getExtraTargetsKey(): string {
+        return this.getExtraKey?.() ?? "";
     }
 
     /**
@@ -146,6 +115,10 @@ export class GlowService {
                 const buttons = spellIds
                     .flatMap((spellId) => this.actionBars.findButtonsOf(spellId))
                     .filter((button) => isButtonShown === undefined || isButtonShown(button));
+                for (const target of spellIds.flatMap((spellId) => this.findExtraTargets?.(spellId) ?? [])) {
+                    this.extraTargets.add(target);
+                    if (!buttons.includes(target)) buttons.push(target);
+                }
                 // The same spells on the same buttons: nothing to redraw. The buttons count too: the bars are mapped a few
                 // buttons a frame, so a spell may be found on more buttons than when it was first lit
                 if (key === last && !glowing.isEmpty() && isSameButtons(glowing, buttons)) return;
@@ -191,7 +164,7 @@ export class GlowService {
     /** The buttons a glow is lit on, but those of the gamepad bars: their glow is beside them. */
     listGlowing(): ActionButton[] {
         const buttons: ActionButton[] = [];
-        for (const [button] of this.overlays) if (this.isGlowing(button) && !this.isGamepadButton(button)) buttons.push(button);
+        for (const [button] of this.overlays) if (this.isGlowing(button) && !this.isBesideButton(button)) buttons.push(button);
         return buttons;
     }
 
@@ -253,6 +226,10 @@ export class GlowService {
         return (button as { activeButtonShape?: unknown }).activeButtonShape !== undefined && !this.actionBars.isRegistered(button);
     }
 
+    private isBesideButton(button: ActionButton): boolean {
+        return this.extraTargets.has(button) || this.isGamepadButton(button);
+    }
+
     /** The glows beside a gamepad button hide with it, and show again with it while they are lit. */
     private trackButton(button: ActionButton): void {
         if (this.tracked.has(button)) return;
@@ -306,7 +283,7 @@ export class GlowService {
     }
 
     private createOverlay(button: ActionButton, animation: GlowAnimation): Overlay {
-        if (!this.isGamepadButton(button)) return this.createOverlayIn(button, button, animation);
+        if (!this.isBesideButton(button)) return this.createOverlayIn(button, button, animation);
         this.trackButton(button);
         const overlay = this.createOverlayIn(UIParent, button, animation);
         overlay.isBeside = true;

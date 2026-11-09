@@ -3,6 +3,7 @@ export * from "./action-bars.service";
 export * from "./auras.service";
 export * from "./bags.service";
 export * from "./bar-fade.service";
+export * from "./bar-keys.service";
 export * from "./bar-names";
 export * from "./button-registry.service";
 export * from "./button-search.service";

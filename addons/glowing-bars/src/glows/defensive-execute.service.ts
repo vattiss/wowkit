@@ -13,6 +13,7 @@ import type {
     PlayerService,
     SpellsService,
     ValueCurvesService,
+    BarKeysService,
 } from "@wowkit/wow";
 import { Warrior } from "@wowkit/wow-data";
 import type { IdleService } from "../character/idle.service";
@@ -44,6 +45,7 @@ export class DefensiveExecuteService {
         private readonly settings: AddonSettingsService,
         private readonly locale: AddonLocale,
         private readonly idle: IdleService,
+        private readonly barKeys: BarKeysService,
     ) {}
 
     /** The opacity is only true for a moment: it is asked of the game again and again. */
@@ -105,7 +107,7 @@ export class DefensiveExecuteService {
     }
 
     private isBarShown(button: ActionButton): boolean {
-        const bar = this.actionBars.getBarNumber(button);
-        return bar === undefined || this.settings.get("barsThatGlow")[string.format("%d", bar)] !== false;
+        const bar = this.barKeys.getBarKey(button);
+        return bar === undefined || this.settings.get("barsThatGlow")[bar] !== false;
     }
 }

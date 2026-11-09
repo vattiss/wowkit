@@ -2,6 +2,10 @@
 // EllesmereUI's, ElvUI's and DaylightUI's, which count as the bars of the same number (their bar 2 is Action Bar 2).
 
 /** The bars of Edit Mode, 1 to 8, by the prefix of their buttons' names. */
+/** The stance bars (a warrior's stances, a paladin's auras, a druid's forms): Blizzard's, and the bar addons'. */
+export const STANCE_PREFIXES = ["StanceButton", "BT4StanceButton", "DominosStanceButton", "ElvUI_StanceBarButton"];
+export const STANCE_BUTTONS = 10;
+
 export const BARS = [
     "Action",
     "MultiBarBottomLeft",

@@ -5,7 +5,7 @@
 // scan, so an unreadable answer counts as "not this".
 import type { OnFirstLogin } from "@wowkit/core";
 import type { ActionBarsService } from "./action-bars.service";
-import { BARS, listAddonButtonNames } from "./bar-names";
+import { BARS, listAddonButtonNames, STANCE_BUTTONS, STANCE_PREFIXES } from "./bar-names";
 import type { ButtonRegistryService } from "./button-registry.service";
 import { attempt } from "./utils/protected-call.utils";
 import { getReadable } from "./utils/secret-value.utils";
@@ -16,8 +16,6 @@ const FRAMES_PER_STEP = 500;
 const NO_BAR = 99;
 /** The stance bars (a warrior's stances, a paladin's auras) go together, as a bar of their own. */
 const STANCE_BAR = 98;
-const STANCE_PREFIXES = ["StanceButton", "BT4StanceButton", "DominosStanceButton", "ElvUI_StanceBarButton"];
-const STANCE_BUTTONS = 10;
 
 export interface ButtonSearchResult {
     /** Every action button that shows: of the known bars and found. */

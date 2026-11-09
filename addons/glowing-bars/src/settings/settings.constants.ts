@@ -8,6 +8,8 @@ import type { AddonSettings, ReminderType, AddableType, Style, StyleOverride, Wh
 export const SAVED_VARIABLES_NAME = "GlowingBarsCharDB";
 /** The account's saved data (## SavedVariables): what it has seen of the releases. */
 export const ACCOUNT_VARIABLES_NAME = "GlowingBarsDB";
+/** The icons of Blizzard's Cooldown Manager, in the settings of which bars glow and fade. */
+export const COOLDOWN_MANAGER_BAR_KEY = "cooldownManager";
 
 export function createDefaultSettings(): AddonSettings {
     return {

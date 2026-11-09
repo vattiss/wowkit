@@ -15,7 +15,7 @@ export const TEXTS = {
     TEXT_WHATS_NEW_TIP: "Tip: open it any time with /gb changelog, or from the Settings page.",
     INFO_COPIED: "The link is in your chat box. Press Ctrl+C to copy it.",
 
-    HDR_CHARACTER: "This character",
+    HDR_CHARACTER: "This Character",
     OPT_DISABLE: "Disable on this character",
     TIP_DISABLE: "Turns off all glows, sounds and messages on this character. Your other characters aren't affected.",
     HDR_COOLDOWN_MANAGER: "Cooldown Manager",
@@ -37,12 +37,14 @@ export const TEXTS = {
     TIP_STAY_QUIET_IN_TOWNS:
         "No glows or messages while resting in a town or inn (out of combat). Turn this off to get reminders there too.",
 
-    HDR_BARS: "Action bars that glow",
+    HDR_BARS: "Action Bars That Glow",
     OPT_BAR: "Action Bar %d",
+    OPT_BAR_STANCE: "Stance Bar",
+    OPT_BAR_COOLDOWN_MANAGER: "Cooldown Manager",
     TIP_BAR:
         "Buttons on this bar can glow. Turn a bar off to keep it quiet, e.g. if you have the same spells on a cooldown bar next to your character.",
 
-    HDR_FADED: "Faded until they glow",
+    HDR_FADED: "Faded Until They Glow",
     TIP_FADE: "The buttons of this bar are faded while they don't glow; a glowing one shows in full.",
     OPT_FADED_OPACITY: "Faded opacity",
     TIP_FADED_OPACITY: "How visible the buttons of a faded bar are while they don't glow.",
@@ -63,20 +65,20 @@ export const TEXTS = {
     OPT_MEMBER_MISSING: "%d member missing",
     OPT_MEMBERS_MISSING: "%d members missing",
 
-    HDR_WEAPON: "Weapon buff",
+    HDR_WEAPON: "Weapon Buff",
     OPT_WEAPON_PICK: "Weapon buff to keep up",
     OPT_WEAPON_PICK_MAIN: "Main-hand poison",
     OPT_WEAPON_PICK_OFF: "Off-hand poison",
     TIP_WEAPON_PICK: "Automatic picks the best weapon buff you've learned (it changes as you level). Only learned buffs are listed.",
     OPT_AUTOMATIC: "Automatic",
 
-    HDR_COOLDOWNS: "Ready cooldowns",
+    HDR_COOLDOWNS: "Ready Cooldowns",
     OPT_COOLDOWNS_FIGHT_START: "Also at the start of a fight",
     TIP_COOLDOWNS_FIGHT_START:
         "When a fight starts, every ready cooldown glows too, as a reminder to use it (Berserking, Recklessness...).",
 
     HDR_REMINDERS: "Reminders",
-    HDR_CUSTOM_SOUNDS: "Custom sounds",
+    HDR_CUSTOM_SOUNDS: "Custom Sounds",
     OPT_CUSTOM_SOUNDS: "Sounds:",
     OPT_CUSTOM_FOLDER: "Folder in AddOns:",
     BTN_ADD_FOLDER: "Add folder",
@@ -100,7 +102,7 @@ export const TEXTS = {
     BTN_RESET: "Reset",
     TABLE_TITLE: "Glowing Bars",
     HDR_TABLE_DEFAULTS: "Defaults",
-    HDR_TABLE_SPELLS: "Spells (override the defaults)",
+    HDR_TABLE_SPELLS: "Spells (Override the Defaults)",
     TIP_TABLE_SPELLS: "Faded names are spells you haven't learned yet.",
     COL_SPELL_ITEM: "Spell / Item",
     COL_TYPE: "Type",
@@ -175,7 +177,7 @@ export const TEXTS = {
     TIP_FADE_ONLY: "The game hides the target's health, so the addon can't tell when this glow starts: it can't play a sound or time it.",
     TIP_ADD:
         'Low stock needs an Item ID, every other type a Spell ID. To see them, turn on "Show spell and item IDs in tooltips" in the Settings.',
-    HDR_TABLE_ADD: "Add spell/item by ID",
+    HDR_TABLE_ADD: "Add Spell/Item by ID",
     OPT_TOOLTIP_IDS: "Show spell and item IDs in tooltips",
     TIP_TOOLTIP_IDS:
         "Shows the Spell ID on spell tooltips and the Item ID on item tooltips. If an item has a use (an elixir, a potion, food, a drink), it also shows the ID of the spell it casts. Handy for adding a spell or item in the table.",

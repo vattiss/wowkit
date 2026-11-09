@@ -2,12 +2,13 @@
 // the player's choice: add what it needs, only read what is there, or leave it alone. On the first login the choice is made
 // to change nothing for a player who already uses the manager.
 import { OnEvent, OnGameEvent, type OnLogin } from "@wowkit/core";
-import type { ClockService, CooldownViewerService, PlayerService, SpellsService } from "@wowkit/wow";
+import type { ButtonRegistryService, ClockService, CooldownViewerService, GlowService, PlayerService, SpellsService } from "@wowkit/wow";
 import type { AddedSpellsService } from "../glows/added-spells.service";
 import type { GlowCuesService } from "../glows/glow-cues.service";
 import type { ClassBuffsService } from "../reminders/class-buffs.service";
 import type { SealReminderService } from "../reminders/seal-reminder.service";
 import type { TrackingReminderService } from "../reminders/tracking-reminder.service";
+import { COOLDOWN_MANAGER_BAR_KEY } from "../settings/settings.constants";
 import type { AddonSettingsService } from "../settings/settings.interface";
 
 /** After login or a new spec Blizzard is still loading its layouts. */
@@ -27,12 +28,37 @@ export class CooldownManagerService implements OnLogin {
         private readonly seals: SealReminderService,
         private readonly trackings: TrackingReminderService,
         private readonly glowCues: GlowCuesService,
+        private readonly glow: GlowService,
+        private readonly buttons: ButtonRegistryService,
     ) {}
 
     onLogin(): void {
         this.chooseDefaults();
+        this.buttons.useOtherPlaces((spellId) => this.hasGlowIcon(spellId));
+        this.glow.useExtraTargets(
+            (spellId) => this.listGlowIcons(spellId),
+            () => (this.canGlowOnIcons() ? this.viewer.getIconsKey() : ""),
+        );
         this.applyAccess();
         this.waitToTrackBuffs();
+    }
+
+    /** The icons must be on the screen: a glow on a hidden one would float over nothing. */
+    private canGlowOnIcons(): boolean {
+        if (this.settings.get("barsThatGlow")[COOLDOWN_MANAGER_BAR_KEY] !== true) return false;
+        if (this.settings.get("cooldownManagerAccess") === "off") return false;
+        return this.viewer.isRunByOtherAddon() || this.settings.get("cooldownManagerIcons") === "show";
+    }
+
+    /** A spell only in the Cooldown Manager can be reminded of too: the icon is where the player looks. */
+    private hasGlowIcon(spellId: number): boolean {
+        const name = this.canGlowOnIcons() ? this.spells.getSpellName(spellId) : undefined;
+        return name !== undefined && this.viewer.hasDrawnIcon(name);
+    }
+
+    private listGlowIcons(spellId: number): ActionButton[] {
+        const name = this.canGlowOnIcons() ? this.spells.getSpellName(spellId) : undefined;
+        return name !== undefined ? this.viewer.findIconsOf(name) : [];
     }
 
     /** Once for each character: the manager a player or another addon already has on stays as it is. */

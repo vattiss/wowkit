@@ -5,6 +5,7 @@ import {
     AurasService,
     BagsService,
     BarFadeService,
+    BarKeysService,
     BarRefreshService,
     ButtonRegistryService,
     ButtonSearchService,
@@ -49,6 +50,7 @@ export function makeGame(addon: Addon, addonName: string) {
     const weaponEnchants = addon.register(new WeaponEnchantsService());
     const glow = addon.register(new GlowService(actionBars));
     const barFade = addon.register(new BarFadeService(glow, buttonRegistry));
+    const barKeys = addon.register(new BarKeysService(actionBars, buttonRegistry));
     const notice = addon.register(new NoticeService(addonName));
     const tooltips = addon.register(new TooltipService());
     return {
@@ -67,6 +69,8 @@ export function makeGame(addon: Addon, addonName: string) {
         weaponEnchants,
         glow,
         barFade,
+        barKeys,
+        buttonRegistry,
         notice,
         tooltips,
         buttonSearch,

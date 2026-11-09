@@ -162,7 +162,6 @@ type Reminders = ReturnType<typeof makeReminders>;
 
 /** Blizzard's Cooldown Manager, running in the background: what the addon reminds about goes on display in it. */
 function makeCooldownManager(addon: Addon, game: Game, texts: Texts, buffs: Buffs, reminders: Reminders) {
-    const { addedSpells, seal, tracking, glowCues } = reminders;
     const { cooldownViewer, player, spells, clock } = game;
     addon.register(
         new CooldownManagerService(
@@ -172,10 +171,12 @@ function makeCooldownManager(addon: Addon, game: Game, texts: Texts, buffs: Buff
             spells,
             clock,
             buffs.classBuffs,
-            addedSpells,
-            seal,
-            tracking,
-            glowCues,
+            reminders.addedSpells,
+            reminders.seal,
+            reminders.tracking,
+            reminders.glowCues,
+            game.glow,
+            game.buttonRegistry,
         ),
     );
 }
@@ -206,12 +207,26 @@ function makeTick(addon: Addon, addonName: string, game: Game, texts: Texts, buf
     const notices = addon.register(new NoticesService(game.actionBars, game.clock, game.notice, game.spells, locale, styles, settings));
     const { fedBuffs } = reminders;
     const shower = addon.register(
-        new ShowRemindersService(game.glow, messages, settings, notices, styles, game.actionBars, game.barFade, game.clock, fedBuffs),
+        new ShowRemindersService(
+            game.glow,
+            messages,
+            settings,
+            notices,
+            styles,
+            game.actionBars,
+            game.barFade,
+            game.clock,
+            fedBuffs,
+            game.cooldownViewer,
+            game.barKeys,
+        ),
     );
     const tick = addon.register(new TickService(finder, shower, game.player, styles, game.clock));
     const { player, spells, actionBars, glow, notice } = game;
     const curves = new ValueCurvesService();
-    addon.register(new DefensiveExecuteService(player, spells, actionBars, glow, notice, curves, styles, settings, locale, buffs.idle));
+    addon.register(
+        new DefensiveExecuteService(player, spells, actionBars, glow, notice, curves, styles, settings, locale, buffs.idle, game.barKeys),
+    );
     const refresh = addon.register(new RefreshService(tick, shower, buffs.state, game.clock, game.barRefresh));
     addon.register(new DisplayService(shower, tick));
     addon.register(new EquipmentService(refresh, game.player, game.weaponEnchants, reminders.weapon));

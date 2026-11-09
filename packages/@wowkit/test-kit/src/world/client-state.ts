@@ -108,6 +108,8 @@ export interface ClientState {
         isInSpellsTab?: boolean;
         isOwnBuff?: boolean;
         isOnCooldown?: boolean;
+        iconAlpha?: number;
+        isDrawn?: boolean;
     }[];
     /** The spells linked to an entry of the Cooldown Manager, by its cooldown ID. */
     linkedSpells: { [cooldownId: number]: number[] | undefined };

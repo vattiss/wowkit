@@ -1,6 +1,7 @@
 // The client's options (CVars), the talents, the stable, and the curves the client evaluates over hidden values.
 import type { ClientState } from "./client-state";
 import { defineNamespace, defineValues, fake } from "./define";
+import { createInertObject } from "./frames";
 
 /** A linear curve through its points, like the client's LuaCurveObject (its methods are called with the object: method syntax). */
 function createCurve(): LuaCurveObject {
@@ -61,6 +62,23 @@ function installCooldownViewers(state: ClientState): void {
         GetCooldownViewerCategorySet: (category) =>
             state.buffCatalog.filter((buff) => (buff.isInSpellsTab === true ? category === 1 : category === 2)).map((buff) => buff.spellId),
     });
+    /** The icon of a buff: the same frame each time, as the window's are. */
+    const icons = new LuaMap<object, Record<string, unknown>>();
+    const findIcon = (buff: ClientState["trackedBuffs"][number], isInSpells: boolean) => {
+        const icon = icons.get(buff) ?? createInertObject<Record<string, unknown>>();
+        icons.set(buff, icon);
+        icon.cooldownID = buff.spellId;
+        icon.auraInstanceID = isInSpells && buff.isActive ? 1 : undefined;
+        icon.auraDataUnit = buff.unit;
+        icon.IsActive = (_self: unknown) => (isInSpells ? true : buff.isActive);
+        icon.isOnActualCooldown = buff.isOnCooldown;
+        icon.IsVisible = (_self: unknown) => buff.isDrawn !== false;
+        icon.GetFrameLevel = (_self: unknown) => 1;
+        icon.SetAlpha = (_self: unknown, alpha: number) => {
+            buff.iconAlpha = alpha;
+        };
+        return icon;
+    };
     const createViewer = (kind: "none" | "buffs" | "spells") => ({
         SetAlpha(alpha: number) {
             state.viewerAlpha = alpha;
@@ -73,20 +91,7 @@ function installCooldownViewers(state: ClientState): void {
                     const buff = buffs[index];
                     index += 1;
                     if (buff === undefined) return undefined;
-                    return {
-                        cooldownID: buff.spellId,
-                        auraInstanceID: kind === "spells" && buff.isActive ? 1 : undefined,
-                        auraDataUnit: buff.unit,
-                        IsActive: function (this: void, _self: unknown) {
-                            return kind === "spells" ? true : buff.isActive;
-                        },
-                        IsOnCooldown: function (this: void, _self: unknown) {
-                            return buff.isOnCooldown;
-                        },
-                        SetMouseMotionEnabled: function (this: void) {
-                            return undefined;
-                        },
-                    };
+                    return findIcon(buff, kind === "spells");
                 };
             },
         },

@@ -200,7 +200,7 @@ export class ActionBarsService implements OnFirstLogin {
     }
 
     isOnBars(spellId: number | undefined): boolean {
-        return this.findButtonsOf(spellId).length > 0;
+        return this.findButtonsOf(spellId).length > 0 || this.registry.isInOtherPlace(spellId);
     }
 
     /** The IDs of the spells that sit on at least one button. */

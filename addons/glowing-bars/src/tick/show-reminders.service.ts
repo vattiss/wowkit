@@ -5,16 +5,20 @@
 
 import type { MessagesService, SoundKey } from "@wowkit/ui";
 import type { StyleService } from "../settings/style.service";
+import { COOLDOWN_MANAGER_BAR_KEY } from "../settings/settings.constants";
 import type { AddonSettingsService, ReminderType, Style } from "../settings/settings.interface";
 import {
     type ActionBarsService,
     type BarFadeService,
+    type BarKeysService,
+    type CooldownViewerService,
     type ClockService,
     type GlowService,
     type GlowAnimation,
     type ButtonGlow,
     type Rgb,
     isOutOfItem,
+    STANCE_BAR_KEY,
 } from "@wowkit/wow";
 import type { NoticesService } from "./notices.service";
 import type { FedBuffsService } from "../reminders/fed-buffs.service";
@@ -140,6 +144,8 @@ export class ShowRemindersService {
         private readonly barFade: BarFadeService,
         private readonly clock: ClockService,
         private readonly fedBuffs: FedBuffsService,
+        private readonly cooldownViewer: CooldownViewerService,
+        private readonly barKeys: BarKeysService,
     ) {}
 
     showReminders(reminders: Reminders): void {
@@ -182,7 +188,11 @@ export class ShowRemindersService {
             const number = tonumber(bar);
             if (isFaded === true && number !== undefined) opacityByBar.set(number, glowPercent);
         }
-        this.barFade.applyBarFades(opacityByBar);
+        const fadedBars = this.settings.get("fadedBars");
+        const others: ActionButton[] = [];
+        if (fadedBars[STANCE_BAR_KEY] === true) others.push(...this.barKeys.listStanceButtons());
+        if (fadedBars[COOLDOWN_MANAGER_BAR_KEY] === true) others.push(...this.cooldownViewer.listIcons());
+        this.barFade.applyBarFades(opacityByBar, others, glowPercent);
     }
 
     /** The buttons or the spells changed under the glows: set them again on the next tick. */
@@ -199,6 +209,8 @@ export class ShowRemindersService {
             key !== "idOverrides" &&
             key !== "addedSpells" &&
             key !== "roundAnimation" &&
+            key !== "cooldownManagerAccess" &&
+            key !== "cooldownManagerIcons" &&
             !TYPES.some((reminderType) => reminderType.isOnSetting === key)
         )
             return;
@@ -251,8 +263,9 @@ export class ShowRemindersService {
     }
 
     private updateGlows(isSame: boolean): void {
-        // No type's spells changed, and the glows shown are still right: nothing to do
-        if (isSame && this.shownGlowKey !== undefined) return;
+        // No type's spells changed, and the glows shown are still right: nothing to do. Icons that glow can be reused for another spell
+        const extraKey = this.glow.getExtraTargetsKey();
+        if (isSame && this.shownGlowKey !== undefined && extraKey === "") return;
         const groups = this.listGroups();
         this.groupSpells = new LuaMap<string, number[]>();
         for (const group of groups) this.groupSpells.set(group.key, group.spells);
@@ -262,7 +275,7 @@ export class ShowRemindersService {
             if (reminderType.category === "weaponBuff" || reminderType.category === "lowStock")
                 pushAll(this.usedUpShown, this.current[index]!);
         });
-        const glowKey = `${this.weaponHandSlot ?? 0}/${this.coveredButtons.length}/${groups.map((group) => `${group.key}=${group.spells.join(",")}`).join(";")}`;
+        const glowKey = `${extraKey}/${this.weaponHandSlot ?? 0}/${this.coveredButtons.length}/${groups.map((group) => `${group.key}=${group.spells.join(",")}`).join(";")}`;
         if (glowKey === this.shownGlowKey) return;
         this.glow.setRoundAnimation(this.settings.get("roundAnimation"));
         // A look that no spell has now: its glow goes out
@@ -290,8 +303,8 @@ export class ShowRemindersService {
         const spells = this.groupSpells.get(groupKey) ?? [];
         const isOwnUsedUp = spells.some((id) => this.usedUpShown.includes(id) && this.actionBars.findButtonsOf(id).includes(button));
         if (!isOwnUsedUp && !this.fedBuffs.isButtonWanted(button, spells)) return false;
-        const bar = this.actionBars.getBarNumber(button);
-        return bar === undefined || this.settings.get("barsThatGlow")[string.format("%d", bar)] !== false;
+        const bar = this.barKeys.getBarKey(button);
+        return bar === undefined || this.settings.get("barsThatGlow")[bar] !== false;
     }
 
     private isSameCovered(buttons: ActionButton[]): boolean {
