@@ -1,6 +1,6 @@
 // GENERATED FILE - do not edit. Regenerate with "pnpm gen:types".
 // Enum.* tables.
-// Source: https://github.com/Gethe/wow-ui-source.git (forever @ eac30af597), game version 1.60.1.70790
+// Source: https://github.com/Gethe/wow-ui-source.git (forever @ 9dc84f0d3b), game version 1.60.1.70862
 
 declare namespace Enum {
     enum AbbreviationDataError {

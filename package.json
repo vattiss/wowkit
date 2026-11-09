@@ -17,7 +17,7 @@
   "wowUiSource": {
     "repository": "https://github.com/Gethe/wow-ui-source.git",
     "branch": "forever",
-    "commit": "eac30af597e5aaa43a60f6675ef5fdcea100375f"
+    "commit": "9dc84f0d3bbae1768ac3405b3716000bd93eda06"
   },
   "scripts": {
     "fetch:wow-ui": "node scripts/fetch-wow-ui-source.ts",
