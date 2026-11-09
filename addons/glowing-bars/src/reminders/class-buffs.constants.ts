@@ -64,7 +64,7 @@ const BATTLE_SHOUT_LEAD = 3;
 /** In list order: of a category, the first one that is learned and on the bars is the one asked for. */
 export const BUFF_LISTS: { [classToken: string]: ClassBuff[] | undefined } = {
     DRUID: [
-        createClassBuff("MarkoftheWild", D.MarkOfTheWild, { last: 1800, party: { groupIds: D.GiftOfTheWild } }),
+        createClassBuff("MarkoftheWild", D.MarkOfTheWild, { last: 3600, party: { groupIds: D.GiftOfTheWild } }),
         createClassBuff("Thorns", D.Thorns, { last: 600 }),
         createClassBuff("Moonkin", D.Moonkin, {}, false),
     ],
@@ -91,7 +91,7 @@ export const BUFF_LISTS: { [classToken: string]: ClassBuff[] | undefined } = {
         createClassBuff("RighteousFury", P.RighteousFury, { last: 1800 }, false),
     ],
     WARRIOR: [
-        createClassBuff("BattleShout", W.BattleShout, { last: 120, lead: BATTLE_SHOUT_LEAD }),
+        createClassBuff("BattleShout", W.BattleShout, { last: 180, lead: BATTLE_SHOUT_LEAD }),
         // A tank's: it glows only when it can be cast (Defensive Stance, a shield, rage, off cooldown), in a fight by default
         createClassBuff("ShieldBlock", W.ShieldBlock, { last: 7 }),
     ],
@@ -104,8 +104,8 @@ export const BUFF_LISTS: { [classToken: string]: ClassBuff[] | undefined } = {
     ROGUE: [],
     PRIEST: [
         createClassBuff("InnerFire", Pr.InnerFire, { last: 600 }),
-        createClassBuff("PowerWordFortitude", Pr.PowerWordFortitude, { last: 1800, party: { groupIds: Pr.PrayerOfFortitude } }),
-        createClassBuff("DivineSpirit", Pr.DivineSpirit, { last: 1800, party: { groupIds: Pr.PrayerOfSpirit } }),
+        createClassBuff("PowerWordFortitude", Pr.PowerWordFortitude, { last: 3600, party: { groupIds: Pr.PrayerOfFortitude } }),
+        createClassBuff("DivineSpirit", Pr.DivineSpirit, { last: 3600, party: { groupIds: Pr.PrayerOfSpirit } }),
         createClassBuff("ShadowProtection", Pr.ShadowProtection, { last: 600, party: { groupIds: Pr.PrayerOfShadowProtection } }),
         createClassBuff("Shadowform", Pr.Shadowform, { last: 1800 }),
     ],
@@ -114,7 +114,7 @@ export const BUFF_LISTS: { [classToken: string]: ClassBuff[] | undefined } = {
         createClassBuff("WaterShield", Sh.WaterShield, { categoryMembers: shamanShields, last: 600 }),
     ],
     MAGE: [
-        createClassBuff("ArcaneIntellect", M.ArcaneIntellect, { last: 1800, party: { groupIds: M.ArcaneBrilliance, isManaOnly: true } }),
+        createClassBuff("ArcaneIntellect", M.ArcaneIntellect, { last: 3600, party: { groupIds: M.ArcaneBrilliance, isManaOnly: true } }),
         createClassBuff("MageArmor", M.MageArmor, { categoryMembers: mageArmors }),
         createClassBuff("IceArmor", M.IceArmor, { categoryMembers: mageArmors }),
         createClassBuff("FrostArmor", M.FrostArmor, { categoryMembers: mageArmors }),

@@ -29,6 +29,23 @@ describe("a warrior without rage", () => {
 });
 
 describe("a warrior with Battle Shout running out in a fight", () => {
+    it("trusts a shout cast while the game hides the buffs for its full 3 minutes", () => {
+        const world = createWorld((state) => {
+            playAs(state, WARRIOR);
+            learnSpell(state, BATTLE_SHOUT);
+            state.bars[1] = BATTLE_SHOUT.id;
+            state.isInCombat = true;
+            state.areAurasHidden = true;
+        });
+        world.advance(1);
+        world.fire("UNIT_SPELLCAST_SUCCEEDED", "player", "cast-1", BATTLE_SHOUT.id);
+        world.advance(150);
+        expect(world.glowsOn(1)).toBe(0);
+        // 2 seconds left
+        world.advance(28);
+        expect(world.glowsOn(1)).toBe(1);
+    });
+
     it("sees Battle Shout glow a few seconds before it runs out, not only once it is gone", () => {
         const world = createWorld((state) => {
             playAs(state, WARRIOR);

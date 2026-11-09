@@ -27,7 +27,7 @@ export const BUFF_CATEGORIES: BuffCategory[] = [
             ...P.GreaterBlessingSalvation,
             ...P.GreaterBlessingLight,
         ],
-        seconds: 300,
+        seconds: 3600,
     },
     {
         key: "palaura",
@@ -61,9 +61,9 @@ export const BUFF_CATEGORIES: BuffCategory[] = [
     { key: "magearmor", members: [M.MageArmor, M.IceArmor, M.FrostArmor], seconds: 1800 },
     { key: "lockarmor", members: [L.DemonArmor, L.DemonSkin], seconds: 1800 },
     // A buff and its group version
-    { key: "fortitude", members: [Pr.PowerWordFortitude, ...Pr.PrayerOfFortitude], seconds: 1800 },
-    { key: "spirit", members: [Pr.DivineSpirit, ...Pr.PrayerOfSpirit], seconds: 1800 },
+    { key: "fortitude", members: [Pr.PowerWordFortitude, ...Pr.PrayerOfFortitude], seconds: 3600 },
+    { key: "spirit", members: [Pr.DivineSpirit, ...Pr.PrayerOfSpirit], seconds: 3600 },
     { key: "shadowprotection", members: [Pr.ShadowProtection, ...Pr.PrayerOfShadowProtection], seconds: 600 },
-    { key: "wild", members: [D.MarkOfTheWild, ...D.GiftOfTheWild], seconds: 1800 },
-    { key: "intellect", members: [...M.ArcaneIntellectRanks, ...M.ArcaneBrilliance], seconds: 1800 },
+    { key: "wild", members: [D.MarkOfTheWild, ...D.GiftOfTheWild], seconds: 3600 },
+    { key: "intellect", members: [...M.ArcaneIntellectRanks, ...M.ArcaneBrilliance], seconds: 3600 },
 ];
