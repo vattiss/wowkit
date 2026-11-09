@@ -189,7 +189,7 @@ export class StyleTableService {
         this.addRow.ClearAllPoints();
         this.addRow.SetPoint("TOPLEFT", content, "TOPLEFT", 0, -(top + HEADER_HEIGHT));
         this.addRow.Show();
-        return top + HEADER_HEIGHT + ROW_HEIGHT + 10;
+        return top + HEADER_HEIGHT + this.edits.getAddRowHeight() + 10;
     }
 
     /** The header and the folders with sounds of the player's own, under the add row. */

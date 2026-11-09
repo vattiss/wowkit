@@ -89,13 +89,13 @@ describe("the spells of the table, fixed and added by the player", () => {
         expect(chosen.map((choice) => choice.label)).toEqual(["Missing tracking"]);
     });
 
-    it("says what to enter over the heading of the add row, not on its box", () => {
+    it("says what to enter under the add row, not on its box", () => {
         const { box } = findAddRow();
         expect(box.scripts.OnEnter).toBeUndefined();
-        const hover = world.frames.find((frame) => frame.parent === box.parent && frame.frameType === "Frame")!;
-        hover.scripts.OnEnter!(hover);
-        const tip = world.findFrame((frame) => frame.name === "GameTooltip")?.text;
-        expect(tip).toContain("Low stock needs an Item ID, every other type a Spell ID.");
+        const texts = box.parent!.fontStrings.map((text) => text.text ?? "");
+        expect(
+            texts.some((text) => string.find(text, "Low stock needs an Item ID, every other type a Spell ID", 1, true)[0] !== undefined),
+        ).toBe(true);
     });
 
     it("takes a fixed ID for a cooldown of the list", () => {

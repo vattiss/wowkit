@@ -178,7 +178,7 @@ export const TEXTS = {
     TIP_DEBUG_WELCOME: "Opens the welcome window and scans your action buttons, with a report you can select and send.",
     TIP_FADE_ONLY: "The game hides the target's health, so the addon can't tell when this glow starts: it can't play a sound or time it.",
     TIP_ADD:
-        'Low stock needs an Item ID, every other type a Spell ID. To see them, turn on "Show spell and item IDs in tooltips" in the Settings.',
+        "Tip: Low stock needs an Item ID, every other type a Spell ID (for an item, its Use spell ID). IDs show in tooltips, if turned on in the Settings.",
     HDR_TABLE_ADD: "Add Spell/Item by ID",
     OPT_TOOLTIP_IDS: "Show spell and item IDs in tooltips",
     TIP_TOOLTIP_IDS:

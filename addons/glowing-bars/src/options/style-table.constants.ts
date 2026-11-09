@@ -10,6 +10,9 @@ export const STRIPE_COLOR: Rgb = [0.85, 0.62, 0.3];
 export const STRIPE_ALPHA = 0.14;
 export const BRONZE_TEXT: Rgb = [0.78, 0.62, 0.42];
 export const HEADER_HEIGHT = 24;
+/** The line under the add row that says what to enter, up to two lines of small text. */
+export const ADD_TIP_HEIGHT = 28;
+export const ADD_TIP_WIDTH = 400;
 /** The small heading of a type in the list of spells. */
 export const TYPE_HEADING_HEIGHT = 20;
 /** A column of the table: where it starts, from the left of a row, and how wide it is. */

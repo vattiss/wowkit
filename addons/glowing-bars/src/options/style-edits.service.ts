@@ -4,10 +4,9 @@ import type { NoticeService, Rgb } from "@wowkit/wow";
 import type { AddedSpellsService } from "../glows/added-spells.service";
 import type { EnabledService } from "../settings/enabled.service";
 import type { AddonLocale } from "../locale/locale.interface";
-import type { TextKey } from "../locale/texts.constants";
 import { ADDABLE_TYPES } from "../settings/settings.constants";
 import { connectChoiceMenu } from "./choice-menu";
-import { COLUMN, HEADER_HEIGHT, ROW_HEIGHT, TABLE_WIDTH, findCenteredX } from "./style-table.constants";
+import { ADD_TIP_HEIGHT, ADD_TIP_WIDTH, COLUMN, ROW_HEIGHT, TABLE_WIDTH, findCenteredX } from "./style-table.constants";
 import { TYPE_TEXTS, type StyleRow, type StyleRowsService } from "./style-rows.service";
 import type { StyleService } from "../settings/style.service";
 import type { ReagentsService } from "../reagents/reagents.service";
@@ -153,17 +152,21 @@ export class StyleEditsService {
         return row.reminderType === except.reminderType && row.listId === except.listId && row.spellId === except.spellId;
     }
 
+    /** How much room the add row takes, with the tip under it. */
+    getAddRowHeight(): number {
+        return ROW_HEIGHT + ADD_TIP_HEIGHT;
+    }
+
     /** The row at the end of the list: an ID, the type (a click goes to the next one), and the button that adds it. */
     createAddRow(content: Frame): Frame {
         const frame = CreateFrame("Frame", undefined, content);
         frame.SetSize(TABLE_WIDTH, ROW_HEIGHT);
-        // Over the heading of the row: it says what to enter
-        const hover = CreateFrame("Frame", undefined, frame);
-        hover.SetPoint("BOTTOMLEFT", frame, "TOPLEFT", 0, 0);
-        hover.SetSize(200, HEADER_HEIGHT);
-        hover.EnableMouse(true);
-        hover.SetScript("OnEnter", () => this.showTooltip(hover, "TIP_ADD"));
-        hover.SetScript("OnLeave", () => GameTooltip.Hide());
+        // Under the row, where it is seen without looking for it: it says what to enter
+        const tip = frame.CreateFontString(undefined, "OVERLAY", "GameFontHighlightSmall");
+        tip.SetPoint("TOPLEFT", frame, "TOPLEFT", COLUMN.name.x, -ROW_HEIGHT);
+        tip.SetWidth(ADD_TIP_WIDTH);
+        tip.SetJustifyH("LEFT");
+        tip.SetText(this.locale.getText("TIP_ADD"));
         const box = this.createNumberBox(frame, COLUMN.name.x, 90, 7);
         let chosenType = ADDABLE_TYPES[0]!;
         const typeButton = CreateFrame("Button", undefined, frame, "UIPanelButtonTemplate");
@@ -254,13 +257,6 @@ export class StyleEditsService {
 
     private showUnknown(spellId: number): void {
         this.showProblem(string.format(this.locale.getText("MSG_UNKNOWN_SPELL"), spellId), ERROR_COLOR);
-    }
-
-    /** The game's tooltip next to a control, with one of the addon's texts. */
-    private showTooltip(owner: Frame, text: TextKey): void {
-        GameTooltip.SetOwner(owner, "ANCHOR_RIGHT");
-        GameTooltip.SetText(this.locale.getText(text), 1, 1, 1, 1, true);
-        GameTooltip.Show();
     }
 
     /** A problem with what was typed: a line at the top of the screen, like the messages of the reminders. */
