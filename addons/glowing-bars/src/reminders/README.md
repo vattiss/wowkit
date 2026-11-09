@@ -16,3 +16,5 @@ missing a buff, spells at an old rank, the reagents running low in a town. Plain
 | `*.constants.ts`, `*.interface.ts` | The buff lists (data, no logic); their shapes. The spell IDs are in `@wowkit/wow-data`, the reagents in `../reagents/`. Adding a class buff means adding a row to `class-buffs.constants.ts`. |
 
 Only `WeaponReminderService` uses the weapon memory and readings; the rest of the addon asks the reminder.
+
+`given-buffs.constants.ts` lists the items and spells that give a buff under another name (the sleeping bag's Well-Rested, a campfire's Camp Benefits), so that one added by its ID looks for the right buff.

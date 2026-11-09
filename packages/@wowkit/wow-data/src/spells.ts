@@ -479,6 +479,17 @@ export const Cure = {
  * The buffs of eating and drinking: a food gives the buff "Food", a drink "Drink", Forever's better ones "Nutritious Food"
  * and "Nutritious Drink" (each food has an ID of its own, the name is the one to go by); a good food or a Nutritious Drink, after it, "Well Fed".
  */
+/** Things to rest and camp with, and the buffs they give under another name. */
+export const Camp = {
+    CozySleepingBag: 211527,
+    WellRested: 429959,
+    BasicCampfire: 818,
+    BasicCampfireKit: 279981,
+    JourneymanCampfireKit: 279961,
+    ExpertCampfireKit: 279974,
+    CampBenefits: 1229741,
+};
+
 export const Consumable = {
     Food: 433,
     Drink: 430,

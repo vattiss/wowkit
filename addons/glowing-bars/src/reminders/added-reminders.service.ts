@@ -10,6 +10,7 @@ import {
     type SpellsService,
     type WeaponEnchantsService,
     OFF_HAND_SLOT,
+    findItemUseSpell,
     isOutOfItem,
 } from "@wowkit/wow";
 import type { BuffStateService } from "../character/buff-state.service";
@@ -17,6 +18,7 @@ import type { AddedSpellsService } from "../glows/added-spells.service";
 import type { ReagentsService } from "../reagents/reagents.service";
 import type { AddonSettingsService, AddableType } from "../settings/settings.interface";
 import type { FedBuffsService } from "./fed-buffs.service";
+import { BUFF_GIVEN_BY_ITEM, BUFF_GIVEN_BY_SPELL } from "./given-buffs.constants";
 
 export class AddedRemindersService {
     constructor(
@@ -38,8 +40,17 @@ export class AddedRemindersService {
         if (ids.length === 0) return ids;
         const missingFed = this.fedBuffs.findMissing(ids.filter((id) => this.fedBuffs.isFedSpell(id)));
         return ids.filter((id) =>
-            this.fedBuffs.isFedSpell(id) ? missingFed.includes(id) : !this.buffState.hasAura(id) && this.spells.isCastable(id) !== false,
+            this.fedBuffs.isFedSpell(id)
+                ? missingFed.includes(id)
+                : !this.buffState.hasAura(this.findGivenBuff(id)) && this.spells.isCastable(id) !== false,
         );
+    }
+
+    /** The buff to look for: of its own name, unless the spell is known to give one of another name. */
+    private findGivenBuff(spellId: number): number {
+        const bySpell = BUFF_GIVEN_BY_SPELL.find(([id]) => id === spellId);
+        const byItem = BUFF_GIVEN_BY_ITEM.find(([itemId]) => findItemUseSpell(itemId) === spellId);
+        return (bySpell ?? byItem)?.[1] ?? spellId;
     }
 
     /** The added weapon buffs with a button for a weapon that has no temporary enchant (poison, imbue or stone) at all. */
