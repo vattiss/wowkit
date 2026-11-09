@@ -39,6 +39,12 @@ something new in the same release is not news). Without a notes file it is the s
 previous tag that touched the addon or `packages/` (a change in a package is a change of every addon); with no earlier
 tag the last 30 commits.
 
+## A beta
+
+A version like `2.9.0-beta.1` is released the same way from `development`, without merging to `main`, and uploaded as a
+Beta. Its GitHub release is marked as a pre-release. Its notes are the ones of the version it leads to,
+`release-notes/2.9.0.md`: testers see them once in What's new, and not again when `2.9.0` comes out.
+
 ## Making a zip on your own machine
 
 ```

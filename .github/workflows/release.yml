@@ -52,4 +52,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           dist="addons/${{ steps.tag.outputs.addon }}/dist"
-          gh release create "$GITHUB_REF_NAME" "$dist"/*.zip --title "$GITHUB_REF_NAME" --notes-file "$dist/changelog.md"
+          # A version like 1.0.0-beta.1 must not become the latest release
+          flags=()
+          case "${GITHUB_REF_NAME##*-v}" in *-*) flags+=(--prerelease) ;; esac
+          gh release create "$GITHUB_REF_NAME" "$dist"/*.zip --title "$GITHUB_REF_NAME" --notes-file "$dist/changelog.md" "${flags[@]}"

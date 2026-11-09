@@ -49,7 +49,8 @@ if (!existsSync(`${distDir}/${addon.name}`)) {
 }
 
 const zipPath = `${distDir}/${addon.name}-${version}.zip`;
-const changelog = readReleaseNotes(addonDir, version) ?? buildChangelog(addonDir.split("/").pop()!);
+// A beta goes by the notes of the version it leads to: 2.9.0-beta.1 by 2.9.0.md
+const changelog = readReleaseNotes(addonDir, version.split("-")[0]!) ?? buildChangelog(addonDir.split("/").pop()!);
 createZip(distDir, addon.name, zipPath);
 writeFileSync(`${distDir}/changelog.md`, `${changelog}\n`);
 console.log(`Zip: ${zipPath}\nChangelog (${distDir}/changelog.md):\n${changelog}`);
