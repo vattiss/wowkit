@@ -64,7 +64,7 @@ On the Settings page (_Options > AddOns > Glowing Bars_):
 
 *   **Messages**: text size, vertical position, zoom in and out, two kinds of pulse, and one line per type
 *   **Rainbow when AFK** (off by default): your buttons light up in rainbow colors while you are away
-*   **Blizzard Cooldown Manager**: Glowing Bars reads your buffs from it in a fight. Choose whether it adds what it needs, only uses what's already there, or leaves it alone, and whether its icons show
+*   **Blizzard Cooldown Manager**: Glowing Bars reads your buffs from it in a fight. Choose whether it adds what it needs, only uses what's already there, or leaves it alone, and whether each of its windows shows. **Repair Hidden Windows** brings back a window set to Hidden in Edit Mode
 *   **Circling on round buttons**: breathing or none, where a glow cannot run around the button
 *   **Action Bars That Glow**: turn any of the eight bars or the Stance Bar off (your UI addon's bars too), or turn on the glow on Blizzard's Cooldown Manager, window by window (Essential Cooldowns, Utility Cooldowns, Tracked Buffs), which also lights spells that are only there
 *   **Faded Until They Glow**: any of the eight bars, the Stance Bar or a window of the Cooldown Manager stays faint until one of its buttons glows, so a bar in the middle of your screen shows only what's due
@@ -77,7 +77,7 @@ All settings are kept per character.
 
 *   Works with Blizzard's own action bars, Forever's gamepad bars and the UI addons above.
 *   Making a UI addon? Your action buttons can glow too: register them as the [Glowing Bars API](https://vattiss.github.io/wowkit/glowing-bars-api) page shows.
-*   In combat the game hides some things from addons (your auras, some cooldowns). Glowing Bars remembers what it saw and what you cast, so it keeps working, but if something does not glow when it should, please tell me.
+*   In combat the game hides some things from addons (your auras, some cooldowns). Glowing Bars reads what it can from Blizzard's Cooldown Manager and remembers what it saw and what you cast, so it keeps working, but if something does not glow when it should, please tell me.
 
 ## Feedback
 
