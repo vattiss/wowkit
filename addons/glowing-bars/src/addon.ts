@@ -30,6 +30,7 @@ import { StanceProcsService } from "./glows/stance-procs.service";
 import { BuffKnowledgeService } from "./knowledge/buff-knowledge.service";
 import { TEXTS } from "./locale/texts.constants";
 import { BarsSection } from "./options/bars.section";
+import { CooldownManagerSection } from "./options/cooldown-manager.section";
 import { AnimationSection } from "./options/animation.section";
 import { GlowsSection } from "./options/glows.section";
 import { IdTooltipService } from "./options/id-tooltip.service";
@@ -78,6 +79,7 @@ export function startAddon(addonName: string): void {
     const texts = makeTexts(addon, game);
     const buffs = makeBuffs(addon, game, texts);
     const reminders = makeReminders(addon, addonName, game, texts, buffs);
+    makeCooldownManager(addon, game, texts, buffs, reminders);
     const finder = makeTick(addon, addonName, game, texts, buffs, reminders);
     makeOptions(addon, addonName, game, texts, buffs, reminders, finder);
     addon.start();
@@ -127,11 +129,21 @@ function makeReminders(addon: Addon, addonName: string, game: Game, texts: Texts
     const addedSpells = addon.register(new AddedSpellsService(game.spells, settings, game.cooldowns, reagents));
     // A spell the player gave another ID is asked of that ID everywhere: buffs, weapon buffs, reagents, cooldowns, procs
     game.spells.useIdAlias((spellId) => addedSpells.getEffectiveId(spellId));
-    const tracker = addon.register(new CooldownTrackerService(game.spells, game.cooldowns, game.clock));
+    const tracker = addon.register(new CooldownTrackerService(game.spells, game.cooldowns, game.clock, game.cooldownViewer));
     addon.register(new AfkRainbowService(game.buttonSearch, game.glow, game.clock, game.player, settings));
     const stanceProcs = addon.register(new StanceProcsService(game.player, game.spells, game.clock, addon.events));
     const glowCues = addon.register(
-        new GlowCuesService(game.player, game.spells, game.spellDetails, game.actionBars, tracker, settings, addedSpells, stanceProcs),
+        new GlowCuesService(
+            game.player,
+            game.spells,
+            game.spellDetails,
+            game.actionBars,
+            tracker,
+            settings,
+            addedSpells,
+            stanceProcs,
+            game.cooldownViewer,
+        ),
     );
     const fedBuffs = addon.register(
         new FedBuffsService(addedSpells, game.spells, buffs.state, game.player, game.clock, settings, game.actionBars),
@@ -144,13 +156,29 @@ function makeReminders(addon: Addon, addonName: string, game: Game, texts: Texts
     );
     const seal = addon.register(new SealReminderService(game.spells, game.actionBars, buffs.state, game.player, settings, addedSpells));
     const tracking = addon.register(new TrackingReminderService(game.spells, game.actionBars, buffs.state, settings, addedSpells));
-    const { cooldownViewer, clock } = game;
-    addon.register(
-        new CooldownManagerService(cooldownViewer, player, settings, spells, clock, buffs.classBuffs, addedSpells, seal, tracking),
-    );
     return { buff, reagents, party, weaponChoice, weapon, outdatedRanks, glowCues, addedSpells, added, fedBuffs, limits, seal, tracking };
 }
 type Reminders = ReturnType<typeof makeReminders>;
+
+/** Blizzard's Cooldown Manager, running in the background: what the addon reminds about goes on display in it. */
+function makeCooldownManager(addon: Addon, game: Game, texts: Texts, buffs: Buffs, reminders: Reminders) {
+    const { addedSpells, seal, tracking, glowCues } = reminders;
+    const { cooldownViewer, player, spells, clock } = game;
+    addon.register(
+        new CooldownManagerService(
+            cooldownViewer,
+            player,
+            texts.settings,
+            spells,
+            clock,
+            buffs.classBuffs,
+            addedSpells,
+            seal,
+            tracking,
+            glowCues,
+        ),
+    );
+}
 
 /** The tick: find what is due, show it, look again sooner when something changed; and what happens to the player. */
 function makeTick(addon: Addon, addonName: string, game: Game, texts: Texts, buffs: Buffs, reminders: Reminders) {
@@ -244,6 +272,7 @@ function makeOptions(
         new WeaponSection(locale, game.spells, reminders.weaponChoice, settings, controls, reminderControls),
     );
     const glowsSection = addon.register(new GlowsSection(reminderControls, reminders.glowCues));
+    const managerSection = addon.register(new CooldownManagerSection(locale, settings, controls, reminderControls, game.cooldownViewer));
     const table = makeTable(addon, addonName, game, texts, buffs, reminders);
     const barsSection = addon.register(new BarsSection(locale, settings, controls, reminderControls));
     const animationSection = addon.register(new AnimationSection(locale, settings, controls));
@@ -262,6 +291,7 @@ function makeOptions(
             controls,
             reminderControls,
             weaponSection,
+            managerSection,
             glowsSection,
             widgets,
             table,

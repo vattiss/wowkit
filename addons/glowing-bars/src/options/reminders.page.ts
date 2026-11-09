@@ -6,6 +6,7 @@ import type { ClassBuffsService } from "../reminders/class-buffs.service";
 import type { AddonSettingsService, AddonSettings } from "../settings/settings.interface";
 import type { ControlsService, OptionsPage, WidgetsService } from "@wowkit/ui";
 import type { BarsSection } from "./bars.section";
+import type { CooldownManagerSection } from "./cooldown-manager.section";
 import type { AnimationSection } from "./animation.section";
 import type { GlowsSection } from "./glows.section";
 import type { StyleTableService } from "./style-table.service";
@@ -33,6 +34,7 @@ export class RemindersPage implements OptionsPage {
         private readonly controls: ControlsService<AddonSettings>,
         private readonly reminderControls: ReminderControlsService,
         private readonly weaponSection: WeaponSection,
+        private readonly cooldownManagerSection: CooldownManagerSection,
         private readonly glowsSection: GlowsSection,
         private readonly widgets: WidgetsService,
         private readonly table: StyleTableService,
@@ -75,7 +77,8 @@ export class RemindersPage implements OptionsPage {
         this.reminderControls.addSwitch(category, "shouldStayQuietInTowns", "OPT_STAY_QUIET_IN_TOWNS", "TIP_STAY_QUIET_IN_TOWNS");
         this.reminderControls.addSwitch(category, "isAfkRainbowOn", "OPT_AFK_RAINBOW", "TIP_AFK_RAINBOW");
         this.reminderControls.addSwitch(category, "shouldShowGreeting", "OPT_SHOW_GREETING", "TIP_SHOW_GREETING");
-        this.reminderControls.addSwitch(category, "shouldShowCooldownManager", "OPT_SHOW_COOLDOWN_MANAGER", "TIP_SHOW_COOLDOWN_MANAGER");
+
+        this.cooldownManagerSection.addCooldownManagerSection(category, layout);
 
         // The party members: a part of the buff reminder that is not one buff
         if (this.classBuffs.getClassBuffs().some((classBuff) => classBuff.party !== undefined)) {

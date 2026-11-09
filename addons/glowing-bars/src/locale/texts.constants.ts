@@ -18,9 +18,19 @@ export const TEXTS = {
     HDR_CHARACTER: "This character",
     OPT_DISABLE: "Disable on this character",
     TIP_DISABLE: "Turns off all glows, sounds and messages on this character. Your other characters aren't affected.",
-    OPT_SHOW_COOLDOWN_MANAGER: "Show Blizzard's Cooldown Manager",
-    TIP_SHOW_COOLDOWN_MANAGER:
-        "Glowing Bars runs Blizzard's Cooldown Manager in the background to see your buffs in a fight, and keeps its icons out of sight. Tick this to see them. Default: off.",
+    HDR_COOLDOWN_MANAGER: "Cooldown Manager",
+    OPT_MANAGER_ACCESS: "Blizzard Cooldown Manager",
+    TIP_MANAGER_ACCESS:
+        "Glowing Bars can only read what's turned on in Blizzard's Cooldown Manager. Anything else falls back to older checks, which can be less exact in a fight. For the best results, choose \"Add what Glowing Bars needs\". Changes apply after your next login or /reload.",
+    OPT_MANAGER_ACCESS_FULL: "Add what Glowing Bars needs",
+    OPT_MANAGER_ACCESS_READ: "Only use what's already there",
+    OPT_MANAGER_ACCESS_OFF: "Don't use it",
+    OPT_MANAGER_ICONS: "Its icons",
+    TIP_MANAGER_ICONS:
+        "Whether Blizzard's Cooldown Manager shows on your screen. Glowing Bars can read it either way. EllesmereUI's Cooldown Manager handles this itself.",
+    OPT_MANAGER_ICONS_OTHER: "Handled by EllesmereUI",
+    OPT_MANAGER_ICONS_HIDE: "Hide",
+    OPT_MANAGER_ICONS_SHOW: "Show",
     OPT_SHOW_GREETING: "Show the login message",
     TIP_SHOW_GREETING: "At each login, a line in the chat says that Glowing Bars is loaded, and how to open its table (/gb).",
     OPT_STAY_QUIET_IN_TOWNS: "Stay quiet in towns and inns",
@@ -162,8 +172,6 @@ export const TEXTS = {
     TIP_AFK_RAINBOW: "While you are AFK, your action buttons light up in rainbow colors, on every bar at once. Default: off.",
     OPT_DEBUG_WELCOME: "Debug with the welcome screen",
     TIP_DEBUG_WELCOME: "Opens the welcome window and scans your action buttons, with a report you can select and send.",
-    TIP_ALPHA_BUFF:
-        "Experimental: in a fight the game hides your buffs, so the addon reads them from Blizzard's Cooldown Manager and adds them to Tracked Buffs there for you. It works from your next login or /reload. If a buff glows at the wrong time, please tell me.",
     TIP_FADE_ONLY: "The game hides the target's health, so the addon can't tell when this glow starts: it can't play a sound or time it.",
     TIP_ADD:
         'Low stock needs an Item ID, every other type a Spell ID. To see them, turn on "Show spell and item IDs in tooltips" in the Settings.',

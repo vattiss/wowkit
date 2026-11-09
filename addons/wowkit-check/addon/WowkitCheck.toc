@@ -4,7 +4,7 @@
 ## Notes: For the developers of the Forever Reminders: scans the client's spell and item data into a saved variable. Type /wowkit.
 ## Author: Attila Varga (vattiss)
 ## Version: @version@
-## SavedVariables: WowkitCheckDB
+## SavedVariables: WowkitCheckDB, WowkitCheckCooldownsDB
 ## DefaultState: disabled
 ## X-Website: https://github.com/vattiss/wowkit
 

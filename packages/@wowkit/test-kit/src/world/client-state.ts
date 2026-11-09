@@ -101,9 +101,18 @@ export interface ClientState {
     /** The client's options that were set, by name. */
     cvars: { [name: string]: boolean | undefined };
     /** The buffs the Cooldown Manager has an icon for. */
-    trackedBuffs: { spellId: number; isActive: boolean }[];
+    trackedBuffs: {
+        spellId: number;
+        isActive: boolean;
+        unit?: string;
+        isInSpellsTab?: boolean;
+        isOwnBuff?: boolean;
+        isOnCooldown?: boolean;
+    }[];
+    /** The spells linked to an entry of the Cooldown Manager, by its cooldown ID. */
+    linkedSpells: { [cooldownId: number]: number[] | undefined };
     /** What Blizzard offers in the Cooldown Manager's Tracked Buffs. */
-    buffCatalog: { spellId: number; isHiddenByDefault: boolean }[];
+    buffCatalog: { spellId: number; isHiddenByDefault: boolean; isInSpellsTab?: boolean }[];
     /** The saved layouts of the Cooldown Manager, as the addon reads them; undefined: none yet. */
     layoutData: { [field: number]: unknown } | undefined;
     /** Blizzard's layout of the Cooldown Manager for the character's spec. */
@@ -213,6 +222,7 @@ export function createClientState(): ClientState {
         loadedAddons: {},
         cvars: {},
         trackedBuffs: [],
+        linkedSpells: {},
         buffCatalog: [],
         layoutData: undefined,
         viewerLayout: 1,

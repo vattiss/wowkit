@@ -3,7 +3,7 @@
 // it glows then is its glow time (a few seconds by default: one that waits for the right moment should not glow all the
 // while).
 import { OnEvent, OnGameEvent } from "@wowkit/core";
-import type { ActionBarsService, PlayerService, SpellDetailsService, SpellsService } from "@wowkit/wow";
+import type { ActionBarsService, PlayerService, SpellDetailsService, SpellsService, CooldownViewerService } from "@wowkit/wow";
 import type { AddonSettingsService, AddableType } from "../settings/settings.interface";
 import type { AddedSpellsService } from "./added-spells.service";
 import { ALPHA_PROC_CUES, COOLDOWN_CUES, PROC_CUES, RACIAL_COOLDOWNS } from "./glow-cues.constants";
@@ -25,6 +25,7 @@ export class GlowCuesService {
         private readonly settings: AddonSettingsService,
         private readonly addedSpells: AddedSpellsService,
         private readonly stanceProcs: StanceProcsService,
+        private readonly cooldownViewer: CooldownViewerService,
     ) {}
 
     /**
@@ -82,10 +83,33 @@ export class GlowCuesService {
         return ALPHA_PROC_CUES[this.player.getClassToken() ?? ""] ?? [];
     }
 
+    /** The buffs of the procs told by their spell, for the Cooldown Manager to track. */
+    listProcAuras(): number[] {
+        const ids: number[] = [];
+        for (const proc of this.listAlphaProcs()) ids.push(...proc.auras);
+        return ids;
+    }
+
+    /** What the icons of a proc's buffs say: up when one is, gone when all are out, undefined when one has no say. */
+    private readProcIcons(auras: number[]): boolean | undefined {
+        let isAnyUnknown = false;
+        for (const id of auras) {
+            const name = this.spells.getSpellName(id);
+            const isUp = name !== undefined ? this.cooldownViewer.isBuffActive(name) : undefined;
+            if (isUp === true) return true;
+            if (isUp === undefined) isAnyUnknown = true;
+        }
+        return isAnyUnknown ? undefined : false;
+    }
+
     private isProcUp(id: number): boolean {
         const name = this.spells.getSpellLabel(id);
         const alpha = this.listAlphaProcs().find((proc) => this.spells.getSpellLabel(proc.id) === name);
-        if (alpha !== undefined) return alpha.sign === "free" ? this.spellDetails.isFreeNow(id) : this.spellDetails.isInstantNow(id);
+        if (alpha !== undefined)
+            return (
+                this.readProcIcons(alpha.auras) ??
+                (alpha.sign === "free" ? this.spellDetails.isFreeNow(id) : this.spellDetails.isInstantNow(id))
+            );
         return this.spellDetails.readUsability(id).isUsable === true || this.stanceProcs.isOpen(id);
     }
 

@@ -1,4 +1,4 @@
-import { beforeEach, createWorld, describe, expect, it, learnSpell, FORTITUDE, type World } from "@wowkit/test-kit";
+import { beforeEach, createWorld, describe, expect, it, learnSpell, playAs, FORTITUDE, PRIEST, type World } from "@wowkit/test-kit";
 
 /** What the player types: /wowkit <text>. */
 function typeCommand(text: string): void {
@@ -69,5 +69,20 @@ describe("the search for the real ID of an unknown one", () => {
 
     it("says when no spell has the name", () => {
         expect(world.chat.some((line) => line.includes("Mage.MageArmor: no spell with a word of that name"))).toBe(true);
+    });
+});
+
+describe("the list of the Cooldown Manager", () => {
+    it("is saved for the class and spec, a line for each entry", () => {
+        const world = createWorld((state) => {
+            playAs(state, PRIEST);
+            learnSpell(state, FORTITUDE);
+            state.buffCatalog.push({ spellId: FORTITUDE.id, isHiddenByDefault: true });
+        });
+        world.advance(9);
+        const saved = (_G as unknown as Record<string, Record<string, string[] | undefined>>)["WowkitCheckCooldownsDB"]!;
+        expect(saved["PRIEST-1"]![0]).toBe(
+            `2|${FORTITUDE.id}|${FORTITUDE.id}|Power Word: Fortitude|self=false|aura=false|hidden=true|known=false|`,
+        );
     });
 });

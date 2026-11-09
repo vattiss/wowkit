@@ -1,8 +1,9 @@
 // Spell cooldowns. The client often hides them in combat, so a cooldown read while it was readable is remembered, and a
 // successful cast starts the spell's base cooldown, which runs out on its own. A few cooldowns start with the cast of another
-// spell (Swift Judgement with the next Judgement): until then the spell is not ready, whatever the client says.
+// spell (Swift Judgement with the next Judgement): until then the spell is not ready, whatever the client says. While the
+// client hides them, the spell's icon in the Cooldown Manager says first.
 import { OnEvent } from "@wowkit/core";
-import type { ClockService, CooldownsService, PlayerSpellCast, SpellsService } from "@wowkit/wow";
+import type { ClockService, CooldownsService, CooldownViewerService, PlayerSpellCast, SpellsService } from "@wowkit/wow";
 import { COOLDOWN_STARTED_BY } from "./glow-cues.constants";
 
 /** A cooldown this short is the global cooldown, which never takes a spell out of the picture. */
@@ -13,6 +14,8 @@ export const READY_MARGIN = 0.2;
 const WAITING = math.huge;
 /** Right after a cast the client may not show the new cooldown yet; a readable "ready" is not believed for this long. */
 const CAST_GRACE = 1;
+/** What a cooldown the icon says is running has left when nobody knows its end: enough not to be ready. */
+const STILL_RUNNING = 1;
 
 export class CooldownTrackerService {
     /** Spell ID -> when the tracked cooldown ends. */
@@ -28,6 +31,7 @@ export class CooldownTrackerService {
         private readonly spells: SpellsService,
         private readonly cooldowns: CooldownsService,
         private readonly clock: ClockService,
+        private readonly viewer: CooldownViewerService,
     ) {}
 
     /** Seconds left on the spell's own cooldown (the global cooldown ignored); 0 when it is ready or nobody knows. */
@@ -48,6 +52,8 @@ export class CooldownTrackerService {
                 return 0;
             }
         }
+        const fromIcon = read.isHidden ? this.readCooldownIcon(id, now) : undefined;
+        if (fromIcon !== undefined) return fromIcon;
         const endsAt = this.endsAt.get(id);
         if (endsAt === undefined) return 0;
         if (endsAt <= now) {
@@ -55,6 +61,16 @@ export class CooldownTrackerService {
             return 0;
         }
         return endsAt - now;
+    }
+
+    /** What the spell's icon in the Cooldown Manager says it has left; undefined when it has no say. */
+    private readCooldownIcon(id: number, now: number): number | undefined {
+        const name = this.spells.getSpellName(id);
+        const isOnCooldown = name !== undefined ? this.viewer.isSpellOnCooldown(name) : undefined;
+        if (isOnCooldown === true) return math.max((this.endsAt.get(id) ?? now) - now, STILL_RUNNING);
+        if (isOnCooldown === undefined || now - (this.castAt.get(id) ?? -CAST_GRACE) <= CAST_GRACE) return undefined;
+        this.endsAt.delete(id);
+        return 0;
     }
 
     /** The player cast the spell: its cooldown starts now (or waits for another spell), and so does that of a spell that waited for it. */

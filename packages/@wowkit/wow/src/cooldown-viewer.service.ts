@@ -1,5 +1,7 @@
-// Blizzard's Cooldown Manager: in a fight the game hides the player's buffs from addons, but the icons of this window still
-// know whether the buff they track is up. It has to be running for that, it can be out of sight.
+// Blizzard's Cooldown Manager: in a fight the game hides the player's buffs from addons, but the icons of its windows still
+// know whether the buff they track is up. It has to be running for that, it can be out of sight. One answer for all four
+// windows: up, gone, or undefined when an icon has nothing to say and the addon must find out another way.
+import { OnEvent } from "@wowkit/core";
 import {
     findActiveLayout,
     readCategoryOverrides,
@@ -18,16 +20,53 @@ const ENABLED_CVAR = "cooldownViewerEnabled";
 const OTHER_MANAGER_ADDON = "EllesmereUICooldownManager";
 const BUFF_VIEWERS = ["BuffIconCooldownViewer", "BuffBarCooldownViewer"];
 const ALL_VIEWERS = ["EssentialCooldownViewer", "UtilityCooldownViewer", ...BUFF_VIEWERS];
-/** Enum.CooldownViewerCategory: Tracked Buffs, and all the groups of Blizzard's list that hold buffs. */
+/** Enum.CooldownViewerCategory: Tracked Buffs, and the groups of the Buffs and the Spells tab that the addon can use. */
 const TRACKED_BUFF_CATEGORY = 2;
 const BUFF_CATEGORIES = [TRACKED_BUFF_CATEGORY, 3, 6];
+const SPELL_CATEGORIES = [0, 1, 5];
 /** Enum.CooldownSetSpellFlags.HideByDefault: a bit of the flags. */
 const HIDE_BY_DEFAULT = 2;
 /** Any group below zero is Not Displayed. */
 const NOT_DISPLAYED = -1;
 
+/** What Blizzard's list says of an entry. */
+interface ViewerEntry {
+    /** Its spell and the spells linked to it: the ranks, a Greater Blessing, the buff of a talent. */
+    names: string[];
+    /** A spell whose icon shows a buff on the player. */
+    isOwnBuff: boolean;
+}
+
+/** One entry of Blizzard's list, for a tool that reports on it. */
+export interface ViewerCatalogEntry {
+    category: number;
+    cooldownId: number;
+    spellId: number | undefined;
+    /** The name of its spell first, then those of the spells linked to it. */
+    names: string[];
+    isOwnBuff: boolean;
+    hasAura: boolean;
+    isHiddenByDefault: boolean;
+    isKnown: boolean;
+}
+
+/** Enum.CooldownViewerCategory, every group of Blizzard's list. */
+const LAST_CATEGORY = 8;
+
 export class CooldownViewerService {
+    private readonly entries = new LuaMap<number, ViewerEntry>();
+    private iconStates = new LuaMap<string, boolean>();
+    private cooldownStates = new LuaMap<string, boolean>();
+    private iconStatesAt = -1;
+    /** Is the addon allowed to go by the icons? */
+    private isUsingIcons = true;
+
     constructor(private readonly spells: SpellsService) {}
+
+    @OnEvent("spells.invalidated")
+    forgetEntries(): void {
+        for (const [id] of this.entries) this.entries.delete(id);
+    }
 
     /** Does another addon run the windows? Then they are left to it. */
     isRunByOtherAddon(): boolean {
@@ -43,6 +82,15 @@ export class CooldownViewerService {
         attempt(C_CVar.SetCVar, ENABLED_CVAR, "1");
     }
 
+    disable(): void {
+        attempt(C_CVar.SetCVar, ENABLED_CVAR, "0");
+    }
+
+    /** Off: every icon has no say, and the addon finds out another way. */
+    useIcons(isOn: boolean): void {
+        this.isUsingIcons = isOn;
+    }
+
     /**
      * Keeps the running window out of sight. Not Hide(): a hidden window stops following its buffs. Its icons stop reacting
      * to the mouse too, or invisible tooltips would come up where they stand.
@@ -55,20 +103,136 @@ export class CooldownViewerService {
         this.setIconsVisible(true);
     }
 
-    /** Is the buff up, by the icon that tracks it? Undefined with no such icon, or when the game hides the answer. */
+    /** Is the buff up, by the icons that track it? Undefined when none has a say. Read once a frame, for every buff together. */
     isBuffActive(spellName: string): boolean | undefined {
-        for (const name of BUFF_VIEWERS) {
+        if (!this.isUsingIcons) return undefined;
+        this.refreshIconStates();
+        return this.iconStates.get(spellName);
+    }
+
+    /** Is the spell on its own cooldown (the global cooldown ignored), by its icon on the Spells tab? Undefined with no such icon. */
+    isSpellOnCooldown(spellName: string): boolean | undefined {
+        if (!this.isUsingIcons) return undefined;
+        this.refreshIconStates();
+        return this.cooldownStates.get(spellName);
+    }
+
+    private refreshIconStates(): void {
+        const now = GetTime();
+        if (now === this.iconStatesAt) return;
+        this.iconStatesAt = now;
+        this.readIconStates();
+    }
+
+    private readIconStates(): void {
+        this.iconStates = new LuaMap<string, boolean>();
+        this.cooldownStates = new LuaMap<string, boolean>();
+        for (const name of ALL_VIEWERS) {
             const viewer = this.getViewer(name);
             if (viewer === undefined) continue;
-            for (const item of this.listItems(viewer)) {
-                if (this.getItemSpellName(item) === spellName) return getReadable(attempt(() => item.IsActive()));
+            const isBuffViewer = BUFF_VIEWERS.includes(name);
+            for (const item of this.listItems(viewer)) this.noteIconState(item, isBuffViewer);
+        }
+    }
+
+    /** One icon that is up settles it; one that is out says so only until another says up. */
+    private noteIconState(item: CooldownViewerItem, isBuffViewer: boolean): void {
+        const cooldownId = getReadable(item.cooldownID);
+        const entry = cooldownId !== undefined ? this.findEntry(cooldownId) : undefined;
+        if (entry === undefined) return;
+        if (!isBuffViewer) this.noteCooldownState(item, entry);
+        const isUp = isBuffViewer ? this.readBuffIcon(item) : entry.isOwnBuff ? this.readSpellIcon(item) : undefined;
+        if (isUp === undefined) return;
+        for (const name of entry.names) if (isUp || !this.iconStates.has(name)) this.iconStates.set(name, isUp);
+    }
+
+    /** The cooldown is of the entry's own spell, not of the spells linked to it. */
+    private noteCooldownState(item: CooldownViewerItem, entry: ViewerEntry): void {
+        const isOnCooldown = getReadable(attempt(() => item.IsOnCooldown()));
+        const name = entry.names[0];
+        if (isOnCooldown === undefined || name === undefined) return;
+        if (isOnCooldown || !this.cooldownStates.has(name)) this.cooldownStates.set(name, isOnCooldown);
+    }
+
+    private readBuffIcon(item: CooldownViewerItem): boolean | undefined {
+        const isActive = getReadable(attempt(() => item.IsActive()));
+        return isActive === true ? this.isOnPlayer(item) : isActive;
+    }
+
+    /** An icon of the Spells tab is always active: it shows its buff by having an aura. Comparing with nil is allowed on a secret. */
+    private readSpellIcon(item: CooldownViewerItem): boolean {
+        const hasAura = item.auraInstanceID !== undefined || getReadable(item.wasSetFromAura) === true;
+        return hasAura && this.isOnPlayer(item);
+    }
+
+    /** Blizzard also looks at the player's auras on a friendly target. When the game hides the unit, the icon is believed. */
+    private isOnPlayer(item: CooldownViewerItem): boolean {
+        const unit = getReadable(item.auraDataUnit);
+        return unit === undefined || unit === "player";
+    }
+
+    private findEntry(cooldownId: number): ViewerEntry | undefined {
+        const kept = this.entries.get(cooldownId);
+        if (kept !== undefined) return kept;
+        const info = attempt(C_CooldownViewer.GetCooldownViewerCooldownInfo, cooldownId);
+        if (info === undefined) return undefined;
+        const names: string[] = [];
+        // Pushed one by one, its own spell first: a nil in the middle of a Lua list would hide what comes after it
+        const ids: number[] = [];
+        if (info.spellID !== undefined) ids.push(info.spellID);
+        if (info.overrideSpellID !== undefined) ids.push(info.overrideSpellID);
+        ids.push(...(info.linkedSpellIDs ?? []));
+        for (const id of ids) {
+            const name = this.spells.getSpellName(getReadable(id));
+            if (name !== undefined && name !== "" && !names.includes(name)) names.push(name);
+        }
+        if (names.length === 0) return undefined;
+        const entry = { names, isOwnBuff: getReadable(info.selfAura) === true };
+        this.entries.set(cooldownId, entry);
+        return entry;
+    }
+
+    /** Blizzard's layouts go by this: the character's class and spec. */
+    getSpecTag(): number | undefined {
+        const util = (_G as unknown as { CooldownViewerUtil?: CooldownViewerUtilFunctions }).CooldownViewerUtil;
+        return attempt(() => util?.GetCurrentClassAndSpecTag());
+    }
+
+    /** Everything on Blizzard's list for this class and spec, learned or not. */
+    listCatalog(): ViewerCatalogEntry[] {
+        const catalog: ViewerCatalogEntry[] = [];
+        for (let category = 0; category <= LAST_CATEGORY; category++) {
+            for (const cooldownId of attempt(C_CooldownViewer.GetCooldownViewerCategorySet, category, true) ?? []) {
+                const info = attempt(C_CooldownViewer.GetCooldownViewerCooldownInfo, cooldownId);
+                const entry = this.findEntry(cooldownId);
+                catalog.push({
+                    category,
+                    cooldownId,
+                    spellId: info?.spellID,
+                    names: entry?.names ?? [],
+                    isOwnBuff: entry?.isOwnBuff === true,
+                    hasAura: info?.hasAura === true,
+                    isHiddenByDefault: (info?.flags ?? 0) % (2 * HIDE_BY_DEFAULT) >= HIDE_BY_DEFAULT,
+                    isKnown: info?.isKnown === true,
+                });
             }
         }
-        return undefined;
+        return catalog;
+    }
+
+    /** The Group Buffs tab: the spell IDs of what Blizzard offers there, with whether each is hidden by default and known. */
+    listGroupBuffs(): { spellId: number; name: string | undefined; isHiddenByDefault: boolean; isKnown: boolean }[] {
+        return (attempt(C_CooldownViewer.GetGroupBuffItems) ?? []).map((item) => ({
+            spellId: item.spellID,
+            name: this.spells.getSpellName(item.spellID),
+            isHiddenByDefault: item.flags % 2 === 1,
+            isKnown: item.isKnown === true,
+        }));
     }
 
     /**
-     * Puts the buffs of these names that are on Blizzard's list, learned or not, in Tracked Buffs of the saved layout of the spec.
+     * Puts what has these names and is on Blizzard's list, learned or not, on display in the saved layout of the spec: a buff in
+     * Tracked Buffs, a spell in its own group.
      * Asks the saved layout itself, so a buff is checked each time; their icons work from the next login or /reload.
      * False while the layouts are loading, or when they cannot be changed.
      */
@@ -87,21 +251,22 @@ export class CooldownViewerService {
         const hidden = this.listHiddenBuffs(active, spellNames);
         if (hidden.length === 0) return true;
         const layout = active ?? useOwnLayout(layouts, specTag);
-        for (const id of hidden) setCategoryOverride(layout, id, TRACKED_BUFF_CATEGORY);
+        for (const { id, group } of hidden) setCategoryOverride(layout, id, group);
         return writeSavedLayouts(layouts);
     }
 
-    /** The entries of Blizzard's list with these names that the layout leaves under Not Displayed. */
-    private listHiddenBuffs(layout: SavedLayout | undefined, spellNames: string[]): number[] {
+    /** The entries of Blizzard's list with these names that the layout leaves under Not Displayed, and the group each goes to. */
+    private listHiddenBuffs(layout: SavedLayout | undefined, spellNames: string[]): { id: number; group: number }[] {
         const overrides = readCategoryOverrides(layout);
-        const hidden: number[] = [];
-        for (const category of BUFF_CATEGORIES) {
+        const hidden: { id: number; group: number }[] = [];
+        for (const category of [...SPELL_CATEGORIES, ...BUFF_CATEGORIES]) {
             for (const id of C_CooldownViewer.GetCooldownViewerCategorySet(category, true)) {
                 const info = C_CooldownViewer.GetCooldownViewerCooldownInfo(id);
-                const name = this.spells.getSpellName(info?.spellID);
+                const names = this.findEntry(id)?.names ?? [];
                 const isHiddenByDefault = (info?.flags ?? 0) % (2 * HIDE_BY_DEFAULT) >= HIDE_BY_DEFAULT;
                 const current = overrides.get(id) ?? (isHiddenByDefault ? NOT_DISPLAYED : category);
-                if (name !== undefined && spellNames.includes(name) && current < 0) hidden.push(id);
+                if (current >= 0 || !names.some((name) => spellNames.includes(name))) continue;
+                hidden.push({ id, group: SPELL_CATEGORIES.includes(category) ? category : TRACKED_BUFF_CATEGORY });
             }
         }
         return hidden;
@@ -125,12 +290,5 @@ export class CooldownViewerService {
         if (viewer.itemFramePool === undefined) return items;
         for (const item of viewer.itemFramePool.EnumerateActive()) items.push(item);
         return items;
-    }
-
-    private getItemSpellName(item: CooldownViewerItem): string | undefined {
-        const cooldownId = getReadable(item.cooldownID);
-        if (cooldownId === undefined) return undefined;
-        const spellId = getReadable(attempt(C_CooldownViewer.GetCooldownViewerCooldownInfo, cooldownId)?.spellID);
-        return spellId !== undefined ? this.spells.getSpellName(spellId) : undefined;
     }
 }

@@ -48,30 +48,40 @@ function installCooldownViewers(state: ClientState): void {
                 cooldownID,
                 spellID: cooldownID,
                 flags: (isHidden ? 2 : 0) as Enum.CooldownSetSpellFlags,
+                linkedSpellIDs: state.linkedSpells[cooldownID] ?? [],
+                selfAura: state.trackedBuffs.find((buff) => buff.spellId === cooldownID)?.isOwnBuff === true,
             });
         },
+        GetGroupBuffItems: () => [],
         GetLayoutData: () => (state.layoutData === undefined ? "" : "1|saved"),
         SetLayoutData: () => {
             state.layoutData = written;
             state.viewerSaves += 1;
         },
-        GetCooldownViewerCategorySet: (category) => (category === 2 ? state.buffCatalog.map((buff) => buff.spellId) : []),
+        GetCooldownViewerCategorySet: (category) =>
+            state.buffCatalog.filter((buff) => (buff.isInSpellsTab === true ? category === 1 : category === 2)).map((buff) => buff.spellId),
     });
-    const createViewer = (hasIcons: boolean) => ({
+    const createViewer = (kind: "none" | "buffs" | "spells") => ({
         SetAlpha(alpha: number) {
             state.viewerAlpha = alpha;
         },
         itemFramePool: {
             EnumerateActive() {
                 let index = 0;
+                const buffs = state.trackedBuffs.filter((buff) => kind !== "none" && (buff.isInSpellsTab === true) === (kind === "spells"));
                 return () => {
-                    const buff = hasIcons ? state.trackedBuffs[index] : undefined;
+                    const buff = buffs[index];
                     index += 1;
                     if (buff === undefined) return undefined;
                     return {
                         cooldownID: buff.spellId,
+                        auraInstanceID: kind === "spells" && buff.isActive ? 1 : undefined,
+                        auraDataUnit: buff.unit,
                         IsActive: function (this: void, _self: unknown) {
-                            return buff.isActive;
+                            return kind === "spells" ? true : buff.isActive;
+                        },
+                        IsOnCooldown: function (this: void, _self: unknown) {
+                            return buff.isOnCooldown;
                         },
                         SetMouseMotionEnabled: function (this: void) {
                             return undefined;
@@ -93,10 +103,10 @@ function installCooldownViewers(state: ClientState): void {
                 return provider;
             },
         },
-        EssentialCooldownViewer: createViewer(false),
-        UtilityCooldownViewer: createViewer(false),
-        BuffIconCooldownViewer: createViewer(true),
-        BuffBarCooldownViewer: createViewer(false),
+        EssentialCooldownViewer: createViewer("none"),
+        UtilityCooldownViewer: createViewer("spells"),
+        BuffIconCooldownViewer: createViewer("buffs"),
+        BuffBarCooldownViewer: createViewer("none"),
     });
 }
 

@@ -350,6 +350,8 @@ export const Mage = {
     Frostbolt: 116,
     FireBlast: 2136,
     ArcaneMissiles: 5143,
+    MissileBarrage: 400588,
+    Clearcasting: 12536,
     FrostNova: 122,
     ArcaneExplosion: 1449,
     ConeOfCold: 120,
@@ -389,6 +391,7 @@ export const Warlock = {
     Shoot: 5019,
     // Attacks
     ShadowBolt: 686,
+    ShadowTrance: 17941,
     Immolate: 348,
     Corruption: 172,
     CurseOfAgony: 980,

@@ -105,9 +105,7 @@ describe("a miner who added Find Minerals as a missing buff before it was on the
             { addedSpells: [{ id: FIND_MINERALS.id, reminderType: "missingBuff" }] },
         );
         SlashCmdList["GLOWINGBARS"]!("", undefined as never);
-        const rows = world.frames.filter((frame) =>
-            frame.fontStrings.some((text) => string.find(text.text ?? "", "Find Minerals", 1, true)[0] !== undefined),
-        );
+        const rows = world.frames.filter((frame) => frame.fontStrings.some((text) => text.text === "Find Minerals"));
         expect(rows.length).toBe(2);
     });
 });

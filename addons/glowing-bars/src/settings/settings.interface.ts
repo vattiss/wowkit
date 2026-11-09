@@ -56,6 +56,10 @@ export interface AddedSpell {
 /** The parts of a look the player changed; the rest is inherited. */
 export type StyleOverride = Partial<Style>;
 
+/** Add what the addon needs, only read what is there, or leave it alone. */
+export type CooldownManagerAccess = "full" | "readOnly" | "off";
+export type CooldownManagerIcons = "hide" | "show";
+
 export interface AddonSettings {
     isDisabled: boolean;
     /** How big the messages at the top of the screen are, in percent. */
@@ -79,8 +83,14 @@ export interface AddonSettings {
     shouldStayQuietInTowns: boolean;
     /** Has this character seen the welcome window? */
     isWelcomeDone: boolean;
-    /** Does the player want to see Blizzard's Cooldown Manager, which the addon runs in the background? */
-    shouldShowCooldownManager: boolean;
+    /** How far the addon may use Blizzard's Cooldown Manager. */
+    cooldownManagerAccess: CooldownManagerAccess;
+    /** Are the icons of the manager kept out of sight? */
+    cooldownManagerIcons: CooldownManagerIcons;
+    /** Has the first choice for this character been made? */
+    isCooldownManagerSetUp: boolean;
+    /** Did the addon turn the manager on here? Then leaving it alone turns it off again. */
+    isCooldownManagerOurs: boolean;
     /** Do the action buttons light up in rainbow colors while the player is AFK? */
     isAfkRainbowOn: boolean;
     /** What a circling glow does on a round button (Forever's gamepad bars, another addon's), where it cannot circle. */

@@ -150,43 +150,6 @@ describe("another buff in a fight", () => {
     });
 });
 
-describe("the Cooldown Manager at login", () => {
-    it("is turned on for every class, and kept out of sight", () => {
-        const world = createWorld((state) => playAs(state, WARRIOR));
-        world.advance(1);
-        expect(world.state.cvars.cooldownViewerEnabled).toBe(true);
-        expect(world.state.viewerAlpha).toBe(0);
-    });
-
-    it("is kept out of sight for a player who had it on too", () => {
-        const world = createWorld((state) => {
-            playAs(state, SHAMAN);
-            state.cvars.cooldownViewerEnabled = true;
-        });
-        world.advance(1);
-        expect(world.state.viewerAlpha).toBe(0);
-    });
-
-    it("is left to EllesmereUI when its Cooldown Manager is loaded, but the buffs are still moved", () => {
-        const world = createWorld((state) => {
-            playAs(state, SHAMAN);
-            state.loadedAddons.EllesmereUICooldownManager = true;
-            learnSpell(state, LIGHTNING_SHIELD);
-            state.buffCatalog.push({ spellId: LIGHTNING_SHIELD.id, isHiddenByDefault: true });
-        });
-        world.advance(6);
-        expect(world.state.cvars.cooldownViewerEnabled).toBe(undefined);
-        expect(world.state.viewerAlpha).toBe(undefined);
-        expect(world.state.viewerSaves).toBe(1);
-    });
-
-    it("stays visible when the player asked to see it", () => {
-        const world = createWorld((state) => playAs(state, SHAMAN), { shouldShowCooldownManager: true });
-        world.advance(1);
-        expect(world.state.viewerAlpha).toBe(undefined);
-    });
-});
-
 const NOT_DISPLAYED = -2;
 const TRACKED_BUFF = 2;
 const SPEC = 1;
@@ -263,6 +226,21 @@ describe("the buffs in the Cooldown Manager's saved layout", () => {
         world.fire("ACTIVE_PLAYER_SPECIALIZATION_CHANGED");
         world.advance(6);
         expect(listMoved(world, TRACKED_BUFF, 2).length).toBe(2);
+    });
+
+    it("are put in their own group of the Spells tab, and left out of it by default with EllesmereUI", () => {
+        const createSpellsTabWorld = (isOtherAddonOn: boolean) => {
+            const world = createWorld((state) => {
+                playAs(state, SHAMAN);
+                learnSpell(state, LIGHTNING_SHIELD);
+                state.buffCatalog.push({ spellId: LIGHTNING_SHIELD.id, isHiddenByDefault: true, isInSpellsTab: true });
+                state.loadedAddons.EllesmereUICooldownManager = isOtherAddonOn;
+            });
+            world.advance(6);
+            return world;
+        };
+        expect(listMoved(createSpellsTabWorld(false), 1).length).toBe(1);
+        expect(listMoved(createSpellsTabWorld(true), 1).length).toBe(0);
     });
 
     it("are left where they are when the addon does not remind of them", () => {

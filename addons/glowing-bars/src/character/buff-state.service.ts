@@ -30,6 +30,8 @@ const SHIELD_BLOCK_CHARGES = 2;
 export class BuffStateService {
     /** The blocks Shield Block has left since it was cast; 0 when it is not up. */
     private shieldBlockCharges = 0;
+    /** The buffs last seen cast by someone else (by name key): an icon only follows the player's own casts. */
+    private readonly fromOthers = new LuaSet<string>();
 
     constructor(
         private readonly auras: AurasService,
@@ -61,6 +63,7 @@ export class BuffStateService {
     hasAura(spellId: number, lead = 0): boolean {
         const read = this.findAura(spellId);
         if (read.isFound) {
+            this.noteBuffCaster(spellId, read.caster);
             this.memory.remember(spellId, undefined, read.remain, false);
             return lead === 0 || !hasKnownExpiry(read.remain) || read.remain > lead;
         }
@@ -84,6 +87,7 @@ export class BuffStateService {
     noteSelfBuff(spellId: number | undefined): void {
         if (spellId === undefined || !isReadable(spellId)) return;
         this.memory.remember(spellId, undefined, undefined, true);
+        this.fromOthers.delete(this.getBuffKey(spellId));
         if (this.spells.getSpellName(spellId) === this.spells.getSpellName(Warrior.ShieldBlock))
             this.shieldBlockCharges = SHIELD_BLOCK_CHARGES;
     }
@@ -160,7 +164,7 @@ export class BuffStateService {
      */
     private isHiddenBuffUp(spellId: number, lead: number): boolean {
         const isIconUp = this.readBuffIcons(spellId);
-        if (isIconUp === false) return false;
+        if (isIconUp === false && !this.fromOthers.has(this.getBuffKey(spellId))) return false;
         if (isIconUp === true && !this.memory.isRemembered(spellId)) return true;
         return this.memory.isRemembered(spellId, lead);
     }
@@ -172,7 +176,8 @@ export class BuffStateService {
      */
     private readBuffIcons(spellId: number): boolean | undefined {
         const name = this.getBuffName(spellId);
-        if (name === undefined) return undefined;
+        // Every shapeshift form shares one icon, which is up in any of them
+        if (name === undefined || this.knowledge.isFormKey(buildNameKey(name))) return undefined;
         const category = this.knowledge.findCategory(name);
         const ids = category !== undefined ? category.members.filter((id) => this.spells.isLearned(id)) : [spellId];
         if (ids.length === 0) return undefined;
@@ -183,6 +188,15 @@ export class BuffStateService {
             if (isUp === false) hasIcon = true;
         }
         return hasIcon ? false : undefined;
+    }
+
+    private getBuffKey(spellId: number): string {
+        return buildNameKey(this.getBuffName(spellId) ?? "");
+    }
+
+    private noteBuffCaster(spellId: number, caster: AuraRead["caster"]): void {
+        if (caster === "other") this.fromOthers.add(this.getBuffKey(spellId));
+        else if (caster === "player") this.fromOthers.delete(this.getBuffKey(spellId));
     }
 
     /** The name the client gives the buff (the rank the player knows first). */
@@ -206,7 +220,7 @@ export class BuffStateService {
             (resolved !== undefined ? ids.get(resolved) : undefined) ??
             ids.get(spellId) ??
             (wantCategory ? categories.get(wantCategory.key) : undefined);
-        if (aura) return { isFound: true, remain: aura.remain, isUnreadable: false, categories };
+        if (aura) return { isFound: true, remain: aura.remain, isUnreadable: false, caster: aura.caster, categories };
         return { isFound: false, remain: 0, isUnreadable, categories };
     }
 

@@ -219,7 +219,12 @@ declare function CreateSettingsButtonInitializer(
 /** An icon or bar of Blizzard's Cooldown Manager. */
 interface CooldownViewerItem extends Frame {
     cooldownID?: number;
+    auraInstanceID?: number;
+    auraDataUnit?: string;
+    wasSetFromAura?: boolean;
     IsActive(): boolean;
+    /** The icons of the Spells tab only. */
+    IsOnCooldown(): boolean;
 }
 
 /** A window of Blizzard's Cooldown Manager (BuffIconCooldownViewer...). */
