@@ -9,6 +9,13 @@ export const SAVED_VARIABLES_NAME = "GlowingBarsCharDB";
 /** The account's saved data (## SavedVariables): what it has seen of the releases. */
 export const ACCOUNT_VARIABLES_NAME = "GlowingBarsDB";
 
+/** The setting of whether each window of the Cooldown Manager is on the screen. */
+export const WINDOW_ICONS_SETTINGS = {
+    trackedBuffs: "trackedBuffsIcons",
+    essential: "essentialIcons",
+    utility: "utilityIcons",
+} as const;
+
 export function createDefaultSettings(): AddonSettings {
     return {
         isDisabled: false,
@@ -17,7 +24,9 @@ export function createDefaultSettings(): AddonSettings {
         isAfkRainbowOn: false,
         isWelcomeDone: false,
         cooldownManagerAccess: "full",
-        cooldownManagerIcons: "hide",
+        trackedBuffsIcons: "hide",
+        essentialIcons: "hide",
+        utilityIcons: "hide",
         isCooldownManagerSetUp: false,
         isCooldownManagerOurs: false,
         roundAnimation: "breathing",

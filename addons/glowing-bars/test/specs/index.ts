@@ -32,6 +32,7 @@ import "./glow-targets.spec";
 import "./given-buffs.spec";
 import "./cooldown-access.spec";
 import "./cooldown-reader.spec";
+import "./cooldown-windows.spec";
 import "./defensive-execute.spec";
 import "./alpha-procs.spec";
 import "./welcome.spec";

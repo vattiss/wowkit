@@ -227,6 +227,9 @@ interface CooldownViewerItem extends Frame {
     isOnActualCooldown?: boolean;
 }
 
+/** Blizzard's read-only layouts of Edit Mode. */
+declare const EditModePresetLayoutManager: { GetCopyOfPresetLayouts(): EditModeLayoutInfo[] };
+
 /** A window of Blizzard's Cooldown Manager (BuffIconCooldownViewer...). */
 interface CooldownViewer extends Frame {
     itemFramePool?: { EnumerateActive(): LuaIterable<CooldownViewerItem> };

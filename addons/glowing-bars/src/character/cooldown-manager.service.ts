@@ -17,6 +17,7 @@ import type { GlowCuesService } from "../glows/glow-cues.service";
 import type { ClassBuffsService } from "../reminders/class-buffs.service";
 import type { SealReminderService } from "../reminders/seal-reminder.service";
 import type { TrackingReminderService } from "../reminders/tracking-reminder.service";
+import { WINDOW_ICONS_SETTINGS } from "../settings/settings.constants";
 import type { AddonSettingsService } from "../settings/settings.interface";
 
 /** After login or a new spec Blizzard is still loading its layouts. */
@@ -54,9 +55,9 @@ export class CooldownManagerService implements OnLogin {
     /** The windows that glow. The icons must be on the screen: a glow on a hidden one would float over nothing. */
     private listGlowWindows(): CooldownWindow[] {
         if (this.settings.get("cooldownManagerAccess") === "off") return [];
-        if (!this.viewer.isRunByOtherAddon() && this.settings.get("cooldownManagerIcons") !== "show") return [];
         const barsThatGlow = this.settings.get("barsThatGlow");
-        return COOLDOWN_WINDOWS.filter((window) => barsThatGlow[window] !== false);
+        const hidden = this.listHiddenWindows();
+        return COOLDOWN_WINDOWS.filter((window) => barsThatGlow[window] !== false && !hidden.includes(window));
     }
 
     /** A spell only in the Cooldown Manager can be reminded of too: the icon is where the player looks. */
@@ -78,7 +79,7 @@ export class CooldownManagerService implements OnLogin {
         this.settings.change("isCooldownManagerSetUp", true);
         if (!this.viewer.isRunByOtherAddon() && !this.viewer.isTurnedOn()) return;
         this.settings.change("cooldownManagerAccess", "readOnly");
-        this.settings.change("cooldownManagerIcons", "show");
+        for (const window of COOLDOWN_WINDOWS) this.settings.change(WINDOW_ICONS_SETTINGS[window], "show");
     }
 
     private applyAccess(): void {
@@ -93,27 +94,26 @@ export class CooldownManagerService implements OnLogin {
             this.viewer.enable();
             this.settings.change("isCooldownManagerOurs", true);
         }
-        if (this.shouldHideIcons()) this.viewer.hideIcons();
-        else if (!isRunByOther) this.viewer.showIcons();
+        const hidden = this.listHiddenWindows();
+        this.viewer.hideIcons(hidden);
+        if (!isRunByOther) this.viewer.showIcons(COOLDOWN_WINDOWS.filter((window) => !hidden.includes(window)));
     }
 
-    private shouldHideIcons(): boolean {
-        return (
-            !this.viewer.isRunByOtherAddon() &&
-            this.settings.get("cooldownManagerAccess") !== "off" &&
-            this.settings.get("cooldownManagerIcons") === "hide"
-        );
+    /** The windows the addon keeps out of sight. */
+    private listHiddenWindows(): CooldownWindow[] {
+        if (this.viewer.isRunByOtherAddon() || this.settings.get("cooldownManagerAccess") === "off") return [];
+        return COOLDOWN_WINDOWS.filter((window) => this.settings.get(WINDOW_ICONS_SETTINGS[window]) === "hide");
     }
 
     /** The game can show them again with a new layout; a fight is when new icons would be seen. */
     @OnGameEvent("EDIT_MODE_LAYOUTS_UPDATED", "PLAYER_ENTERING_WORLD", "PLAYER_REGEN_DISABLED")
     hideIcons(): void {
-        if (this.shouldHideIcons()) this.viewer.hideIcons();
+        this.viewer.hideIcons(this.listHiddenWindows());
     }
 
     @OnEvent("setting.changed")
     applyChoice(key: string): void {
-        if (key !== "cooldownManagerAccess" && key !== "cooldownManagerIcons") return;
+        if (key !== "cooldownManagerAccess" && !COOLDOWN_WINDOWS.some((window) => WINDOW_ICONS_SETTINGS[window] === key)) return;
         this.applyAccess();
         if (this.settings.get("cooldownManagerAccess") === "full") this.waitToTrackBuffs();
     }

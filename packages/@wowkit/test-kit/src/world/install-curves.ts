@@ -42,6 +42,18 @@ function installCooldownViewers(state: ClientState): void {
             return "saved";
         },
     });
+    defineNamespace<typeof C_UI>("C_UI", {
+        Reload: () => {
+            state.reloads += 1;
+        },
+    });
+    defineNamespace<typeof C_EditMode>("C_EditMode", {
+        GetLayouts: () => state.editModeLayouts,
+        SaveLayouts: (saved) => {
+            state.editModeLayouts = saved;
+            state.editModeSaves += 1;
+        },
+    });
     defineNamespace<typeof C_CooldownViewer>("C_CooldownViewer", {
         GetCooldownViewerCooldownInfo: (cooldownID) => {
             const isHidden = state.buffCatalog.find((buff) => buff.spellId === cooldownID)?.isHiddenByDefault === true;
@@ -79,9 +91,13 @@ function installCooldownViewers(state: ClientState): void {
         };
         return icon;
     };
-    const createViewer = (kind: "none" | "buffs" | "spells") => ({
+    const createViewer = (name: string, kind: "none" | "buffs" | "spells") => ({
         SetAlpha(alpha: number) {
             state.viewerAlpha = alpha;
+            state.windowAlphas[name] = alpha;
+        },
+        IsVisible() {
+            return !state.hiddenViewers.includes(name);
         },
         itemFramePool: {
             EnumerateActive() {
@@ -102,16 +118,26 @@ function installCooldownViewers(state: ClientState): void {
         },
     };
     defineValues({
+        CreateSettingsButtonInitializer: (label: string, _buttonText: string, onClick: (this: void) => void) => {
+            state.settingsButtons[label] = onClick;
+            return createInertObject<SettingsInitializer>();
+        },
         CooldownViewerUtil: { GetCurrentClassAndSpecTag: () => state.viewerLayout },
         CooldownViewerSettings: {
             GetDataProvider() {
                 return provider;
             },
         },
-        EssentialCooldownViewer: createViewer("none"),
-        UtilityCooldownViewer: createViewer("spells"),
-        BuffIconCooldownViewer: createViewer("buffs"),
-        BuffBarCooldownViewer: createViewer("none"),
+        EssentialCooldownViewer: createViewer("EssentialCooldownViewer", "none"),
+        UtilityCooldownViewer: createViewer("UtilityCooldownViewer", "spells"),
+        BuffIconCooldownViewer: createViewer("BuffIconCooldownViewer", "buffs"),
+        BuffBarCooldownViewer: createViewer("BuffBarCooldownViewer", "none"),
+        EditModePresetLayoutManager: {
+            GetCopyOfPresetLayouts: () => [
+                fake<EditModeLayoutInfo>({ layoutName: "Modern", layoutType: Enum.EditModeLayoutType.Preset, systems: [] }),
+                fake<EditModeLayoutInfo>({ layoutName: "Classic", layoutType: Enum.EditModeLayoutType.Preset, systems: [] }),
+            ],
+        },
     });
 }
 

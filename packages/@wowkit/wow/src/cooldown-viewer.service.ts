@@ -100,15 +100,15 @@ export class CooldownViewerService {
     }
 
     /**
-     * Keeps the running window out of sight. Not Hide(): a hidden window stops following its buffs. Its icons stop reacting
+     * Keeps these running windows out of sight. Not Hide(): a hidden window stops following its buffs. Their icons stop reacting
      * to the mouse too, or invisible tooltips would come up where they stand.
      */
-    hideIcons(): void {
-        this.setIconsVisible(false);
+    hideIcons(windows: CooldownWindow[]): void {
+        this.setIconsVisible(windows, false);
     }
 
-    showIcons(): void {
-        this.setIconsVisible(true);
+    showIcons(windows: CooldownWindow[]): void {
+        this.setIconsVisible(windows, true);
     }
 
     /** Is the buff up, by the icons that track it? Undefined when none has a say. Read once a frame, for every buff together. */
@@ -135,7 +135,7 @@ export class CooldownViewerService {
         const icons: ActionButton[] = [];
         for (const window of windows) {
             const viewer = this.getViewer(ICON_VIEWERS[window]);
-            if (viewer !== undefined) icons.push(...(this.listItems(viewer) as unknown as ActionButton[]));
+            if (viewer !== undefined && this.isRunning(viewer)) icons.push(...(this.listItems(viewer) as unknown as ActionButton[]));
         }
         return icons;
     }
@@ -166,10 +166,18 @@ export class CooldownViewerService {
         this.cooldownStates = new LuaMap<string, boolean>();
         for (const name of ALL_VIEWERS) {
             const viewer = this.getViewer(name);
-            if (viewer === undefined) continue;
+            if (viewer === undefined || !this.isRunning(viewer)) continue;
             const isBuffViewer = BUFF_VIEWERS.includes(name);
             for (const item of this.listItems(viewer)) this.noteIconState(item, isBuffViewer);
         }
+    }
+
+    /**
+     * A window that is not on the screen (Hidden in Edit Mode, the manager switched off, the interface hidden) stops following
+     * its buffs, and its icons keep what they last knew. One the addon keeps invisible still runs: that is only its alpha.
+     */
+    private isRunning(viewer: CooldownViewer): boolean {
+        return getReadable(attempt(() => viewer.IsVisible())) !== false;
     }
 
     /** One icon that is up settles it; one that is out says so only until another says up. */
@@ -310,12 +318,15 @@ export class CooldownViewerService {
         return hidden;
     }
 
-    private setIconsVisible(isVisible: boolean): void {
-        for (const name of ALL_VIEWERS) {
-            const viewer = this.getViewer(name);
-            if (viewer === undefined) continue;
-            viewer.SetAlpha(isVisible ? 1 : 0);
-            for (const item of this.listItems(viewer)) item.SetMouseMotionEnabled(isVisible);
+    /** The bars of the tracked buffs go with their icons. */
+    private setIconsVisible(windows: CooldownWindow[], isVisible: boolean): void {
+        for (const window of windows) {
+            for (const name of window === "trackedBuffs" ? BUFF_VIEWERS : [ICON_VIEWERS[window]]) {
+                const viewer = this.getViewer(name);
+                if (viewer === undefined) continue;
+                viewer.SetAlpha(isVisible ? 1 : 0);
+                for (const item of this.listItems(viewer)) item.SetMouseMotionEnabled(isVisible);
+            }
         }
     }
 

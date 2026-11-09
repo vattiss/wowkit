@@ -5,6 +5,7 @@
 
 import type { MessagesService, SoundKey } from "@wowkit/ui";
 import type { StyleService } from "../settings/style.service";
+import { WINDOW_ICONS_SETTINGS } from "../settings/settings.constants";
 import type { AddonSettingsService, ReminderType, Style } from "../settings/settings.interface";
 import {
     type ActionBarsService,
@@ -106,6 +107,18 @@ interface GlowGroup {
     spells: number[];
 }
 
+/** The settings that change how or where the glows are drawn. */
+const SETTINGS_OF_THE_LOOK: string[] = [
+    "styles",
+    "spellStyles",
+    "barsThatGlow",
+    "idOverrides",
+    "addedSpells",
+    "roundAnimation",
+    "cooldownManagerAccess",
+    ...Object.values(WINDOW_ICONS_SETTINGS),
+];
+
 export class ShowRemindersService {
     /** The glows made so far, by the look they give (color, glow % and animation); one that is not needed any more is cleared, not dropped. */
     private readonly glows = new LuaMap<string, ButtonGlow>();
@@ -202,18 +215,7 @@ export class ShowRemindersService {
 
     /** A setting changed: the glows go out at once and are lit again by the next tick, in the new look. */
     redrawGlowsAfterSettingChange(key: string): void {
-        if (
-            key !== "styles" &&
-            key !== "spellStyles" &&
-            key !== "barsThatGlow" &&
-            key !== "idOverrides" &&
-            key !== "addedSpells" &&
-            key !== "roundAnimation" &&
-            key !== "cooldownManagerAccess" &&
-            key !== "cooldownManagerIcons" &&
-            !TYPES.some((reminderType) => reminderType.isOnSetting === key)
-        )
-            return;
+        if (!SETTINGS_OF_THE_LOOK.includes(key) && !TYPES.some((reminderType) => reminderType.isOnSetting === key)) return;
         for (const [, glow] of this.glows) glow.clear();
         this.markGlowsStale();
     }

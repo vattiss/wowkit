@@ -387,7 +387,7 @@ flowchart LR
 | `cooldownManagerAccess` | `full` ("Add what Glowing Bars needs") | Turns the manager on, moves what the addon reminds about into it, reads the icons. |
 | | `readOnly` ("Only use what's already there") | Turns it on, reads the icons that exist, moves nothing. |
 | | `off` ("Don't use it") | Reads nothing. If the addon was the one that turned the manager on (`isCooldownManagerOurs`), it turns it off again. |
-| `cooldownManagerIcons` | `hide` / `show` | Whether the windows are on screen. Greyed out with EllesmereUI's module, which runs them itself. |
+| `trackedBuffsIcons`, `essentialIcons`, `utilityIcons` | `hide` / `show` | Whether each window is on screen (Tracked Bars goes with Tracked Buffs). Greyed out with EllesmereUI's module, which runs them itself. |
 
 The first login on a character picks the defaults once (`isCooldownManagerSetUp`), so that nothing changes for a player who
 already uses the manager: off means `full` and `hide`; already on, or EllesmereUI's module loaded, means `readOnly` and `show`.

@@ -162,14 +162,13 @@ type Reminders = ReturnType<typeof makeReminders>;
 
 /** Blizzard's Cooldown Manager, running in the background: what the addon reminds about goes on display in it. */
 function makeCooldownManager(addon: Addon, game: Game, texts: Texts, buffs: Buffs, reminders: Reminders) {
-    const { cooldownViewer, player, spells, clock } = game;
     addon.register(
         new CooldownManagerService(
-            cooldownViewer,
-            player,
+            game.cooldownViewer,
+            game.player,
             texts.settings,
-            spells,
-            clock,
+            game.spells,
+            game.clock,
             buffs.classBuffs,
             reminders.addedSpells,
             reminders.seal,
@@ -205,7 +204,6 @@ function makeTick(addon: Addon, addonName: string, game: Game, texts: Texts, buf
         ),
     );
     const notices = addon.register(new NoticesService(game.actionBars, game.clock, game.notice, game.spells, locale, styles, settings));
-    const { fedBuffs } = reminders;
     const shower = addon.register(
         new ShowRemindersService(
             game.glow,
@@ -216,7 +214,7 @@ function makeTick(addon: Addon, addonName: string, game: Game, texts: Texts, buf
             game.actionBars,
             game.barFade,
             game.clock,
-            fedBuffs,
+            reminders.fedBuffs,
             game.cooldownViewer,
             game.barKeys,
         ),
@@ -287,7 +285,9 @@ function makeOptions(
         new WeaponSection(locale, game.spells, reminders.weaponChoice, settings, controls, reminderControls),
     );
     const glowsSection = addon.register(new GlowsSection(reminderControls, reminders.glowCues));
-    const managerSection = addon.register(new CooldownManagerSection(locale, settings, controls, reminderControls, game.cooldownViewer));
+    const managerSection = addon.register(
+        new CooldownManagerSection(locale, settings, controls, reminderControls, game.cooldownViewer, widgets, game.player, messages),
+    );
     const table = makeTable(addon, addonName, game, texts, buffs, reminders);
     const barsSection = addon.register(new BarsSection(locale, settings, controls, reminderControls));
     const animationSection = addon.register(new AnimationSection(locale, settings, controls));

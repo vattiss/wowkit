@@ -87,6 +87,10 @@ export function installUi(frames: FrameRegistry, chat: string[], proxySettings: 
             PowerType: { Mana: 0, Rage: 1, Focus: 2, Energy: 3, ComboPoints: 4 },
             LuaCurveType: { Linear: 0, Step: 1, Cosine: 2 },
             TooltipDataType: { Item: 0, Spell: 1 },
+            EditModeSystem: { CooldownViewer: 20 },
+            EditModeLayoutType: { Preset: 0, Account: 1, Character: 2, Override: 3 },
+            EditModeCooldownViewerSetting: { VisibleSetting: 6 },
+            CooldownViewerVisibleSetting: { Always: 0, InCombat: 1, Hidden: 2 },
         },
     });
 
@@ -98,7 +102,6 @@ export function installUi(frames: FrameRegistry, chat: string[], proxySettings: 
             chat.push(args.map((arg) => tostring(arg)).join(" "));
         },
         CreateSettingsListSectionHeaderInitializer: () => createInertObject<SettingsInitializer>(),
-        CreateSettingsButtonInitializer: () => createInertObject<SettingsInitializer>(),
     });
 
     defineValues({ MinimalSliderWithSteppersMixin: { Label: { Right: 3 } } });

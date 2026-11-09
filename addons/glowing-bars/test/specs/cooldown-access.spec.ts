@@ -62,7 +62,12 @@ describe("the Cooldown Manager at login", () => {
     });
 
     it("stays visible when the player chose that", () => {
-        const world = createWorld((state) => playAs(state, SHAMAN), { isCooldownManagerSetUp: true, cooldownManagerIcons: "show" });
+        const world = createWorld((state) => playAs(state, SHAMAN), {
+            isCooldownManagerSetUp: true,
+            trackedBuffsIcons: "show",
+            essentialIcons: "show",
+            utilityIcons: "show",
+        });
         world.advance(1);
         expect(world.state.viewerAlpha).toBe(1);
     });

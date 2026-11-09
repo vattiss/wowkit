@@ -1,10 +1,12 @@
-// How the addon may use Blizzard's Cooldown Manager, and whether its icons show. With an addon that runs the manager's windows
+// How the addon may use Blizzard's Cooldown Manager, and which of its windows show. With an addon that runs the manager's windows
 // itself, showing them is that addon's business.
-import type { ControlsService } from "@wowkit/ui";
-import type { CooldownViewerService } from "@wowkit/wow";
+import type { ControlsService, MessagesService, WidgetsService } from "@wowkit/ui";
+import { COOLDOWN_WINDOWS, repairHiddenWindows, type CooldownViewerService, type PlayerService } from "@wowkit/wow";
 import type { AddonLocale } from "../locale/locale.interface";
 import type { TextKey } from "../locale/texts.constants";
+import { WINDOW_ICONS_SETTINGS } from "../settings/settings.constants";
 import type { AddonSettings, AddonSettingsService, CooldownManagerAccess, CooldownManagerIcons } from "../settings/settings.interface";
+import { WINDOW_TEXTS } from "./cooldown-windows.constants";
 import type { ReminderControlsService } from "./reminder-controls.service";
 
 const ACCESS_CHOICES: [value: CooldownManagerAccess, label: TextKey][] = [
@@ -24,27 +26,63 @@ export class CooldownManagerSection {
         private readonly controls: ControlsService<AddonSettings>,
         private readonly reminderControls: ReminderControlsService,
         private readonly viewer: CooldownViewerService,
+        private readonly widgets: WidgetsService,
+        private readonly player: PlayerService,
+        private readonly messages: MessagesService,
     ) {}
 
     addCooldownManagerSection(category: SettingsCategory, layout: SettingsLayout): void {
         this.reminderControls.addHeader(layout, "HDR_COOLDOWN_MANAGER");
-        const access = this.addChoice(category, "cooldownManagerAccess", "OPT_MANAGER_ACCESS", "TIP_MANAGER_ACCESS", ACCESS_CHOICES);
-        const iconsLabel = this.viewer.isRunByOtherAddon() ? "OPT_MANAGER_ICONS_OTHER" : "OPT_MANAGER_ICONS";
-        const icons = this.addChoice(category, "cooldownManagerIcons", iconsLabel, "TIP_MANAGER_ICONS", ICON_CHOICES);
-        icons.SetParentInitializer(access, () => !this.viewer.isRunByOtherAddon() && this.settings.get("cooldownManagerAccess") !== "off");
+        const access = this.addChoice(
+            category,
+            "cooldownManagerAccess",
+            this.locale.getText("OPT_MANAGER_ACCESS"),
+            "TIP_MANAGER_ACCESS",
+            ACCESS_CHOICES,
+        );
+        const isRunByOther = this.viewer.isRunByOtherAddon();
+        for (const window of COOLDOWN_WINDOWS) {
+            const label = string.format(
+                this.locale.getText(isRunByOther ? "OPT_MANAGER_ICONS_OTHER" : "OPT_MANAGER_ICONS"),
+                this.locale.getText(WINDOW_TEXTS[window]),
+            );
+            const icons = this.addChoice(category, WINDOW_ICONS_SETTINGS[window], label, "TIP_MANAGER_ICONS", ICON_CHOICES);
+            icons.SetParentInitializer(access, () => !isRunByOther && this.settings.get("cooldownManagerAccess") !== "off");
+        }
+        // EllesmereUI's module sets the windows to show by itself
+        if (isRunByOther) return;
+        this.widgets.addButton(
+            layout,
+            this.locale.getText("OPT_MANAGER_REPAIR"),
+            this.locale.getText("BTN_REPAIR"),
+            () => this.repairWindows(),
+            this.locale.getText("TIP_MANAGER_REPAIR"),
+        );
     }
 
-    private addChoice<K extends "cooldownManagerAccess" | "cooldownManagerIcons">(
+    /** A saved layout takes effect at the next load of the interface. */
+    private repairWindows(): void {
+        if (this.player.isInCombat()) {
+            this.messages.say(this.locale.getText("MSG_REPAIR_IN_COMBAT"));
+            return;
+        }
+        const count = repairHiddenWindows();
+        if (count === undefined) this.messages.say(this.locale.getText("MSG_REPAIR_FAILED"));
+        else if (count === 0) this.messages.say(this.locale.getText("MSG_REPAIR_NONE"));
+        else C_UI.Reload();
+    }
+
+    private addChoice<K extends "cooldownManagerAccess" | (typeof WINDOW_ICONS_SETTINGS)[keyof typeof WINDOW_ICONS_SETTINGS]>(
         category: SettingsCategory,
         key: K,
-        label: TextKey,
+        label: string,
         tooltip: TextKey,
         choices: [value: AddonSettings[K], label: TextKey][],
     ): SettingsInitializer {
         return this.controls.addDropdown(
             category,
             key,
-            this.locale.getText(label),
+            label,
             this.locale.getText(tooltip),
             this.settings.getDefault(key),
             () => this.settings.get(key),

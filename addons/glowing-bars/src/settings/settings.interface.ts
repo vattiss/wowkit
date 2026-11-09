@@ -86,7 +86,9 @@ export interface AddonSettings {
     /** How far the addon may use Blizzard's Cooldown Manager. */
     cooldownManagerAccess: CooldownManagerAccess;
     /** Are the icons of the manager kept out of sight? */
-    cooldownManagerIcons: CooldownManagerIcons;
+    trackedBuffsIcons: CooldownManagerIcons;
+    essentialIcons: CooldownManagerIcons;
+    utilityIcons: CooldownManagerIcons;
     /** Has the first choice for this character been made? */
     isCooldownManagerSetUp: boolean;
     /** Did the addon turn the manager on here? Then leaving it alone turns it off again. */

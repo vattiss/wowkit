@@ -31,6 +31,8 @@ function createPaladin(saved: Record<string, unknown>): World {
     return world;
 }
 
+const ICONS_SHOWN = { trackedBuffsIcons: "show", essentialIcons: "show", utilityIcons: "show" };
+
 describe("the Stance Bar", () => {
     it("glows by default", () => {
         expect(createPaladin({}).glowsOnFrame(STANCE_BUTTON)).toBe(1);
@@ -71,16 +73,16 @@ function countIconGlows(world: World): number {
 
 describe("the glow on the Cooldown Manager's icons", () => {
     it("is on by default, and can be switched off", () => {
-        expect(countIconGlows(createPriest({ cooldownManagerIcons: "show" }))).toBe(1);
-        expect(countIconGlows(createPriest({ cooldownManagerIcons: "show", barsThatGlow: { trackedBuffs: false } }))).toBe(0);
+        expect(countIconGlows(createPriest({ ...ICONS_SHOWN }))).toBe(1);
+        expect(countIconGlows(createPriest({ ...ICONS_SHOWN, barsThatGlow: { trackedBuffs: false } }))).toBe(0);
     });
 
     it("lights the icon of the spell when it is switched on", () => {
-        expect(countIconGlows(createPriest({ barsThatGlow: { trackedBuffs: true }, cooldownManagerIcons: "show" }))).toBe(1);
+        expect(countIconGlows(createPriest({ barsThatGlow: { trackedBuffs: true }, ...ICONS_SHOWN }))).toBe(1);
     });
 
     it("goes out when it is switched off in the options, and comes back", () => {
-        const world = createPriest({ barsThatGlow: { trackedBuffs: true }, cooldownManagerIcons: "show" });
+        const world = createPriest({ barsThatGlow: { trackedBuffs: true }, ...ICONS_SHOWN });
         world.setOption("bar_trackedBuffs", false);
         world.advance(1);
         expect(countIconGlows(world)).toBe(0);
@@ -98,7 +100,7 @@ describe("the glow on the Cooldown Manager's icons", () => {
                     state.bars[1] = INNER_FIRE.id;
                     state.trackedBuffs.push({ spellId: INNER_FIRE.id, isActive: false, isInSpellsTab: true, isOwnBuff: true });
                 },
-                { isCooldownManagerSetUp: true, cooldownManagerIcons: "show", barsThatGlow: { utility: window === "utility" } },
+                { isCooldownManagerSetUp: true, ...ICONS_SHOWN, barsThatGlow: { utility: window === "utility" } },
             );
             world.advance(3);
             return world;
@@ -108,7 +110,7 @@ describe("the glow on the Cooldown Manager's icons", () => {
     });
 
     it("stays off while the icons are hidden", () => {
-        expect(countIconGlows(createPriest({ barsThatGlow: { trackedBuffs: true }, cooldownManagerIcons: "hide" }))).toBe(0);
+        expect(countIconGlows(createPriest({ barsThatGlow: { trackedBuffs: true }, trackedBuffsIcons: "hide" }))).toBe(0);
     });
 
     it("works on EllesmereUI's bars, which show the icons themselves", () => {
@@ -135,7 +137,7 @@ describe("a spell only in the Cooldown Manager, on no action bar", () => {
                 learnSpell(state, INNER_FIRE);
                 state.trackedBuffs.push({ spellId: INNER_FIRE.id, isActive: false, isDrawn });
             },
-            { isCooldownManagerSetUp: true, cooldownManagerIcons: "show", ...saved },
+            { isCooldownManagerSetUp: true, ...ICONS_SHOWN, ...saved },
         );
         world.advance(3);
         return world;
@@ -159,7 +161,7 @@ describe("fading the Cooldown Manager's icons", () => {
         const world = createPriest({
             fadedBars: { trackedBuffs: true },
             barsThatGlow: { trackedBuffs: false },
-            cooldownManagerIcons: "show",
+            ...ICONS_SHOWN,
         });
         expect(world.state.trackedBuffs[0]!.iconAlpha).toBe(0.5);
     });
@@ -168,7 +170,7 @@ describe("fading the Cooldown Manager's icons", () => {
         const world = createPriest({
             fadedBars: { trackedBuffs: true },
             barsThatGlow: { trackedBuffs: true },
-            cooldownManagerIcons: "show",
+            ...ICONS_SHOWN,
         });
         expect(world.state.trackedBuffs[0]!.iconAlpha).toBe(1);
     });

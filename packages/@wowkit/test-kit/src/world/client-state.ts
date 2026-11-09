@@ -125,6 +125,16 @@ export interface ClientState {
     viewerSaves: number;
     /** The last opacity given to the windows of the Cooldown Manager. */
     viewerAlpha: number | undefined;
+    /** The last alpha of each window of the Cooldown Manager, by its frame name. */
+    windowAlphas: { [viewer: string]: number | undefined };
+    /** The windows that are not on the screen, by frame name: Hidden in Edit Mode, say. */
+    hiddenViewers: string[];
+    /** The layouts Edit Mode keeps, without the presets; the active one counts after the two presets. */
+    editModeLayouts: EditModeLayouts;
+    editModeSaves: number;
+    /** What each button row of the Settings panel does, by its label. */
+    settingsButtons: { [label: string]: ((this: void) => void) | undefined };
+    reloads: number;
     /** In combat the game hides the auras: the list comes back empty. */
     areAurasHidden: boolean;
     /** In combat the game hides the spell cooldowns: no answer. */
@@ -231,6 +241,12 @@ export function createClientState(): ClientState {
         isViewerDataLoaded: true,
         viewerSaves: 0,
         viewerAlpha: undefined,
+        windowAlphas: {},
+        hiddenViewers: [],
+        editModeLayouts: { layouts: [], activeLayout: 1 },
+        editModeSaves: 0,
+        settingsButtons: {},
+        reloads: 0,
         areAurasHidden: false,
         areCooldownsHidden: false,
         spellCosts: {},

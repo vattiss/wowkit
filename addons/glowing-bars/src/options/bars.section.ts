@@ -3,21 +3,16 @@
 // until its buttons glow, so a bar in the middle of the screen shows only what is due.
 
 import type { AddonLocale } from "../locale/locale.interface";
-import { COOLDOWN_WINDOWS, STANCE_BAR_KEY, type CooldownWindow } from "@wowkit/wow";
+import { COOLDOWN_WINDOWS, STANCE_BAR_KEY } from "@wowkit/wow";
 import type { TextKey } from "../locale/texts.constants";
 import { FADED_OPACITY_CHOICES } from "../settings/settings.constants";
+import { WINDOW_TEXTS } from "./cooldown-windows.constants";
 import type { AddonSettings, AddonSettingsService } from "../settings/settings.interface";
 import type { ControlsService } from "@wowkit/ui";
 import type { ReminderControlsService } from "./reminder-controls.service";
 
 /** The bars of the game, numbered as Edit Mode numbers them. */
 const BAR_COUNT = 8;
-/** The windows of the Cooldown Manager, as Blizzard names them. */
-const WINDOW_TEXTS: { [window in CooldownWindow]: TextKey } = {
-    essential: "OPT_BAR_ESSENTIAL",
-    utility: "OPT_BAR_UTILITY",
-    trackedBuffs: "OPT_BAR_TRACKED_BUFFS",
-};
 
 export class BarsSection {
     constructor(
