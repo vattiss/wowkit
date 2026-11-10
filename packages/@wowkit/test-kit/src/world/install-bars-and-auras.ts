@@ -59,6 +59,7 @@ function installAddonBars(state: ClientState, frames: FrameRegistry): void {
 
 export function installActionBars(state: ClientState, frames: FrameRegistry): void {
     defineNamespace<typeof C_ActionBar>("C_ActionBar", {
+        GetActionText: (slot) => state.barMacros[slot]?.name,
         HasAction: (slot) => state.bars[slot] !== undefined || state.barItems[slot] !== undefined || state.barMacros[slot] !== undefined,
         GetActionTexture: (slot) => state.spells[state.bars[slot] ?? 0]?.icon ?? 0,
         // The bar does not answer: the addon then asks the spell
@@ -84,7 +85,10 @@ export function installActionBars(state: ClientState, frames: FrameRegistry): vo
         },
         strtrim: (text: string) => string.match(text, "^%s*(.-)%s*$")[0] ?? "",
         GetMacroSpell: (macro) => state.barMacros[macro as number]?.spellId,
-        GetActionText: (slot) => state.barMacros[slot]?.name,
+        GetMacroInfo: (macro) => {
+            const found = state.barMacros[macro as number];
+            return $multi(found?.name, found !== undefined ? 1 : undefined, found?.body);
+        },
         GetMacroIndexByName: (name) => {
             for (const [slot, macro] of pairs(state.barMacros)) if (macro.name === name) return slot as number;
             return 0;

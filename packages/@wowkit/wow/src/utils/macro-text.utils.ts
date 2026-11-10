@@ -1,34 +1,118 @@
-// What the text of a macro names.
+// What the text of a macro names, and which macro an action slot holds.
+import { trimText } from "@wowkit/core";
 import { attempt, attemptMulti } from "./protected-call.utils";
 import { getReadable, getReadableId, isReadable } from "./secret-value.utils";
+
+/** The commands that cast or use what they name, in the words of the game's own list of commands (SLASH_CAST1...). */
+const CAST_COMMANDS = ["CAST", "USE", "CASTSEQUENCE", "CASTRANDOM", "USERANDOM"];
+const USE_COMMANDS = ["USE", "USERANDOM"];
+/** These name several things separated by commas; for /cast and /use a comma can be part of a name. */
+const LIST_COMMANDS = ["CASTSEQUENCE", "CASTRANDOM", "USERANDOM"];
+/** Macros are numbered past the account's, for those of the character: no number goes higher. */
+const LAST_MACRO_NUMBER = 200;
+
+/** What a line of a macro casts. */
+interface CastLine {
+    text: string;
+    isList: boolean;
+    isUse: boolean;
+}
+
+/** Is this slash command one of these, in the English every client understands or in the client's own language? */
+function isCommandOf(command: string, names: string[]): boolean {
+    const word = string.lower(command);
+    const globals = _G as unknown as { [name: string]: string | undefined };
+    return names.some((name) => {
+        if (word === `/${string.lower(name)}`) return true;
+        for (let index = 1; globals[`SLASH_${name}${index}`] !== undefined; index++) {
+            if (string.lower(globals[`SLASH_${name}${index}`]!) === word) return true;
+        }
+        return false;
+    });
+}
+
+/** Undefined for a line that casts nothing: /target, /say and the like. */
+function readCastLine(line: string): CastLine | undefined {
+    const [shown] = string.match(line, "^%s*#showtooltip%s+(.+)$");
+    const [shownShort] = string.match(line, "^%s*#show%s+(.+)$");
+    if (shown !== undefined || shownShort !== undefined) return { text: shown ?? shownShort!, isList: false, isUse: false };
+    const [command, text] = string.match(line, "^%s*(/%S+)%s+(.+)$");
+    if (command === undefined || text === undefined || !isCommandOf(command, CAST_COMMANDS)) return undefined;
+    return { text, isList: isCommandOf(command, LIST_COMMANDS), isUse: isCommandOf(command, USE_COMMANDS) };
+}
+
+function listCastLines(body: string): CastLine[] {
+    const lines: CastLine[] = [];
+    for (const [line] of string.gmatch(body, "[^\r\n]+")) {
+        const cast = readCastLine(line!);
+        if (cast !== undefined) lines.push(cast);
+    }
+    return lines;
+}
+
+/** A name without its !, and without a (Rank 2): a rank has a number, the (Bear) of Mangle (Bear) is part of the name. */
+function trimToken(raw: string): string {
+    const [unforced] = string.gsub(strtrim(raw), "^!", "");
+    const [unranked] = string.gsub(unforced, "%s*%([^)]*%d[^)]*%)%s*$", "");
+    return unranked;
+}
+
+function listLineTokens(cast: CastLine): string[] {
+    const tokens: string[] = [];
+    const [cleaned] = string.gsub(cast.text, "%b[]", " ");
+    for (const [clause] of string.gmatch(cleaned, "[^;]+")) {
+        const [named] = string.gsub(strtrim(clause!), "^reset=%S+%s*", "");
+        if (!cast.isList) tokens.push(trimToken(named));
+        else for (const [part] of string.gmatch(named, "[^,]+")) tokens.push(trimToken(part!));
+    }
+    return tokens.filter((token) => token !== "");
+}
 
 /** The spells and items named on the cast lines of a macro (#showtooltip, /cast ...), without conditions and ranks. */
 export function listMacroTokens(body: string): string[] {
     const tokens: string[] = [];
-    for (const [line] of string.gmatch(body, "[^\r\n]+")) {
-        let [command] = string.match(line!, "^%s*#showtooltip%s+(.+)$");
-        if (command === undefined) [command] = string.match(line!, "^%s*/%S+%s+(.+)$");
-        if (command === undefined) continue;
-        // Drop [conditions], then read each "Spell, Other Spell; Third"
-        const [cleaned] = string.gsub(command, "%b[]", " ");
-        for (const [rawToken] of string.gmatch(cleaned, "[^,;]+")) {
-            let [token] = string.gsub(strtrim(rawToken!), "^!", "");
-            [token] = string.gsub(token, "%s*%([^)]*%)%s*$", "");
-            if (token !== "") tokens.push(token);
-        }
-    }
+    for (const cast of listCastLines(body)) tokens.push(...listLineTokens(cast));
     return tokens;
 }
 
+/** Do several macros have this name? Then it does not tell which one is meant. */
+function isMacroNameShared(name: string): boolean {
+    let count = 0;
+    for (let index = 1; index <= LAST_MACRO_NUMBER; index++) {
+        const [didRead, other] = attemptMulti(() => GetMacroInfo(index));
+        if (didRead && getReadable(other) === name) count += 1;
+        if (count > 1) return true;
+    }
+    return false;
+}
+
 /**
- * The macro on an action slot, by its name. Of a macro that shows an item the game gives a number that is not the macro's,
- * so its text cannot be read by it.
+ * The macro on an action slot, by its name; undefined when the name cannot tell: it is blank (players keep the text off the
+ * button that way) or several macros have it.
  */
 export function findMacroOfSlot(slot: number): number | undefined {
-    const name = getReadable(attempt(GetActionText, slot));
-    if (name === undefined || name === "") return undefined;
+    const name = getReadable(attempt(C_ActionBar.GetActionText, slot));
+    if (name === undefined || strtrim(name) === "" || isMacroNameShared(name)) return undefined;
     const index = getReadable(attempt(GetMacroIndexByName, name));
     return index !== undefined && index > 0 ? index : undefined;
+}
+
+/** The macro to read for what a slot gives: the game's number is that of the macro, except when the macro shows an item. */
+export function findMacroOfAction(slot: number, subType: unknown, actionId: unknown): unknown {
+    return isReadable(subType) && subType === "item" ? findMacroOfSlot(slot) : actionId;
+}
+
+/** The macro on a slot that shows a spell now: the game only gives that spell, the macro's other lines are read by its name. */
+export function findSpellMacroOfSlot(slot: number): number | undefined {
+    const [didRead, kind, , subType] = attemptMulti(() => GetActionInfo(slot));
+    return didRead && getReadable(kind) === "macro" && getReadable(subType) === "spell" ? findMacroOfSlot(slot) : undefined;
+}
+
+/** The form button names are matched in: lowercase, a trailing "(...)" removed, trimmed; undefined when nothing is left. */
+export function buildButtonKey(name: string): string | undefined {
+    const [stripped] = string.gsub(name, "%s*%([^)]*%)%s*$", "");
+    const key = trimText(string.lower(stripped));
+    return key !== "" ? key : undefined;
 }
 
 /** What a macro names, as far as the game can tell. */
@@ -43,22 +127,30 @@ export interface MacroSpells {
     handSlot?: number;
 }
 
+/** A number is an inventory slot (/use 17), two are a bag and its slot (/use 0 1): neither is a spell. */
+function isSlotToken(token: string): boolean {
+    return tonumber(token) !== undefined || string.match(token, "^%d+%s+%d+$")[0] !== undefined;
+}
+
 /** The spells of the cast lines of a macro (#showtooltip, /cast ...), and the items of its /use lines. */
 export function readMacroSpells(macro: number | string): MacroSpells {
     const found: MacroSpells = { names: [], spellIds: [], hasUnknownUse: false };
     const body = attempt(GetMacroBody, macro);
     if (body === undefined || !isReadable(body)) return found;
-    const isUsing = string.find(string.lower(body), "/use", 1, true)[0] !== undefined;
-    found.handSlot = findHandSlot(body);
-    // A number is an inventory slot (/use 17), not a spell
-    for (const token of listMacroTokens(body)) if (tonumber(token) === undefined) readToken(token, isUsing, found);
+    const lines = listCastLines(body);
+    const isUsing = lines.some((cast) => cast.isUse);
+    found.handSlot = findHandSlot(lines);
+    for (const token of listMacroTokens(body)) if (!isSlotToken(token)) readToken(token, isUsing, found);
     return found;
 }
 
-function findHandSlot(body: string): number | undefined {
-    for (const [line] of string.gmatch(body, "[^\r\n]+")) {
-        const [digits] = string.match(string.lower(line!), "^%s*/use%s+(1[67])%s*$");
-        if (digits !== undefined) return tonumber(digits);
+/** A /use line that names only weapon 16 or 17, whatever its conditions. */
+function findHandSlot(lines: CastLine[]): number | undefined {
+    for (const cast of lines) {
+        if (!cast.isUse) continue;
+        const [cleaned] = string.gsub(cast.text, "%b[]", " ");
+        const slot = tonumber(strtrim(cleaned));
+        if (slot === 16 || slot === 17) return slot;
     }
     return undefined;
 }

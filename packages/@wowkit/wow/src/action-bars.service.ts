@@ -5,11 +5,11 @@
 // client when many slots updated after a quest turn-in), and map the bars a few buttons per frame.
 // The client's own bars are mapped (Blizzard's, and the gamepad bars Forever draws in its gamepad mode), and Bartender4's,
 // Dominos's and EllesmereUI's: their buttons keep their action slot where Blizzard's do.
-import { type EventBus, OnGameEvent, type OnFirstLogin, trimText } from "@wowkit/core";
+import { type EventBus, OnGameEvent, type OnFirstLogin } from "@wowkit/core";
 import type { ButtonRegistryService, ButtonShape } from "./button-registry.service";
 import type { ClockService } from "./clock.service";
 import { findButtonItem, findItemUseSpell, getItemButtonKey, readTextureKey } from "./utils/item-button.utils";
-import { findMacroOfSlot, readMacroSpells } from "./utils/macro-text.utils";
+import { buildButtonKey, findMacroOfAction, findSpellMacroOfSlot, readMacroSpells } from "./utils/macro-text.utils";
 import { attempt, attemptMulti } from "./utils/protected-call.utils";
 import { getReadableId, isReadable } from "./utils/secret-value.utils";
 import type { SpellsService } from "./spells.service";
@@ -158,7 +158,7 @@ export class ActionBarsService implements OnFirstLogin {
         const name = this.getReadableSpellName(id) ?? this.getReadableSpellName(resolved);
         if (name !== undefined) {
             take(this.buttonsByName.get(name));
-            const key = this.buildButtonKey(name);
+            const key = buildButtonKey(name);
             if (key !== undefined) take(this.buttonsByNameKey.get(key));
         }
         // The icon is the last resort: a button found by the spell or its name is the one (the ranks of a poison share
@@ -225,7 +225,7 @@ export class ActionBarsService implements OnFirstLogin {
 
     private addSpellName(name: string, button: ActionButton): void {
         this.push(this.buttonsByName, name, button);
-        const key = this.buildButtonKey(name);
+        const key = buildButtonKey(name);
         if (key !== undefined) this.push(this.buttonsByNameKey, key, button);
     }
 
@@ -248,6 +248,15 @@ export class ActionBarsService implements OnFirstLogin {
         if (icon) add(attempt(() => icon.GetTexture()));
     }
 
+    /** Reads the macro of the button, if it has one; the spell the macro shows now, when the game gives it by the macro. */
+    private addButtonMacro(button: ActionButton, slot: number | undefined, kind: string | undefined, id: unknown): number | undefined {
+        const shownMacro = kind === "spell" && slot !== undefined ? findSpellMacroOfSlot(slot) : undefined;
+        if (shownMacro !== undefined) this.addMacroSpells(shownMacro, button);
+        if (kind !== "macro" || id === undefined) return undefined;
+        this.addMacroSpells(id as number | string, button);
+        return getReadableId(attempt(GetMacroSpell, id as number | string));
+    }
+
     /** The spells and the items a macro on the bars names. */
     private addMacroSpells(macro: number | string, button: ActionButton): void {
         const found = readMacroSpells(macro);
@@ -263,12 +272,8 @@ export class ActionBarsService implements OnFirstLogin {
     private addButton(button: ActionButton): void {
         const slot = this.getActionSlot(button);
         let [kind, id] = this.getButtonAction(button, slot);
-        if (kind === "macro" && id !== undefined) {
-            const macro = id as number | string;
-            const macroSpell = getReadableId(attempt(GetMacroSpell, macro));
-            if (macroSpell !== undefined) [kind, id] = ["spell", macroSpell];
-            this.addMacroSpells(macro, button);
-        }
+        const macroSpell = this.addButtonMacro(button, slot, kind, id);
+        if (macroSpell !== undefined) [kind, id] = ["spell", macroSpell];
         if (slot !== undefined) this.slotByButton.set(button, slot);
         const itemId = findButtonItem(this, button);
         if (itemId !== undefined) this.push(this.buttonsBySpell, getItemButtonKey(itemId), button);
@@ -372,7 +377,7 @@ export class ActionBarsService implements OnFirstLogin {
 
     /** A macro that shows a spell: the game then gives the ID of that spell, not of the macro, whose text cannot be read by it. */
     private readMacroAction(actionId: unknown, subType: unknown, slot: number): LuaMultiReturn<[kind: string | undefined, id: unknown]> {
-        if (!this.isToken(subType, "spell")) return $multi("macro", findMacroOfSlot(slot) ?? actionId);
+        if (!this.isToken(subType, "spell")) return $multi("macro", findMacroOfAction(slot, subType, actionId));
         const spellId = getReadableId(actionId);
         const name = this.getReadableSpellName(spellId);
         if (name !== undefined) this.macroSpellNames.set(name, true);
@@ -391,15 +396,5 @@ export class ActionBarsService implements OnFirstLogin {
         if (slot === undefined || !attempt(C_ActionBar.HasAction, slot) === true) return $multi(attrType, undefined);
         const [kind, id] = this.getSlotAction(slot);
         return $multi(kind ?? attrType, id);
-    }
-
-    /**
-     * The form button names are matched in: lowercase, only a trailing "(...)" removed, trimmed; undefined when nothing
-     * is left. Names from macros keep inner parentheses.
-     */
-    private buildButtonKey(name: string): string | undefined {
-        const [stripped] = string.gsub(name, "%s*%([^)]*%)%s*$", "");
-        const key = trimText(string.lower(stripped));
-        return key !== "" ? key : undefined;
     }
 }

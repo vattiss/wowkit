@@ -30,6 +30,7 @@ declare function GetActionInfo(
 ): LuaMultiReturn<[actionType: string | undefined, id: number | undefined, subType: string | undefined, spellId: number | undefined]>;
 declare function GetMacroSpell(macro: number | string): number | undefined;
 declare function GetMacroBody(macro: number | string): string | undefined;
+declare function GetMacroInfo(macro: number | string): LuaMultiReturn<[name: string | undefined, icon: unknown, body: string | undefined]>;
 declare function GetActionText(slot: number): string | undefined;
 /** The next frame of the game after this one; the first with none given. */
 declare function EnumerateFrames(frame?: Frame): Frame | undefined;
