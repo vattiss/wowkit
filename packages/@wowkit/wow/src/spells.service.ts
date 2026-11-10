@@ -179,6 +179,12 @@ export class SpellsService implements OnFirstLogin {
         if (id !== undefined && name !== undefined && name !== "") this.book.noteLearned(id, name);
     }
 
+    /** Every learned rank of the spell, from the spellbook index; empty when it is not in the spellbook (or the index is not built yet). */
+    listRanks(spellId: number): number[] {
+        const name = this.getSpellName(spellId);
+        return name !== undefined && name !== "" ? this.book.getRanksByName(name) : [];
+    }
+
     /** The highest learned rank of a spell (by name, from the spellbook index). */
     getHighestRank(spellId: number): number | undefined {
         const name = this.getSpellName(spellId);

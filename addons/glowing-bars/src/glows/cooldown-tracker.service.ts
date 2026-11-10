@@ -1,7 +1,9 @@
 // Spell cooldowns. The client often hides them in combat, so a cooldown read while it was readable is remembered, and a
 // successful cast starts the spell's base cooldown, which runs out on its own. A few cooldowns start with the cast of another
 // spell (Swift Judgement with the next Judgement): until then the spell is not ready, whatever the client says. While the
-// client hides them, the spell's icon in the Cooldown Manager says first.
+// client hides them, the spell's icon in the Cooldown Manager says first. The ranks of a spell in the spellbook share one
+// cooldown: the cast of Fade's top rank starts the cooldown asked about by its first. An item's spell of the same name is
+// not in the spellbook, and keeps its own.
 import { OnEvent } from "@wowkit/core";
 import type { ClockService, CooldownsService, CooldownViewerService, PlayerSpellCast, SpellsService } from "@wowkit/wow";
 import { COOLDOWN_STARTED_BY } from "./glow-cues.constants";
@@ -36,7 +38,7 @@ export class CooldownTrackerService {
 
     /** Seconds left on the spell's own cooldown (the global cooldown ignored); 0 when it is ready or nobody knows. */
     getRemaining(spellId: number): number {
-        const id = this.spells.resolveOrSame(spellId);
+        const id = this.findListedId(spellId);
         if (this.waiting.has(id)) return WAITING;
         const read = this.cooldowns.readCooldown(id);
         const now = this.clock.getCurrentTime();
@@ -77,7 +79,8 @@ export class CooldownTrackerService {
     @OnEvent("player.spell-cast")
     noteSpellCast(cast: PlayerSpellCast): void {
         if (cast.spellId === undefined) return;
-        const id = this.spells.resolveOrSame(cast.spellId);
+        // The ID of what was cast, not one found by its name: an item's spell of the same name stays apart
+        const id = this.findRanksId(cast.spellId);
         const now = this.clock.getCurrentTime();
         const started: number[] = [];
         for (const waitingId of this.waiting) if (this.isStartedBy(waitingId, id)) started.push(waitingId);
@@ -86,7 +89,7 @@ export class CooldownTrackerService {
             this.startCooldown(waitingId, now);
         }
         this.castAt.set(id, now);
-        if (COOLDOWN_STARTED_BY.some(([spellId]) => this.spells.resolveOrSame(spellId) === id)) {
+        if (COOLDOWN_STARTED_BY.some(([spellId]) => this.findListedId(spellId) === id)) {
             this.waiting.add(id);
             this.endsAt.delete(id);
         } else {
@@ -99,12 +102,25 @@ export class CooldownTrackerService {
         if (seconds > GLOBAL_COOLDOWN) this.endsAt.set(id, now + seconds);
     }
 
+    /** The ID a cooldown is kept under: the lowest of the spellbook ranks the spell is one of, else its own. */
+    private findRanksId(spellId: number): number {
+        const ranks = this.spells.listRanks(spellId);
+        if (!ranks.includes(spellId)) return spellId;
+        let lowest = spellId;
+        for (const rank of ranks) if (rank < lowest) lowest = rank;
+        return lowest;
+    }
+
+    /** The ID a spell of a list is kept under. */
+    private findListedId(spellId: number): number {
+        return this.findRanksId(this.spells.resolveOrSame(spellId));
+    }
+
     /** Does the cast of `castId` start the cooldown of `waitingId`? */
     private isStartedBy(waitingId: number, castId: number): boolean {
         return COOLDOWN_STARTED_BY.some(
             ([spellId, startedBy]) =>
-                this.spells.resolveOrSame(spellId) === waitingId &&
-                startedBy.some((starter) => this.spells.resolveOrSame(starter) === castId),
+                this.findListedId(spellId) === waitingId && startedBy.some((starter) => this.findListedId(starter) === castId),
         );
     }
 }
