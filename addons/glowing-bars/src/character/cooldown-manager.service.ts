@@ -76,12 +76,16 @@ export class CooldownManagerService implements OnLogin {
         return name !== undefined ? this.viewer.findIconsOf(name, windows) : [];
     }
 
-    /** Once for each character: the manager a player or another addon already has on stays as it is. */
+    /**
+     * Once for each character. A manager the player or another addon already has on keeps its windows. The game can have it on
+     * for a character nobody has played yet, so one the addon has never seen still gets what it needs put on display.
+     */
     private chooseDefaults(): void {
         if (this.settings.get("isCooldownManagerSetUp")) return;
         this.settings.change("isCooldownManagerSetUp", true);
         if (!this.viewer.isRunByOtherAddon() && !this.viewer.isTurnedOn()) return;
-        this.settings.change("cooldownManagerAccess", "readOnly");
+        const isNewCharacter = !this.settings.get("isWelcomeDone") && !this.viewer.isRunByOtherAddon();
+        this.settings.change("cooldownManagerAccess", isNewCharacter ? "full" : "readOnly");
         for (const window of COOLDOWN_WINDOWS) this.settings.change(WINDOW_ICONS_SETTINGS[window], "show");
     }
 
