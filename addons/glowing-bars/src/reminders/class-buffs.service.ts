@@ -7,16 +7,24 @@ import type { ClassBuff } from "./class-buff.interface";
 import { BUFF_LISTS, TALENT_BUFFS } from "./class-buffs.constants";
 
 export class ClassBuffsService {
+    private ownBuffs: ClassBuff[] | undefined;
+
     constructor(
         private readonly player: PlayerService,
         private readonly spells: SpellsService,
         private readonly settings: AddonSettingsService,
     ) {}
 
-    /** The buffs of the player's class, in list order. */
+    /** The buffs of the player's class and race, in list order. Made once: it is asked for at every tick. */
     getClassBuffs(): ClassBuff[] {
+        if (this.ownBuffs !== undefined) return this.ownBuffs;
         const token = this.player.getClassToken();
-        return (token !== undefined ? BUFF_LISTS[token] : undefined) ?? [];
+        const race = this.player.getRaceToken();
+        const buffs = ((token !== undefined ? BUFF_LISTS[token] : undefined) ?? []).filter(
+            (classBuff) => classBuff.race === undefined || classBuff.race === race,
+        );
+        if (token !== undefined && race !== undefined) this.ownBuffs = buffs;
+        return buffs;
     }
 
     /**

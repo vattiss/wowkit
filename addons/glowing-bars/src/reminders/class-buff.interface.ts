@@ -22,6 +22,8 @@ export interface ClassBuff {
     last?: number;
     /** The reminder comes this many seconds before the buff runs out (a short buff the player keeps up in a fight). */
     lead?: number;
+    /** Only this race has it, in the game's own word for the race (Scourge is the Undead). */
+    race?: string;
     /** Only asked for while swimming. */
     isSwimmingOnly?: boolean;
     /** Off by default: a buff only one role wants. */

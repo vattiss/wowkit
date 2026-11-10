@@ -241,6 +241,8 @@ export const Priest = {
     DesperatePrayer: 13908,
     ElunesGrace: 2651,
     Starshards: 10797,
+    TouchOfWeakness: 2652,
+    Shadowguard: 18137,
     // Defense and the rest
     PsychicScream: 8122,
     Fade: 586,

@@ -124,6 +124,12 @@ export class PlayerService {
         return nodes;
     }
 
+    /** The game's own word for the race, the same in every language (Scourge is the Undead). */
+    getRaceToken(): string | undefined {
+        const [, raceFile] = UnitRace("player");
+        return raceFile !== undefined && isReadable(raceFile) ? raceFile : undefined;
+    }
+
     getClassToken(): string | undefined {
         const [, classFile] = UnitClass("player");
         if (classFile !== undefined && isReadable(classFile)) return string.upper(classFile);

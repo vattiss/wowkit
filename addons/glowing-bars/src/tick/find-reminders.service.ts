@@ -111,7 +111,9 @@ export class FindRemindersService {
         const missingBuffs = isMissingBuffEnabled ? this.buffReminder.findMissingBuffs() : this.noMissingBuffs;
         found.partySuggestions = isMissingBuffEnabled ? this.partyBuffs.findPartyBuffSuggestions() : this.noReminders.partySuggestions;
         found.buffsToCast = this.findBuffsToCast(missingBuffs.glow, found.partySuggestions);
-        if (isMissingBuffEnabled) for (const id of this.addedReminders.findMissingBuffs()) found.buffsToCast.push(id);
+        // A buff of the list can also have been added by hand
+        if (isMissingBuffEnabled)
+            for (const id of this.addedReminders.findMissingBuffs()) if (!found.buffsToCast.includes(id)) found.buffsToCast.push(id);
         // A buff on its own cooldown cannot be cast again yet (Shield Block, its blocks used up before its cooldown is over)
         if (found.buffsToCast.length > 0) found.buffsToCast = found.buffsToCast.filter((id) => !this.glowCues.isOnCooldown(id));
         found.buffsNotOnBars = missingBuffs.notOnBars;

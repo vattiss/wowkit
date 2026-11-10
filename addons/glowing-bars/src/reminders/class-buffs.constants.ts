@@ -108,6 +108,8 @@ export const BUFF_LISTS: { [classToken: string]: ClassBuff[] | undefined } = {
         createClassBuff("DivineSpirit", Pr.DivineSpirit, { last: 3600, party: { groupIds: Pr.PrayerOfSpirit } }),
         createClassBuff("ShadowProtection", Pr.ShadowProtection, { last: 600, party: { groupIds: Pr.PrayerOfShadowProtection } }),
         createClassBuff("Shadowform", Pr.Shadowform, { last: 1800 }),
+        createClassBuff("TouchOfWeakness", Pr.TouchOfWeakness, { last: 600, race: "Scourge" }, false),
+        createClassBuff("Shadowguard", Pr.Shadowguard, { last: 600, race: "Troll" }, false),
     ],
     SHAMAN: [
         createClassBuff("LightningShield", Sh.LightningShield, { categoryMembers: shamanShields, last: 600 }),
