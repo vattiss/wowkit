@@ -123,6 +123,13 @@ function installCooldownViewers(state: ClientState): void {
             GetDataProvider() {
                 return provider;
             },
+            IsShown: () => state.isViewerSettingsShown,
+            Show: () => {
+                state.isViewerSettingsShown = true;
+            },
+            Hide: () => {
+                state.isViewerSettingsShown = false;
+            },
         },
         EssentialCooldownViewer: createViewer("EssentialCooldownViewer", "none"),
         UtilityCooldownViewer: createViewer("UtilityCooldownViewer", "spells"),

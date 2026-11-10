@@ -3,6 +3,9 @@ import { attempt } from "@wowkit/wow";
 import type { MessagesService } from "./messages.service";
 import { CONTROL_LEFT, type OptionRow, type OptionsTab } from "./options-tab";
 
+/** The row of a wide button: more room above it than below, to stand apart from the rows above. */
+const WIDE_BUTTON_ROW_HEIGHT = 64;
+
 export class WidgetsService {
     constructor(
         private readonly messages: MessagesService,
@@ -13,6 +16,18 @@ export class WidgetsService {
     /** A row with a label and a Copy button; the button puts the URL in the chat box, highlighted, for Ctrl+C. */
     addLinkButton(tab: OptionsTab, label: string, url: string): void {
         this.addButton(tab, label, this.texts.copy, () => this.copyText(url), url);
+    }
+
+    /** A wide button on a row of its own, in the middle of the tab. */
+    addWideButton(tab: OptionsTab, text: string, onClick: () => void): OptionRow {
+        return tab.addCustomRow(WIDE_BUTTON_ROW_HEIGHT, (row) => {
+            const button = CreateFrame("Button", undefined, row, "UIPanelButtonTemplate");
+            button.SetText(text);
+            button.SetSize(((button.GetTextWidth() as number | undefined) ?? 200) + 40, 26);
+            button.SetPoint("BOTTOM", row, "BOTTOM", 0, 8);
+            button.SetScript("OnClick", () => onClick());
+            return undefined;
+        });
     }
 
     /** A row with a label and a button that does something. */

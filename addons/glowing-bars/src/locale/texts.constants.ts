@@ -61,6 +61,7 @@ export const TEXTS = {
     TIP_MANAGER_ICONS:
         "Whether this window shows on your screen. Glowing Bars can read it either way. EllesmereUI's Cooldown Manager handles this itself.",
     OPT_MANAGER_ICONS_OTHER: "%s (EllesmereUI)",
+    BTN_OPEN_MANAGER: "Open Blizzard's Cooldown Manager",
     OPT_MANAGER_REPAIR: "Repair Hidden Windows",
     BTN_REPAIR: "Repair",
     TIP_MANAGER_REPAIR:

@@ -59,16 +59,21 @@ export class CooldownManagerSection {
             icons.enableWhen(() => !isRunByOther && this.settings.get("cooldownManagerAccess") !== "off");
         }
         // EllesmereUI's module sets the windows to show by itself
-        if (isRunByOther) return;
+        if (!isRunByOther) {
+            this.widgets
+                .addButton(
+                    tab,
+                    this.locale.getText("OPT_MANAGER_REPAIR"),
+                    this.locale.getText("BTN_REPAIR"),
+                    () => this.repairWindows(),
+                    this.locale.getText("TIP_MANAGER_REPAIR"),
+                )
+                .showWhen(() => hasHiddenWindows());
+        }
+        // At the end of the tab; the settings window stays open beside it
         this.widgets
-            .addButton(
-                tab,
-                this.locale.getText("OPT_MANAGER_REPAIR"),
-                this.locale.getText("BTN_REPAIR"),
-                () => this.repairWindows(),
-                this.locale.getText("TIP_MANAGER_REPAIR"),
-            )
-            .showWhen(() => hasHiddenWindows());
+            .addWideButton(tab, this.locale.getText("BTN_OPEN_MANAGER"), () => this.viewer.openSettingsWindow())
+            .showWhen(() => this.viewer.hasSettingsWindow());
     }
 
     /** The choice of the Welcome tab: how far the addon may go, the windows, and the reload it all needs. */

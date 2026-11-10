@@ -148,6 +148,18 @@ describe("a fight that starts", () => {
     });
 });
 
+describe("the button of Blizzard's Cooldown Manager", () => {
+    it("opens Blizzard's window, and the settings stay open", () => {
+        const world = createPlayer();
+        world.openOptions();
+        const settings = world.frames.find((frame) => frame.name === "GlowingBarsOptions")!;
+        const button = world.frames.find((frame) => frame.frameType === "Button" && frame.text === "Open Blizzard's Cooldown Manager")!;
+        button.scripts.OnClick!(button);
+        expect(world.state.isViewerSettingsShown).toBe(true);
+        expect(settings.isShown).toBe(true);
+    });
+});
+
 describe("the Help tab", () => {
     it("has the link to the issues", () => {
         const world = createPlayer();

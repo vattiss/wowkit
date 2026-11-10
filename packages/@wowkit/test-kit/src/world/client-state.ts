@@ -121,6 +121,8 @@ export interface ClientState {
     viewerLayout: number;
     /** Have the saved layouts of the Cooldown Manager loaded? */
     isViewerDataLoaded: boolean;
+    /** Is Blizzard's Cooldown Manager settings window open? */
+    isViewerSettingsShown: boolean;
     /** How often the layouts of the Cooldown Manager were saved. */
     viewerSaves: number;
     /** The last opacity given to the windows of the Cooldown Manager. */
@@ -237,6 +239,7 @@ export function createClientState(): ClientState {
         layoutData: undefined,
         viewerLayout: 1,
         isViewerDataLoaded: true,
+        isViewerSettingsShown: false,
         viewerSaves: 0,
         viewerAlpha: undefined,
         windowAlphas: {},

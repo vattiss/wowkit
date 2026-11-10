@@ -82,6 +82,16 @@ export class CooldownViewerService {
         return isLoaded === true;
     }
 
+    /** Is Blizzard's Cooldown Manager settings window in this client? */
+    hasSettingsWindow(): boolean {
+        return (_G as unknown as { CooldownViewerSettings?: Frame }).CooldownViewerSettings !== undefined;
+    }
+
+    /** Opens Blizzard's Cooldown Manager settings window. Only shows it, as EllesmereUI does: anything more from addon code (picking a tab) taints it. */
+    openSettingsWindow(): void {
+        (_G as unknown as { CooldownViewerSettings?: Frame }).CooldownViewerSettings?.Show();
+    }
+
     isTurnedOn(): boolean {
         return attempt(C_CVar.GetCVarBool, ENABLED_CVAR) === true;
     }
