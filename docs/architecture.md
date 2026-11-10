@@ -13,7 +13,7 @@ spell IDs that Forever remaps, `multiple, return, values`. All of that stays ins
 turns it into plain answers in the addon's own words (`isInCombat()`, `isLearned(spell)`,
 `getItemCount(item)`). The reminder logic in `addons/glowing-bars/src/reminders/` never sees a Blizzard function, so it reads
 like plain code. A few more places may call the game because that is their job: `packages/@wowkit/core/src/` (game events and timers for
-the decorators), `packages/@wowkit/ui/src/` (the Settings panel and the chat) and the `options/` folders of the addons (their
+the decorators), `packages/@wowkit/ui/src/` (the settings window and the chat) and the `options/` folders of the addons (their
 own page).
 
 **2. Everything is a service, made once, by hand.**
@@ -125,14 +125,14 @@ flowchart TB
         subgraph features["features (glowing-bars)"]
             tick["tick/<br/>a tick every 0.5 s in combat, 1 s out of it: find what is due,<br/>show it; when to look sooner"]
             character["character/<br/>weapons, auras and casts, the Cooldown Manager,<br/>party roster, blocked actions"]
-            options["options/<br/>the Settings panel pages"]
+            options["options/<br/>the settings window's tabs"]
             reminders["reminders/<br/>missing buffs, weapon buff,<br/>party buffs, old ranks, reagents"]
             glows["glows/<br/>ready cooldowns and procs,<br/>the cooldown tracker"]
         end
 
 
         subgraph toolkit["packages (could serve any Forever addon)"]
-            ui["packages/@wowkit/ui/src/<br/>settings, texts, chat lines, sounds,<br/>the Settings panel pages"]
+            ui["packages/@wowkit/ui/src/<br/>settings, texts, chat lines, sounds,<br/>the settings window"]
             wow["packages/@wowkit/wow/src/<br/>the only code that calls the game<br/>spells, auras, action bars, the Cooldown Manager,<br/>player, party, bags, glows, notices, saved variables"]
             wowdata["packages/@wowkit/wow-data/src/<br/>spell and item IDs<br/>by category"]
             core["packages/@wowkit/core/src/<br/>Addon, lifecycle hooks, EventBus,<br/>@OnGameEvent, @Interval"]
@@ -226,8 +226,8 @@ flowchart TB
             shared["SettingsService, LocaleService,<br/>MessagesService"]
         end
 
-        subgraph SCREEN["The Settings page"]
-            screen["Options pages, ControlsService (control factory),<br/>WidgetsService, AboutSection"]
+        subgraph SCREEN["The settings window"]
+            screen["OptionsWindow and its tabs, ControlsService (control factory),<br/>WidgetsService, AboutSection"]
         end
 
         game[("WoW client")]
@@ -380,7 +380,9 @@ flowchart LR
     class PANEL panel
 ```
 
-**How much the addon may do** is the player's choice, per character (the "Cooldown Manager" section of the Settings page):
+**How much the addon may do** is the player's choice, per character (the Cooldown Manager tab of the settings window, and the
+same three as radio choices on its Welcome tab). A choice counts at once; with `full` the buffs are moved a few seconds later,
+and Blizzard applies them at the next load of the interface, so both places have a Reload button:
 
 | Setting | Value | What happens |
 |---|---|---|
@@ -552,8 +554,13 @@ change its record here.
 - **One addon, not several.** Buff, rank and reagent reminders were three addons that shared infrastructure; players
   wanted one thing that lights up the action bars, and the glows (buffs, old ranks, ready cooldowns, procs) are one idea.
   The old ones are kept in the history, at their last tags. The shared parts stay packages (`ui` for the settings and the
-  Settings page, `wow` for the game's door).
-- **One page per addon, and no debug report.** The addons are small; a landing page with sub pages only added clicks. The
+  settings window, `wow` for the game's door).
+- **The settings in a window of the addon's own, not in the game's Settings panel.** That panel's rows are shared by all its
+  pages, so rows that drew the addon's settings carried its taint to the game's action bar settings, and the game then refused
+  to lay out the bars in a fight. The panel keeps a small page with a button to the window. Like EllesmereUI's windows, the
+  addon's don't open in a fight and close when one starts: a fight is no time to change settings, and an open window holds
+  the gamepad's buttons.
+- **No debug report.** The addons are small; a landing page with sub pages only added clicks. The
   debug report was built to find out what the client answers while the first addon was written, and was never needed since.
 - **State belongs to an object, not to a module.** A package that keeps its state in module variables cannot be tested
   (every test shares it), so the event frame belongs to an `Addon`, and a package reads the game's API when a service needs it,
@@ -573,4 +580,4 @@ change its record here.
 - **Other places to glow arrive through seams, not imports.** The bar and glow code stays about buttons;
   `CooldownManagerService` hands it the icons. Another target would be one more function.
 $1 `Addon`, the events and timers, the lifecycle hooks and the text helpers. Anything that talks
-  to the game's API belongs in `@wowkit/wow`, and anything for the Settings panel in `@wowkit/ui`.
+  to the game's API belongs in `@wowkit/wow`, and anything for the settings window in `@wowkit/ui`.

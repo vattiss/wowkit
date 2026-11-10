@@ -44,7 +44,7 @@ Your Rotation.
 - The glow runs around the button; in the table's Animation column, for each type or spell, it can be a clean line
   running around it instead (Blizzard's art of its rotation helper), breathe (stand still, as Blizzard's glow or its soft frame of a stealable buff,
   slowly fading out and in) or stand still, fading in and out only as it comes and goes. A round button cannot have a
-  glow running around it: there circling breathes, or stands still, as the Settings page says.
+  glow running around it: there circling breathes, or stands still, as the General tab of the settings says.
 - Each of the eight action bars can be switched off, for example to have the glow only on a big bar of cooldowns next to
   your character. Each of them can also be faded until its buttons glow (50% by default), so such a bar shows only
   what is due.
@@ -59,20 +59,22 @@ stock can also be Alert in town, the low reagents' default: the glow anywhere, t
 buffs blue, weapon buffs orange, ready cooldowns white, procs red, old ranks and low reagents yellow (and a quieter glow
 than the others), low stock a quieter red. By default only the old ranks, the reagents and the low stock show a message; the buff messages (including the ones that name a
 buff on no bar and the party members who miss one) are there to switch on. They are set in a table, and every spell of your class can have a look of its own in the same table.
-It opens with `/gb` or from the Settings page, in a Basic view with the main columns (the Advanced button at the top shows them all), and shows only the types your character has spells of. The Below column appears only when a row has a limit to set. Its Enabled column
+It opens with `/gb` (or `/gb table`, or the Open Table button of the settings), in a Basic view with the main columns (the Advanced button at the top shows them all), and shows only the types your character has spells of. The Below column appears only when a row has a limit to set. Its Enabled column
 switches a whole type or a single spell on and off. There you can also fix the spell ID of a spell of the lists, and add
 spells of your own by their ID, as any type but an old rank (those are found for every spell), a seal of Forever too; a type the game says is
-wrong for the spell is refused or put right. To find a spell's ID, switch on the spell IDs in the tooltips on the Settings
-page: every spell tooltip then shows its ID, and an elixir's, potion's, food's or drink's the spell it casts. Added as a missing buff, such an item glows only on its own button, under its own name in the table, and not when none is left; a food or drink stops glowing once you have its Well Fed buff. Like the other
+wrong for the spell is refused or put right. To find a spell's ID, switch on the spell IDs in the tooltips on the General
+tab of the settings: every spell tooltip then shows its ID, and an elixir's, potion's, food's or drink's the spell it casts. Added as a missing buff, such an item glows only on its own button, under its own name in the table, and not when none is left; a food or drink stops glowing once you have its Well Fed buff. Like the other
 settings, the looks are kept per character.
 
 **Custom sounds**: make a folder in `Interface\AddOns`, next to the addon's folder (the name `GlowingBars_Sounds` is filled in for you), and put your files in it,
 named `custom1`, `custom2` and so on, as `.ogg` or `.mp3`. In the Custom sounds section of the table, enter how many there are: they are in the Sound list
 as Sounds 1, Sounds 2 and so on. `Add folder` adds more folders in `AddOns`, whose sounds go by the folder's name (`Horns` is `Horns 1`, `GlowingBars_My_Sounds` is `My Sounds 1`). A short sound works best.
 
-Settings (per character): *Options > AddOns > Glowing Bars*: the button that opens the table of looks, the spell IDs in
-the tooltips (off by default), the action bars that glow, the party buff message, the weapon buff to keep up, when the
-cooldowns glow, and a Help section with links to report problems. Blizzard's own action bars are supported, Forever's
+Settings (per character), in a window of the addon's own (`/gb settings`; *Options > AddOns > Glowing Bars* only has a
+button to it): a Welcome tab (a scan of the bars, and how far the addon may use Blizzard's Cooldown Manager), What's New,
+General (the spell IDs in the tooltips, off by default, and the switches of the character), Reminders (the party buffs, the
+weapon buff to keep up, when the cooldowns glow), Cooldown Manager, Bars (the action bars that glow and the faded ones),
+Messages and Help. The window and the table don't open in a fight, and close when one starts. Blizzard's own action bars are supported, Forever's
 gamepad bars, and Bartender4's, Dominos's, EllesmereUI's, ElvUI's and DaylightUI's bars (their bar N counts as Action Bar N;
 EllesmereUI's bars 9 and 10 and ElvUI's bars of no Blizzard bar glow, but have no switch of their own).
 

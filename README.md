@@ -18,7 +18,7 @@ does not promise: [Design goal](docs/design-goal.md).
 ## The addons
 
 One addon that lights up your action bars, so you look at the buttons you press anyway and not at an extra window. It has
-a Settings page (*Options > AddOns*) and saves its settings per character.
+a settings window of its own (`/gb settings`) and saves its settings per character.
 
 | | Addon | What it lights up |
 |---|---|---|
@@ -65,7 +65,7 @@ packages/       a folder per scope, then per package (packages/README.md); each 
                       @OnUnitEvent, @OnEvent, @Interval, text helpers
     wow/              the door to the game: spells, auras, action bars, player, party, bags,
                       clock, glows and notices, saved variables, protected calls
-    ui/               settings, texts, chat lines and sounds, the pages of the Settings panel
+    ui/               settings, texts, chat lines and sounds, the settings window
     wow-types/        the typings of Blizzard's API
     wow-data/         the spell and item IDs the addons use, by category, and what the client said of them
       generated/        generated from Blizzard's API docs - do not edit
@@ -85,7 +85,7 @@ addons/
       glows/            ready cooldowns and procs: the lists per class, the cooldown tracker
       tick/             a tick every 0.2 s - find what is due, show it; when to look sooner
       character/        what happens to the player (weapons, auras and casts, the party roster, blocked actions)
-      options/          the Settings panel pages
+      options/          the settings window's tabs and the table
     addon/            static addon files (the TOC); its @version@ is filled from package.json
     assets/           logo.png: the one source of the logo; the build makes the game's icon (images/logo.tga) from it
     test/             the specs: describe / it in TypeScript against the fake game (test/README.md)
@@ -97,7 +97,7 @@ docs/           architecture (with the reasons), packages, releasing, glossary, 
 ### Rules
 
 - **Only a few folders call the game:** `packages/@wowkit/wow/src/` (what the reminders ask the game),
-  `packages/@wowkit/core/src/` (events and timers), and `addons/glowing-bars/src/options/` (the Settings panel). Reminder
+  `packages/@wowkit/core/src/` (events and timers), and `addons/glowing-bars/src/options/` (the settings window). Reminder
   logic talks to `packages/@wowkit/wow/src/` in plain terms (`isInCombat()`, `isLearned(spell)`) and never sees secret values,
   protected calls or remapped IDs.
 - **Everything is a service, made once, by hand:** plain classes that take what they need in the constructor,

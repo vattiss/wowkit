@@ -41,4 +41,5 @@ describe("a druid with two missing buffs", () => {
 
 A new spec file must be added to `specs/index.ts` (`pnpm test` fails if one is forgotten).
 In a spec, the world gives: `state` (the character, bars, auras, party, bags), `fire(event)`, `advance(seconds)`,
-`setOption(name, value)` (a click in the options), `glowsOn(button)`, `notice()`, `chat`, `sounds`.
+`setOption(name, value)` (a click on a control of the settings window), `hasOption(name)`, `openOptions()` (`/gb settings`),
+`clickOption(label)` and `isOptionShown(label)` (a button row, by its label), `glowsOn(button)`, `notice()`, `chat`, `sounds`.

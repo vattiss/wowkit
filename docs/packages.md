@@ -8,7 +8,7 @@ packages/
   @wowkit/                       the toolkit, for any Forever addon
     core/        Addon, decorators, EventBus, lifecycle hooks, text helpers
     wow/         the services that talk to the game
-    ui/          settings, texts, chat lines, sounds and the Settings panel pages
+    ui/          settings, texts, chat lines, sounds and the settings window
     wow-types/   Blizzard's API as TypeScript types (generated + hand-written)
     wow-data/    the spell and item IDs the addons use, by category, and what the client said of them
     test-kit/    describe / it / expect, the fake game and its fixtures
@@ -74,7 +74,7 @@ flowchart LR
 | `@wowkit/core` | `Addon` (registers the services, starts them), `@OnGameEvent`, `@OnUnitEvent`, `@OnEvent`, `@Interval`, the lifecycle hooks, the `EventBus`. |
 | `@wowkit/wow` | The game's door and nothing else: player, character, other units (the target), party, bags, spells and the spell book, spell details and cooldowns, auras, action bars, totems, weapon enchants, glows (also faded by a hidden value), notices, saved variables, the clock; `SpellRefreshService` and `BarRefreshService` keep the spells and the bars fresh. |
 | `@wowkit/wow-data` | The spell and item IDs the addons use, by category, written in one place (`Paladin`, `Shaman`, `Priest`, `Reagents`...), and what the client said of them. |
-| `@wowkit/ui` | `SettingsService<T>` (the shape is the addon's), `LocaleService<K>`, `MessagesService` and the sounds, `GreetingService`, and for the Settings panel `OptionsService` (one main page), `AboutSection` (the Help section), `ControlsService<T>` and `WidgetsService`. |
+| `@wowkit/ui` | `SettingsService<T>` (the shape is the addon's), `LocaleService<K>`, `MessagesService` and the sounds, `GreetingService`, and for the settings window `OptionsService` (the window, with a small page in the game's Settings panel), `OptionsWindow` and `OptionsTab`, `AboutSection` (the Help section), `ControlsService<T>` and `WidgetsService`. |
 | `@wowkit/test-kit` | `describe` / `it` / `expect`, `createWorld` (a fake game, with a target to fight), and fixtures: the classes and spells the specs use. |
 
 ## How an addon uses them

@@ -12,11 +12,11 @@ Play with a controller? The glows also show on **Forever's own gamepad bars**, t
 
 **Bartender4**, **Dominos**, **EllesmereUI**, **ElvUI** and **DaylightUI**: the glows show on their buttons too, their stance bar included. Their bar 1 to 8 counts as Action Bar 1 to 8, so the bar switches and the faded bars work on them as well.
 
-Using another bar addon? Its buttons are detected automatically. Not sure it sees yours? Type **/gb welcome**.
+Using another bar addon? Its buttons are detected automatically. Not sure it sees yours? Click **Scan** on the Welcome tab of **/gb settings**.
 
-## 👋 Welcome window
+## 👋 Welcome tab
 
-Once on each character, a short welcome window scans your bars and lights up every button it finds. If nothing lights up, it gives you a report to send me. See it again any time with **/gb welcome**.
+Once on each character, the settings window opens by itself on its Welcome tab. Its **Scan** button lights up every button the addon finds, and if nothing lights up, it gives you a report to send me. The same tab lets you choose how Glowing Bars uses Blizzard's Cooldown Manager, with a **Reload** button to make your choice work right away. See it again any time with **/gb settings**.
 
 ## What glows
 
@@ -34,9 +34,9 @@ Once on each character, a short welcome window scans your bars and lights up eve
 *   **Procs** – Overpower, Revenge, Execute, Victory Rush, Riposte, Counterattack, Mongoose Bite and Hammer of Wrath glow while you can use them. Overpower and Revenge glow in any stance, so you know when to switch.
     *   **Alpha**: Execute in Defensive Stance on a low target, Arcane Missiles when it's free (Missile Barrage, Clearcasting) and Shadow Bolt when it's instant (Nightfall). These rows are marked in the table: if one doesn't work for you, switch it off in the Enabled column and let me know.
 *   **Old ranks** – a spell on your bars at a lower rank than the one you know glows quietly, and a short message tells you. A spell in a macro doesn't count.
-*   **Elixirs, food and drinks, if you add them** – turn on **Show spell and item IDs in tooltips** on the Settings page, put the item on your bars, and add the *Use spell ID* from its tooltip in the **/gb** table as a missing buff. Only that item glows, under its own name in the table, and not when you have none left. A food or drink stops glowing once you have its Well Fed buff.
+*   **Elixirs, food and drinks, if you add them** – turn on **Show spell and item IDs in tooltips** on the General tab of **/gb settings**, put the item on your bars, and add the *Use spell ID* from its tooltip in the **/gb** table as a missing buff. Only that item glows, under its own name in the table, and not when you have none left. A food or drink stops glowing once you have its Well Fed buff.
 
-It stays quiet while you are dead, mounted or on a taxi. If you like, it can also stay quiet in towns and inns, except for low reagents and low stock: tick **Stay quiet in towns and inns** on the Settings page.
+It stays quiet while you are dead, mounted or on a taxi. If you like, it can also stay quiet in towns and inns, except for low reagents and low stock: tick **Stay quiet in towns and inns** on the Welcome or General tab of **/gb settings**.
 
 ## Make it yours
 
@@ -60,7 +60,7 @@ Sound packs may come later, from me or from anyone else: a pack is just a folder
 
 The defaults: buffs blue, weapon buffs orange, seals gold, gathering turquoise, cooldowns white, procs red, old ranks and low reagents a quieter yellow, low stock a quieter red. Only the old ranks, low stock and the low reagents (in a town) show a message by default, and nothing makes a sound until you pick one; the glow is the reminder.
 
-In the settings window (**/gb options**, or the button under _Options > AddOns > Glowing Bars_):
+In the settings window (**/gb settings**, the **Settings** button of the table, or the button under _Options > AddOns > Glowing Bars_), in tabs:
 
 *   **Messages**: text size, vertical position, zoom in and out, two kinds of pulse, and one line per type
 *   **Rainbow when AFK** (off by default): your buttons light up in rainbow colors while you are away
@@ -71,7 +71,10 @@ In the settings window (**/gb options**, or the button under _Options > AddOns >
 *   **Spell and item IDs in tooltips** (off by default): spell tooltips show the Spell ID and item tooltips the Item ID; an elixir, potion, food or drink also shows the ID of the spell it casts
 *   The weapon buff to keep up, the party and raid buffs with their group version counts, and whether the ready cooldowns also glow as a fight starts
 
-All settings are kept per character.
+*   **What's New**: the notes of every version, and whether they show by themselves after an update with new features
+*   **Help**: how to report a problem so it gets fixed soon, with the link to the issues
+
+All settings are kept per character. The settings window and the table can't be opened in a fight, and close when one starts.
 
 ## Good to know
 
