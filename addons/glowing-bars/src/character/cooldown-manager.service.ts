@@ -84,7 +84,7 @@ export class CooldownManagerService implements OnLogin {
         if (this.settings.get("isCooldownManagerSetUp")) return;
         this.settings.change("isCooldownManagerSetUp", true);
         if (!this.viewer.isRunByOtherAddon() && !this.viewer.isTurnedOn()) return;
-        const isNewCharacter = !this.settings.get("isWelcomeDone") && !this.viewer.isRunByOtherAddon();
+        const isNewCharacter = !this.settings.get("isWelcomeDone");
         this.settings.change("cooldownManagerAccess", isNewCharacter ? "full" : "readOnly");
         for (const window of COOLDOWN_WINDOWS) this.settings.change(WINDOW_ICONS_SETTINGS[window], "show");
     }

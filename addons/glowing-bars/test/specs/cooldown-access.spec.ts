@@ -49,6 +49,22 @@ describe("the Cooldown Manager at login", () => {
         expect(world.state.viewerSaves).toBe(1);
     });
 
+    it("adds what it needs for a new character with EllesmereUI too, and leaves the windows to it", () => {
+        const world = createWorld(
+            (state) => {
+                playAs(state, SHAMAN);
+                state.loadedAddons.EllesmereUICooldownManager = true;
+                learnSpell(state, LIGHTNING_SHIELD);
+                state.buffCatalog.push({ spellId: LIGHTNING_SHIELD.id, isHiddenByDefault: true });
+            },
+            { isWelcomeDone: false },
+        );
+        world.advance(6);
+        expect(world.getSavedSettings()?.cooldownManagerAccess).toBe("full");
+        expect(world.state.viewerAlpha).toBe(undefined);
+        expect(world.state.viewerSaves).toBe(1);
+    });
+
     it("is left to EllesmereUI when its Cooldown Manager is loaded: nothing is turned on, hidden or moved", () => {
         const world = createWorld((state) => {
             playAs(state, SHAMAN);

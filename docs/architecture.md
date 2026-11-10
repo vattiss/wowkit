@@ -390,7 +390,7 @@ flowchart LR
 | `trackedBuffsIcons`, `essentialIcons`, `utilityIcons` | `hide` / `show` | Whether each window is on screen (Tracked Bars goes with Tracked Buffs). Greyed out with EllesmereUI's module, which runs them itself. |
 
 The first login on a character picks the defaults once (`isCooldownManagerSetUp`), so that nothing changes for a player who
-already uses the manager: off means `full` and `hide`; already on, or EllesmereUI's module loaded, means `readOnly` and `show`. The game can have the manager on for a character nobody has played, so a character the addon has never seen (`isWelcomeDone` false) gets `full` and `show` instead, unless EllesmereUI's module is loaded.
+already uses the manager: off means `full` and `hide`; already on, or EllesmereUI's module loaded, means `readOnly` and `show`. The game can have the manager on for a character nobody has played, so a character the addon has never seen (`isWelcomeDone` false) gets `full` and `show` instead, with EllesmereUI's module too.
 
 **Reading an icon** (`CooldownViewerService`). All four windows are read together once a frame, so asking about many buffs costs
 one pass.
