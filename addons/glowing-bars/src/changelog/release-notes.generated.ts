@@ -1,7 +1,7 @@
 // Written by scripts/generate-release-notes.ts from release-notes/*.md, at each build: not to be edited by hand.
 
 /** The version of the addon this build is. */
-export const ADDON_VERSION = "2.9.0";
+export const ADDON_VERSION = "2.9.1";
 
 export interface ReleaseNote {
     version: string;
@@ -15,6 +15,7 @@ export interface ReleaseNote {
 
 /** Every release, the newest first. */
 export const RELEASE_NOTES: ReleaseNote[] = [
+    { version: "2.9.1", date: "2026-11-10", hasNew: true, text: "|cffffd100New|r\n\n• Touch of Weakness (Undead) and Shadowguard (Troll) are now on the priest list. They're off by default, so switch them on in the Enabled column of the table if you use them.\n\n|cffffd100Changed|r\n\n• New characters now start on \"Add what Glowing Bars needs\", also with EllesmereUI. Characters you've already played keep their choice. With EllesmereUI, the buffs and cooldowns it adds show on its bars, and you can change this in the Cooldown Manager section of the Options page.\n\n|cffffd100Fixed|r\n\n• Touch of Weakness added by hand now counts its full 10 minutes in a fight." },
     { version: "2.9.0", date: "2026-11-09", hasNew: true, text: "|cffffd100New|r\n\n• Glowing Bars can now use Blizzard's Cooldown Manager to know which of your buffs are up in a fight, when the game hides them from addons. Reminders in combat are much more exact.\n• New Cooldown Manager section in the Options page. Choose how far Glowing Bars may use it: add what it needs, only use what's already there, or not use it at all. If you already had the Cooldown Manager on or use EllesmereUI's, nothing is added until you choose \"Add what Glowing Bars needs\".\n• Glowing Bars keeps the Cooldown Manager running out of sight if you didn't use it before. Tracked Buffs, Essential Cooldowns and Utility Cooldowns can each be shown or hidden.\n• Repair Hidden Windows brings back a Cooldown Manager window set to Hidden in Edit Mode.\n• Glows now also work on the icons of the Cooldown Manager and on the Stance Bar, and each can be switched on or off under Action Bars That Glow. A spell that's only in the Cooldown Manager gets reminders too.\n• The Cooldown Manager's windows and the Stance Bar can stay faint like your other bars.\n• The add row of the table now shows what to enter.\n\n|cffffd100Fixed|r\n\n• Battle Shout, Blessings and other long buffs cast during a fight no longer glow too early.\n• Arcane Intellect is now recognized in every rank on clients where its ranks have different names.\n• A sleeping bag or campfire added as a Missing buff now finds the buff it really gives.\n• The automatic button search now knows the totem buttons." },
     { version: "2.8.2", date: "2026-11-09", hasNew: false, text: "|cffffd100Fixed|r\n\n• A few more places no longer run into a Lua error when the game hides whether a frame is showing: the action bars, the gamepad bars and glows beside a button." },
     { version: "2.8.1", date: "2026-11-09", hasNew: false, text: "|cffffd100Fixed|r\n\n• No more Lua error at login or with the button scan when aura frames are around, from the game or from addons like Plater.\n• The X now closes the table and the other windows during a fight too." },
