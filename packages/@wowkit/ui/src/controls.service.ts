@@ -1,10 +1,13 @@
-// Controls for the Settings panel pages: the game's own checkboxes, dropdowns and color swatches, bound to the
-// addon's settings. A control reads the setting through `get` and writes it through `set` (always
-// SettingsService.change, so whoever cares reacts to "setting.changed").
-import type { Rgb } from "@wowkit/wow";
-import type { MessagesService } from "./messages.service";
+// The controls of the settings window, bound to the addon's settings. A control reads the setting through `get` and writes
+// it through `set` (always SettingsService.change, so whoever cares reacts to "setting.changed"). They are the game's own
+// templates, each made for this window alone.
+import { connectChoiceMenu } from "./choice-menu";
+import { CONTROL_LEFT, type OptionRow, type OptionsTab } from "./options-tab";
 import type { SettingsService } from "./settings.service";
-import { SOUNDS, type SoundKey } from "./sounds.constants";
+
+const DROPDOWN_WIDTH = 240;
+const CONTROL_HEIGHT = 22;
+const SLIDER_WIDTH = 170;
 
 /** The keys of the settings that hold a true / false. */
 type SwitchKey<T> = { [K in keyof T]: T[K] extends boolean ? K : never }[keyof T];
@@ -12,35 +15,45 @@ type SwitchKey<T> = { [K in keyof T]: T[K] extends boolean ? K : never }[keyof T
 export class ControlsService<T extends object> {
     constructor(
         private readonly settings: SettingsService<T>,
-        private readonly messages: MessagesService,
-        /** Starts the name the game saves each control under, so two addons never share one. */
+        /** Starts the name each control is found by, so two addons never share one. */
         private readonly variablePrefix: string,
     ) {}
 
-    addHeader(layout: SettingsLayout, label: string): void {
-        layout.AddInitializer(CreateSettingsListSectionHeaderInitializer(label));
+    addHeader(tab: OptionsTab, label: string): void {
+        tab.addHeader(label);
     }
 
     addCheckbox(
-        category: SettingsCategory,
+        tab: OptionsTab,
         variable: string,
         label: string,
         tooltip: string | undefined,
         isOnByDefault: boolean,
         get: () => boolean,
         set: (isChecked: boolean) => void,
-    ): SettingsInitializer {
-        return Settings.CreateCheckbox(
-            category,
-            this.registerSetting(category, variable, Settings.VarType.Boolean, label, isOnByDefault, get, set),
-            tooltip,
-        );
+    ): OptionRow {
+        const row = tab.createRow(label, tooltip);
+        const box = CreateFrame("CheckButton", undefined, row, "UICheckButtonTemplate");
+        box.SetSize(26, 26);
+        box.SetPoint("LEFT", row, "LEFT", CONTROL_LEFT, 0);
+        const apply = (value?: unknown) => {
+            set(value === true);
+            tab.refresh();
+        };
+        box.SetScript("OnClick", () => apply(box.GetChecked()));
+        return tab.addControl(row, {
+            variable: `${this.variablePrefix}_${variable}`,
+            apply,
+            refresh: () => box.SetChecked(get()),
+            setEnabled: (isEnabled) => box.SetEnabled(isEnabled),
+            reset: () => set(isOnByDefault),
+        });
     }
 
     /** A switch stored in the settings under `key`; its default is the default of the setting. */
-    addSwitchCheckbox(category: SettingsCategory, key: SwitchKey<T>, label: string, tooltip: string): SettingsInitializer {
+    addSwitchCheckbox(tab: OptionsTab, key: SwitchKey<T>, label: string, tooltip: string): OptionRow {
         return this.addCheckbox(
-            category,
+            tab,
             String(key),
             label,
             tooltip,
@@ -50,9 +63,9 @@ export class ControlsService<T extends object> {
         );
     }
 
-    /** `items` returns [value, label] pairs; a static list is built once. */
+    /** `items` returns [value, label] pairs; a static list is read once. */
     addDropdown(
-        category: SettingsCategory,
+        tab: OptionsTab,
         variable: string,
         label: string,
         tooltip: string,
@@ -61,23 +74,36 @@ export class ControlsService<T extends object> {
         set: (value: string) => void,
         items: () => [value: string, label: string][],
         isStatic = false,
-    ): SettingsInitializer {
-        const setting = this.registerSetting(category, variable, Settings.VarType.String, label, defaultValue, get, set);
-        let cached: unknown;
-        const buildOptions = () => {
-            if (isStatic && cached !== undefined) return cached;
-            const container = Settings.CreateControlTextContainer();
-            for (const [value, text] of items()) container.Add(value, text);
-            const data = container.GetData();
-            if (isStatic) cached = data;
-            return data;
+    ): OptionRow {
+        const row = tab.createRow(label, tooltip);
+        const button = CreateFrame("Button", undefined, row, "UIPanelButtonTemplate");
+        button.SetSize(DROPDOWN_WIDTH, CONTROL_HEIGHT);
+        button.SetPoint("LEFT", row, "LEFT", CONTROL_LEFT, 0);
+        let kept: [value: string, label: string][] | undefined;
+        const listItems = () => {
+            const list = kept ?? items();
+            if (isStatic) kept = list;
+            return list;
         };
-        return Settings.CreateDropdown(category, setting, buildOptions, tooltip);
+        const apply = (value?: unknown) => {
+            set(value as string);
+            tab.refresh();
+        };
+        connectChoiceMenu(button, () =>
+            listItems().map(([value, text]) => ({ label: text, isChosen: () => get() === value, choose: () => apply(value) })),
+        );
+        return tab.addControl(row, {
+            variable: `${this.variablePrefix}_${variable}`,
+            apply,
+            refresh: () => button.SetText(listItems().find(([value]) => value === get())?.[1] ?? ""),
+            setEnabled: (isEnabled) => button.SetEnabled(isEnabled),
+            reset: () => set(defaultValue),
+        });
     }
 
     /** A number the player sets with a slider; `formatValue` is what it shows beside it. */
     addSlider(
-        category: SettingsCategory,
+        tab: OptionsTab,
         variable: string,
         label: string,
         tooltip: string,
@@ -85,74 +111,33 @@ export class ControlsService<T extends object> {
         formatValue: (this: void, value: number) => string,
         get: () => number,
         set: (value: number) => void,
-    ): SettingsInitializer {
-        const setting = this.registerSetting(category, variable, Settings.VarType.Number, label, range.defaultValue, get, set);
-        const options = Settings.CreateSliderOptions(range.min, range.max, range.step);
-        options.SetLabelFormatter(MinimalSliderWithSteppersMixin.Label.Right, formatValue);
-        return Settings.CreateSlider(category, setting, options, tooltip);
-    }
-
-    /** The sound of a reminder; choosing one plays it once as a preview. */
-    addSoundDropdown(
-        category: SettingsCategory,
-        variable: string,
-        label: string,
-        tooltip: string,
-        get: () => SoundKey,
-        set: (key: SoundKey) => void,
-    ): void {
-        this.addDropdown(
-            category,
-            variable,
-            label,
-            tooltip,
-            "none",
-            get,
-            (value) => {
-                set(value as SoundKey);
-                this.messages.playAlertSound(value as SoundKey);
+    ): OptionRow {
+        const row = tab.createRow(label, tooltip);
+        const slider = CreateFrame("Slider", undefined, row, "UISliderTemplate");
+        slider.SetSize(SLIDER_WIDTH, 17);
+        slider.SetPoint("LEFT", row, "LEFT", CONTROL_LEFT, 0);
+        slider.SetMinMaxValues(range.min, range.max);
+        slider.SetValueStep(range.step);
+        slider.SetObeyStepOnDrag(true);
+        const shown = row.CreateFontString(undefined, "OVERLAY", "GameFontHighlight");
+        shown.SetPoint("LEFT", slider, "RIGHT", 8, 0);
+        const apply = (value?: unknown) => {
+            set(value as number);
+            tab.refresh();
+        };
+        (slider as unknown as ValueSlider).SetScript("OnValueChanged", (_frame, value, isUserInput) => {
+            shown.SetText(formatValue(value));
+            if (isUserInput) apply(value);
+        });
+        return tab.addControl(row, {
+            variable: `${this.variablePrefix}_${variable}`,
+            apply,
+            refresh: () => {
+                slider.SetValue(get());
+                shown.SetText(formatValue(get()));
             },
-            () => SOUNDS.map((sound): [string, string] => [sound.key, sound.label]),
-            true,
-        );
-    }
-
-    /** A color the player can pick; skipped on clients without color swatches. */
-    addColorSwatch(
-        category: SettingsCategory,
-        variable: string,
-        label: string,
-        defaultColor: Rgb,
-        get: () => Rgb,
-        set: (color: Rgb) => void,
-    ): void {
-        const createSwatch = Settings.CreateColorSwatch;
-        if (!createSwatch) return;
-        const convertToHexColor = ([r, g, b]: Rgb) => CreateColor(r, g, b).GenerateHexColor();
-        const setting = this.registerSetting(
-            category,
-            `color_${variable}`,
-            Settings.VarType.String,
-            label,
-            convertToHexColor(defaultColor),
-            () => convertToHexColor(get()),
-            (value) => {
-                const picked = CreateColorFromHexString(value);
-                if (picked) set([picked.r, picked.g, picked.b]);
-            },
-        );
-        createSwatch(category, setting);
-    }
-
-    private registerSetting<V>(
-        category: SettingsCategory,
-        variable: string,
-        varType: string,
-        label: string,
-        defaultValue: V,
-        get: () => V,
-        set: (value: V) => void,
-    ) {
-        return Settings.RegisterProxySetting(category, `${this.variablePrefix}_${variable}`, varType, label, defaultValue, get, set);
+            setEnabled: (isEnabled) => (isEnabled ? slider.Enable() : slider.Disable()),
+            reset: () => set(range.defaultValue),
+        });
     }
 }

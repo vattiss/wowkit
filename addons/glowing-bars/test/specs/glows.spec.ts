@@ -281,7 +281,7 @@ describe("a warrior who added Recklessness as a cooldown and as a proc", () => {
                 { id: 1719, reminderType: "proc" },
             ],
         });
-        expect(world.proxySettings["GlowingBars_isDisabled"]).toBeDefined();
+        expect(world.hasOption("isDisabled")).toBe(true);
     });
 });
 

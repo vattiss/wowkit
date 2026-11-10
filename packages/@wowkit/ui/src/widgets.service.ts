@@ -1,6 +1,7 @@
-// Building blocks for the Settings panel pages: a row with a button that puts a link in the chat box, ready to copy.
+// Building blocks for the settings window: a row with a button, and one that puts a link in the chat box, ready to copy.
 import { attempt } from "@wowkit/wow";
 import type { MessagesService } from "./messages.service";
+import { CONTROL_LEFT, type OptionRow, type OptionsTab } from "./options-tab";
 
 export class WidgetsService {
     constructor(
@@ -10,13 +11,19 @@ export class WidgetsService {
     ) {}
 
     /** A row with a label and a Copy button; the button puts the URL in the chat box, highlighted, for Ctrl+C. */
-    addLinkButton(layout: SettingsLayout, label: string, url: string): void {
-        layout.AddInitializer(CreateSettingsButtonInitializer(label, this.texts.copy, () => this.copyText(url), url, false));
+    addLinkButton(tab: OptionsTab, label: string, url: string): void {
+        this.addButton(tab, label, this.texts.copy, () => this.copyText(url), url);
     }
 
     /** A row with a label and a button that does something. */
-    addButton(layout: SettingsLayout, label: string, buttonText: string, onClick: () => void, tooltip: string): void {
-        layout.AddInitializer(CreateSettingsButtonInitializer(label, buttonText, onClick, tooltip, false));
+    addButton(tab: OptionsTab, label: string, buttonText: string, onClick: () => void, tooltip: string): OptionRow {
+        const row = tab.createRow(label, tooltip);
+        const button = CreateFrame("Button", undefined, row, "UIPanelButtonTemplate");
+        button.SetSize(120, 22);
+        button.SetPoint("LEFT", row, "LEFT", CONTROL_LEFT, 0);
+        button.SetText(buttonText);
+        button.SetScript("OnClick", () => onClick());
+        return tab.addControl(row, { apply: () => onClick(), setEnabled: (isEnabled) => button.SetEnabled(isEnabled) });
     }
 
     /** Puts the text in the chat box, highlighted, for Ctrl+C. */

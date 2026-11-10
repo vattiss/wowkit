@@ -95,7 +95,8 @@ export class NoticeService {
 
     /** A line in the chat window. */
     printToChat(text: string): void {
-        print(text);
+        // Not print(): its handler in the game's chat code then runs as this addon
+        DEFAULT_CHAT_FRAME.AddMessage(text);
     }
 
     /**

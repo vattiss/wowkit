@@ -1,10 +1,10 @@
 // The What's new window: the versions on the left, the notes of the one picked on the right, and at the bottom the box
 // that keeps it from opening by itself. Opened by /gb changelog, the Settings page, or once after an update with something
 // new in it.
+import { applyScrollBarTint, connectEscape, createFrameWithBorder, createCloseButton } from "@wowkit/ui";
 import type { AddonLocale } from "../locale/locale.interface";
 import { RELEASE_NOTES } from "../changelog/release-notes.generated";
 import { BORDER_COLOR } from "./style-table.constants";
-import { applyScrollBarTint, connectEscape, createFrameWithBorder, createCloseButton } from "./window-frame";
 
 const WINDOW_NAME = "GlowingBarsWhatsNew";
 const WINDOW_WIDTH = 620;

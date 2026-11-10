@@ -60,7 +60,7 @@ Sound packs may come later, from me or from anyone else: a pack is just a folder
 
 The defaults: buffs blue, weapon buffs orange, seals gold, gathering turquoise, cooldowns white, procs red, old ranks and low reagents a quieter yellow, low stock a quieter red. Only the old ranks, low stock and the low reagents (in a town) show a message by default, and nothing makes a sound until you pick one; the glow is the reminder.
 
-On the Settings page (_Options > AddOns > Glowing Bars_):
+In the settings window (**/gb options**, or the button under _Options > AddOns > Glowing Bars_):
 
 *   **Messages**: text size, vertical position, zoom in and out, two kinds of pulse, and one line per type
 *   **Rainbow when AFK** (off by default): your buttons light up in rainbow colors while you are away

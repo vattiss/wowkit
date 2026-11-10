@@ -11,10 +11,6 @@ export interface ProxySetting {
     set: (this: void, value: unknown) => void;
 }
 
-export interface ProxySettings {
-    [variable: string]: ProxySetting | undefined;
-}
-
 /** A line of the list a button opened. */
 export interface FakeMenuChoice {
     label: string;
@@ -50,14 +46,23 @@ function createColorPicker(): FakeColorPicker {
     return picker;
 }
 
-export function installUi(frames: FrameRegistry, chat: string[], proxySettings: ProxySettings, menu: FakeMenu): void {
+/** The chat window: what the addon adds to it are the lines of the chat. */
+function createChatFrame(frames: FrameRegistry, chat: string[]): FakeFrame {
+    const frame = frames.create("Frame", "DEFAULT_CHAT_FRAME");
+    (frame as unknown as { AddMessage: (this: void, self: unknown, text: string) => void }).AddMessage = (_self, text) => {
+        chat.push(text);
+    };
+    return frame;
+}
+
+export function installUi(frames: FrameRegistry, chat: string[], menu: FakeMenu): void {
     defineValues({
         CreateFrame: (frameType: string, name?: string, parent?: FakeFrame, template?: string) =>
             frames.create(frameType, name, parent, template),
         // The game's root frames
         UIParent: frames.create("Frame", "UIParent"),
         RaidWarningFrame: frames.create("Frame", "RaidWarningFrame"),
-        DEFAULT_CHAT_FRAME: frames.create("Frame", "DEFAULT_CHAT_FRAME"),
+        DEFAULT_CHAT_FRAME: createChatFrame(frames, chat),
         GameTooltip: frames.create("GameTooltip", "GameTooltip"),
         // Slash commands: the addon adds its handlers here
         SlashCmdList: {},
@@ -112,12 +117,6 @@ export function installUi(frames: FrameRegistry, chat: string[], proxySettings: 
         RegisterCanvasLayoutSubcategory: () => createInertObject<SettingsCategory>(),
         RegisterVerticalLayoutSubcategory: () => $multi(createInertObject<SettingsCategory>(), createInertObject<SettingsLayout>()),
         RegisterAddOnCategory: () => undefined,
-        RegisterProxySetting: (_category, variable, _varType, _name, defaultValue, getValue, setValue) => {
-            // The game refuses a second setting of the same name, and the whole page with it
-            if (proxySettings[variable] !== undefined) throw new Error(`a setting named ${variable} is registered already`);
-            proxySettings[variable] = { defaultValue, get: getValue, set: setValue as (this: void, value: unknown) => void };
-            return createInertObject<SettingsSetting>();
-        },
         CreateCheckbox: () => createInertObject<SettingsInitializer>(),
         CreateDropdown: (_category, _setting, options) => {
             // The game asks for the options when the menu opens; asking once catches mistakes in them

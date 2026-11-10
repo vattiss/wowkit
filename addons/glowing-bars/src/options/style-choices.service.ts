@@ -2,14 +2,13 @@
 // how long and how it moves), and a color from the game's picker.
 import { OnEvent } from "@wowkit/core";
 import { MessageWindow } from "./message-window";
-import { listSoundChoices, type MessagesService } from "@wowkit/ui";
+import { connectChoiceMenu, listSoundChoices, type MessagesService } from "@wowkit/ui";
 import type { AddonLocale } from "../locale/locale.interface";
 import { ANIMATION_CHOICES, CUSTOM_SOUND_FOLDER, GLOW_TIME_CHOICES, REPEAT_CHOICES, listWhenChoices } from "../settings/settings.constants";
 import { ANIMATION_TEXTS } from "./animation.section";
 import type { AddonSettingsService, Style, StyleOverride, When } from "../settings/settings.interface";
 import type { StyleService } from "../settings/style.service";
 import type { TextKey } from "../locale/texts.constants";
-import { connectChoiceMenu } from "./choice-menu";
 import { COLUMN, findCenteredX, type Column } from "./style-table.constants";
 import type { StyleRow } from "./style-rows.service";
 

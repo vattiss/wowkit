@@ -132,8 +132,6 @@ export interface ClientState {
     /** The layouts Edit Mode keeps, without the presets; the active one counts after the two presets. */
     editModeLayouts: EditModeLayouts;
     editModeSaves: number;
-    /** What each button row of the Settings panel does, by its label. */
-    settingsButtons: { [label: string]: ((this: void) => void) | undefined };
     reloads: number;
     /** In combat the game hides the auras: the list comes back empty. */
     areAurasHidden: boolean;
@@ -245,7 +243,6 @@ export function createClientState(): ClientState {
         hiddenViewers: [],
         editModeLayouts: { layouts: [], activeLayout: 1 },
         editModeSaves: 0,
-        settingsButtons: {},
         reloads: 0,
         areAurasHidden: false,
         areCooldownsHidden: false,

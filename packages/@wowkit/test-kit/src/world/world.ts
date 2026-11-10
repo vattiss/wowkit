@@ -12,8 +12,11 @@ import { installItems } from "./install-items";
 import { installTalents } from "./install-talents";
 import { installTooltips, type TooltipKind } from "./install-tooltips";
 import { installSpells } from "./install-spells";
-import { installUi, type FakeMenu, type FakeMenuChoice, type ProxySettings } from "./install-ui";
+import { installUi, type FakeMenu, type FakeMenuChoice } from "./install-ui";
 import { installUnits } from "./install-units";
+
+/** A row of the settings window. */
+type OptionFake = FakeFrame & { optionVariable?: string; optionLabel?: string; applyOption?: (this: void, value?: unknown) => void };
 
 export interface World {
     /** The character, its spells, bars, auras, party and bags; change it and the addon sees the change. */
@@ -23,9 +26,15 @@ export interface World {
     /** The sounds the addon played. */
     sounds: number[];
     /** The checkboxes and dropdowns the addon put in the Settings panel, by variable name. */
-    proxySettings: ProxySettings;
     /** Sets a checkbox or dropdown of the options page, the way the player's click does: "showWeapon", "buff_InnerFire". */
     setOption(name: string, value: unknown): void;
+    /** Does the settings window have this control? */
+    hasOption(name: string): boolean;
+    /** Opens the settings window, as a player would. */
+    openOptions(): void;
+    /** A click on the button of the row with this label; an error when the row is not there now. */
+    clickOption(label: string): void;
+    isOptionShown(label: string): boolean;
     frames: FakeFrame[];
     /** Clicks a button that opens a list of choices, and answers with the list. */
     openMenu(button: FakeFrame): FakeMenuChoice[];
@@ -87,13 +96,20 @@ export function createWorld(setup: (state: ClientState) => void, savedSettings?:
     lastFrames = frames.all;
     const chat: string[] = [];
     const sounds: number[] = [];
-    const proxySettings: ProxySettings = {};
 
     installClock(clock);
     installUnits(state);
     installSpells(state);
     const menu: FakeMenu = { choices: [], isScrolling: false };
-    installUi(frames, chat, proxySettings, menu);
+    installUi(frames, chat, menu);
+    const listOptions = (variable: string) =>
+        frames.all.filter((frame) => (frame as OptionFake).optionVariable === variable) as OptionFake[];
+    const findOption = (variable: string) => {
+        const found = listOptions(variable);
+        if (found.length === 0) throw new Error(`the settings window has no control "${variable}"`);
+        if (found.length > 1) throw new Error(`two controls have the name "${variable}"`);
+        return found[0]!;
+    };
     const openMenu = (button: FakeFrame) => {
         menu.choices = [];
         button.scripts.OnClick!(button);
@@ -118,12 +134,20 @@ export function createWorld(setup: (state: ClientState) => void, savedSettings?:
         state,
         chat,
         sounds,
-        proxySettings,
         setOption(name, value) {
-            const setting = proxySettings[`${config.addonName}_${name}`];
-            if (setting === undefined) throw new Error(`the options page has no setting "${name}"`);
-            setting.set(value);
+            findOption(`${config.addonName}_${name}`).applyOption!(value);
         },
+        hasOption: (name) => listOptions(`${config.addonName}_${name}`).length > 0,
+        openOptions() {
+            SlashCmdList["GLOWINGBARS"]!("options", undefined as never);
+            this.advance(1);
+        },
+        clickOption(label) {
+            const row = frames.all.find((frame) => (frame as OptionFake).optionLabel === label) as OptionFake | undefined;
+            if (row === undefined || !row.isShown) throw new Error(`the settings window does not show "${label}"`);
+            row.applyOption!();
+        },
+        isOptionShown: (label) => frames.all.some((frame) => (frame as OptionFake).optionLabel === label && frame.isShown),
         frames: frames.all,
         openMenu: (button) => openMenu(button),
         isMenuScrolling: () => menu.isScrolling,

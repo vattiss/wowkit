@@ -1,16 +1,18 @@
-// The slash command that opens the table of looks; /gb changelog opens the What's new window, /gb scan only the scan, /gb welcome the window with its scan.
+// The slash command that opens the table of looks; /gb changelog opens the What's new window, /gb scan only the scan, /gb settings (or /gb options) the settings window, /gb welcome the window with its scan.
 import type { OnFirstLogin } from "@wowkit/core";
+import type { OptionsService } from "@wowkit/ui";
 import type { StyleTableService } from "./style-table.service";
 import type { WelcomeService } from "./welcome.service";
 import type { WhatsNewService } from "./whats-new.service";
 
-const COMMAND = "GLOWINGBARS";
+export const COMMAND = "GLOWINGBARS";
 
 export class TableCommand implements OnFirstLogin {
     constructor(
         private readonly table: StyleTableService,
         private readonly whatsNew: WhatsNewService,
         private readonly welcome: WelcomeService,
+        private readonly options: OptionsService,
     ) {}
 
     onFirstLogin(): void {
@@ -22,6 +24,7 @@ export class TableCommand implements OnFirstLogin {
             if (word === "changelog") this.whatsNew.open();
             else if (word === "scan") this.welcome.scanForChat();
             else if (word === "welcome") this.welcome.open();
+            else if (word === "options" || word === "settings") this.options.open();
             else this.table.toggle();
         };
     }

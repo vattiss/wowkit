@@ -1,10 +1,11 @@
 // The frame of the table of looks: the classic dialog border, the title, the close button, the column headers and the
 // scroll area. The rows are the table's.
+import { COMMAND } from "./table-command";
+import { applyScrollBarTint, connectEscape, createFrameWithBorder, createCloseButton } from "@wowkit/ui";
 import type { AddonLocale } from "../locale/locale.interface";
 import type { TextKey } from "../locale/texts.constants";
 import type { AddonSettingsService } from "../settings/settings.interface";
 import { CustomSoundsSection } from "./custom-sounds-section";
-import { applyScrollBarTint, connectEscape, createFrameWithBorder, createCloseButton } from "./window-frame";
 import {
     COLUMN,
     findColumns,
@@ -114,6 +115,7 @@ export class StyleWindowService {
         title.SetText(this.locale.getText("TABLE_TITLE"));
         createCloseButton(window);
         this.createViewButton(window);
+        this.createSettingsButton(window);
         this.addColumnHeaders(window);
         const scroll = CreateFrame("ScrollFrame", undefined, window, "UIPanelScrollFrameTemplate");
         scroll.SetPoint("TOPLEFT", window, "TOPLEFT", TABLE_LEFT, -60);
@@ -125,6 +127,15 @@ export class StyleWindowService {
         // A new frame is shown; the table opens when it is asked for
         window.Hide();
         return { window, content };
+    }
+
+    /** To the settings window, through the addon's slash command, which is what knows it. */
+    private createSettingsButton(window: Frame): void {
+        const button = CreateFrame("Button", undefined, window, "UIPanelButtonTemplate");
+        button.SetSize(80, 22);
+        button.SetPoint("TOPRIGHT", window, "TOPRIGHT", -118, -9);
+        button.SetText(this.locale.getText("BTN_SETTINGS"));
+        button.SetScript("OnClick", () => SlashCmdList[COMMAND]?.("options", undefined as never));
     }
 
     /** Next to the close button: it leads to the other view. */

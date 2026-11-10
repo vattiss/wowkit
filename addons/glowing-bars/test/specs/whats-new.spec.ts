@@ -54,9 +54,8 @@ describe("the What's new window", () => {
 
     it("has the same choice on the Settings page, the other way round", () => {
         const world = createAccountWorld({ lastVersion: "1.0.0" });
-        const setting = world.proxySettings["GlowingBars_showWhatsNew"]!;
-        expect(setting.get()).toBe(true);
-        setting.set(false);
+        expect(world.hasOption("showWhatsNew")).toBe(true);
+        world.setOption("showWhatsNew", false);
         expect(world.getAccountSaved()?.isWhatsNewOff).toBe(true);
     });
 

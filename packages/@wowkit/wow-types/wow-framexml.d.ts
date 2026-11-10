@@ -29,6 +29,12 @@ declare function GetActionInfo(
     slot: number,
 ): LuaMultiReturn<[actionType: string | undefined, id: number | undefined, subType: string | undefined, spellId: number | undefined]>;
 declare function GetMacroSpell(macro: number | string): number | undefined;
+/** A slider says its new value, and whether the player moved it, to its script. */
+interface ValueSlider {
+    SetScript(script: "OnValueChanged", handler: (this: void, frame: unknown, value: number, isUserInput: boolean) => void): void;
+}
+
+declare function HideUIPanel(frame: Frame): void;
 declare function GetMacroBody(macro: number | string): string | undefined;
 declare function GetMacroInfo(macro: number | string): LuaMultiReturn<[name: string | undefined, icon: unknown, body: string | undefined]>;
 declare function GetActionText(slot: number): string | undefined;

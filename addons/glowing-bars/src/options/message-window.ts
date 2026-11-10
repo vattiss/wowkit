@@ -1,14 +1,13 @@
 // The small window of a message, opened by the gear of its row: what it says, the player's own words for it, and its color.
+import { connectChoiceMenu, connectEscape, createFrameWithBorder, createCloseButton } from "@wowkit/ui";
 import type { AddonLocale } from "../locale/locale.interface";
 import type { StyleService } from "../settings/style.service";
 import type { TextKey } from "../locale/texts.constants";
 import { MESSAGE_SHOW_FOR_CHOICES, MESSAGE_TEXT_CHOICES } from "../settings/settings.constants";
 import { NOTICE_SECONDS } from "@wowkit/wow";
 import type { MessageTextChoice } from "../settings/settings.interface";
-import { connectChoiceMenu } from "./choice-menu";
 import { setFadeOnly } from "./fade-only-controls";
 import type { StyleRow } from "./style-rows.service";
-import { connectEscape, createFrameWithBorder, createCloseButton } from "./window-frame";
 
 const WINDOW_NAME = "GlowingBarsMessage";
 const WINDOW_WIDTH = 340;

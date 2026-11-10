@@ -275,7 +275,7 @@ function makeOptions(
     finder: FindRemindersService,
 ) {
     const { settings, locale, messages } = texts;
-    const controls = addon.register(new ControlsService<AddonSettings>(settings, messages, addonName));
+    const controls = addon.register(new ControlsService<AddonSettings>(settings, addonName));
     const widgets = addon.register(
         new WidgetsService(messages, { copy: locale.getText("INFO_COPY"), copied: locale.getText("INFO_COPIED") }),
     );
@@ -297,7 +297,6 @@ function makeOptions(
     const { buttonSearch, glow, clock, player } = game;
     const report = new ScanReport(game.actionBars, game.spells, player, () => finder.findReminders());
     const welcome = addon.register(new WelcomeService(buttonSearch, glow, clock, player, locale, settings, whatsNew, messages, report));
-    addon.register(new TableCommand(table, whatsNew, welcome));
     const page = addon.register(
         new RemindersPage(
             locale,
@@ -316,5 +315,6 @@ function makeOptions(
             welcome,
         ),
     );
-    addon.register(new OptionsService(messages, locale.getText("TITLE"), page));
+    const options = addon.register(new OptionsService(messages, "GlowingBarsOptions", page));
+    addon.register(new TableCommand(table, whatsNew, welcome, options));
 }

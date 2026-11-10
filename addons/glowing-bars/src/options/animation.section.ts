@@ -5,7 +5,7 @@ import type { GlowAnimation } from "@wowkit/wow";
 import type { AddonLocale } from "../locale/locale.interface";
 import type { TextKey } from "../locale/texts.constants";
 import type { AddonSettings, AddonSettingsService } from "../settings/settings.interface";
-import type { ControlsService } from "@wowkit/ui";
+import type { ControlsService, OptionsTab } from "@wowkit/ui";
 
 /** The words of each style (the table's Animation column says them too). */
 export const ANIMATION_TEXTS: { [style in GlowAnimation]: TextKey } = {
@@ -30,12 +30,12 @@ export class AnimationSection {
         private readonly controls: ControlsService<AddonSettings>,
     ) {}
 
-    addAnimationSection(category: SettingsCategory): void {
+    addAnimationSection(tab: OptionsTab): void {
         // A round button has no animation around it
         const styles: GlowAnimation[] = ["breathing", "none"];
         const key = "roundAnimation";
         this.controls.addDropdown(
-            category,
+            tab,
             key,
             this.locale.getText("OPT_ROUND_ANIMATION"),
             this.locale.getText("TIP_ROUND_ANIMATION"),

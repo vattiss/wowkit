@@ -117,7 +117,8 @@ describe("repairing the hidden windows", () => {
     }
 
     function clickRepair(world: World): void {
-        world.state.settingsButtons["Repair Hidden Windows"]!();
+        world.openOptions();
+        world.clickOption("Repair Hidden Windows");
     }
 
     it("sets a hidden window to always show, saved with the presets first, and reloads", () => {
@@ -128,17 +129,19 @@ describe("repairing the hidden windows", () => {
         expect(world.state.reloads).toBe(1);
     });
 
-    it("saves and reloads nothing when no window is hidden", () => {
-        const world = createLayouts(IN_COMBAT);
-        clickRepair(world);
-        expect(world.state.editModeSaves).toBe(0);
-        expect(world.state.reloads).toBe(0);
+    it("is only offered when a window is hidden", () => {
+        const hidden = createLayouts(HIDDEN);
+        hidden.openOptions();
+        expect(hidden.isOptionShown("Repair Hidden Windows")).toBe(true);
+        const notHidden = createLayouts(IN_COMBAT);
+        notHidden.openOptions();
+        expect(notHidden.isOptionShown("Repair Hidden Windows")).toBe(false);
     });
 
-    it("leaves a preset alone", () => {
+    it("is not offered for a preset, which cannot be changed", () => {
         const world = createLayouts(HIDDEN, 1);
-        clickRepair(world);
-        expect(world.state.editModeSaves).toBe(0);
+        world.openOptions();
+        expect(world.isOptionShown("Repair Hidden Windows")).toBe(false);
     });
 
     it("waits for the end of a fight", () => {
@@ -154,6 +157,7 @@ describe("repairing the hidden windows", () => {
             state.loadedAddons.EllesmereUICooldownManager = true;
         });
         world.advance(1);
-        expect(world.state.settingsButtons["Repair Hidden Windows"]).toBe(undefined);
+        world.openOptions();
+        expect(world.isOptionShown("Repair Hidden Windows")).toBe(false);
     });
 });

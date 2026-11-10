@@ -12,13 +12,23 @@ export const TEXTS = {
     OPT_SHOW_WHATS_NEW: "Show what's new after an update",
     TIP_SHOW_WHATS_NEW:
         "After an update with new features, the What's new window opens once, on the first character you log in with. This choice is for your whole account.",
-    TEXT_WHATS_NEW_TIP: "Tip: open it any time with /gb changelog, or from the Settings page.",
+    TEXT_WHATS_NEW_TIP: "Tip: open it any time with /gb changelog, or from the settings window.",
     INFO_COPIED: "The link is in your chat box. Press Ctrl+C to copy it.",
 
     HDR_CHARACTER: "This Character",
     OPT_DISABLE: "Disable on this character",
     TIP_DISABLE: "Turns off all glows, sounds and messages on this character. Your other characters aren't affected.",
     HDR_COOLDOWN_MANAGER: "Cooldown Manager",
+    TAB_GENERAL: "General",
+    TAB_REMINDERS: "Reminders",
+    TAB_BARS: "Bars",
+    BTN_OPEN_TABLE: "Open Table",
+    BTN_SETTINGS: "Settings",
+    BTN_DEFAULTS: "Defaults",
+    BTN_OPEN_SETTINGS: "Open Glowing Bars Settings",
+    OPT_MANAGER_RELOAD: "Reload To Apply This Change",
+    BTN_RELOAD: "Reload",
+    TIP_MANAGER_RELOAD: "Blizzard applies the Cooldown Manager's changes the next time your interface loads.",
     OPT_MANAGER_ACCESS: "Blizzard Cooldown Manager",
     TIP_MANAGER_ACCESS:
         "Glowing Bars can only read what's turned on in Blizzard's Cooldown Manager. Anything else falls back to older checks, which can be less exact in a fight. For the best results, choose \"Add what Glowing Bars needs\". Changes apply after your next login or /reload.",
@@ -167,10 +177,11 @@ export const TEXTS = {
     TIP_ALPHA_EXECUTE:
         "Experimental: the game shows this glow by itself on a low target, without telling the addon. If it doesn't work for you, switch it off in the Enabled column and tell me.",
     WELCOME_TEXT:
-        "It makes your action buttons glow when something needs doing. Its settings are in two places: Esc > Options > AddOns, and the table you open with /gb.",
+        "It makes your action buttons glow when something needs doing. Its settings are in two places: the settings window you open with /gb settings, and the table you open with /gb.",
     WELCOME_QUIET_TIP: "When ticked, reminders stay quiet while you are in a town or an inn.",
     WELCOME_REPORT_TIP: "If nothing lit up or no buttons were found, please copy this and report it on CurseForge or GitHub.",
-    WELCOME_TIP: "Tip: /gb opens the table of reminders, /gb scan runs this scan again, /gb welcome opens this window.",
+    WELCOME_TIP:
+        "Tip: /gb opens the table of reminders, /gb settings the settings, /gb scan runs this scan again, /gb welcome opens this window.",
     WELCOME_AFK_RAINBOW: "Rainbow when AFK (similar to the scan, but slower)",
     WELCOME_SCANNING: "Looking for your action buttons...",
     WELCOME_FOUND: "Found %d buttons, %d of them detected automatically, and %d more that are hidden now.",

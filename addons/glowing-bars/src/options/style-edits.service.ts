@@ -1,11 +1,11 @@
 // The parts of the table of looks that change which spells there are: the Spell ID box of a cooldown or proc row (to fix
 // the ID the addon uses for it), and the row at the end that adds a spell by its ID. Like the table, it may call the game.
+import { connectChoiceMenu } from "@wowkit/ui";
 import type { NoticeService, Rgb } from "@wowkit/wow";
 import type { AddedSpellsService } from "../glows/added-spells.service";
 import type { EnabledService } from "../settings/enabled.service";
 import type { AddonLocale } from "../locale/locale.interface";
 import { ADDABLE_TYPES } from "../settings/settings.constants";
-import { connectChoiceMenu } from "./choice-menu";
 import { ADD_TIP_HEIGHT, ADD_TIP_WIDTH, COLUMN, ROW_HEIGHT, TABLE_WIDTH, findCenteredX } from "./style-table.constants";
 import { TYPE_TEXTS, type StyleRow, type StyleRowsService } from "./style-rows.service";
 import type { StyleService } from "../settings/style.service";

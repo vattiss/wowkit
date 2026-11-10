@@ -1,6 +1,10 @@
 // The door of the ui package: what an addon needs besides the game's door: settings, texts, chat lines and
 // sounds, and the building blocks of the Settings panel pages.
+export * from "./choice-menu";
 export * from "./controls.service";
+export * from "./options-tab";
+export * from "./options-window";
+export * from "./window-frame";
 export * from "./about.section";
 export * from "./greeting.service";
 export * from "./locale.service";

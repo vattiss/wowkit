@@ -91,4 +91,4 @@ export function findCenteredX(column: Column, controlWidth: number): number {
 /** The name of an overridden spell, against the gray of one that follows its type. */
 export const OVERRIDDEN_COLOR: [number, number, number] = [1, 0.82, 0];
 /** The window border: the silver dialog art, tinted bronze. */
-export const BORDER_COLOR: Rgb = [0.85, 0.6, 0.3];
+export { BORDER_COLOR } from "@wowkit/ui";

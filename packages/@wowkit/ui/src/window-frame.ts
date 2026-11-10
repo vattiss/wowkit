@@ -1,11 +1,16 @@
 // The parts every window of the addon shares: the dark brown frame with the bronze border of the classic dialogs, Escape
 // closing it, and the scroll bar tinted to match.
-import { BORDER_COLOR } from "./style-table.constants";
+
+/** The bronze of the windows' borders. */
+export const BORDER_COLOR: [r: number, g: number, b: number] = [0.85, 0.6, 0.3];
 
 /** A solid dark brown window named `name`, with the bronze border of the classic dialogs where the client has the art for it. */
 export function createFrameWithBorder(name: string): Frame {
     const [didSucceed, created] = pcall(() => CreateFrame("Frame", name, UIParent, "BackdropTemplate"));
     const frame = didSucceed ? (created as Frame) : CreateFrame("Frame", name, UIParent);
+    // A window that opens, or is clicked, comes in front of the addon's other windows: they open in the same place
+    frame.SetToplevel(true);
+    frame.HookScript("OnShow", () => frame.Raise());
     // The background is a texture of our own: a backdrop file the client lacks would leave the window see-through
     const background = frame.CreateTexture(undefined, "BACKGROUND");
     background.SetPoint("TOPLEFT", frame, "TOPLEFT", 6, -6);

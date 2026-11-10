@@ -8,7 +8,7 @@ import type { TextKey } from "../locale/texts.constants";
 import { FADED_OPACITY_CHOICES } from "../settings/settings.constants";
 import { WINDOW_TEXTS } from "./cooldown-windows.constants";
 import type { AddonSettings, AddonSettingsService } from "../settings/settings.interface";
-import type { ControlsService } from "@wowkit/ui";
+import type { ControlsService, OptionsTab } from "@wowkit/ui";
 import type { ReminderControlsService } from "./reminder-controls.service";
 
 /** The bars of the game, numbered as Edit Mode numbers them. */
@@ -22,35 +22,35 @@ export class BarsSection {
         private readonly reminderControls: ReminderControlsService,
     ) {}
 
-    addBarsSection(category: SettingsCategory, layout: SettingsLayout): void {
-        this.reminderControls.addHeader(layout, "HDR_BARS");
+    addBarsSection(tab: OptionsTab): void {
+        this.reminderControls.addHeader(tab, "HDR_BARS");
         for (let bar = 1; bar <= BAR_COUNT; bar++) {
             const key = string.format("%d", bar);
             this.controls.addCheckbox(
-                category,
+                tab,
                 `bar_${key}`,
                 string.format(this.locale.getText("OPT_BAR"), bar),
-                this.locale.getText("TIP_BAR"),
+                undefined,
                 true,
                 () => this.settings.get("barsThatGlow")[key] !== false,
                 (isChecked) => this.setBarOn(key, isChecked),
             );
         }
         this.controls.addCheckbox(
-            category,
+            tab,
             `bar_${STANCE_BAR_KEY}`,
             this.locale.getText("OPT_BAR_STANCE"),
-            this.locale.getText("TIP_BAR"),
+            undefined,
             true,
             () => this.settings.get("barsThatGlow")[STANCE_BAR_KEY] !== false,
             (isChecked) => this.setBarOn(STANCE_BAR_KEY, isChecked),
         );
         for (const window of COOLDOWN_WINDOWS) {
             this.controls.addCheckbox(
-                category,
+                tab,
                 `bar_${window}`,
                 this.locale.getText(WINDOW_TEXTS[window]),
-                this.locale.getText("TIP_BAR"),
+                undefined,
                 true,
                 () => this.settings.get("barsThatGlow")[window] !== false,
                 (isChecked) => this.setBarOn(window, isChecked),
@@ -59,15 +59,15 @@ export class BarsSection {
     }
 
     /** A switch for each bar to be faded until its buttons glow, and how faded. */
-    addFadedSection(category: SettingsCategory, layout: SettingsLayout): void {
-        this.reminderControls.addHeader(layout, "HDR_FADED");
+    addFadedSection(tab: OptionsTab): void {
+        this.reminderControls.addHeader(tab, "HDR_FADED");
         for (let bar = 1; bar <= BAR_COUNT; bar++) {
             const key = string.format("%d", bar);
             this.controls.addCheckbox(
-                category,
+                tab,
                 `fade_${key}`,
                 string.format(this.locale.getText("OPT_BAR"), bar),
-                this.locale.getText("TIP_FADE"),
+                undefined,
                 false,
                 () => this.settings.get("fadedBars")[key] === true,
                 (isChecked) => this.setBarFaded(key, isChecked),
@@ -79,17 +79,17 @@ export class BarsSection {
         ];
         for (const [key, label] of others) {
             this.controls.addCheckbox(
-                category,
+                tab,
                 `fade_${key}`,
                 this.locale.getText(label),
-                this.locale.getText("TIP_FADE"),
+                undefined,
                 false,
                 () => this.settings.get("fadedBars")[key] === true,
                 (isChecked) => this.setBarFaded(key, isChecked),
             );
         }
         this.controls.addDropdown(
-            category,
+            tab,
             "fadedOpacity",
             this.locale.getText("OPT_FADED_OPACITY"),
             this.locale.getText("TIP_FADED_OPACITY"),

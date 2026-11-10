@@ -1,7 +1,7 @@
 // The welcome window: a word of welcome, the setting new players trip over, and what the scan of the action bars found.
+import { connectEscape, createFrameWithBorder } from "@wowkit/ui";
 import type { AddonLocale } from "../locale/locale.interface";
 import type { TextKey } from "../locale/texts.constants";
-import { connectEscape, createFrameWithBorder } from "./window-frame";
 
 const WINDOW_NAME = "GlowingBarsWelcome";
 const WINDOW_WIDTH = 460;

@@ -118,10 +118,6 @@ function installCooldownViewers(state: ClientState): void {
         },
     };
     defineValues({
-        CreateSettingsButtonInitializer: (label: string, _buttonText: string, onClick: (this: void) => void) => {
-            state.settingsButtons[label] = onClick;
-            return createInertObject<SettingsInitializer>();
-        },
         CooldownViewerUtil: { GetCurrentClassAndSpecTag: () => state.viewerLayout },
         CooldownViewerSettings: {
             GetDataProvider() {

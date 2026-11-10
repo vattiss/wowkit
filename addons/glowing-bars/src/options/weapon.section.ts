@@ -6,7 +6,7 @@ import type { TextKey } from "../locale/texts.constants";
 import type { WeaponChoiceService } from "../reminders/weapon/weapon-choice.service";
 import type { AddonSettingsService, AddonSettings } from "../settings/settings.interface";
 import type { SpellsService } from "@wowkit/wow";
-import type { ControlsService } from "@wowkit/ui";
+import type { ControlsService, OptionsTab } from "@wowkit/ui";
 import type { ReminderControlsService } from "./reminder-controls.service";
 
 export class WeaponSection {
@@ -20,21 +20,21 @@ export class WeaponSection {
     ) {}
 
     /** Nothing is added for a class without weapon buffs. */
-    addWeaponSection(category: SettingsCategory, layout: SettingsLayout): void {
+    addWeaponSection(tab: OptionsTab): void {
         if (this.weaponChoice.getWeaponChoices().length === 0) return;
-        this.reminderControls.addHeader(layout, "HDR_WEAPON");
+        this.reminderControls.addHeader(tab, "HDR_WEAPON");
         if (this.weaponChoice.hasOffhandChoice()) {
-            this.addWeaponPick(category, "weaponBuff", "OPT_WEAPON_PICK_MAIN", false);
-            this.addWeaponPick(category, "weaponBuffOff", "OPT_WEAPON_PICK_OFF", true);
+            this.addWeaponPick(tab, "weaponBuff", "OPT_WEAPON_PICK_MAIN", false);
+            this.addWeaponPick(tab, "weaponBuffOff", "OPT_WEAPON_PICK_OFF", true);
         } else {
-            this.addWeaponPick(category, "weaponBuff", "OPT_WEAPON_PICK", false);
+            this.addWeaponPick(tab, "weaponBuff", "OPT_WEAPON_PICK", false);
         }
     }
 
     /** The pick of the weapon buff: "auto" (the best one learned) or one of the learned buffs. */
-    private addWeaponPick(category: SettingsCategory, key: "weaponBuff" | "weaponBuffOff", label: TextKey, isOffhand: boolean): void {
+    private addWeaponPick(tab: OptionsTab, key: "weaponBuff" | "weaponBuffOff", label: TextKey, isOffhand: boolean): void {
         this.controls.addDropdown(
-            category,
+            tab,
             key,
             this.locale.getText(label),
             this.locale.getText("TIP_WEAPON_PICK"),

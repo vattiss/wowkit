@@ -35,6 +35,7 @@ import "./cooldown-reader.spec";
 import "./cooldown-windows.spec";
 import "./priest-racials.spec";
 import "./macro-lines.spec";
+import "./options-window.spec";
 import "./defensive-execute.spec";
 import "./alpha-procs.spec";
 import "./welcome.spec";

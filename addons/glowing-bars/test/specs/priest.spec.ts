@@ -43,7 +43,7 @@ describe("a priest", () => {
         });
 
         it("has the switch of the login message on the Settings page, on by default", () => {
-            expect(world.proxySettings["GlowingBars_shouldShowGreeting"]).toBeDefined();
+            expect(world.hasOption("shouldShowGreeting")).toBe(true);
             expect(world.getSavedSettings()?.shouldShowGreeting).toBe(true);
         });
 
@@ -52,7 +52,7 @@ describe("a priest", () => {
         });
 
         it("adds its page to the options", () => {
-            expect(world.proxySettings["GlowingBars_isDisabled"]).toBeDefined();
+            expect(world.hasOption("isDisabled")).toBe(true);
         });
     });
 
