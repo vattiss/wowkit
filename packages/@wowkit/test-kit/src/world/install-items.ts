@@ -11,6 +11,13 @@ export function installItems(state: ClientState, sounds: number[]): void {
         },
     });
 
+    defineNamespace<typeof C_Container>("C_Container", {
+        GetItemCooldown: (itemId) => {
+            const cooldown = state.itemCooldowns[itemId];
+            return $multi(cooldown?.start ?? 0, cooldown?.duration ?? 0, 1);
+        },
+    });
+
     defineNamespace<typeof C_Item>("C_Item", {
         GetWeaponEnchantInfo: () => {
             if (state.areEnchantReadsBroken) throw new Error("the client gave no answer");

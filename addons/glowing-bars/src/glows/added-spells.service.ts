@@ -18,11 +18,17 @@ export class AddedSpellsService {
     ) {}
 
     /**
-     * What is surely wrong with this type for the spell, if anything? A cooldown needs a cooldown, a low reagent a
-     * reagent named in the tooltip; the game tells both. The other types it cannot tell apart, so they are taken as given.
+     * What is surely wrong with this type for the spell, if anything? A cooldown needs a cooldown (its own, or the one of
+     * the item it is the use of), a low reagent a reagent named in the tooltip; the game tells both. The other types it cannot tell apart, so they are taken as given.
      */
     findTypeProblem(spellId: number, reminderType: AddableType): TextKey | undefined {
-        if (reminderType === "readyCooldown" && this.cooldowns.getBaseCooldown(spellId) <= 0) return "MSG_NO_COOLDOWN";
+        // A trinket's use spell has none of its own: the item's counts
+        if (
+            reminderType === "readyCooldown" &&
+            this.cooldowns.getBaseCooldown(spellId) <= 0 &&
+            this.cooldowns.findUseItem(spellId) === undefined
+        )
+            return "MSG_NO_COOLDOWN";
         if (reminderType === "lowReagent" && this.reagents.findTooltipReagent(spellId) === undefined) return "MSG_NO_REAGENT";
         return undefined;
     }

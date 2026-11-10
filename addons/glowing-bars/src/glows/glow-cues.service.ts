@@ -147,7 +147,9 @@ export class GlowCuesService {
         const enabledSpells = this.settings.get("enabledSpells");
         const found: number[] = [];
         for (const id of ids) {
-            const learned = this.spells.resolve(this.addedSpells.getEffectiveId(id));
+            const effectiveId = this.addedSpells.getEffectiveId(id);
+            // A trinket's use spell is never learned: the item it is the use of counts
+            const learned = this.spells.resolve(effectiveId) ?? (this.tracker.hasItemCooldown(effectiveId) ? effectiveId : undefined);
             if (learned === undefined || enabledSpells[String(id)] === false || !this.actionBars.isOnBars(learned)) continue;
             found.push(learned);
         }

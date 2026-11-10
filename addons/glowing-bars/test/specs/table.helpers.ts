@@ -84,3 +84,14 @@ export function switchInTable(world: World, label: string, isOn: boolean): void 
     enabled.isChecked = isOn;
     enabled.scripts.OnClick!(enabled);
 }
+
+/** The widgets of the row at the end of the table that adds a spell. */
+export function findAddRowOf(world: World): { box: FakeFrame; reminderType: FakeFrame; add: FakeFrame } {
+    const box = world.frames.find(
+        (frame) =>
+            frame.frameType === "EditBox" &&
+            !world.frames.some((other) => other.parent === frame.parent && other.frameType === "CheckButton"),
+    )!;
+    const buttons = world.frames.filter((frame) => frame.parent === box.parent && frame.template === "UIPanelButtonTemplate");
+    return { box, reminderType: buttons[0]!, add: buttons[1]! };
+}

@@ -65,6 +65,11 @@ export class CooldownTrackerService {
         return endsAt - now;
     }
 
+    /** Is the cooldown of an item the player has (a trinket whose use this spell is)? */
+    hasItemCooldown(spellId: number): boolean {
+        return this.cooldowns.findUseItem(spellId) !== undefined;
+    }
+
     /** What the spell's icon in the Cooldown Manager says it has left; undefined when it has no say. */
     private readCooldownIcon(id: number, now: number): number | undefined {
         const name = this.spells.getSpellName(id);

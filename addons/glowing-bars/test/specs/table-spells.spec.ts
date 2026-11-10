@@ -15,7 +15,7 @@ import {
     SMITE_RANK_1,
     SMITE_RANK_2,
 } from "@wowkit/test-kit";
-import { RECKLESSNESS, findLabel, toggleTable } from "./table.helpers";
+import { RECKLESSNESS, findAddRowOf, findLabel, toggleTable } from "./table.helpers";
 
 describe("the spells of the table, fixed and added by the player", () => {
     const RECKLESSNESS_ELSEWHERE: SpellDefinition = {
@@ -29,16 +29,7 @@ describe("the spells of the table, fixed and added by the player", () => {
     const SHIELD_BASH: SpellDefinition = { id: 72, name: "Shield Bash", rank: 1, icon: 132357, cooldownSeconds: 12, isHarmful: true };
     let world!: World;
 
-    /** The widgets of the row at the end of the table that adds a spell. */
-    function findAddRow(): { box: FakeFrame; reminderType: FakeFrame; add: FakeFrame } {
-        const box = world.frames.find(
-            (frame) =>
-                frame.frameType === "EditBox" &&
-                !world.frames.some((other) => other.parent === frame.parent && other.frameType === "CheckButton"),
-        )!;
-        const buttons = world.frames.filter((frame) => frame.parent === box.parent && frame.template === "UIPanelButtonTemplate");
-        return { box, reminderType: buttons[0]!, add: buttons[1]! };
-    }
+    const findAddRow = () => findAddRowOf(world);
 
     function findIdBox(label: string): FakeFrame {
         const row = findLabel(world, label)!.parent;
@@ -152,6 +143,16 @@ describe("the spells of the table, fixed and added by the player", () => {
         add.scripts.OnClick!(add);
         expect(readSettings().addedSpells).toEqual([]);
         expect(world.notice()).toContain("Demon Skin has no cooldown, pick another type.");
+    });
+
+    it("adds an equipped trinket's use spell as a cooldown: the item has the cooldown", () => {
+        const { box, add } = findAddRow();
+        state().spells[23271] = { id: 23271, name: "Ephemeral Power", rank: 1, icon: 1, isHelpful: true };
+        state().itemUseSpells[18820] = 23271;
+        state().equippedItems[13] = 18820;
+        box.text = "23271";
+        add.scripts.OnClick!(add);
+        expect(readSettings().addedSpells).toEqual([{ id: 23271, reminderType: "readyCooldown" }]);
     });
 
     it("does not add a spell as another type than the one picked, even one with a reagent", () => {

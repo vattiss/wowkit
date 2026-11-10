@@ -14,6 +14,7 @@ import "./rogue-macros.spec";
 import "./ranks.spec";
 import "./town.spec";
 import "./glows.spec";
+import "./cooldown-ranks.spec";
 import "./looks.spec";
 import "./table.spec";
 import "./table-spells.spec";

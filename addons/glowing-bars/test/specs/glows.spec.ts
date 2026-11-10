@@ -6,7 +6,6 @@ import {
     it,
     learnSpell,
     playAs,
-    PRIEST,
     WARRIOR,
     type ClientState,
     type SpellDefinition,
@@ -271,45 +270,6 @@ describe("an orc warrior with Blood Fury on the bars", () => {
         world.state.cooldowns[BLOOD_FURY.id] = undefined;
         world.advance(0.5);
         expect(world.glowsOn(3)).toBe(1);
-    });
-});
-
-describe("a priest with a higher rank of Fade on the bars", () => {
-    const FADE: SpellDefinition = { id: 586, name: "Fade", rank: 1, icon: 135994, cooldownSeconds: 30, isHelpful: true };
-    const FADE_TOP: SpellDefinition = { ...FADE, id: 10942, rank: 6 };
-
-    function createPriest(): World {
-        const world = createWorld(
-            (state) => {
-                playAs(state, PRIEST);
-                learnSpell(state, FADE);
-                learnSpell(state, FADE_TOP);
-                state.bars[1] = FADE_TOP.id;
-            },
-            { styles: { readyCooldown: { glowTime: 0 } } },
-        );
-        world.setOption("showCooldownsAtFightStart", true);
-        world.state.isInCombat = true;
-        world.state.areCooldownsHidden = true;
-        world.fire("PLAYER_REGEN_DISABLED");
-        world.advance(0.5);
-        expect(world.glowsOn(1)).toBe(1);
-        return world;
-    }
-
-    it("loses the glow at the cast of that rank, in a fight where the game hides the cooldowns", () => {
-        const world = createPriest();
-        world.fire("UNIT_SPELLCAST_SUCCEEDED", "player", "cast-1", FADE_TOP.id);
-        world.advance(1.5);
-        expect(world.glowsOn(1)).toBe(0);
-    });
-
-    it("keeps the glow when an item's spell of the same name is used", () => {
-        const world = createPriest();
-        world.state.spells[99586] = { ...FADE, id: 99586 };
-        world.fire("UNIT_SPELLCAST_SUCCEEDED", "player", "cast-1", 99586);
-        world.advance(1.5);
-        expect(world.glowsOn(1)).toBe(1);
     });
 });
 

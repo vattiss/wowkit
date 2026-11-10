@@ -187,6 +187,8 @@ export interface ClientState {
     itemIds: { [name: string]: number | undefined };
     /** The spell an item casts when it is used (an elixir's use spell), by item ID. */
     itemUseSpells: { [itemId: number]: number | undefined };
+    /** The cooldowns of the items (a trinket's), by item ID: when they started and how long they are. */
+    itemCooldowns: { [itemId: number]: { start: number; duration: number } | undefined };
     itemNames: { [itemId: number]: string | undefined };
     level: number;
     /** The race: its ID (4 Night Elf) and the client's race file name. */
@@ -274,6 +276,7 @@ export function createClientState(): ClientState {
         reagentTexts: {},
         itemIds: {},
         itemUseSpells: {},
+        itemCooldowns: {},
         itemNames: {},
         level: 60,
         race: { id: 1, file: "Human" },
