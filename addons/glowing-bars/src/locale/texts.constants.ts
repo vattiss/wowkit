@@ -72,6 +72,9 @@ export const TEXTS = {
     MSG_REPAIR_FAILED: "Couldn't repair the windows. Change their Visibility in Edit Mode.",
     OPT_MANAGER_ICONS_HIDE: "Hide",
     OPT_MANAGER_ICONS_SHOW: "Show",
+    OPT_GLOW_ON_MACROS: "Glow on macros",
+    TIP_GLOW_ON_MACROS:
+        "Macro buttons glow for the spells and items they use. Turn this off to have only the buttons of spells and items glow.",
     OPT_SHOW_GREETING: "Show the login message",
     TIP_SHOW_GREETING: "At each login, a line in the chat says that Glowing Bars is loaded, and how to open its table (/gb).",
     OPT_STAY_QUIET_IN_TOWNS: "Stay quiet in towns and inns",

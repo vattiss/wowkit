@@ -97,6 +97,13 @@ export function findMacroOfSlot(slot: number): number | undefined {
     return index !== undefined && index > 0 ? index : undefined;
 }
 
+/** Does the slot hold a macro, one that shows a spell or an item too? */
+export function isMacroSlot(slot: number | undefined): boolean {
+    if (slot === undefined) return false;
+    const [didRead, kind] = attemptMulti(() => GetActionInfo(slot));
+    return didRead && getReadable(kind) === "macro";
+}
+
 /** The macro to read for what a slot gives: the game's number is that of the macro, except when the macro shows an item. */
 export function findMacroOfAction(slot: number, subType: unknown, actionId: unknown): unknown {
     return isReadable(subType) && subType === "item" ? findMacroOfSlot(slot) : actionId;

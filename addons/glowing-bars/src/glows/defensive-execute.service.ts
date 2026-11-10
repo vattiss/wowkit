@@ -107,6 +107,7 @@ export class DefensiveExecuteService {
     }
 
     private isBarShown(button: ActionButton): boolean {
+        if (!this.settings.get("shouldGlowOnMacros") && this.actionBars.isMacroButton(button)) return false;
         const bar = this.barKeys.getBarKey(button);
         return bar === undefined || this.settings.get("barsThatGlow")[bar] !== false;
     }

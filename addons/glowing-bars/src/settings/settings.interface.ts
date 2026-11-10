@@ -97,6 +97,8 @@ export interface AddonSettings {
     isCooldownManagerOurs: boolean;
     /** Do the action buttons light up in rainbow colors while the player is AFK? */
     isAfkRainbowOn: boolean;
+    /** Do macro buttons glow too, not only the buttons of spells and items? */
+    shouldGlowOnMacros: boolean;
     /** What a circling glow does on a round button (Forever's gamepad bars, another addon's), where it cannot circle. */
     roundAnimation: GlowAnimation;
     isMissingBuffEnabled: boolean;

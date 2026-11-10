@@ -130,6 +130,23 @@ describe("a name in brackets", () => {
     });
 });
 
+describe("the switch of the glow on macros", () => {
+    it("keeps macro buttons dark when switched off, and the spell's own button still glows", () => {
+        const world = createWorld((state) => {
+            playAs(state, PRIEST);
+            learnSpell(state, INNER_FIRE);
+            state.bars[1] = INNER_FIRE.id;
+            state.barMacros = { 2: { body: "/cast Inner Fire" } };
+        });
+        world.advance(3);
+        expect(world.glowsOn(2)).toBe(1);
+        world.setOption("shouldGlowOnMacros", false);
+        world.advance(1);
+        expect(world.glowsOn(2)).toBe(0);
+        expect(world.glowsOn(1)).toBe(1);
+    });
+});
+
 describe("the icon of a macro", () => {
     it("does not make a /target macro an Inner Fire button, even with Inner Fire's icon", () => {
         const world = createWorld((state) => {

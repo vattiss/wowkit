@@ -22,6 +22,7 @@ export function createDefaultSettings(): AddonSettings {
         shouldShowGreeting: true,
         shouldStayQuietInTowns: false,
         isAfkRainbowOn: false,
+        shouldGlowOnMacros: true,
         isWelcomeDone: false,
         isCooldownChoiceSeen: false,
         cooldownManagerAccess: "full",

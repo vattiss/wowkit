@@ -115,6 +115,7 @@ const SETTINGS_OF_THE_LOOK: string[] = [
     "idOverrides",
     "addedSpells",
     "roundAnimation",
+    "shouldGlowOnMacros",
     "cooldownManagerAccess",
     ...Object.values(WINDOW_ICONS_SETTINGS),
 ];
@@ -298,6 +299,7 @@ export class ShowRemindersService {
 
     /** A button glows unless it holds an item that has run out, or its bar is switched off (a button of no numbered bar always may). */
     private isBarShown(button: ActionButton, groupKey: string): boolean {
+        if (!this.settings.get("shouldGlowOnMacros") && this.actionBars.isMacroButton(button)) return false;
         if (this.isForOtherWeapon(button) || this.coveredButtons.includes(button)) return false;
         const isUsedUpShown = this.usedUpShown.some((id) => this.actionBars.findButtonsOf(id).includes(button));
         if (!isUsedUpShown && isOutOfItem(this.actionBars, button)) return false;

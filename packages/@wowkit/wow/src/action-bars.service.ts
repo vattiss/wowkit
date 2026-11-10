@@ -9,7 +9,7 @@ import { type EventBus, OnGameEvent, type OnFirstLogin } from "@wowkit/core";
 import type { ButtonRegistryService, ButtonShape } from "./button-registry.service";
 import type { ClockService } from "./clock.service";
 import { findButtonItem, findItemUseSpell, getItemButtonKey, readTextureKey } from "./utils/item-button.utils";
-import { buildButtonKey, findMacroOfAction, findSpellMacroOfSlot, readMacroSpells } from "./utils/macro-text.utils";
+import { buildButtonKey, findMacroOfAction, findSpellMacroOfSlot, isMacroSlot, readMacroSpells } from "./utils/macro-text.utils";
 import { attempt, attemptMulti } from "./utils/protected-call.utils";
 import { getReadableId, isReadable } from "./utils/secret-value.utils";
 import type { SpellsService } from "./spells.service";
@@ -187,6 +187,11 @@ export class ActionBarsService implements OnFirstLogin {
             if (slot !== undefined) return slot;
         }
         return undefined;
+    }
+
+    /** Does the button hold a macro? */
+    isMacroButton(button: ActionButton): boolean {
+        return isMacroSlot(this.getActionSlot(button));
     }
 
     /** The weapon a macro button puts something on; undefined where it does not say. */
