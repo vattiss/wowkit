@@ -87,12 +87,12 @@ function isMacroNameShared(name: string): boolean {
 }
 
 /**
- * The macro on an action slot, by its name; undefined when the name cannot tell: it is blank (players keep the text off the
- * button that way) or several macros have it.
+ * The macro on an action slot, by its name; undefined when the name cannot tell: several macros have it. Many share a blank
+ * one (players keep the text off the button that way), but a blank name only one macro has still finds it.
  */
 export function findMacroOfSlot(slot: number): number | undefined {
     const name = getReadable(attempt(C_ActionBar.GetActionText, slot));
-    if (name === undefined || strtrim(name) === "" || isMacroNameShared(name)) return undefined;
+    if (name === undefined || name === "" || isMacroNameShared(name)) return undefined;
     const index = getReadable(attempt(GetMacroIndexByName, name));
     return index !== undefined && index > 0 ? index : undefined;
 }
@@ -102,10 +102,26 @@ export function findMacroOfAction(slot: number, subType: unknown, actionId: unkn
     return isReadable(subType) && subType === "item" ? findMacroOfSlot(slot) : actionId;
 }
 
-/** The macro on a slot that shows a spell now: the game only gives that spell, the macro's other lines are read by its name. */
+/**
+ * The macro on a slot that shows a spell now: the game only gives that spell, so its other lines are read by finding the
+ * macro, by its name or, when the name cannot tell, as the one macro showing that spell now.
+ */
 export function findSpellMacroOfSlot(slot: number): number | undefined {
-    const [didRead, kind, , subType] = attemptMulti(() => GetActionInfo(slot));
-    return didRead && getReadable(kind) === "macro" && getReadable(subType) === "spell" ? findMacroOfSlot(slot) : undefined;
+    const [didRead, kind, shownSpell, subType] = attemptMulti(() => GetActionInfo(slot));
+    if (!didRead || getReadable(kind) !== "macro" || getReadable(subType) !== "spell") return undefined;
+    return findMacroOfSlot(slot) ?? findMacroShowing(getReadableId(shownSpell));
+}
+
+/** The one macro that shows this spell now; undefined when none does, or several do and it cannot be told which. */
+function findMacroShowing(spellId: number | undefined): number | undefined {
+    if (spellId === undefined) return undefined;
+    let found: number | undefined;
+    for (let index = 1; index <= LAST_MACRO_NUMBER; index++) {
+        if (getReadableId(attempt(GetMacroSpell, index)) !== spellId) continue;
+        if (found !== undefined) return undefined;
+        found = index;
+    }
+    return found;
 }
 
 /** The form button names are matched in: lowercase, a trailing "(...)" removed, trimmed; undefined when nothing is left. */
@@ -125,6 +141,8 @@ export interface MacroSpells {
     hasUnknownUse: boolean;
     /** The weapon it puts something on (/use 16 or /use 17). */
     handSlot?: number;
+    /** Could its text be read? Then what it casts is known. */
+    isRead: boolean;
 }
 
 /** A number is an inventory slot (/use 17), two are a bag and its slot (/use 0 1): neither is a spell. */
@@ -134,9 +152,10 @@ function isSlotToken(token: string): boolean {
 
 /** The spells of the cast lines of a macro (#showtooltip, /cast ...), and the items of its /use lines. */
 export function readMacroSpells(macro: number | string): MacroSpells {
-    const found: MacroSpells = { names: [], spellIds: [], hasUnknownUse: false };
+    const found: MacroSpells = { names: [], spellIds: [], hasUnknownUse: false, isRead: false };
     const body = attempt(GetMacroBody, macro);
     if (body === undefined || !isReadable(body)) return found;
+    found.isRead = true;
     const lines = listCastLines(body);
     const isUsing = lines.some((cast) => cast.isUse);
     found.handSlot = findHandSlot(lines);

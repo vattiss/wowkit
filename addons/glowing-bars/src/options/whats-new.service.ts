@@ -111,8 +111,9 @@ export class WhatsNewService implements OnAddonLoaded, OnLogin {
         this.openTab?.();
     }
 
+    /** Not while the game locks down for a fight either: the same check the commands make. */
     private openWhenAtPeace(): void {
-        if (this.player.isInCombat()) this.isWaitingForPeace = true;
+        if (this.player.isInCombat() || InCombatLockdown()) this.isWaitingForPeace = true;
         else this.openTab?.();
     }
 }

@@ -44,8 +44,8 @@ export class BarRefreshService implements OnFirstLogin {
         this.actionBars.mapBars(true);
     }
 
-    /** The bars changed: map them again once they settle. */
-    @OnGameEvent("SPELL_PUSHED_TO_ACTIONBAR", "ACTIONBAR_SLOT_CHANGED", "ACTIONBAR_PAGE_CHANGED")
+    /** The bars changed, or a macro on them was edited (its new text may cast something else): map them again once they settle. */
+    @OnGameEvent("SPELL_PUSHED_TO_ACTIONBAR", "ACTIONBAR_SLOT_CHANGED", "ACTIONBAR_PAGE_CHANGED", "UPDATE_MACROS")
     scheduleBarRemap(): void {
         this.actionBars.noteBarsChanged();
         this.generation += 1;

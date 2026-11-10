@@ -61,7 +61,7 @@ export function installActionBars(state: ClientState, frames: FrameRegistry): vo
     defineNamespace<typeof C_ActionBar>("C_ActionBar", {
         GetActionText: (slot) => state.barMacros[slot]?.name,
         HasAction: (slot) => state.bars[slot] !== undefined || state.barItems[slot] !== undefined || state.barMacros[slot] !== undefined,
-        GetActionTexture: (slot) => state.spells[state.bars[slot] ?? 0]?.icon ?? 0,
+        GetActionTexture: (slot) => state.barMacros[slot]?.icon ?? state.spells[state.bars[slot] ?? 0]?.icon ?? 0,
         // The bar does not answer: the addon then asks the spell
         IsActionInRange: () => undefined,
     });

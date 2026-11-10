@@ -53,6 +53,8 @@ export class ActionBarsService implements OnFirstLogin {
     private hasUnknownMacroUse = false;
     /** The weapon each macro button puts something on, where its text says (/use 16 or /use 17). */
     private readonly handSlotOfButton = new LuaMap<ActionButton, number>();
+    /** The macro buttons whose text was read: what they cast is known, so their icon tells nothing more. */
+    private readonly readMacroButtons = new LuaMap<ActionButton, boolean>();
 
     constructor(
         private readonly clock: ClockService,
@@ -83,14 +85,10 @@ export class ActionBarsService implements OnFirstLogin {
     /** Maps every action button, a few per frame. `isForced` ignores the throttle. */
     mapBars(isForced: boolean): void {
         if (!isForced && this.lastMapAt > 0 && this.clock.getCurrentTime() - this.lastMapAt < MAP_THROTTLE) return;
-        this.clear(this.buttonsBySpell);
-        this.clear(this.buttonsByName);
-        this.clear(this.buttonsByNameKey);
-        this.clear(this.buttonsByIcon);
-        this.clear(this.slotByButton);
-        this.clear(this.macroSpellNames);
+        const maps = [this.buttonsBySpell, this.buttonsByName, this.buttonsByNameKey, this.buttonsByIcon, this.slotByButton];
+        for (const map of [...maps, this.macroSpellNames, this.handSlotOfButton, this.readMacroButtons])
+            this.clear(map as unknown as LuaMap<AnyNotNil, unknown>);
         this.hasUnknownMacroUse = false;
-        this.clear(this.handSlotOfButton);
         this.lastMapAt = this.clock.getCurrentTime();
 
         const queue = this.listButtonsToMap();
@@ -175,7 +173,9 @@ export class ActionBarsService implements OnFirstLogin {
         const lists: ActionButton[][] = [];
         for (const key of icons) {
             const list = this.buttonsByIcon.get(key);
-            if (list && list.length > 0 && list.length <= MAX_BUTTONS_PER_ICON) lists.push(list);
+            // Not a macro whose text was read: a /target macro with the icon of a buff does not cast it
+            if (list && list.length > 0 && list.length <= MAX_BUTTONS_PER_ICON)
+                lists.push(list.filter((button) => !this.readMacroButtons.has(button)));
         }
         return lists;
     }
@@ -267,6 +267,7 @@ export class ActionBarsService implements OnFirstLogin {
         for (const spellId of found.spellIds) this.addSpell(spellId, button);
         if (found.hasUnknownUse) this.hasUnknownMacroUse = true;
         if (found.handSlot !== undefined) this.handSlotOfButton.set(button, found.handSlot);
+        if (found.isRead) this.readMacroButtons.set(button, true);
     }
 
     private addButton(button: ActionButton): void {

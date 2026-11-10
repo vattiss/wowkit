@@ -64,7 +64,7 @@ export class RemindersPage implements OptionsPage {
 
     buildPage(window: OptionsWindow): void {
         window.addTopButton(this.locale.getText("BTN_OPEN_TABLE"), () => this.table.toggle());
-        const welcomeTab = window.addTab(this.locale.getText("TAB_WELCOME"));
+        const welcomeTab = window.addTab(this.locale.getText("TAB_WELCOME"), false);
         buildWelcomeTab(welcomeTab, {
             locale: this.locale,
             settings: this.settings,

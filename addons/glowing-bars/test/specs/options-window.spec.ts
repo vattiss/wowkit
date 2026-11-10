@@ -108,6 +108,8 @@ describe("the Defaults button", () => {
         const button = (text: string) => world.frames.find((frame) => frame.frameType === "Button" && frame.text === text)!;
         button("Help").scripts.OnClick!(button("Help"));
         expect(button("Defaults").isShown).toBe(false);
+        button("Welcome").scripts.OnClick!(button("Welcome"));
+        expect(button("Defaults").isShown).toBe(false);
         button("Bars").scripts.OnClick!(button("Bars"));
         expect(button("Defaults").isShown).toBe(true);
     });

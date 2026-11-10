@@ -130,6 +130,29 @@ describe("a name in brackets", () => {
     });
 });
 
+describe("the icon of a macro", () => {
+    it("does not make a /target macro an Inner Fire button, even with Inner Fire's icon", () => {
+        const world = createWorld((state) => {
+            playAs(state, PRIEST);
+            learnSpell(state, INNER_FIRE);
+            state.barMacros = { 2: { body: "/target Kentw", icon: INNER_FIRE.icon } };
+        });
+        world.advance(3);
+        expect(world.glowsOn(2)).toBe(0);
+    });
+});
+
+describe("a macro that is edited", () => {
+    it("is read again: a cast line turned into /target no longer glows", () => {
+        const world = createWithMacros({ 2: { body: "/cast Inner Fire" } });
+        expect(world.glowsOn(2)).toBe(1);
+        world.state.barMacros[2]!.body = "/target Kent";
+        world.fire("UPDATE_MACROS");
+        world.advance(3);
+        expect(world.glowsOn(2)).toBe(0);
+    });
+});
+
 describe("which macro a button holds", () => {
     it("goes by the game's number when macros share a blank name", () => {
         const world = createWithMacros({
@@ -157,6 +180,11 @@ describe("which macro a button holds", () => {
         expect(world.glowsOn(5)).toBe(1);
     });
 
+    it("reads a macro that shows an item by its blank name when it is the only macro with that name", () => {
+        const world = createWithMacros({ 5: { body: "/cast Inner Fire", name: " ", isShowingItem: true } });
+        expect(world.glowsOn(5)).toBe(1);
+    });
+
     it("reads nothing for a macro that shows an item when its name cannot tell: a blank one", () => {
         const world = createWithMacros({
             4: { body: "/cast Inner Fire", name: " " },
@@ -179,8 +207,25 @@ describe("which macro a button holds", () => {
         expect(world.glowsOn(2)).toBe(1);
     });
 
-    it("cannot read the other lines of a macro showing a spell when its name is blank", () => {
+    it("reads the other lines of a macro showing a spell by its blank name when it is the only one with it", () => {
         const world = createWithMacros({ 2: { body: "/cast [mod] Inner Fire; Fade", name: " ", spellId: OTHER_SPELL.id } });
+        expect(world.glowsOn(2)).toBe(1);
+    });
+
+    it("reads the other lines of a macro showing a spell among others of its blank name: the one showing that spell", () => {
+        const world = createWithMacros({
+            2: { body: "/cast [mod] Inner Fire; Fade", name: " ", spellId: OTHER_SPELL.id },
+            4: { body: "/target Kent", name: " " },
+            5: { body: "/say hello", name: " " },
+        });
+        expect(world.glowsOn(2)).toBe(1);
+    });
+
+    it("cannot tell which macro it is when two of the same blank name show the same spell", () => {
+        const world = createWithMacros({
+            2: { body: "/cast [mod] Inner Fire; Fade", name: " ", spellId: OTHER_SPELL.id },
+            4: { body: "/cast Fade", name: " ", spellId: OTHER_SPELL.id },
+        });
         expect(world.glowsOn(2)).toBe(0);
     });
 });
