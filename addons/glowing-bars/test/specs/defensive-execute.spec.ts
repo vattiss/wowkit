@@ -11,7 +11,7 @@ import {
     type SpellDefinition,
     type World,
 } from "@wowkit/test-kit";
-import { findLabel, findRow } from "./table.helpers";
+import { findLabel, findRow, toggleTable } from "./table.helpers";
 
 const EXECUTE: SpellDefinition = { id: 5308, name: "Execute", rank: 1, icon: 135358, maxRange: 5, isHarmful: true };
 const DEFENSIVE_STANCE: SpellDefinition = { id: 71, name: "Defensive Stance", rank: 0, icon: 132341, isHelpful: true };
@@ -64,7 +64,7 @@ describe("Execute in Defensive Stance", () => {
 
     it("has a row of its own beside Execute", () => {
         const world = createExecuteWorld(DEFENSIVE_STANCE.id, 15);
-        SlashCmdList["GLOWINGBARS"]!("", undefined as never);
+        toggleTable();
         expect(findLabel(world, ROW_LABEL)).toBeDefined();
     });
 });
@@ -78,7 +78,7 @@ describe("the row of Execute in Defensive Stance", () => {
 
     function openWorld(): World {
         const world = createExecuteWorld(DEFENSIVE_STANCE.id, 15);
-        SlashCmdList["GLOWINGBARS"]!("", undefined as never);
+        toggleTable();
         return world;
     }
 
@@ -105,7 +105,7 @@ describe("the Spell ID of the row of Execute in Defensive Stance", () => {
     function openWorld(): World {
         const world = createExecuteWorld(DEFENSIVE_STANCE.id, 15, { isTableAdvanced: true });
         world.state.spells[20662] = { ...EXECUTE, id: 20662, rank: 5 };
-        SlashCmdList["GLOWINGBARS"]!("", undefined as never);
+        toggleTable();
         return world;
     }
 

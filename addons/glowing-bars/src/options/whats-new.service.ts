@@ -1,12 +1,13 @@
 // What the account has seen of the addon's releases, kept in the account's saved data (## SavedVariables): the last
-// version it logged in with, and whether the What's new window may open by itself. After an update, at login, the window
-// opens once if a release since then has something new, out of combat; a new player is told nothing (everything is new
-// to them).
+// version it logged in with, and whether the What's New tab may open by itself. After an update, at login, the settings
+// window opens on it once if a release since then has something new, out of combat; a new player is told nothing
+// (everything is new to them).
 import { OnGameEvent, type OnAddonLoaded, type OnLogin } from "@wowkit/core";
+import type { OptionsTab } from "@wowkit/ui";
 import type { ClockService, PlayerService, SavedVariablesService } from "@wowkit/wow";
 import { ADDON_VERSION, RELEASE_NOTES } from "../changelog/release-notes.generated";
 import type { AddonLocale } from "../locale/locale.interface";
-import { WhatsNewWindow } from "./whats-new-window";
+import { buildNotesView } from "./whats-new-notes";
 
 /** The window waits this long after login, for the screen to settle. */
 const OPEN_DELAY = 3;
@@ -17,6 +18,12 @@ interface AccountData {
     lastVersion?: string;
     /** The player ticked the box: the window does not open by itself. */
     isWhatsNewOff?: boolean;
+}
+
+/** Is it a minor or major release: its third number 0, or none? */
+export function isMinorRelease(version: string): boolean {
+    const [patch] = string.match(version, "^%d+%.%d+%.(%d+)");
+    return patch === undefined || tonumber(patch) === 0;
 }
 
 /** Is version `a` newer than `b`? Their numbers compared one by one. */
@@ -35,26 +42,27 @@ export function isNewerVersion(a: string, b: string): boolean {
 
 export class WhatsNewService implements OnAddonLoaded, OnLogin {
     private data: AccountData = {};
-    private readonly window: WhatsNewWindow;
+    private openTab: ((this: void) => void) | undefined;
     /** The window is due, and waits for the fight to end. */
     private isWaitingForPeace = false;
-    /** This character gets the welcome window first: What's new waits for it. */
+    /** This character gets the Welcome tab first. */
     private isHeldForWelcome = false;
-    /** The window is due, and waits for the welcome window to be closed. */
-    private isWaitingForWelcome = false;
 
     constructor(
         private readonly saved: SavedVariablesService,
-        locale: AddonLocale,
+        private readonly locale: AddonLocale,
         private readonly clock: ClockService,
         private readonly player: PlayerService,
-    ) {
-        this.window = new WhatsNewWindow(locale, { isOff: () => this.isOff(), setOff: (isOff) => this.setOff(isOff) });
+    ) {}
+
+    /** How to open the settings window on the tab. */
+    useTab(open: (this: void) => void): void {
+        this.openTab = open;
     }
 
-    /** Opens the window on a version's notes (the newest by default). */
-    open(version?: string): void {
-        this.window.open(version);
+    /** The versions on the left, the notes of the one picked on the right, filling the tab. */
+    addNotes(tab: OptionsTab, width: number, height: number): void {
+        tab.addCustomRow(height, (row) => buildNotesView(row, this.locale, width, height), width);
     }
 
     onAddonLoaded(): void {
@@ -67,28 +75,24 @@ export class WhatsNewService implements OnAddonLoaded, OnLogin {
         const last = this.data.lastVersion;
         this.data.lastVersion = ADDON_VERSION;
         if (last === undefined || this.data.isWhatsNewOff === true) return;
+        // Only a minor or major release with something new opens it (2.9.0, not 2.9.1)
         const hasNew = RELEASE_NOTES.some(
-            (note) => note.hasNew && isNewerVersion(note.version, last) && !isNewerVersion(note.version, ADDON_VERSION),
+            (note) =>
+                note.hasNew &&
+                isMinorRelease(note.version) &&
+                isNewerVersion(note.version, last) &&
+                !isNewerVersion(note.version, ADDON_VERSION),
         );
         if (hasNew) this.clock.runAfter(OPEN_DELAY, () => this.openUnlessHeld());
     }
 
-    /** The welcome window comes first on this character. */
+    /** The Welcome tab opens on this character: What's New is one tab over. */
     useWelcomeFirst(): void {
         this.isHeldForWelcome = true;
     }
 
-    /** The welcome window was closed: What's new, if it waited for that. */
-    openAfterWelcome(): void {
-        this.isHeldForWelcome = false;
-        if (!this.isWaitingForWelcome) return;
-        this.isWaitingForWelcome = false;
-        this.openWhenAtPeace();
-    }
-
     private openUnlessHeld(): void {
-        if (this.isHeldForWelcome) this.isWaitingForWelcome = true;
-        else this.openWhenAtPeace();
+        if (!this.isHeldForWelcome) this.openWhenAtPeace();
     }
 
     isOff(): boolean {
@@ -104,11 +108,11 @@ export class WhatsNewService implements OnAddonLoaded, OnLogin {
     openAfterFight(): void {
         if (!this.isWaitingForPeace) return;
         this.isWaitingForPeace = false;
-        this.window.open();
+        this.openTab?.();
     }
 
     private openWhenAtPeace(): void {
         if (this.player.isInCombat()) this.isWaitingForPeace = true;
-        else this.window.open();
+        else this.openTab?.();
     }
 }

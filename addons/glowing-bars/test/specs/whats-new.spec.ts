@@ -11,59 +11,73 @@ function createAccountWorld(account?: Record<string, unknown>, isInCombat = fals
     return world;
 }
 
-function isWindowShown(world: World): boolean {
-    return world.findFrame((frame) => frame.name === "GlowingBarsWhatsNew")?.isShown === true;
+/** Is the settings window open on the What's New tab? */
+function isTabShown(world: World): boolean {
+    const window = world.findFrame((frame) => frame.name === "GlowingBarsOptions");
+    // The switch of the tab is in its footer, shown with the tab
+    const footer = world.frames.find(
+        (frame) => (frame as unknown as { optionVariable?: string }).optionVariable === "GlowingBars_showWhatsNew",
+    );
+    return window?.isShown === true && footer?.isShown === true;
 }
 
-describe("the What's new window", () => {
+describe("the What's New tab", () => {
     it("stays closed on the account's first run, and notes the version it started with", () => {
         const world = createAccountWorld();
-        expect(isWindowShown(world)).toBe(false);
+        expect(isTabShown(world)).toBe(false);
         expect(world.getAccountSaved()?.lastVersion).toBeDefined();
     });
 
     it("opens once after an update with something new in it", () => {
-        const world = createAccountWorld({ lastVersion: "1.0.0" });
-        expect(isWindowShown(world)).toBe(true);
+        expect(isTabShown(createAccountWorld({ lastVersion: "1.0.0" }))).toBe(true);
     });
 
     it("stays closed when nothing changed since the last login", () => {
         const current = createAccountWorld().getAccountSaved()?.lastVersion;
-        expect(isWindowShown(createAccountWorld({ lastVersion: current }))).toBe(false);
+        expect(isTabShown(createAccountWorld({ lastVersion: current }))).toBe(false);
     });
 
-    it("stays closed for a player who ticked the box", () => {
-        const world = createAccountWorld({ lastVersion: "1.0.0", isWhatsNewOff: true });
-        expect(isWindowShown(world)).toBe(false);
+    it("stays closed for a player who switched it off", () => {
+        expect(isTabShown(createAccountWorld({ lastVersion: "1.0.0", isWhatsNewOff: true }))).toBe(false);
     });
 
     it("waits for the fight to end", () => {
         const world = createAccountWorld({ lastVersion: "1.0.0" }, true);
-        expect(isWindowShown(world)).toBe(false);
+        expect(isTabShown(world)).toBe(false);
         world.state.isInCombat = false;
         world.fire("PLAYER_REGEN_ENABLED");
-        expect(isWindowShown(world)).toBe(true);
+        expect(isTabShown(world)).toBe(true);
     });
 
-    it("opens with /gb changelog, while /gb alone still opens the table", () => {
-        const world = createAccountWorld();
-        SlashCmdList["GLOWINGBARS"]!("changelog", undefined as never);
-        expect(isWindowShown(world)).toBe(true);
-        expect(world.findFrame((frame) => frame.name === "GlowingBarsLooks")?.isShown === true).toBe(false);
-    });
-
-    it("has the same choice on the Settings page, the other way round", () => {
+    it("is switched off for the whole account", () => {
         const world = createAccountWorld({ lastVersion: "1.0.0" });
-        expect(world.hasOption("showWhatsNew")).toBe(true);
         world.setOption("showWhatsNew", false);
         expect(world.getAccountSaved()?.isWhatsNewOff).toBe(true);
     });
 
-    it("keeps the ticked box for the whole account", () => {
+    it("shows the notes of the newest version, and of another one picked on the left", () => {
         const world = createAccountWorld({ lastVersion: "1.0.0" });
-        const box = world.frames.find((frame) => frame.frameType === "CheckButton" && frame.parent?.name === "GlowingBarsWhatsNew")!;
-        box.isChecked = true;
-        box.scripts.OnClick!(box);
-        expect(world.getAccountSaved()?.isWhatsNewOff).toBe(true);
+        const hasText = (part: string) => world.frames.some((frame) => frame.fontStrings.some((text) => (text.text ?? "").includes(part)));
+        expect(hasText("Glowing Bars 2.9.1")).toBe(true);
+        const version = world.frames.find((frame) => frame.frameType === "Button" && frame.text === "2.8.0")!;
+        version.scripts.OnClick!(version);
+        expect(hasText("Glowing Bars 2.8.0")).toBe(true);
+    });
+
+    it("does not open by itself for a patch, even with something new in it", () => {
+        expect(isTabShown(createAccountWorld({ lastVersion: "2.9.0" }))).toBe(false);
+    });
+});
+
+describe("the slash commands", () => {
+    it("open the table with /gb and /gb table, and the settings with /gb settings", () => {
+        const world = createAccountWorld();
+        const table = () => world.findFrame((frame) => frame.name === "GlowingBarsLooks")?.isShown === true;
+        const settings = () => world.findFrame((frame) => frame.name === "GlowingBarsOptions")?.isShown === true;
+        SlashCmdList["GLOWINGBARS"]!("table", undefined as never);
+        expect(table()).toBe(true);
+        SlashCmdList["GLOWINGBARS"]!("settings", undefined as never);
+        world.advance(1);
+        expect(settings()).toBe(true);
     });
 });

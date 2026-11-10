@@ -14,15 +14,18 @@ const ACCESS_CHOICES: [value: CooldownManagerAccess, label: TextKey][] = [
     ["readOnly", "OPT_MANAGER_ACCESS_READ"],
     ["off", "OPT_MANAGER_ACCESS_OFF"],
 ];
+/** The choices of the Welcome tab, each with what it means. */
+const WELCOME_CHOICES: [value: CooldownManagerAccess, label: TextKey, meaning: TextKey][] = [
+    ["full", "CHOICE_FULL", "CHOICE_FULL_TEXT"],
+    ["readOnly", "OPT_MANAGER_ACCESS_READ", "CHOICE_READ_TEXT"],
+    ["off", "OPT_MANAGER_ACCESS_OFF", "CHOICE_OFF_TEXT"],
+];
 const ICON_CHOICES: [value: CooldownManagerIcons, label: TextKey][] = [
     ["hide", "OPT_MANAGER_ICONS_HIDE"],
     ["show", "OPT_MANAGER_ICONS_SHOW"],
 ];
 
 export class CooldownManagerSection {
-    /** What the access changes shows from the next load of the interface. */
-    private isReloadDue = false;
-
     constructor(
         private readonly locale: AddonLocale,
         private readonly settings: AddonSettingsService,
@@ -36,7 +39,16 @@ export class CooldownManagerSection {
 
     addCooldownManagerSection(tab: OptionsTab): void {
         this.reminderControls.addHeader(tab, "HDR_COOLDOWN_MANAGER");
+        if (!this.viewer.isRunByOtherAddon()) tab.addText(() => this.locale.getText("CHOICE_WINDOWS_TEXT"), "GameFontNormalSmall");
         this.addChoice(tab, "cooldownManagerAccess", this.locale.getText("OPT_MANAGER_ACCESS"), "TIP_MANAGER_ACCESS", ACCESS_CHOICES);
+        // Right under the choice it is for, always there: a change of it works from the next load of the interface
+        this.widgets.addButton(
+            tab,
+            this.locale.getText("OPT_CHOICE_RELOAD"),
+            this.locale.getText("BTN_RELOAD"),
+            () => C_UI.Reload(),
+            this.locale.getText("TIP_MANAGER_RELOAD"),
+        );
         const isRunByOther = this.viewer.isRunByOtherAddon();
         for (const window of COOLDOWN_WINDOWS) {
             const label = string.format(
@@ -46,15 +58,6 @@ export class CooldownManagerSection {
             const icons = this.addChoice(tab, WINDOW_ICONS_SETTINGS[window], label, "TIP_MANAGER_ICONS", ICON_CHOICES);
             icons.enableWhen(() => !isRunByOther && this.settings.get("cooldownManagerAccess") !== "off");
         }
-        this.widgets
-            .addButton(
-                tab,
-                this.locale.getText("OPT_MANAGER_RELOAD"),
-                this.locale.getText("BTN_RELOAD"),
-                () => C_UI.Reload(),
-                this.locale.getText("TIP_MANAGER_RELOAD"),
-            )
-            .showWhen(() => this.isReloadDue);
         // EllesmereUI's module sets the windows to show by itself
         if (isRunByOther) return;
         this.widgets
@@ -66,6 +69,38 @@ export class CooldownManagerSection {
                 this.locale.getText("TIP_MANAGER_REPAIR"),
             )
             .showWhen(() => hasHiddenWindows());
+    }
+
+    /** The choice of the Welcome tab: how far the addon may go, the windows, and the reload it all needs. */
+    addWelcomeChoice(tab: OptionsTab): void {
+        tab.addText(() => this.locale.getText("CHOICE_INTRO"));
+        for (const [value, label, meaning] of WELCOME_CHOICES) {
+            this.controls.addChoice(
+                tab,
+                `welcome_access_${value}`,
+                this.locale.getText(label),
+                this.locale.getText(meaning),
+                value === "full",
+                () => this.settings.get("cooldownManagerAccess") === value,
+                (isChecked) => {
+                    if (isChecked) this.chooseAccess(value);
+                },
+            );
+        }
+        if (this.viewer.isRunByOtherAddon()) tab.addText(() => this.locale.getText("CHOICE_ELLESMERE_TEXT"), "GameFontNormalSmall");
+        else tab.addText(() => this.locale.getText("WELCOME_WINDOWS_TEXT"), "GameFontNormalSmall");
+        this.widgets.addButton(
+            tab,
+            this.locale.getText("OPT_CHOICE_RELOAD"),
+            this.locale.getText("BTN_RELOAD"),
+            () => C_UI.Reload(),
+            this.locale.getText("TIP_MANAGER_RELOAD"),
+        );
+    }
+
+    /** Picked on the Welcome tab: it counts at once, and works from the next load of the interface. */
+    private chooseAccess(value: CooldownManagerAccess): void {
+        this.settings.change("cooldownManagerAccess", value);
     }
 
     /** A saved layout takes effect at the next load of the interface. */
@@ -94,13 +129,11 @@ export class CooldownManagerSection {
             this.locale.getText(tooltip),
             this.settings.getDefault(key),
             () => this.settings.get(key),
-            (value) => {
-                if (key === "cooldownManagerAccess") this.isReloadDue = true;
+            (value) =>
                 this.settings.change(
                     key,
                     choices.some(([choice]) => choice === value) ? (value as AddonSettings[K]) : this.settings.getDefault(key),
-                );
-            },
+                ),
             () => choices.map(([value, text]): [string, string] => [value, this.locale.getText(text)]),
             true,
         );

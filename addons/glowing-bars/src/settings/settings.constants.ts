@@ -23,6 +23,7 @@ export function createDefaultSettings(): AddonSettings {
         shouldStayQuietInTowns: false,
         isAfkRainbowOn: false,
         isWelcomeDone: false,
+        isCooldownChoiceSeen: false,
         cooldownManagerAccess: "full",
         trackedBuffsIcons: "hide",
         essentialIcons: "hide",

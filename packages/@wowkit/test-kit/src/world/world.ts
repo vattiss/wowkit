@@ -86,7 +86,7 @@ export function createWorld(setup: (state: ClientState) => void, savedSettings?:
     clearGlobal("WowkitNotices");
     // What the game loaded from the character's file before the addon started: a character that played before
     // The welcome window is its own spec's: in the others its scan would light the buttons
-    defineValues({ [config.savedVariables]: { isWelcomeDone: true, ...savedSettings } });
+    defineValues({ [config.savedVariables]: { isWelcomeDone: true, isCooldownChoiceSeen: true, ...savedSettings } });
     const state = createClientState();
     setup(state);
     // What the game loaded from the account's file: an account that played before
@@ -139,7 +139,7 @@ export function createWorld(setup: (state: ClientState) => void, savedSettings?:
         },
         hasOption: (name) => listOptions(`${config.addonName}_${name}`).length > 0,
         openOptions() {
-            SlashCmdList["GLOWINGBARS"]!("options", undefined as never);
+            SlashCmdList["GLOWINGBARS"]!("settings", undefined as never);
             this.advance(1);
         },
         clickOption(label) {

@@ -83,6 +83,8 @@ export interface AddonSettings {
     shouldStayQuietInTowns: boolean;
     /** Has this character seen the welcome window? */
     isWelcomeDone: boolean;
+    /** The Welcome tab showed the choice about Blizzard's Cooldown Manager. */
+    isCooldownChoiceSeen: boolean;
     /** How far the addon may use Blizzard's Cooldown Manager. */
     cooldownManagerAccess: CooldownManagerAccess;
     /** Are the icons of the manager kept out of sight? */

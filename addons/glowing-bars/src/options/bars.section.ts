@@ -45,6 +45,7 @@ export class BarsSection {
             () => this.settings.get("barsThatGlow")[STANCE_BAR_KEY] !== false,
             (isChecked) => this.setBarOn(STANCE_BAR_KEY, isChecked),
         );
+        tab.addSubheader(this.locale.getText("HDR_COOLDOWN_MANAGER"));
         for (const window of COOLDOWN_WINDOWS) {
             this.controls.addCheckbox(
                 tab,
@@ -73,21 +74,7 @@ export class BarsSection {
                 (isChecked) => this.setBarFaded(key, isChecked),
             );
         }
-        const others: [key: string, label: TextKey][] = [
-            [STANCE_BAR_KEY, "OPT_BAR_STANCE"],
-            ...COOLDOWN_WINDOWS.map((window): [string, TextKey] => [window, WINDOW_TEXTS[window]]),
-        ];
-        for (const [key, label] of others) {
-            this.controls.addCheckbox(
-                tab,
-                `fade_${key}`,
-                this.locale.getText(label),
-                undefined,
-                false,
-                () => this.settings.get("fadedBars")[key] === true,
-                (isChecked) => this.setBarFaded(key, isChecked),
-            );
-        }
+        this.addFadeRow(tab, STANCE_BAR_KEY, "OPT_BAR_STANCE");
         this.controls.addDropdown(
             tab,
             "fadedOpacity",
@@ -102,6 +89,21 @@ export class BarsSection {
                     string.format(this.locale.getText("OPT_PERCENT"), percent),
                 ]),
             true,
+        );
+        // The windows of the Cooldown Manager last, apart from the bars
+        tab.addSubheader(this.locale.getText("HDR_COOLDOWN_MANAGER"));
+        for (const window of COOLDOWN_WINDOWS) this.addFadeRow(tab, window, WINDOW_TEXTS[window]);
+    }
+
+    private addFadeRow(tab: OptionsTab, key: string, label: TextKey): void {
+        this.controls.addCheckbox(
+            tab,
+            `fade_${key}`,
+            this.locale.getText(label),
+            undefined,
+            false,
+            () => this.settings.get("fadedBars")[key] === true,
+            (isChecked) => this.setBarFaded(key, isChecked),
         );
     }
 

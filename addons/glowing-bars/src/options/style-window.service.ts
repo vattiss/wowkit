@@ -13,6 +13,7 @@ import {
     TABLE_WIDTH,
     WINDOW_HEIGHT,
     WINDOW_NAME,
+    BASIC_WINDOW_WIDTH,
     findWindowWidth,
     type Column,
 } from "./style-table.constants";
@@ -91,8 +92,12 @@ export class StyleWindowService {
         hover?.SetPoint("TOPLEFT", window, "TOPLEFT", TABLE_LEFT + column.x, -38);
     }
 
-    /** Sets the width of the window, and shrinks it as a whole on a screen too narrow for it (a large UI scale). */
-    setWidthToFit(window: Frame, width: number): void {
+    /**
+     * Sets the width of the window for a table this wide (one size in the Basic view, the settings window's), and shrinks it as
+     * a whole on a screen too narrow for it (a large UI scale).
+     */
+    setWidthToFit(window: Frame, tableWidth: number): void {
+        const width = this.isAdvanced() ? findWindowWidth(tableWidth) : BASIC_WINDOW_WIDTH;
         window.SetWidth(width);
         window.SetScale(math.min(1, (UIParent.GetWidth() - SCREEN_MARGIN) / width));
         this.showView(window);
@@ -129,20 +134,23 @@ export class StyleWindowService {
         return { window, content };
     }
 
-    /** To the settings window, through the addon's slash command, which is what knows it. */
+    /** To the settings window, through the addon's slash command, which is what knows it; the table closes for it. */
     private createSettingsButton(window: Frame): void {
         const button = CreateFrame("Button", undefined, window, "UIPanelButtonTemplate");
         button.SetSize(80, 22);
-        button.SetPoint("TOPRIGHT", window, "TOPRIGHT", -118, -9);
+        button.SetPoint("TOPRIGHT", window, "TOPRIGHT", -34, -9);
         button.SetText(this.locale.getText("BTN_SETTINGS"));
-        button.SetScript("OnClick", () => SlashCmdList[COMMAND]?.("options", undefined as never));
+        button.SetScript("OnClick", () => {
+            window.Hide();
+            SlashCmdList[COMMAND]?.("settings", undefined as never);
+        });
     }
 
     /** Next to the close button: it leads to the other view. */
     private createViewButton(window: Frame): void {
         const button = CreateFrame("Button", undefined, window, "UIPanelButtonTemplate");
         button.SetSize(80, 22);
-        button.SetPoint("TOPRIGHT", window, "TOPRIGHT", -34, -9);
+        button.SetPoint("TOPRIGHT", window, "TOPRIGHT", -118, -9);
         button.SetScript("OnClick", () => this.settings.change("isTableAdvanced", !this.isAdvanced()));
         this.viewButton = button;
     }

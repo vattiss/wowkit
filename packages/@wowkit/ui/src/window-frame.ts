@@ -46,6 +46,7 @@ export function createCloseButton(window: Frame): void {
  * combat the game does not let the keys' passing on change: there every key goes on, and the close button closes.
  */
 export function connectEscape(window: Frame): void {
+    connectGamePadClose(window);
     if (InCombatLockdown()) return;
     window.EnableKeyboard(true);
     window.SetPropagateKeyboardInput(true);
@@ -55,6 +56,25 @@ export function connectEscape(window: Frame): void {
         window.SetPropagateKeyboardInput(!isEscape);
         if (isEscape) window.Hide();
     });
+}
+
+/**
+ * The gamepad's B (or circle) and Back buttons close the window, as Escape does. While a window listens, the game does not
+ * pass the gamepad's other buttons on: settings are not changed with a gamepad, but a window that opened by itself closes.
+ */
+function connectGamePadClose(window: Frame): void {
+    window.EnableGamePadButton(true);
+    (window as unknown as GamePadFrame).SetScript("OnGamePadButtonDown", (_frame, button) => {
+        if (button === "PAD2" || button === "PADBACK") window.Hide();
+    });
+}
+
+/** The scroll bar only while the content is taller than the scroll area: with nothing to scroll it is in the way. */
+export function updateScrollBar(scroll: ScrollFrame, contentHeight: number): void {
+    const bar = (scroll as unknown as { ScrollBar?: Frame }).ScrollBar;
+    const height = (scroll.GetHeight() as number | undefined) ?? 0;
+    // A client without the template's bar has none to hide
+    if (type(bar) === "table") pcall(() => bar!.SetShown(contentHeight > height + 1));
 }
 
 /** The scroll bar of the template is silver art too: tinted like the border. A client without it keeps it silver. */

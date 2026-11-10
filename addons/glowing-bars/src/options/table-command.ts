@@ -1,18 +1,20 @@
-// The slash command that opens the table of looks; /gb changelog opens the What's new window, /gb scan only the scan, /gb settings (or /gb options) the settings window, /gb welcome the window with its scan.
-import type { OnFirstLogin } from "@wowkit/core";
-import type { OptionsService } from "@wowkit/ui";
+// The slash command: /gb and /gb table open the table of looks, /gb settings the settings window.
+import { OnGameEvent, type OnFirstLogin } from "@wowkit/core";
+import type { MessagesService, OptionsService } from "@wowkit/ui";
+import type { AddonLocale } from "../locale/locale.interface";
+import { WINDOW_NAME } from "./style-table.constants";
 import type { StyleTableService } from "./style-table.service";
-import type { WelcomeService } from "./welcome.service";
-import type { WhatsNewService } from "./whats-new.service";
 
 export const COMMAND = "GLOWINGBARS";
+/** The table, and the window of a message's look that opens from it. */
+const TABLE_WINDOWS = [WINDOW_NAME, "GlowingBarsMessage"];
 
 export class TableCommand implements OnFirstLogin {
     constructor(
         private readonly table: StyleTableService,
-        private readonly whatsNew: WhatsNewService,
-        private readonly welcome: WelcomeService,
         private readonly options: OptionsService,
+        private readonly messages: MessagesService,
+        private readonly locale: AddonLocale,
     ) {}
 
     onFirstLogin(): void {
@@ -21,11 +23,18 @@ export class TableCommand implements OnFirstLogin {
         globals[`SLASH_${COMMAND}2`] = "/glowingbars";
         SlashCmdList[COMMAND] = (message) => {
             const word = string.lower(strtrim(message ?? ""));
-            if (word === "changelog") this.whatsNew.open();
-            else if (word === "scan") this.welcome.scanForChat();
-            else if (word === "welcome") this.welcome.open();
-            else if (word === "options" || word === "settings") this.options.open();
+            if (word === "settings") this.options.open();
             else this.table.toggle();
         };
+    }
+
+    /** A fight starts: the table and its message window close, as EllesmereUI's windows do. */
+    @OnGameEvent("PLAYER_REGEN_DISABLED")
+    hideForCombat(): void {
+        const globals = _G as unknown as { [name: string]: Frame | undefined };
+        const open = TABLE_WINDOWS.map((name) => globals[name]).filter((window) => window?.IsShown() === true);
+        if (open.length === 0) return;
+        for (const window of open) window!.Hide();
+        this.messages.say(this.locale.getText("MSG_CLOSED_FOR_COMBAT"));
     }
 }

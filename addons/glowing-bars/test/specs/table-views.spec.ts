@@ -115,12 +115,12 @@ describe("the views of the table", () => {
 describe("the Below column", () => {
     const ARROWS = { addedSpells: [{ id: 2512, reminderType: "lowStock" }] };
 
-    it("is left out while no row has a limit, and the window is narrower for it", () => {
+    it("is left out while no row has a limit, and the Basic window keeps its one size, the settings window's", () => {
         const without = createOpenTable();
         const withArrows = createOpenTable(ARROWS);
         expect(isHeaderShown(without, "Below")).toBe(false);
         expect(isHeaderShown(withArrows, "Below")).toBe(true);
-        expect(findWindow(withArrows).width - findWindow(without).width).toBe(56);
+        expect(findWindow(withArrows).width).toBe(findWindow(without).width);
     });
 
     it("is left out in Advanced too", () => {

@@ -14,6 +14,8 @@ import type { WelcomeService } from "./welcome.service";
 import type { WhatsNewService } from "./whats-new.service";
 import type { ReminderControlsService } from "./reminder-controls.service";
 import type { WeaponSection } from "./weapon.section";
+import { buildWelcomeTab } from "./welcome-tab";
+import { BASIC_WINDOW_WIDTH, WINDOW_HEIGHT } from "./style-table.constants";
 
 /** How the messages come and go. */
 const MESSAGE_SWITCHES = [
@@ -22,6 +24,10 @@ const MESSAGE_SWITCHES = [
     ["isMessageFadePulseOn", "OPT_MESSAGE_FADE_PULSE", "TIP_MESSAGE_FADE_PULSE"],
     ["isMessageSizePulseOn", "OPT_MESSAGE_SIZE_PULSE", "TIP_MESSAGE_SIZE_PULSE"],
 ] as const;
+
+/** The notes of the versions fill the What's New tab, above its footer. */
+const NOTES_WIDTH = BASIC_WINDOW_WIDTH - 88;
+const NOTES_HEIGHT = WINDOW_HEIGHT - 132;
 
 /** Where a player reports a problem. */
 const ISSUES_URL = "https://github.com/vattiss/wowkit/issues";
@@ -48,12 +54,29 @@ export class RemindersPage implements OptionsPage {
         return {
             title: this.locale.getText("TITLE"),
             open: this.locale.getText("BTN_OPEN_SETTINGS"),
+            openTip: this.locale.getText("TIP_OPEN_SETTINGS"),
             defaults: this.locale.getText("BTN_DEFAULTS"),
+            inCombat: this.locale.getText("MSG_NOT_IN_COMBAT"),
+            closedForCombat: this.locale.getText("MSG_CLOSED_FOR_COMBAT"),
+            size: { width: BASIC_WINDOW_WIDTH, height: WINDOW_HEIGHT },
         };
     }
 
     buildPage(window: OptionsWindow): void {
         window.addTopButton(this.locale.getText("BTN_OPEN_TABLE"), () => this.table.toggle());
+        const welcomeTab = window.addTab(this.locale.getText("TAB_WELCOME"));
+        buildWelcomeTab(welcomeTab, {
+            locale: this.locale,
+            settings: this.settings,
+            controls: this.controls,
+            widgets: this.widgets,
+            welcome: this.welcome,
+            manager: this.cooldownManagerSection,
+        });
+        this.welcome.useTab(welcomeTab, () => window.open(welcomeTab));
+        const newsTab = window.addTab(this.locale.getText("TAB_WHATS_NEW"), false);
+        this.addWhatsNewTab(newsTab);
+        this.whatsNew.useTab(() => window.open(newsTab));
         this.addGeneralTab(window.addTab(this.locale.getText("TAB_GENERAL")));
         this.addRemindersTab(window.addTab(this.locale.getText("TAB_REMINDERS")));
         this.cooldownManagerSection.addCooldownManagerSection(window.addTab(this.locale.getText("HDR_COOLDOWN_MANAGER")));
@@ -61,11 +84,10 @@ export class RemindersPage implements OptionsPage {
         this.barsSection.addBarsSection(barsTab);
         this.barsSection.addFadedSection(barsTab);
         this.addMessages(window.addTab(this.locale.getText("HDR_MESSAGES")));
+        this.addHelpTab(window.addTab(this.locale.getText("TAB_HELP"), false));
     }
 
     private addGeneralTab(tab: OptionsTab): void {
-        // What's new first: the window of the changes, and whether it opens by itself
-        this.addWhatsNew(tab);
         this.controls.addSwitchCheckbox(
             tab,
             "showTooltipIds",
@@ -147,32 +169,23 @@ export class RemindersPage implements OptionsPage {
         );
     }
 
-    /** The button to the What's new window, and the switch of its opening by itself after an update. */
-    private addWhatsNew(tab: OptionsTab): void {
-        this.widgets.addButton(
-            tab,
-            this.locale.getText("OPT_WHATS_NEW"),
-            this.locale.getText("BTN_OPEN"),
-            () => this.whatsNew.open(),
-            this.locale.getText("TIP_WHATS_NEW"),
-        );
-        // The same choice as the box at the bottom of the window, the other way round
-        this.controls.addCheckbox(
+    /** How to report a problem so it is fixed soon, and where. */
+    private addHelpTab(tab: OptionsTab): void {
+        tab.addHeader(this.locale.getText("HDR_HELP"));
+        tab.addText(() => this.locale.getText("HELP_TEXT"));
+        this.widgets.addLinkButton(tab, this.locale.getText("INFO_ISSUES"), ISSUES_URL);
+        tab.addText(() => this.locale.getText("HELP_CURSEFORGE"), "GameFontNormalSmall");
+    }
+
+    /** Whether the tab opens by itself after an update, and the notes of every version. */
+    private addWhatsNewTab(tab: OptionsTab): void {
+        this.controls.addFooterCheckbox(
             tab,
             "showWhatsNew",
             this.locale.getText("OPT_SHOW_WHATS_NEW"),
-            this.locale.getText("TIP_SHOW_WHATS_NEW"),
-            true,
             () => !this.whatsNew.isOff(),
             (isChecked) => this.whatsNew.setOff(!isChecked),
         );
-        this.widgets.addButton(
-            tab,
-            this.locale.getText("OPT_DEBUG_WELCOME"),
-            this.locale.getText("BTN_OPEN"),
-            () => this.welcome.open(),
-            this.locale.getText("TIP_DEBUG_WELCOME"),
-        );
-        this.widgets.addLinkButton(tab, this.locale.getText("INFO_ISSUES"), ISSUES_URL);
+        this.whatsNew.addNotes(tab, NOTES_WIDTH, NOTES_HEIGHT);
     }
 }

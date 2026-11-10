@@ -49,7 +49,7 @@ describe("the settings window", () => {
         const world = createPlayer();
         const window = world.frames.find((frame) => frame.name === "GlowingBarsOptions")!;
         expect(window.isShown).toBe(false);
-        SlashCmdList["GLOWINGBARS"]!("options", undefined as never);
+        SlashCmdList["GLOWINGBARS"]!("settings", undefined as never);
         expect(window.isShown).toBe(false);
         world.advance(1);
         expect(window.isShown).toBe(true);
@@ -65,6 +65,91 @@ describe("the settings window", () => {
     it("draws nothing of the addon in the rows of the game's Settings panel", () => {
         const world = createPlayer();
         expect(world.frames.some((frame) => frame.template === "SettingsListElementTemplate")).toBe(false);
+    });
+});
+
+describe("moving between the windows", () => {
+    const find = (world: World, name: string) => world.frames.find((frame) => frame.name === name);
+    const click = (world: World, text: string) => {
+        const button = world.frames.find((frame) => frame.frameType === "Button" && frame.text === text && frame.parent?.isShown === true)!;
+        button.scripts.OnClick!(button);
+    };
+
+    it("closes the settings when the table opens from them, and the other way round", () => {
+        const world = createPlayer();
+        world.openOptions();
+        click(world, "Open Table");
+        expect(find(world, "GlowingBarsOptions")!.isShown).toBe(false);
+        expect(find(world, "GlowingBarsLooks")!.isShown).toBe(true);
+        click(world, "Settings");
+        world.advance(1);
+        expect(find(world, "GlowingBarsLooks")!.isShown).toBe(false);
+        expect(find(world, "GlowingBarsOptions")!.isShown).toBe(true);
+    });
+
+    it("closes with the gamepad's B or Back button", () => {
+        const world = createPlayer();
+        world.openOptions();
+        const window = find(world, "GlowingBarsOptions")!;
+        window.scripts.OnGamePadButtonDown!(window, "PAD1");
+        expect(window.isShown).toBe(true);
+        window.scripts.OnGamePadButtonDown!(window, "PAD2");
+        expect(window.isShown).toBe(false);
+        world.openOptions();
+        window.scripts.OnGamePadButtonDown!(window, "PADBACK");
+        expect(window.isShown).toBe(false);
+    });
+});
+
+describe("the Defaults button", () => {
+    it("is only there for a tab with something to put back", () => {
+        const world = createPlayer();
+        world.openOptions();
+        const button = (text: string) => world.frames.find((frame) => frame.frameType === "Button" && frame.text === text)!;
+        button("Help").scripts.OnClick!(button("Help"));
+        expect(button("Defaults").isShown).toBe(false);
+        button("Bars").scripts.OnClick!(button("Bars"));
+        expect(button("Defaults").isShown).toBe(true);
+    });
+});
+
+describe("in a fight", () => {
+    it("opens neither the settings nor the table, and says so", () => {
+        const world = createPlayer();
+        world.state.isInCombat = true;
+        SlashCmdList["GLOWINGBARS"]!("settings", undefined as never);
+        world.advance(1);
+        SlashCmdList["GLOWINGBARS"]!("", undefined as never);
+        expect(world.frames.find((frame) => frame.name === "GlowingBarsOptions")!.isShown).toBe(false);
+        expect(world.frames.find((frame) => frame.name === "GlowingBarsLooks")?.isShown ?? false).toBe(false);
+        expect(world.chat.filter((line) => line.includes("during combat")).length).toBe(2);
+    });
+});
+
+describe("a fight that starts", () => {
+    it("closes the settings and the table, and says so", () => {
+        const world = createPlayer();
+        world.openOptions();
+        const settings = world.frames.find((frame) => frame.name === "GlowingBarsOptions")!;
+        expect(settings.isShown).toBe(true);
+        world.state.isInCombat = true;
+        world.fire("PLAYER_REGEN_DISABLED");
+        expect(settings.isShown).toBe(false);
+        world.state.isInCombat = false;
+        SlashCmdList["GLOWINGBARS"]!("", undefined as never);
+        const table = world.frames.find((frame) => frame.name === "GlowingBarsLooks")!;
+        expect(table.isShown).toBe(true);
+        world.state.isInCombat = true;
+        world.fire("PLAYER_REGEN_DISABLED");
+        expect(table.isShown).toBe(false);
+        expect(world.chat.filter((line) => line.includes("you entered combat")).length).toBe(2);
+    });
+});
+
+describe("the Help tab", () => {
+    it("has the link to the issues", () => {
+        const world = createPlayer();
+        expect(world.frames.some((frame) => (frame as unknown as { optionLabel?: string }).optionLabel === "Report an issue")).toBe(true);
     });
 });
 
@@ -86,24 +171,22 @@ describe("the Defaults button of a tab", () => {
     });
 });
 
-describe("the Reload button of the Cooldown Manager", () => {
-    const LABEL = "Reload To Apply This Change";
-
-    it("only comes after a change that needs it, and reloads", () => {
+describe("the choice on the Cooldown Manager tab", () => {
+    it("counts at once, and always offers the reload", () => {
         const world = createPlayer(SHAMAN);
         world.openOptions();
-        expect(world.isOptionShown(LABEL)).toBe(false);
+        const label = "Your choice works after a reload";
+        const shown = () =>
+            world.frames.filter((frame) => (frame as unknown as { optionLabel?: string }).optionLabel === label && frame.isShown);
+        expect(shown().length).toBe(2);
         world.setOption("cooldownManagerAccess", "readOnly");
-        world.openOptions();
-        expect(world.isOptionShown(LABEL)).toBe(true);
-        world.clickOption(LABEL);
-        expect(world.state.reloads).toBe(1);
+        expect(world.getSavedSettings()?.cooldownManagerAccess).toBe("readOnly");
     });
 
-    it("does not come for a window shown or hidden, which applies at once", () => {
+    it("shows or hides a window at once, without a reload", () => {
         const world = createPlayer(SHAMAN);
         world.setOption("essentialIcons", "show");
-        world.openOptions();
-        expect(world.isOptionShown(LABEL)).toBe(false);
+        expect(world.getSavedSettings()?.essentialIcons).toBe("show");
+        expect(world.state.reloads).toBe(0);
     });
 });

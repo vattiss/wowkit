@@ -20,7 +20,6 @@ import {
     STRIPE_COLOR,
     TABLE_WIDTH,
     TYPE_HEADING_HEIGHT,
-    findWindowWidth,
 } from "./style-table.constants";
 import { showHeaderTip } from "./header-tip";
 import { setFadeOnly, setRowTip } from "./fade-only-controls";
@@ -83,7 +82,9 @@ export class StyleTableService {
     ) {}
 
     /** Opens the window, or closes it when it is open. A failure is printed, never thrown. */
+    /** Opens or closes the table; in a fight it only closes, as EllesmereUI does with its windows. */
     toggle(): void {
+        if (InCombatLockdown() && this.window?.IsShown() !== true) return this.messages.say(this.locale.getText("MSG_NOT_IN_COMBAT"));
         const [didSucceed, error] = pcall(() => this.toggleWindow());
         if (!didSucceed) this.messages.say(tostring(error));
     }
@@ -132,7 +133,7 @@ export class StyleTableService {
     private applyTableWidth(content: Frame): void {
         const { actions } = this.windows.getColumns();
         this.tableWidth = actions.x + actions.width;
-        if (this.window !== undefined) this.windows.setWidthToFit(this.window, findWindowWidth(this.tableWidth));
+        if (this.window !== undefined) this.windows.setWidthToFit(this.window, this.tableWidth);
         content.SetWidth(this.tableWidth);
     }
 

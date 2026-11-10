@@ -1,13 +1,13 @@
-// The welcome window, once for each character, as its settings are the character's; What's new waits for it: the one setting a new player trips
-// over, and a scan that lights each action button it finds, in the colors of a rainbow. /gb scan runs it again.
+// The Welcome tab of the settings window opens by itself once for each character, as its settings are the character's,
+// and once more on a character that has not seen the choice about Blizzard's Cooldown Manager; What's new waits for it.
+// Its scan lights each action button it finds, in the colors of a rainbow, when the player asks for it.
 import { OnGameEvent, type OnLogin } from "@wowkit/core";
+import type { OptionsTab } from "@wowkit/ui";
 import type { ButtonSearchResult, ButtonSearchService, ClockService, GlowService, PlayerService } from "@wowkit/wow";
 import { RAINBOW, RAINBOW_LAST_SECONDS, RAINBOW_STEP_SECONDS } from "../glows/rainbow.constants";
-import type { MessagesService } from "@wowkit/ui";
 import type { AddonLocale } from "../locale/locale.interface";
 import type { AddonSettingsService } from "../settings/settings.interface";
 import type { ScanReport } from "./scan-report";
-import { WelcomeWindow } from "./welcome-window";
 import type { WhatsNewService } from "./whats-new.service";
 
 /** After login, like What's new. */
@@ -15,11 +15,12 @@ const OPEN_DELAY = 3;
 const GLOW_KEY = "scan";
 
 export class WelcomeService implements OnLogin {
-    private readonly window: WelcomeWindow;
     private isWaitingForPeace = false;
     private isScanning = false;
-    /** The scan was asked for with /gb scan: its result goes in the chat, not in the window. */
-    private isResultForChat = false;
+    private scanText = "";
+    private report = "";
+    private tab: OptionsTab | undefined;
+    private openTab: ((this: void) => void) | undefined;
 
     constructor(
         private readonly search: ButtonSearchService,
@@ -29,36 +30,29 @@ export class WelcomeService implements OnLogin {
         private readonly locale: AddonLocale,
         private readonly settings: AddonSettingsService,
         private readonly whatsNew: WhatsNewService,
-        private readonly messages: MessagesService,
-        private readonly report: ScanReport,
-    ) {
-        this.window = new WelcomeWindow(locale, {
-            isQuiet: () => settings.get("shouldStayQuietInTowns"),
-            setQuiet: (isQuiet) => settings.change("shouldStayQuietInTowns", isQuiet),
-            isAfkRainbow: () => settings.get("isAfkRainbowOn"),
-            setAfkRainbow: (isOn) => settings.change("isAfkRainbowOn", isOn),
-            scan: () => this.scan(),
-            noteClosed: () => this.whatsNew.openAfterWelcome(),
-        });
+        private readonly scanReport: ScanReport,
+    ) {}
+
+    /** The tab in the settings window, and how to open the window on it. */
+    useTab(tab: OptionsTab, open: (this: void) => void): void {
+        this.tab = tab;
+        this.openTab = open;
+    }
+
+    /** What the scan says: that it runs, or what it found; empty before the first. */
+    getScanText(): string {
+        return this.scanText;
+    }
+
+    /** The text to copy for a bug report, once a scan is over. */
+    getReport(): string {
+        return this.report;
     }
 
     onLogin(): void {
-        if (this.settings.get("isWelcomeDone")) return;
+        if (this.settings.get("isWelcomeDone") && this.settings.get("isCooldownChoiceSeen")) return;
         this.whatsNew.useWelcomeFirst();
         this.clock.runAfter(OPEN_DELAY, () => this.openWhenAtPeace());
-    }
-
-    /** /gb scan: the buttons light up, and the chat says what was found. */
-    scanForChat(): void {
-        this.isResultForChat = true;
-        this.scan();
-    }
-
-    /** The window, and its scan: the first time, /gb welcome and the Settings page. */
-    open(): void {
-        this.settings.change("isWelcomeDone", true);
-        this.window.open();
-        this.scan();
     }
 
     @OnGameEvent("PLAYER_REGEN_ENABLED")
@@ -73,10 +67,18 @@ export class WelcomeService implements OnLogin {
         else this.open();
     }
 
-    private scan(): void {
+    private open(): void {
+        this.settings.change("isWelcomeDone", true);
+        this.settings.change("isCooldownChoiceSeen", true);
+        this.openTab?.();
+    }
+
+    /** The buttons light up one after the other; the tab then says what was found. */
+    scan(): void {
         if (this.isScanning) return;
         this.isScanning = true;
-        this.window.showResult(this.locale.getText("WELCOME_SCANNING"), "");
+        this.scanText = this.locale.getText("WELCOME_SCANNING");
+        this.tab?.refresh();
         this.search.findButtons((result) => this.showNextGlow(result, this.search.listBars(), 0));
     }
 
@@ -96,9 +98,9 @@ export class WelcomeService implements OnLogin {
     private showScanResult(result: ButtonSearchResult): void {
         for (const button of result.buttons) this.glow.clearButtonGlow(GLOW_KEY, button);
         this.isScanning = false;
-        if (this.isResultForChat) this.messages.say(this.describe(result));
-        else this.window.showResult(this.describe(result), this.report.buildReport(result));
-        this.isResultForChat = false;
+        this.scanText = this.describe(result);
+        this.report = this.scanReport.buildReport(result);
+        this.tab?.refresh();
     }
 
     private describe(result: ButtonSearchResult): string {

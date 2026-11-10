@@ -34,6 +34,11 @@ interface ValueSlider {
     SetScript(script: "OnValueChanged", handler: (this: void, frame: unknown, value: number, isUserInput: boolean) => void): void;
 }
 
+/** A frame told which gamepad button was pressed (after EnableGamePadButton). */
+interface GamePadFrame {
+    SetScript(script: "OnGamePadButtonDown", handler: (this: void, frame: unknown, button: string) => void): void;
+}
+
 declare function HideUIPanel(frame: Frame): void;
 declare function GetMacroBody(macro: number | string): string | undefined;
 declare function GetMacroInfo(macro: number | string): LuaMultiReturn<[name: string | undefined, icon: unknown, body: string | undefined]>;

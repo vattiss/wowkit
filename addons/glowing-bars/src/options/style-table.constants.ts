@@ -84,6 +84,9 @@ export function findWindowWidth(tableWidth: number): number {
     return TABLE_LEFT + tableWidth + 34;
 }
 
+/** The window in the Basic view, the same whether it shows the Below column or not; the settings window is as large. */
+export const BASIC_WINDOW_WIDTH = findWindowWidth(BASIC_COLUMN.actions.x + BASIC_COLUMN.actions.width);
+
 /** Where a control of this width starts to sit in the middle of its column. */
 export function findCenteredX(column: Column, controlWidth: number): number {
     return column.x + (column.width - controlWidth) / 2;

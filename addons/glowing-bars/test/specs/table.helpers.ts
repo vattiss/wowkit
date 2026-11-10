@@ -62,7 +62,12 @@ export function findRow(world: World, label: string): Row {
 }
 
 export function toggleTable(): void {
+    // The warrior of these tests is in a fight for his cooldowns, and in a fight the table does not open: opened as at peace
+    const globals = _G as unknown as { InCombatLockdown: (this: void) => boolean };
+    const isInLockdown = globals.InCombatLockdown;
+    globals.InCombatLockdown = () => false;
     SlashCmdList["GLOWINGBARS"]!("", undefined as never);
+    globals.InCombatLockdown = isInLockdown;
 }
 
 export function readSaved(world: World, section: "styles" | "spellStyles"): Record<string, Record<string, unknown> | undefined> {
