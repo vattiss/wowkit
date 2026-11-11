@@ -95,6 +95,22 @@ describe("one reader for the icons", () => {
         expect(world.glowsOn(1)).toBe(0);
     });
 
+    it("does not believe the icon being out for a buff of a player out of the group, whom the game does not name", () => {
+        const world = createWorld((state) => {
+            playAs(state, PRIEST);
+            learnSpell(state, INNER_FIRE);
+            state.bars[1] = INNER_FIRE.id;
+            state.trackedBuffs.push({ spellId: INNER_FIRE.id, isActive: false });
+        });
+        // No caster: a passing player's buff, which the Cooldown Manager does not follow
+        world.state.auras.push(world.makeAura(INNER_FIRE.name, INNER_FIRE.id, 600));
+        world.advance(2);
+        world.state.isInCombat = true;
+        world.state.areAurasHidden = true;
+        world.advance(2);
+        expect(world.glowsOn(1)).toBe(0);
+    });
+
     it("tells a cooldown the game hides from the icon on the Spells tab", () => {
         const STRIKE: SpellDefinition = { id: 999003, name: "Test Strike", rank: 1, icon: 1, cooldownSeconds: 10 };
         const world = createWorld(
