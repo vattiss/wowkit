@@ -5,6 +5,7 @@ import { type CooldownsService, type SpellsService, isKnownItem } from "@wowkit/
 import type { TextKey } from "../locale/texts.constants";
 import type { ReagentsService } from "../reagents/reagents.service";
 import type { AddonSettingsService, AddableType, AddedSpell } from "../settings/settings.interface";
+import { FORM_COOLDOWNS } from "./glow-cues.constants";
 
 export class AddedSpellsService {
     /** The IDs added as each type, kept until the list changes: every tick asks for them. */
@@ -25,6 +26,7 @@ export class AddedSpellsService {
         // A trinket's use spell has none of its own: the item's counts
         if (
             reminderType === "readyCooldown" &&
+            !FORM_COOLDOWNS.includes(spellId) &&
             this.cooldowns.getBaseCooldown(spellId) <= 0 &&
             this.cooldowns.findUseItem(spellId) === undefined
         )

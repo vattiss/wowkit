@@ -76,4 +76,10 @@ export const ALPHA_PROC_CUES: { [classToken: string]: { id: number; sign: "free"
  * Cooldowns that start when another spell is cast, not when they are: Swift Judgement makes the next Judgement cheap, and
  * its cooldown starts as that Judgement uses it up, however long that takes. Until then the spell is not ready.
  */
+/**
+ * Spells with a cooldown only in a form, which the game's data and the tooltip of the other forms do not show: Faerie Fire
+ * in Bear Form on Forever. They can be added as a cooldown in any form; they glow only in the one with the cooldown.
+ */
+export const FORM_COOLDOWNS: number[] = [...Druid.FaerieFireRanks];
+
 export const COOLDOWN_STARTED_BY: [spellId: number, startedBy: number[]][] = [[Paladin.SwiftJudgement, [Paladin.Judgement]]];

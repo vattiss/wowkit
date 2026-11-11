@@ -58,6 +58,8 @@ export class GlowCuesService {
                 if (isInCombat) this.usedInCombat.add(id);
                 continue;
             }
+            // No cooldown in this form (Faerie Fire out of Bear Form): nothing to wait for
+            if (!this.tracker.hasCooldownNow(id)) continue;
             if (!isInCombat || this.usedInCombat.has(id)) ready.push(id);
         }
         return ready;

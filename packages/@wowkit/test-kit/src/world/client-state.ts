@@ -183,6 +183,8 @@ export interface ClientState {
     bags: { [itemId: number]: number | undefined };
     /** The reagent named in a spell's tooltip. */
     reagentTexts: { [spellId: number]: string | undefined };
+    /** A cooldown only a spell's tooltip names, as its right text ("6 sec cooldown"). */
+    tooltipCooldowns: { [spellId: number]: string | undefined };
     /** Item IDs by name, for an item the addon counts by its name. */
     itemIds: { [name: string]: number | undefined };
     /** The spell an item casts when it is used (an elixir's use spell), by item ID. */
@@ -274,6 +276,7 @@ export function createClientState(): ClientState {
         isInRaid: false,
         bags: {},
         reagentTexts: {},
+        tooltipCooldowns: {},
         itemIds: {},
         itemUseSpells: {},
         itemCooldowns: {},

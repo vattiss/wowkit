@@ -4,7 +4,7 @@
 // client hides them, the spell's icon in the Cooldown Manager says first. The ranks of a spell in the spellbook share one
 // cooldown: the cast of Fade's top rank starts the cooldown asked about by its first. An item's spell of the same name is
 // not in the spellbook, and keeps its own.
-import { OnEvent } from "@wowkit/core";
+import { OnEvent, OnGameEvent } from "@wowkit/core";
 import type { ClockService, CooldownsService, CooldownViewerService, PlayerSpellCast, SpellsService } from "@wowkit/wow";
 import { COOLDOWN_STARTED_BY } from "./glow-cues.constants";
 
@@ -28,6 +28,8 @@ export class CooldownTrackerService {
     private readonly castAt = new LuaMap<number, number>();
     /** Spells cast whose cooldown waits for the cast of another spell (COOLDOWN_STARTED_BY). */
     private readonly waiting = new LuaSet<number>();
+    /** Spell ID -> does it have a cooldown in the current form (Faerie Fire only in Bear Form), kept until the form changes. */
+    private readonly hasCooldownById = new LuaMap<number, boolean>();
 
     constructor(
         private readonly spells: SpellsService,
@@ -78,6 +80,27 @@ export class CooldownTrackerService {
         if (isOnCooldown === undefined || now - (this.castAt.get(id) ?? -CAST_GRACE) <= CAST_GRACE) return undefined;
         this.endsAt.delete(id);
         return 0;
+    }
+
+    /**
+     * A new form or stance: a cooldown may be another one in it (Faerie Fire has one only in Bear Form on Forever), so the
+     * lengths are learned again. The cooldowns that run go on.
+     */
+    @OnGameEvent("UPDATE_SHAPESHIFT_FORM")
+    forgetLengths(): void {
+        for (const [id] of this.knownLength) this.knownLength.delete(id);
+        for (const [id] of this.hasCooldownById) this.hasCooldownById.delete(id);
+    }
+
+    /** Does the spell have a cooldown now, in this form? A trinket's use spell has its item's. */
+    hasCooldownNow(spellId: number): boolean {
+        const id = this.findListedId(spellId);
+        let hasCooldown = this.hasCooldownById.get(id);
+        if (hasCooldown === undefined) {
+            hasCooldown = this.cooldowns.getBaseCooldown(id) > 0 || this.cooldowns.findUseItem(id) !== undefined;
+            this.hasCooldownById.set(id, hasCooldown);
+        }
+        return hasCooldown;
     }
 
     /** The player cast the spell: its cooldown starts now (or waits for another spell), and so does that of a spell that waited for it. */

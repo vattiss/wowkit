@@ -103,10 +103,15 @@ export function installSpells(state: ClientState): void {
         FindSpellBookSlotForSpell: () => $multi(undefined, undefined),
     });
 
+    // The game's wording of a cooldown in a tooltip, as the English client has it
+    defineGlobals({ SPELL_RECAST_TIME_SEC: "%.2g sec cooldown", SPELL_RECAST_TIME_MIN: "%.3g min cooldown" } as never);
+
     defineNamespace<typeof C_TooltipInfo>("C_TooltipInfo", {
         GetInventoryItem: () => fake<TooltipData>({ lines: [] }),
         GetSpellByID: (spellId) => {
-            const lines = [{ leftText: state.spells[spellId as number]?.name ?? "?" }];
+            const lines: { leftText: string; rightText?: string }[] = [{ leftText: state.spells[spellId as number]?.name ?? "?" }];
+            const cooldown = state.tooltipCooldowns[spellId as number];
+            if (cooldown !== undefined) lines.push({ leftText: "Instant", rightText: cooldown });
             const reagent = state.reagentTexts[spellId as number];
             if (reagent !== undefined)
                 lines.push({ leftText: `${(_G as unknown as { SPELL_REAGENTS?: string }).SPELL_REAGENTS ?? "Reagents: "}${reagent}` });

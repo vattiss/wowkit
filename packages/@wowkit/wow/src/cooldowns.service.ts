@@ -4,6 +4,7 @@ import { OnGameEvent } from "@wowkit/core";
 import { findItemUseSpell } from "./utils/item-button.utils";
 import { attempt, attemptMulti } from "./utils/protected-call.utils";
 import { getReadable, getReadableId, isReadable } from "./utils/secret-value.utils";
+import { readTooltipCooldown } from "./utils/tooltip-cooldown.utils";
 
 /** A cooldown read: seconds left and its full length; `isHidden` when the client did not tell. */
 export interface CooldownRead {
@@ -71,11 +72,16 @@ export class CooldownsService {
         return { remain: math.max(length - (GetTime() - startAt), 0), duration: length, isHidden: false };
     }
 
-    /** The spell's base cooldown in seconds, without the global cooldown; 0 when it has none or the client does not say. */
+    /**
+     * The spell's base cooldown in seconds, without the global cooldown; 0 when it has none or the client does not say. One the
+     * game's data does not have is read from the tooltip (Faerie Fire in Bear Form).
+     */
     getBaseCooldown(spellId: number): number {
         const [didSucceed, cooldown, gcd] = attemptMulti(() => GetSpellBaseCooldown(spellId));
-        if (!didSucceed) return 0;
-        return this.convertToSeconds(cooldown, gcd);
+        const seconds = didSucceed ? this.convertToSeconds(cooldown, gcd) : 0;
+        if (seconds > 0) return seconds;
+        const fromTooltip = readTooltipCooldown(spellId);
+        return fromTooltip > GLOBAL_COOLDOWN ? fromTooltip : 0;
     }
 
     /** Milliseconds (or, from some clients, seconds) to seconds; a cooldown no longer than the global one is none. */

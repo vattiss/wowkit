@@ -22,6 +22,7 @@ export const Druid = {
     Moonfire: 8921,
     Starfire: 2912,
     FaerieFire: 770,
+    FaerieFireRanks: [770, 778, 9749, 9907],
     InsectSwarm: 5570,
     Hurricane: 16914,
     // Restoration

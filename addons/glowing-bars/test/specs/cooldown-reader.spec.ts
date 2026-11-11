@@ -96,7 +96,7 @@ describe("one reader for the icons", () => {
     });
 
     it("tells a cooldown the game hides from the icon on the Spells tab", () => {
-        const STRIKE: SpellDefinition = { id: 999003, name: "Test Strike", rank: 1, icon: 1 };
+        const STRIKE: SpellDefinition = { id: 999003, name: "Test Strike", rank: 1, icon: 1, cooldownSeconds: 10 };
         const world = createWorld(
             (state) => {
                 playAs(state, PRIEST);
