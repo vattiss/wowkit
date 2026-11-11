@@ -1,14 +1,18 @@
-# Checks every push to main and every pull request: types, the rule checks, lint, build and the tests.
+# Checks every push to main, every pull request, and any branch by hand: types, the rule checks, lint, build and the tests.
 name: CI
 
 on:
   push:
     branches: [main]
   pull_request:
+  # By hand, on any branch: to check development before a release
+  workflow_dispatch:
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      LUA: lua
     steps:
       - uses: actions/checkout@v4
 
@@ -21,8 +25,14 @@ jobs:
           cache: pnpm
 
       # The tests are Lua, run by LuaJIT against the built addon
+      # From GitHub, not from Ubuntu's package servers, whose outages stopped the 3.0.2 release. The lua command is LuaJIT
       - name: Install LuaJIT
-        run: sudo apt-get update && sudo apt-get install -y luajit
+        uses: leafo/gh-actions-lua@v11
+        with:
+          luaVersion: luajit-2.1
+
+      - name: Check LuaJIT
+        run: lua -v
 
       - run: pnpm install --frozen-lockfile
 

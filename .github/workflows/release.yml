@@ -12,6 +12,8 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    env:
+      LUA: lua
     steps:
       # The whole history: the changelog reads the commits since the addon's previous tag
       - uses: actions/checkout@v4
@@ -25,8 +27,14 @@ jobs:
           node-version: 24
           cache: pnpm
 
+      # From GitHub, not from Ubuntu's package servers, whose outages stopped the 3.0.2 release. The lua command is LuaJIT
       - name: Install LuaJIT
-        run: sudo apt-get update && sudo apt-get install -y luajit
+        uses: leafo/gh-actions-lua@v11
+        with:
+          luaVersion: luajit-2.1
+
+      - name: Check LuaJIT
+        run: lua -v
 
       - run: pnpm install --frozen-lockfile
 
