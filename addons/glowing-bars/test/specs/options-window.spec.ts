@@ -32,7 +32,13 @@ describe("the settings window", () => {
         const world = createPlayer();
         world.setOption("bar_1", false);
         world.setOption("fade_1", true);
-        expect(world.getSavedSettings()?.barsThatGlow).toEqual({ "1": false, trackedBuffs: false, essential: false, utility: false });
+        expect(world.getSavedSettings()?.barsThatGlow).toEqual({
+            "1": false,
+            trackedBuffs: false,
+            trackedBars: false,
+            essential: false,
+            utility: false,
+        });
     });
 
     it("changes the setting a control is for", () => {

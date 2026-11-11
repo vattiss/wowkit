@@ -389,7 +389,7 @@ and Blizzard applies them at the next load of the interface, so both places have
 | `cooldownManagerAccess` | `full` ("Add what Glowing Bars needs") | Turns the manager on, moves what the addon reminds about into it, reads the icons. |
 | | `readOnly` ("Only use what's already there") | Turns it on, reads the icons that exist, moves nothing. |
 | | `off` ("Don't use it") | Reads nothing. If the addon was the one that turned the manager on (`isCooldownManagerOurs`), it turns it off again. |
-| `trackedBuffsIcons`, `essentialIcons`, `utilityIcons` | `hide` / `show` | Whether each window is on screen (Tracked Bars goes with Tracked Buffs). Greyed out with EllesmereUI's module, which runs them itself. |
+| `trackedBuffsIcons`, `trackedBarsIcons`, `essentialIcons`, `utilityIcons` | `hide` / `show` | Whether each window is on screen. Tracked Bars started as Tracked Buffs was (`isTrackedBarsSplit`). Greyed out with EllesmereUI's module, which runs them itself. |
 
 The first login on a character picks the defaults once (`isCooldownManagerSetUp`), so that nothing changes for a player who
 already uses the manager: off means `full` and `hide`; already on, or EllesmereUI's module loaded, means `readOnly` and `show`. The game can have the manager on for a character nobody has played, so a character the addon has never seen (`isWelcomeDone` false) gets `full` and `show` instead, with EllesmereUI's module too.

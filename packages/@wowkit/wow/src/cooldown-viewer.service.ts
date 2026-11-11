@@ -20,14 +20,15 @@ const ENABLED_CVAR = "cooldownViewerEnabled";
 const OTHER_MANAGER_ADDON = "EllesmereUICooldownManager";
 const BUFF_VIEWERS = ["BuffIconCooldownViewer", "BuffBarCooldownViewer"];
 const ALL_VIEWERS = ["EssentialCooldownViewer", "UtilityCooldownViewer", ...BUFF_VIEWERS];
-/** The windows of icons a glow fits, by the key the settings know them by: the bars of the fourth are wide strips. */
+/** The windows, by the key the settings know them by. A glow on Tracked Bars goes on the icon of a bar, not the wide strip. */
 const ICON_VIEWERS = {
     essential: "EssentialCooldownViewer",
     utility: "UtilityCooldownViewer",
     trackedBuffs: "BuffIconCooldownViewer",
+    trackedBars: "BuffBarCooldownViewer",
 };
 export type CooldownWindow = keyof typeof ICON_VIEWERS;
-export const COOLDOWN_WINDOWS: CooldownWindow[] = ["trackedBuffs", "essential", "utility"];
+export const COOLDOWN_WINDOWS: CooldownWindow[] = ["trackedBuffs", "trackedBars", "essential", "utility"];
 /** Enum.CooldownViewerCategory: Tracked Buffs, and the groups of the Buffs and the Spells tab that the addon can use. */
 const TRACKED_BUFF_CATEGORY = 2;
 const BUFF_CATEGORIES = [TRACKED_BUFF_CATEGORY, 3, 6];
@@ -130,10 +131,17 @@ export class CooldownViewerService {
 
     /** The icons in these windows that show this spell or buff. Read only: they are Blizzard's frames. */
     findIconsOf(spellName: string, windows: CooldownWindow[]): ActionButton[] {
-        return this.listIcons(windows).filter((icon) => {
-            const cooldownId = getReadable((icon as unknown as CooldownViewerItem).cooldownID);
-            return cooldownId !== undefined && this.findEntry(cooldownId)?.names.includes(spellName) === true;
-        });
+        const icons: ActionButton[] = [];
+        for (const window of windows) {
+            for (const item of this.listIcons([window])) {
+                const cooldownId = getReadable((item as unknown as CooldownViewerItem).cooldownID);
+                if (cooldownId === undefined || this.findEntry(cooldownId)?.names.includes(spellName) !== true) continue;
+                // A bar's own icon, the square at its end; hidden with the bar showing only a name, and the glow with it
+                const barIcon = window === "trackedBars" ? (item as unknown as { Icon?: ActionButton }).Icon : undefined;
+                icons.push(barIcon ?? item);
+            }
+        }
+        return icons;
     }
 
     /** Is an icon of this spell or buff drawn now? One of a buff that is down is not, with Hide When Inactive on. */
@@ -331,7 +339,7 @@ export class CooldownViewerService {
     /** The bars of the tracked buffs go with their icons. */
     private setIconsVisible(windows: CooldownWindow[], isVisible: boolean): void {
         for (const window of windows) {
-            for (const name of window === "trackedBuffs" ? BUFF_VIEWERS : [ICON_VIEWERS[window]]) {
+            for (const name of [ICON_VIEWERS[window]]) {
                 const viewer = this.getViewer(name);
                 if (viewer === undefined) continue;
                 viewer.SetAlpha(isVisible ? 1 : 0);

@@ -12,9 +12,13 @@ export const ACCOUNT_VARIABLES_NAME = "GlowingBarsDB";
 /** The setting of whether each window of the Cooldown Manager is on the screen. */
 export const WINDOW_ICONS_SETTINGS = {
     trackedBuffs: "trackedBuffsIcons",
+    trackedBars: "trackedBarsIcons",
     essential: "essentialIcons",
     utility: "utilityIcons",
 } as const;
+
+/** Every window of the Cooldown Manager kept out of sight, for a player who did not use it. */
+const HIDDEN_WINDOWS = { trackedBuffsIcons: "hide", trackedBarsIcons: "hide", essentialIcons: "hide", utilityIcons: "hide" } as const;
 
 export function createDefaultSettings(): AddonSettings {
     return {
@@ -26,9 +30,8 @@ export function createDefaultSettings(): AddonSettings {
         isWelcomeDone: false,
         isCooldownChoiceSeen: false,
         cooldownManagerAccess: "full",
-        trackedBuffsIcons: "hide",
-        essentialIcons: "hide",
-        utilityIcons: "hide",
+        ...HIDDEN_WINDOWS,
+        isTrackedBarsSplit: false,
         isCooldownManagerSetUp: false,
         isCooldownManagerOurs: false,
         roundAnimation: "breathing",
@@ -61,7 +64,7 @@ export function createDefaultSettings(): AddonSettings {
         spellStyles: {},
         enabledBuffs: {},
         // The windows of the Cooldown Manager glow only if the player turns them on
-        barsThatGlow: { trackedBuffs: false, essential: false, utility: false },
+        barsThatGlow: { trackedBuffs: false, trackedBars: false, essential: false, utility: false },
         fadedBars: {},
         fadedOpacity: 50,
         showTooltipIds: false,
@@ -298,10 +301,22 @@ function repairSoundFolders(saved: unknown, byDefault: AddonSettings["customSoun
     return folders.length > 0 ? folders : byDefault;
 }
 
+/**
+ * Tracked Bars used to go with Tracked Buffs: on its own now, it starts as Tracked Buffs was, so nothing changes on the screen.
+ * It never glowed, and starts not glowing.
+ */
+function splitTrackedBars(values: AddonSettings): void {
+    if (values.isTrackedBarsSplit) return;
+    values.isTrackedBarsSplit = true;
+    values.trackedBarsIcons = values.trackedBuffsIcons;
+    values.barsThatGlow = { ...values.barsThatGlow, trackedBars: false };
+}
+
 /** Puts right what a saved look got wrong. */
 export function repairSettings(values: AddonSettings): void {
     // Whatever goes wrong with old settings, the addon still loads: what was not converted is the default
     tryCall(() => convertOldSettings(values));
+    splitTrackedBars(values);
     // A style no longer known (or circling on a round button) is the default again
     const defaults = createDefaultSettings();
     if (!["breathing", "none"].includes(values.roundAnimation)) values.roundAnimation = defaults.roundAnimation;

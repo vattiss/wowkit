@@ -64,7 +64,7 @@ describe("the settings saved by 1.9.1", () => {
 
     it("keep what is off, which is false now", () => {
         expect(settings.enabledRanks).toEqual({ Smite: false });
-        expect(settings.barsThatGlow).toEqual({ "2": false });
+        expect(settings.barsThatGlow).toEqual({ "2": false, trackedBars: false });
     });
 
     it("keep the look of a type", () => {
@@ -176,7 +176,7 @@ describe("old settings that make no sense", () => {
         expect((settings.belowLimits as Record<string, number | undefined>)["lowStock:2512"]).toBeUndefined();
         expect(settings.addedSpells).toEqual([{ id: 2512, reminderType: "lowStock" }]);
         expect(settings.enabledRanks).toEqual({});
-        expect(settings.barsThatGlow).toEqual({});
+        expect(settings.barsThatGlow).toEqual({ trackedBars: false });
         expect(settings.enabledSpells).toEqual({});
     });
 

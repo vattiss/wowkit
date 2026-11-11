@@ -76,6 +76,7 @@ function installCooldownViewers(state: ClientState): void {
     });
     /** The icon of a buff: the same frame each time, as the window's are. */
     const icons = new LuaMap<object, Record<string, unknown>>();
+    const barIcons = new LuaMap<object, Record<string, unknown>>();
     const findIcon = (buff: ClientState["trackedBuffs"][number], isInSpells: boolean) => {
         const icon = icons.get(buff) ?? createInertObject<Record<string, unknown>>();
         icons.set(buff, icon);
@@ -89,9 +90,17 @@ function installCooldownViewers(state: ClientState): void {
         icon.SetAlpha = (_self: unknown, alpha: number) => {
             buff.iconAlpha = alpha;
         };
+        // A bar's own icon, at its end: the same object each time
+        if (buff.isBar === true) {
+            const barIcon = barIcons.get(buff) ?? createInertObject<Record<string, unknown>>();
+            barIcons.set(buff, barIcon);
+            barIcon.IsVisible = (_self: unknown) => buff.isDrawn !== false;
+            barIcon.GetFrameLevel = (_self: unknown) => 1;
+            icon.Icon = barIcon;
+        }
         return icon;
     };
-    const createViewer = (name: string, kind: "none" | "buffs" | "spells") => ({
+    const createViewer = (name: string, kind: "empty" | "bars" | "buffs" | "spells") => ({
         SetAlpha(alpha: number) {
             state.viewerAlpha = alpha;
             state.windowAlphas[name] = alpha;
@@ -102,7 +111,13 @@ function installCooldownViewers(state: ClientState): void {
         itemFramePool: {
             EnumerateActive() {
                 let index = 0;
-                const buffs = state.trackedBuffs.filter((buff) => kind !== "none" && (buff.isInSpellsTab === true) === (kind === "spells"));
+                const buffs = state.trackedBuffs.filter((buff) =>
+                    kind === "empty"
+                        ? false
+                        : kind === "bars"
+                          ? buff.isBar === true
+                          : buff.isBar !== true && (buff.isInSpellsTab === true) === (kind === "spells"),
+                );
                 return () => {
                     const buff = buffs[index];
                     index += 1;
@@ -131,10 +146,10 @@ function installCooldownViewers(state: ClientState): void {
                 state.isViewerSettingsShown = false;
             },
         },
-        EssentialCooldownViewer: createViewer("EssentialCooldownViewer", "none"),
+        EssentialCooldownViewer: createViewer("EssentialCooldownViewer", "empty"),
         UtilityCooldownViewer: createViewer("UtilityCooldownViewer", "spells"),
         BuffIconCooldownViewer: createViewer("BuffIconCooldownViewer", "buffs"),
-        BuffBarCooldownViewer: createViewer("BuffBarCooldownViewer", "none"),
+        BuffBarCooldownViewer: createViewer("BuffBarCooldownViewer", "bars"),
         EditModePresetLayoutManager: {
             GetCopyOfPresetLayouts: () => [
                 fake<EditModeLayoutInfo>({ layoutName: "Modern", layoutType: Enum.EditModeLayoutType.Preset, systems: [] }),

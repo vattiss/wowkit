@@ -89,6 +89,9 @@ export interface AddonSettings {
     cooldownManagerAccess: CooldownManagerAccess;
     /** Are the icons of the manager kept out of sight? */
     trackedBuffsIcons: CooldownManagerIcons;
+    trackedBarsIcons: CooldownManagerIcons;
+    /** Has Tracked Bars got its own setting, started from Tracked Buffs (see repairSettings)? */
+    isTrackedBarsSplit: boolean;
     essentialIcons: CooldownManagerIcons;
     utilityIcons: CooldownManagerIcons;
     /** Has the first choice for this character been made? */

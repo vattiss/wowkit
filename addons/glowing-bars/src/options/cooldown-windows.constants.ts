@@ -6,4 +6,5 @@ export const WINDOW_TEXTS: { [window in CooldownWindow]: TextKey } = {
     essential: "OPT_BAR_ESSENTIAL",
     utility: "OPT_BAR_UTILITY",
     trackedBuffs: "OPT_BAR_TRACKED_BUFFS",
+    trackedBars: "OPT_BAR_TRACKED_BARS",
 };

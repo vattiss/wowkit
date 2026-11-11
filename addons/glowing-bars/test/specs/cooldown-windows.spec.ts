@@ -1,4 +1,16 @@
-import { createWorld, describe, expect, INNER_FIRE, it, learnSpell, playAs, PRIEST, SHAMAN, type World } from "@wowkit/test-kit";
+import {
+    createWorld,
+    describe,
+    expect,
+    INNER_FIRE,
+    it,
+    learnSpell,
+    playAs,
+    PRIEST,
+    SHAMAN,
+    type FakeFrame,
+    type World,
+} from "@wowkit/test-kit";
 
 const VISIBLE_SETTING = 6;
 const HIDDEN = 2;
@@ -54,6 +66,48 @@ describe("hiding the windows one by one", () => {
         expect(world.state.windowAlphas["BuffBarCooldownViewer"]).toBe(0);
         expect(world.state.windowAlphas["EssentialCooldownViewer"]).toBe(1);
         expect(world.state.windowAlphas["UtilityCooldownViewer"]).toBe(0);
+    });
+});
+
+describe("Tracked Bars, a window of its own", () => {
+    it("starts as Tracked Buffs was, for a player from before it had its own setting", () => {
+        const world = createWorld((state) => playAs(state, SHAMAN), { isCooldownManagerSetUp: true, trackedBuffsIcons: "show" });
+        world.advance(1);
+        expect(world.getSavedSettings()?.trackedBarsIcons).toBe("show");
+        expect(world.state.windowAlphas["BuffBarCooldownViewer"]).toBe(1);
+    });
+
+    it("is hidden or shown on its own", () => {
+        const world = createWorld((state) => playAs(state, SHAMAN), {
+            isCooldownManagerSetUp: true,
+            isTrackedBarsSplit: true,
+            trackedBuffsIcons: "show",
+            trackedBarsIcons: "hide",
+        });
+        world.advance(1);
+        expect(world.state.windowAlphas["BuffIconCooldownViewer"]).toBe(1);
+        expect(world.state.windowAlphas["BuffBarCooldownViewer"]).toBe(0);
+    });
+
+    it("glows on the icon of a bar, once switched on", () => {
+        const world = createWorld(
+            (state) => {
+                playAs(state, PRIEST);
+                learnSpell(state, INNER_FIRE);
+                state.bars[1] = INNER_FIRE.id;
+                state.trackedBuffs.push({ spellId: INNER_FIRE.id, isActive: false, isBar: true });
+            },
+            { isCooldownManagerSetUp: true, isTrackedBarsSplit: true, trackedBarsIcons: "show", barsThatGlow: { trackedBars: true } },
+        );
+        world.advance(3);
+        // Beside the icon of the bar: on the screen, as on the icons of the other windows
+        const besideIcons = world.frames.filter(
+            (frame) =>
+                frame.parent === (UIParent as unknown as FakeFrame) && frame.template === "ActionButtonSpellAlertTemplate" && frame.isShown,
+        );
+        expect(besideIcons.length).toBe(1);
+        // On the icon at the end of the bar, not on the bar, which carries the cooldown ID
+        expect(type((besideIcons[0]!.anchor as unknown as { cooldownID?: unknown }).cooldownID)).not.toBe("number");
     });
 });
 

@@ -110,6 +110,8 @@ export interface ClientState {
         isOnCooldown?: boolean;
         iconAlpha?: number;
         isDrawn?: boolean;
+        /** A bar in Tracked Bars, not an icon in Tracked Buffs. */
+        isBar?: boolean;
     }[];
     /** The spells linked to an entry of the Cooldown Manager, by its cooldown ID. */
     linkedSpells: { [cooldownId: number]: number[] | undefined };
