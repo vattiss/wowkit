@@ -52,7 +52,7 @@ export class BarsSection {
                 `bar_${window}`,
                 this.locale.getText(WINDOW_TEXTS[window]),
                 undefined,
-                true,
+                false,
                 () => this.settings.get("barsThatGlow")[window] !== false,
                 (isChecked) => this.setBarOn(window, isChecked),
             );
@@ -114,7 +114,7 @@ export class BarsSection {
         this.settings.change("fadedBars", fadedBars);
     }
 
-    /** Switches one bar on or off; the default (on) is not stored. */
+    /** Switches one bar on or off; on is not stored, so it holds only where the default is not off. */
     private setBarOn(key: string, isOn: boolean): void {
         const barsThatGlow = { ...this.settings.get("barsThatGlow") };
         barsThatGlow[key] = isOn ? undefined : false;

@@ -72,9 +72,9 @@ function countIconGlows(world: World): number {
 }
 
 describe("the glow on the Cooldown Manager's icons", () => {
-    it("is on by default, and can be switched off", () => {
-        expect(countIconGlows(createPriest({ ...ICONS_SHOWN }))).toBe(1);
-        expect(countIconGlows(createPriest({ ...ICONS_SHOWN, barsThatGlow: { trackedBuffs: false } }))).toBe(0);
+    it("is off by default, and can be switched on", () => {
+        expect(countIconGlows(createPriest({ ...ICONS_SHOWN }))).toBe(0);
+        expect(countIconGlows(createPriest({ ...ICONS_SHOWN, barsThatGlow: { trackedBuffs: true } }))).toBe(1);
     });
 
     it("lights the icon of the spell when it is switched on", () => {

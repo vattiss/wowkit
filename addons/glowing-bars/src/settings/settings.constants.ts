@@ -60,7 +60,8 @@ export function createDefaultSettings(): AddonSettings {
         styles: {},
         spellStyles: {},
         enabledBuffs: {},
-        barsThatGlow: {},
+        // The windows of the Cooldown Manager glow only if the player turns them on
+        barsThatGlow: { trackedBuffs: false, essential: false, utility: false },
         fadedBars: {},
         fadedOpacity: 50,
         showTooltipIds: false,
