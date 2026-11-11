@@ -58,14 +58,18 @@ describe("the What's New tab", () => {
     it("shows the notes of the newest version, and of another one picked on the left", () => {
         const world = createAccountWorld({ lastVersion: "1.0.0" });
         const hasText = (part: string) => world.frames.some((frame) => frame.fontStrings.some((text) => (text.text ?? "").includes(part)));
-        expect(hasText("Glowing Bars 2.9.1")).toBe(true);
+        expect(hasText("Glowing Bars 3.0.0")).toBe(true);
         const version = world.frames.find((frame) => frame.frameType === "Button" && frame.text === "2.8.0")!;
         version.scripts.OnClick!(version);
         expect(hasText("Glowing Bars 2.8.0")).toBe(true);
     });
 
-    it("does not open by itself for a patch, even with something new in it", () => {
-        expect(isTabShown(createAccountWorld({ lastVersion: "2.9.0" }))).toBe(false);
+    it("opens by itself after a major release with something new, from a patch before it", () => {
+        expect(isTabShown(createAccountWorld({ lastVersion: "2.9.1" }))).toBe(true);
+    });
+
+    it("does not open by itself when nothing came out since the last login", () => {
+        expect(isTabShown(createAccountWorld({ lastVersion: "3.0.0" }))).toBe(false);
     });
 });
 
