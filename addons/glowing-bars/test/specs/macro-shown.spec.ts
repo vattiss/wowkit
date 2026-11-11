@@ -60,7 +60,7 @@ describe("a macro without #showtooltip or #show", () => {
         expect(isLit("/cast [form:1] Inner Fire; Fade", { isEverySpell: true })).toBe(false);
     });
 
-    it("follows a new stance, on any bar", () => {
+    it("follows a new stance within half a second, on any bar", () => {
         const world = createWorld((state) => {
             playAs(state, PRIEST);
             learnSpell(state, INNER_FIRE);
@@ -73,7 +73,8 @@ describe("a macro without #showtooltip or #show", () => {
         expect(world.glowsOn(2)).toBe(0);
         world.state.activeStance = SHADOWFORM.id;
         world.fire("UPDATE_SHAPESHIFT_FORM");
-        world.advance(3);
+        // Within half a second: the bars read again soon after the stance, the glows drawn as soon as they are
+        world.advance(0.5);
         expect(world.glowsOn(2)).toBe(1);
     });
 

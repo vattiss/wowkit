@@ -49,9 +49,9 @@ describe("the map of the action bars", () => {
 
     it("is mapped again once a burst of changes settles, not for each change", () => {
         for (const slot of [1, 2, 3]) game.frames.fire("ACTIONBAR_SLOT_CHANGED", slot);
-        game.clock.advance(0.3);
+        game.clock.advance(0.1);
         expect(bars.maps).toBe(0);
-        game.clock.advance(0.5);
+        game.clock.advance(0.2);
         expect(bars.maps).toBe(1);
     });
 
@@ -62,11 +62,11 @@ describe("the map of the action bars", () => {
 
     it("waits again when more changes come while it waits", () => {
         game.frames.fire("ACTIONBAR_SLOT_CHANGED", 1);
-        game.clock.advance(0.4);
+        game.clock.advance(0.15);
         game.frames.fire("ACTIONBAR_PAGE_CHANGED");
-        game.clock.advance(0.4);
+        game.clock.advance(0.15);
         expect(bars.maps).toBe(0);
-        game.clock.advance(0.3);
+        game.clock.advance(0.1);
         expect(bars.maps).toBe(1);
     });
 

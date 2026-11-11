@@ -15,9 +15,11 @@ export class DisplayService {
         this.ticker.tick();
     }
 
+    /** At once, not at the next tick: a new stance shows its glows as soon as its bar is read. */
     @OnEvent("bars.mapped")
     redrawAfterBarsMapped(): void {
         this.shower.markGlowsStale();
+        this.ticker.tick();
     }
 
     @OnEvent("setting.changed")

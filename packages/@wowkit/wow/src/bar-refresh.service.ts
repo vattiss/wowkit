@@ -8,8 +8,8 @@ import type { ButtonRegistryService } from "./button-registry.service";
 import type { ClockService } from "./clock.service";
 import { attempt } from "./utils/protected-call.utils";
 
-/** The bars are mapped again this long after the last change (changes come in bursts). */
-const BAR_SETTLE = 0.5;
+/** The bars are mapped again this long after the last change: the changes of a stance come in a burst of a frame or two. */
+const BAR_SETTLE = 0.2;
 /**
  * How often the buttons of the bar addons are counted: they make buttons with no bar event (EllesmereUI after the login,
  * past the first map of the bars, a bar switched on in its options, and the buttons an addon registers), so a new count
