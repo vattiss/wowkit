@@ -1,4 +1,5 @@
 import {
+    BATTLE_SHOUT,
     createWorld,
     describe,
     expect,
@@ -8,6 +9,7 @@ import {
     playAs,
     PRIEST,
     SHAMAN,
+    WARRIOR,
     type FakeFrame,
     type World,
 } from "@wowkit/test-kit";
@@ -87,6 +89,25 @@ describe("Tracked Bars, a window of its own", () => {
         world.advance(1);
         expect(world.state.windowAlphas["BuffIconCooldownViewer"]).toBe(1);
         expect(world.state.windowAlphas["BuffBarCooldownViewer"]).toBe(0);
+    });
+
+    it("tells a buff the player keeps there, Battle Shout only as a bar, in a fight", () => {
+        const world = createWorld((state) => {
+            playAs(state, WARRIOR);
+            learnSpell(state, BATTLE_SHOUT);
+            state.bars[1] = BATTLE_SHOUT.id;
+            state.isInCombat = true;
+            state.areAurasHidden = true;
+            state.trackedBuffs.push({ spellId: BATTLE_SHOUT.id, isActive: true, isBar: true });
+        });
+        world.advance(1);
+        world.fire("UNIT_SPELLCAST_SUCCEEDED", "player", "cast-1", BATTLE_SHOUT.id);
+        world.advance(1);
+        expect(world.glowsOn(1)).toBe(0);
+        // The bar says it is gone, before its usual time
+        world.state.trackedBuffs[0]!.isActive = false;
+        world.advance(1);
+        expect(world.glowsOn(1)).toBe(1);
     });
 
     it("glows on the icon of a bar, once switched on", () => {
