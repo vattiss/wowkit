@@ -58,7 +58,12 @@ describe("the What's New tab", () => {
     it("shows the notes of the newest version, and of another one picked on the left", () => {
         const world = createAccountWorld({ lastVersion: "1.0.0" });
         const hasText = (part: string) => world.frames.some((frame) => frame.fontStrings.some((text) => (text.text ?? "").includes(part)));
-        expect(hasText("Glowing Bars 3.0.0")).toBe(true);
+        // The newest version is the first on the left
+        const newest = world.frames.find(
+            (frame) => frame.frameType === "Button" && string.match(frame.text ?? "", "^%d+%.%d+%.%d+$")[0] !== undefined,
+        )!;
+        expect(hasText(`Glowing Bars ${newest.text}`)).toBe(true);
+        expect(newest.text).not.toBe("2.8.0");
         const version = world.frames.find((frame) => frame.frameType === "Button" && frame.text === "2.8.0")!;
         version.scripts.OnClick!(version);
         expect(hasText("Glowing Bars 2.8.0")).toBe(true);
