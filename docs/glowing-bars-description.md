@@ -36,6 +36,8 @@ Once on each character, the settings window opens by itself on its Welcome tab. 
 *   **Old ranks** – a spell on your bars at a lower rank than the one you know glows quietly, and a short message tells you. A spell in a macro doesn't count.
 *   **Elixirs, food and drinks, if you add them** – turn on **Show spell and item IDs in tooltips** on the General tab of **/gb settings**, put the item on your bars, and add the *Use spell ID* from its tooltip in the **/gb** table as a missing buff. Only that item glows, under its own name in the table, and not when you have none left. A food or drink stops glowing once you have its Well Fed buff.
 
+Macros glow for what pressing them casts now. A macro with `#showtooltip` or `#show` glows for the spell it shows, one without for every spell it casts. A spell for another stance or form doesn't count, and one you get by holding Shift, Ctrl or Alt does. To have `#showtooltip` and `#show` macros glow for every spell too, tick **Glow for every spell in a macro** on the General tab of **/gb settings**. **Glow on macros** turns the glow on macros off.
+
 It stays quiet while you are dead, mounted or on a taxi. If you like, it can also stay quiet in towns and inns, except for low reagents and low stock: tick **Stay quiet in towns and inns** on the Welcome or General tab of **/gb settings**.
 
 ## Make it yours

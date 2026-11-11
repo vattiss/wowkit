@@ -2,6 +2,7 @@
 // hurt they are, what they cast.
 import { POWER, findPartyMember, type ClientState, type FakePartyMember } from "./client-state";
 import { defineGlobals } from "./define";
+import { judgeOptions } from "./macro-options";
 
 /** Health points behind a percent (the fake game keeps percents). */
 const MAX_HEALTH = 1000;
@@ -128,6 +129,8 @@ export function installUnits(state: ClientState): void {
         GetNumShapeshiftForms: () => state.stances.length,
         // icon, active, castable, spell
         GetShapeshiftFormInfo: (index) => $multi(0, state.stances[index - 1] === state.activeStance, true, state.stances[index - 1]!),
+        // The game's judge of a macro clause "[a,b][c] x": the stance or form by number, combat and a held key (none is held)
+        SecureCmdOptionParse: (options) => $multi(judgeOptions(state, options), undefined),
         GetBuildInfo: () => $multi("1.60.1", "70425", "Oct 16 2026", 16001, "1.60.1 (70425)", "1.60.1"),
         // name first, notInterruptible eighth (castID is seventh)
         UnitCastingInfo: ((unit: UnitToken) => {

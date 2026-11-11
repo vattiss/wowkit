@@ -28,6 +28,8 @@ interface TooltipData {
 declare function GetActionInfo(
     slot: number,
 ): LuaMultiReturn<[actionType: string | undefined, id: number | undefined, subType: string | undefined, spellId: number | undefined]>;
+/** What a macro's options give now ("[form:2] Disarm; Execute"), as the game judges their conditions; undefined when none holds. */
+declare function SecureCmdOptionParse(options: string): LuaMultiReturn<[result: string | undefined, target: string | undefined]>;
 declare function GetMacroSpell(macro: number | string): number | undefined;
 /** A slider says its new value, and whether the player moved it, to its script. */
 interface ValueSlider {

@@ -133,6 +133,7 @@ const SETTINGS_OF_THE_LOOK: string[] = [
     "addedSpells",
     "roundAnimation",
     "shouldGlowOnMacros",
+    "shouldGlowOnEveryMacroSpell",
     "cooldownManagerAccess",
     ...Object.values(WINDOW_ICONS_SETTINGS),
 ];
@@ -180,6 +181,8 @@ export class ShowRemindersService {
     ) {}
 
     showReminders(reminders: Reminders): void {
+        // Nothing when it is the same; the bars are mapped again when it changes
+        this.actionBars.useEveryMacroSpell(this.settings.get("shouldGlowOnEveryMacroSpell"));
         const isSameHand = reminders.weaponHandSlot === this.weaponHandSlot && this.isSameCovered(reminders.coveredWeaponButtons);
         this.coveredButtons = reminders.coveredWeaponButtons;
         this.weaponSpell = reminders.weaponSpell;

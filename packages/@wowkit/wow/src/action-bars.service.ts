@@ -9,6 +9,7 @@ import { type EventBus, OnGameEvent, type OnFirstLogin } from "@wowkit/core";
 import type { ButtonRegistryService, ButtonShape } from "./button-registry.service";
 import type { ClockService } from "./clock.service";
 import { findButtonItem, findItemUseSpell, getItemButtonKey, readTextureKey } from "./utils/item-button.utils";
+import { clearMap, pushToList } from "./utils/lua-map.utils";
 import { buildButtonKey, findMacroOfAction, findSpellMacroOfSlot, isMacroSlot, readMacroSpells } from "./utils/macro-text.utils";
 import { attempt, attemptMulti } from "./utils/protected-call.utils";
 import { getReadableId, isReadable } from "./utils/secret-value.utils";
@@ -55,6 +56,8 @@ export class ActionBarsService implements OnFirstLogin {
     private readonly handSlotOfButton = new LuaMap<ActionButton, number>();
     /** The macro buttons whose text was read: what they cast is known, so their icon tells nothing more. */
     private readonly readMacroButtons = new LuaMap<ActionButton, boolean>();
+    /** Do macros with #showtooltip or #show count for every spell they cast, not only the one they show? */
+    private isEveryMacroSpell = false;
 
     constructor(
         private readonly clock: ClockService,
@@ -87,7 +90,7 @@ export class ActionBarsService implements OnFirstLogin {
         if (!isForced && this.lastMapAt > 0 && this.clock.getCurrentTime() - this.lastMapAt < MAP_THROTTLE) return;
         const maps = [this.buttonsBySpell, this.buttonsByName, this.buttonsByNameKey, this.buttonsByIcon, this.slotByButton];
         for (const map of [...maps, this.macroSpellNames, this.handSlotOfButton, this.readMacroButtons])
-            this.clear(map as unknown as LuaMap<AnyNotNil, unknown>);
+            clearMap(map as unknown as LuaMap<AnyNotNil, unknown>);
         this.hasUnknownMacroUse = false;
         this.lastMapAt = this.clock.getCurrentTime();
 
@@ -189,6 +192,13 @@ export class ActionBarsService implements OnFirstLogin {
         return undefined;
     }
 
+    /** Every spell of a macro counts, or only the one it shows (see readMacroSpells); the bars are mapped again on a change. */
+    useEveryMacroSpell(isOn: boolean): void {
+        if (isOn === this.isEveryMacroSpell) return;
+        this.isEveryMacroSpell = isOn;
+        this.mapBars(true);
+    }
+
     /** Does the button hold a macro? */
     isMacroButton(button: ActionButton): boolean {
         return isMacroSlot(this.getActionSlot(button));
@@ -229,15 +239,15 @@ export class ActionBarsService implements OnFirstLogin {
     }
 
     private addSpellName(name: string, button: ActionButton): void {
-        this.push(this.buttonsByName, name, button);
+        pushToList(this.buttonsByName, name, button);
         const key = buildButtonKey(name);
-        if (key !== undefined) this.push(this.buttonsByNameKey, key, button);
+        if (key !== undefined) pushToList(this.buttonsByNameKey, key, button);
     }
 
     private addSpell(spellId: unknown, button: ActionButton): void {
         const id = getReadableId(spellId);
         if (id === undefined) return;
-        this.push(this.buttonsBySpell, id, button);
+        pushToList(this.buttonsBySpell, id, button);
         const name = this.getReadableSpellName(id);
         if (name !== undefined) this.addSpellName(name, button);
     }
@@ -245,7 +255,7 @@ export class ActionBarsService implements OnFirstLogin {
     private addIcons(button: ActionButton, slot: number): void {
         const add = (value: unknown) => {
             const key = readTextureKey(value);
-            if (key !== undefined) this.push(this.buttonsByIcon, key, button);
+            if (key !== undefined) pushToList(this.buttonsByIcon, key, button);
         };
         add(attempt(C_ActionBar.GetActionTexture, slot));
         const name = button.GetName();
@@ -264,7 +274,7 @@ export class ActionBarsService implements OnFirstLogin {
 
     /** The spells and the items a macro on the bars names. */
     private addMacroSpells(macro: number | string, button: ActionButton): void {
-        const found = readMacroSpells(macro);
+        const found = readMacroSpells(macro, this.isEveryMacroSpell);
         for (const name of found.names) {
             this.macroSpellNames.set(name, true);
             this.addSpellName(name, button);
@@ -282,7 +292,7 @@ export class ActionBarsService implements OnFirstLogin {
         if (macroSpell !== undefined) [kind, id] = ["spell", macroSpell];
         if (slot !== undefined) this.slotByButton.set(button, slot);
         const itemId = findButtonItem(this, button);
-        if (itemId !== undefined) this.push(this.buttonsBySpell, getItemButtonKey(itemId), button);
+        if (itemId !== undefined) pushToList(this.buttonsBySpell, getItemButtonKey(itemId), button);
         if (slot !== undefined && attempt(C_ActionBar.HasAction, slot) === true) this.addIcons(button, slot);
         if (kind === "spell" && id !== undefined) {
             this.addSpell(getReadableId(this.spells.getSpellInfo(getReadableId(id))?.spellID) ?? getReadableId(id), button);
@@ -301,16 +311,6 @@ export class ActionBarsService implements OnFirstLogin {
             add(info.iconID);
             add(info.originalIconID);
         }
-    }
-
-    private push<K extends AnyNotNil>(map: LuaMap<K, ActionButton[]>, key: K, button: ActionButton): void {
-        const list = map.get(key);
-        if (list) list.push(button);
-        else map.set(key, [button]);
-    }
-
-    private clear<K extends AnyNotNil, V>(map: LuaMap<K, V>): void {
-        for (const [key] of map) map.delete(key);
     }
 
     /**

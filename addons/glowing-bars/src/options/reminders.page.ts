@@ -108,6 +108,10 @@ export class RemindersPage implements OptionsPage {
         this.reminderControls.addSwitch(tab, "shouldStayQuietInTowns", "OPT_STAY_QUIET_IN_TOWNS", "TIP_STAY_QUIET_IN_TOWNS");
         this.reminderControls.addSwitch(tab, "isAfkRainbowOn", "OPT_AFK_RAINBOW", "TIP_AFK_RAINBOW");
         this.reminderControls.addSwitch(tab, "shouldGlowOnMacros", "OPT_GLOW_ON_MACROS", "TIP_GLOW_ON_MACROS");
+        this.reminderControls
+            .addSwitch(tab, "shouldGlowOnEveryMacroSpell", "OPT_GLOW_EVERY_MACRO_SPELL", "TIP_GLOW_EVERY_MACRO_SPELL")
+            .enableWhen(() => this.settings.get("shouldGlowOnMacros"))
+            .setIndented();
         this.reminderControls.addSwitch(tab, "shouldShowGreeting", "OPT_SHOW_GREETING", "TIP_SHOW_GREETING");
     }
 

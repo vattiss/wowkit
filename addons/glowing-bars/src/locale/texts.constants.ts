@@ -76,6 +76,9 @@ export const TEXTS = {
     OPT_GLOW_ON_MACROS: "Glow on macros",
     TIP_GLOW_ON_MACROS:
         "Macro buttons glow for the spells and items they use. Turn this off to have only the buttons of spells and items glow.",
+    OPT_GLOW_EVERY_MACRO_SPELL: "Glow for every spell in a macro",
+    TIP_GLOW_EVERY_MACRO_SPELL:
+        "A macro with #showtooltip or #show glows only for the spell it shows. Turn this on to have it glow for every spell it casts. Spells for another stance or form still don't glow.",
     OPT_SHOW_GREETING: "Show the login message",
     TIP_SHOW_GREETING: "At each login, a line in the chat says that Glowing Bars is loaded, and how to open its table (/gb).",
     OPT_STAY_QUIET_IN_TOWNS: "Stay quiet in towns and inns",

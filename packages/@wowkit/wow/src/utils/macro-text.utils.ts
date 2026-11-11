@@ -1,5 +1,8 @@
-// What the text of a macro names, and which macro an action slot holds.
+// What the text of a macro names, and which macro an action slot holds. A macro with #showtooltip or #show is for the spell
+// it shows: its other lines are helpers, unless the player wants every spell. A clause counts unless it is for another
+// stance or form (see judgeClause).
 import { trimText } from "@wowkit/core";
+import { judgeClause } from "./macro-conditions.utils";
 import { attempt, attemptMulti } from "./protected-call.utils";
 import { getReadable, getReadableId, isReadable } from "./secret-value.utils";
 
@@ -16,6 +19,8 @@ interface CastLine {
     text: string;
     isList: boolean;
     isUse: boolean;
+    /** #showtooltip or #show with what it shows. */
+    isShow: boolean;
 }
 
 /** Is this slash command one of these, in the English every client understands or in the client's own language? */
@@ -33,12 +38,13 @@ function isCommandOf(command: string, names: string[]): boolean {
 
 /** Undefined for a line that casts nothing: /target, /say and the like. */
 function readCastLine(line: string): CastLine | undefined {
-    const [shown] = string.match(line, "^%s*#showtooltip%s+(.+)$");
-    const [shownShort] = string.match(line, "^%s*#show%s+(.+)$");
-    if (shown !== undefined || shownShort !== undefined) return { text: shown ?? shownShort!, isList: false, isUse: false };
+    const [shown] = string.match(line, "^%s*#showtooltip%s+(.-)%s*$");
+    const [shownShort] = string.match(line, "^%s*#show%s+(.-)%s*$");
+    const named = shown ?? shownShort;
+    if (named !== undefined && named !== "") return { text: named, isList: false, isUse: false, isShow: true };
     const [command, text] = string.match(line, "^%s*(/%S+)%s+(.+)$");
     if (command === undefined || text === undefined || !isCommandOf(command, CAST_COMMANDS)) return undefined;
-    return { text, isList: isCommandOf(command, LIST_COMMANDS), isUse: isCommandOf(command, USE_COMMANDS) };
+    return { text, isList: isCommandOf(command, LIST_COMMANDS), isUse: isCommandOf(command, USE_COMMANDS), isShow: false };
 }
 
 function listCastLines(body: string): CastLine[] {
@@ -57,21 +63,46 @@ function trimToken(raw: string): string {
     return unranked;
 }
 
+/** What the clauses of a line name that a press can reach now, without conditions and ranks. */
 function listLineTokens(cast: CastLine): string[] {
     const tokens: string[] = [];
-    const [cleaned] = string.gsub(cast.text, "%b[]", " ");
-    for (const [clause] of string.gmatch(cleaned, "[^;]+")) {
-        const [named] = string.gsub(strtrim(clause!), "^reset=%S+%s*", "");
-        if (!cast.isList) tokens.push(trimToken(named));
-        else for (const [part] of string.gmatch(named, "[^,]+")) tokens.push(trimToken(part!));
+    for (const [clause] of string.gmatch(cast.text, "[^;]+")) {
+        const groups: string[] = [];
+        for (const [group] of string.gmatch(clause!, "%b[]")) groups.push(group!);
+        const judged = judgeClause(groups);
+        if (judged.isReached) {
+            const [cleaned] = string.gsub(clause!, "%b[]", " ");
+            const [named] = string.gsub(strtrim(cleaned), "^reset=%S+%s*", "");
+            if (!cast.isList) tokens.push(trimToken(named));
+            else for (const [part] of string.gmatch(named, "[^,]+")) tokens.push(trimToken(part!));
+        }
+        if (judged.isFinal) break;
     }
     return tokens.filter((token) => token !== "");
 }
 
-/** The spells and items named on the cast lines of a macro (#showtooltip, /cast ...), without conditions and ranks. */
-export function listMacroTokens(body: string): string[] {
+/** Does the macro say what it shows (#showtooltip or #show, with a spell or without)? */
+function hasShowLine(body: string): boolean {
+    for (const [line] of string.gmatch(body, "[^\r\n]+")) if (string.match(line!, "^%s*#show")[0] !== undefined) return true;
+    return false;
+}
+
+/**
+ * The spells and items a macro casts that count. With #showtooltip or #show, the one it shows: the spell it names, or without
+ * one the first line that casts something now, as the game shows it. Otherwise, or when `isEverySpell`, every cast line.
+ */
+function listMacroTokens(lines: CastLine[], hasShow: boolean, isEverySpell: boolean): string[] {
+    if (!isEverySpell && hasShow) {
+        const shown = lines.find((cast) => cast.isShow);
+        if (shown !== undefined) return listLineTokens(shown);
+        for (const cast of lines) {
+            const tokens = listLineTokens(cast);
+            if (tokens.length > 0) return tokens;
+        }
+        return [];
+    }
     const tokens: string[] = [];
-    for (const cast of listCastLines(body)) tokens.push(...listLineTokens(cast));
+    for (const cast of lines) tokens.push(...listLineTokens(cast));
     return tokens;
 }
 
@@ -157,8 +188,8 @@ function isSlotToken(token: string): boolean {
     return tonumber(token) !== undefined || string.match(token, "^%d+%s+%d+$")[0] !== undefined;
 }
 
-/** The spells of the cast lines of a macro (#showtooltip, /cast ...), and the items of its /use lines. */
-export function readMacroSpells(macro: number | string): MacroSpells {
+/** The spells of the cast lines of a macro that count (see listMacroTokens), and the items of its /use lines. */
+export function readMacroSpells(macro: number | string, isEverySpell = false): MacroSpells {
     const found: MacroSpells = { names: [], spellIds: [], hasUnknownUse: false, isRead: false };
     const body = attempt(GetMacroBody, macro);
     if (body === undefined || !isReadable(body)) return found;
@@ -166,7 +197,7 @@ export function readMacroSpells(macro: number | string): MacroSpells {
     const lines = listCastLines(body);
     const isUsing = lines.some((cast) => cast.isUse);
     found.handSlot = findHandSlot(lines);
-    for (const token of listMacroTokens(body)) if (!isSlotToken(token)) readToken(token, isUsing, found);
+    for (const token of listMacroTokens(lines, hasShowLine(body), isEverySpell)) if (!isSlotToken(token)) readToken(token, isUsing, found);
     return found;
 }
 
