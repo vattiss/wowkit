@@ -38,6 +38,8 @@ interface GlowType {
         | "isOldRankEnabled"
         | "isLowReagentEnabled"
         | "isLowStockEnabled";
+    /** Does it glow on the Cooldown Manager's icons too? A buff, a cooldown or a proc does; a rank or a reagent is the button's. */
+    isOnIcons: boolean;
     /** Puts the spells of the type's reminders into `spells`, an empty list. */
     collectSpells: (this: void, reminders: Reminders, spells: number[]) => void;
 }
@@ -50,11 +52,13 @@ const TYPES: GlowType[] = [
     {
         category: "missingBuff",
         isOnSetting: "isMissingBuffEnabled",
+        isOnIcons: true,
         collectSpells: (reminders, spells) => pushAll(spells, reminders.buffsToCast),
     },
     {
         category: "weaponBuff",
         isOnSetting: "isWeaponBuffEnabled",
+        isOnIcons: true,
         collectSpells: (reminders, spells) => {
             if (reminders.weaponSpell !== undefined) spells.push(reminders.weaponSpell);
             pushAll(spells, reminders.addedWeaponSpells);
@@ -63,22 +67,31 @@ const TYPES: GlowType[] = [
     {
         category: "missingSeal",
         isOnSetting: "isMissingSealEnabled",
+        isOnIcons: true,
         collectSpells: (reminders, spells) => pushAll(spells, reminders.seals),
     },
     {
         category: "missingTracking",
         isOnSetting: "isMissingTrackingEnabled",
+        isOnIcons: true,
         collectSpells: (reminders, spells) => pushAll(spells, reminders.trackings),
     },
     {
         category: "readyCooldown",
         isOnSetting: "isReadyCooldownEnabled",
+        isOnIcons: true,
         collectSpells: (reminders, spells) => pushAll(spells, reminders.readyCooldowns),
     },
-    { category: "proc", isOnSetting: "isProcEnabled", collectSpells: (reminders, spells) => pushAll(spells, reminders.procs) },
+    {
+        category: "proc",
+        isOnSetting: "isProcEnabled",
+        isOnIcons: true,
+        collectSpells: (reminders, spells) => pushAll(spells, reminders.procs),
+    },
     {
         category: "oldRank",
         isOnSetting: "isOldRankEnabled",
+        isOnIcons: false,
         collectSpells: (reminders, spells) => {
             for (const rank of reminders.outdatedRanks) spells.push(rank.id);
         },
@@ -86,11 +99,13 @@ const TYPES: GlowType[] = [
     {
         category: "lowReagent",
         isOnSetting: "isLowReagentEnabled",
+        isOnIcons: false,
         collectSpells: (reminders, spells) => pushAll(spells, reminders.reagentSpells),
     },
     {
         category: "lowStock",
         isOnSetting: "isLowStockEnabled",
+        isOnIcons: false,
         collectSpells: (reminders, spells) => {
             for (const stock of reminders.lowStock) spells.push(stock.key);
         },
@@ -104,6 +119,8 @@ interface GlowGroup {
     color: Rgb;
     glowPercent: number;
     animation: GlowAnimation;
+    /** Do its spells glow on the Cooldown Manager's icons too? */
+    isOnIcons: boolean;
     spells: number[];
 }
 
@@ -287,7 +304,7 @@ export class ShowRemindersService {
             let glow = this.glows.get(group.key);
             if (glow === undefined) {
                 const key = group.key;
-                glow = this.glow.createButtonGlow(key, group.animation, (button) => this.isBarShown(button, key));
+                glow = this.glow.createButtonGlow(key, group.animation, (button) => this.isBarShown(button, key), group.isOnIcons);
                 this.glows.set(group.key, glow);
             }
             glow.show(group.spells, group.color);
@@ -330,10 +347,12 @@ export class ShowRemindersService {
             const reminderType = TYPES[index]!;
             for (const id of this.current[index]!) {
                 const style = this.styles.getStyle(reminderType.category, id);
-                const key = `${style.color.join(",")}|${style.glowPercent}|${style.animation}`;
+                // A look on the icons and the same look only on the buttons are two glows
+                const { isOnIcons } = reminderType;
+                const key = `${style.color.join(",")}|${style.glowPercent}|${style.animation}|${isOnIcons ? "icons" : "buttons"}`;
                 const group = groups.find((candidate) => candidate.key === key);
                 const { color, glowPercent, animation } = style;
-                if (group === undefined) groups.push({ key, color, glowPercent, animation, spells: [id] });
+                if (group === undefined) groups.push({ key, color, glowPercent, animation, isOnIcons, spells: [id] });
                 else if (!group.spells.includes(id)) group.spells.push(id);
             }
         }

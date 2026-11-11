@@ -90,7 +90,13 @@ export class GlowService {
      * overlays. `isButtonShown` leaves buttons out (a bar the player does not want to glow); it is asked each time the glow
      * is shown.
      */
-    createButtonGlow(glowKey: string, animation: GlowAnimation, isButtonShown?: (this: void, button: ActionButton) => boolean): ButtonGlow {
+    /** `hasExtraTargets`: the glow goes on the extra targets too (the Cooldown Manager's icons). */
+    createButtonGlow(
+        glowKey: string,
+        animation: GlowAnimation,
+        isButtonShown?: (this: void, button: ActionButton) => boolean,
+        hasExtraTargets = true,
+    ): ButtonGlow {
         const glowing = new LuaSet<ActionButton>();
         let last: string | undefined;
         const clearGlow = () => {
@@ -115,7 +121,7 @@ export class GlowService {
                 const buttons = spellIds
                     .flatMap((spellId) => this.actionBars.findButtonsOf(spellId))
                     .filter((button) => isButtonShown === undefined || isButtonShown(button));
-                for (const target of spellIds.flatMap((spellId) => this.findExtraTargets?.(spellId) ?? [])) {
+                for (const target of hasExtraTargets ? spellIds.flatMap((spellId) => this.findExtraTargets?.(spellId) ?? []) : []) {
                     this.extraTargets.add(target);
                     if (!buttons.includes(target)) buttons.push(target);
                 }

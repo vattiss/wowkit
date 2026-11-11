@@ -5,6 +5,7 @@ import {
     describe,
     expect,
     FORTITUDE,
+    HOLY_CANDLE,
     INNER_FIRE,
     it,
     learnSpell,
@@ -37,6 +38,41 @@ function createFightWorld(isTracked: boolean): World {
     world.advance(1);
     return world;
 }
+
+describe("the glows on the Cooldown Manager's icons", () => {
+    /** The glows on the icon of this spell in the Cooldown Manager. */
+    function countIconGlows(world: World, spellId: number): number {
+        return world.frames.filter((frame) => {
+            // Beside the icon: on the screen, anchored to it
+            const icon = frame.anchor as unknown as { cooldownID?: number } | undefined;
+            return icon?.cooldownID === spellId && frame.isShown;
+        }).length;
+    }
+
+    it("shows a missing buff, and not a low reagent", () => {
+        const world = createWorld(
+            (state) => {
+                playAs(state, PRIEST);
+                learnSpell(state, FORTITUDE);
+                learnSpell(state, PRAYER_OF_FORTITUDE);
+                state.reagentTexts[PRAYER_OF_FORTITUDE.id] = "Holy Candle";
+                state.bags[HOLY_CANDLE] = 0;
+                state.bars[1] = PRAYER_OF_FORTITUDE.id;
+                state.bars[2] = FORTITUDE.id;
+                state.trackedBuffs.push({ spellId: PRAYER_OF_FORTITUDE.id, isActive: true }, { spellId: FORTITUDE.id, isActive: false });
+                state.buffCatalog.push(
+                    { spellId: PRAYER_OF_FORTITUDE.id, isHiddenByDefault: false },
+                    { spellId: FORTITUDE.id, isHiddenByDefault: false },
+                );
+            },
+            { cooldownManagerAccess: "full", trackedBuffsIcons: "show", barsThatGlow: { trackedBuffs: true } },
+        );
+        world.advance(2);
+        expect(world.glowsOn(1)).toBe(1);
+        expect(countIconGlows(world, PRAYER_OF_FORTITUDE.id)).toBe(0);
+        expect(countIconGlows(world, FORTITUDE.id)).toBe(1);
+    });
+});
 
 describe("a shield the Cooldown Manager tracks, in a fight", () => {
     it("does not glow while its icon says it is up", () => {
