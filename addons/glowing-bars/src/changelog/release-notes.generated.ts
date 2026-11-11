@@ -1,7 +1,7 @@
 // Written by scripts/generate-release-notes.ts from release-notes/*.md, at each build: not to be edited by hand.
 
 /** The version of the addon this build is. */
-export const ADDON_VERSION = "3.0.3";
+export const ADDON_VERSION = "3.1.0";
 
 export interface ReleaseNote {
     version: string;
@@ -15,6 +15,7 @@ export interface ReleaseNote {
 
 /** Every release, the newest first. */
 export const RELEASE_NOTES: ReleaseNote[] = [
+    { version: "3.1.0", date: "2026-11-11", hasNew: false, text: "|cffffd100Fixed|r\n\n• A macro with #showtooltip or #show glows again only for the spell it shows, like before 3.0. A macro without them glows for every spell it casts. A spell for another stance or form doesn't count.\n\n|cffffd100Changed|r\n\n• A setting under This Character, \"Glow for every spell in a macro\", makes #showtooltip and #show macros glow for every spell they cast.\n• Macro glows follow a stance or form change faster." },
     { version: "3.0.3", date: "2026-11-11", hasNew: false, text: "|cffffd100Fixed|r\n\n• Buffs you got from a player outside your group, like Mark of the Wild from a passing druid, no longer glow as missing in a fight.\n• Tracked Bars of the Cooldown Manager now has its own Show/Hide on the Cooldown Manager tab, apart from Tracked Buffs. It can also glow and fade, from the Bars tab." },
     { version: "3.0.1", date: "2026-11-11", hasNew: false, text: "|cffffd100Fixed|r\n\n• Faerie Fire can now be added as a Ready cooldown. It glows in Bear Form, where it has a 6 second cooldown, and not in other forms.\n• A cooldown that only the spell's tooltip shows is now recognized, in every client language." },
     { version: "3.0.0", date: "2026-11-11", hasNew: true, text: "|cffffd100New|r\n\n• The settings now have a window of their own, with tabs: Welcome, What's New, General, Reminders, Cooldown Manager, Bars, Messages and Help. Open it with /gb settings, with the Settings button on the table, or from Options → AddOns → Glowing Bars. It closes when a fight starts, like the table.\n• The Welcome tab opens once on each character after the update. It checks that Glowing Bars finds your buttons, and lets you choose how it uses Blizzard's Cooldown Manager.\n• New \"Glow on macros\" switch under This Character. Turn it off to have only the buttons of spells and items glow.\n• The Cooldown Manager tab has a button that opens Blizzard's Cooldown Manager.\n• A trinket can now be added as a Ready cooldown by its use spell ID. It glows when the trinket is ready again.\n\n|cffffd100Changed|r\n\n• The glow on the Cooldown Manager's icons is now off by default. Switch it on for each window on the Bars tab.\n• Only buffs, cooldowns and procs glow on the Cooldown Manager's icons. Old ranks, low reagents and low stock glow only on your buttons.\n\n|cffffd100Fixed|r\n\n• Opening the Glowing Bars settings no longer blocks Blizzard's action bar settings in a fight.\n• Macros: Glowing Bars now reads the right macro, also one with a blank name, and only the lines that cast something. A macro like /target no longer glows because it has a buff's icon.\n• A cooldown set to \"Until done\" now stops glowing when you use a higher rank of it, like Fade." },
