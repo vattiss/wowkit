@@ -39,6 +39,10 @@ export class WelcomeService implements OnLogin {
         this.openTab = open;
     }
 
+    getTab(): OptionsTab | undefined {
+        return this.tab;
+    }
+
     /** What the scan says: that it runs, or what it found; empty before the first. */
     getScanText(): string {
         return this.scanText;
@@ -69,9 +73,11 @@ export class WelcomeService implements OnLogin {
     }
 
     private open(): void {
+        // No window to open it in: it is left for the next login
+        if (this.openTab === undefined) return;
         this.settings.change("isWelcomeDone", true);
         this.settings.change("isCooldownChoiceSeen", true);
-        this.openTab?.();
+        this.openTab();
     }
 
     /** The buttons light up one after the other; the tab then says what was found. */

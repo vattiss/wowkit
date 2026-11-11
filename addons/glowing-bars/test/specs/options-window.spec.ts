@@ -160,6 +160,44 @@ describe("the button of Blizzard's Cooldown Manager", () => {
     });
 });
 
+describe("the old words of the slash command", () => {
+    it("opens What's New for /gb changelog, and Welcome for /gb welcome and /gb scan", () => {
+        const world = createPlayer();
+        const footer = world.frames.find(
+            (frame) => (frame as unknown as { optionVariable?: string }).optionVariable?.endsWith("_showWhatsNew") === true,
+        )!;
+        const scan = world.frames.find(
+            (frame) => (frame as unknown as { optionLabel?: string }).optionLabel === "Check that Glowing Bars finds your buttons",
+        )!;
+        SlashCmdList["GLOWINGBARS"]!("changelog", undefined as never);
+        world.advance(0.1);
+        expect(footer.isShown).toBe(true);
+        expect(scan.parent!.isShown).toBe(false);
+        for (const word of ["welcome", "scan"]) {
+            SlashCmdList["GLOWINGBARS"]!("changelog", undefined as never);
+            world.advance(0.1);
+            SlashCmdList["GLOWINGBARS"]!(word, undefined as never);
+            world.advance(0.1);
+            expect(scan.parent!.isShown).toBe(true);
+            expect(footer.isShown).toBe(false);
+        }
+    });
+});
+
+describe("a reload in a fight", () => {
+    it("lets Escape close the settings once the fight is over", () => {
+        const world = createWorld((state) => {
+            playAs(state, PRIEST);
+            state.isInCombat = true;
+        });
+        const settings = world.frames.find((frame) => frame.name === "GlowingBarsOptions")!;
+        expect(settings.scripts.OnKeyDown === undefined).toBe(true);
+        world.state.isInCombat = false;
+        world.fire("PLAYER_REGEN_ENABLED");
+        expect(settings.scripts.OnKeyDown === undefined).toBe(false);
+    });
+});
+
 describe("the Help tab", () => {
     it("has the link to the issues", () => {
         const world = createPlayer();

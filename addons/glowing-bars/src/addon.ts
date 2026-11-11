@@ -316,5 +316,5 @@ function makeOptions(
         ),
     );
     const options = addon.register(new OptionsService(messages, "GlowingBarsOptions", page));
-    addon.register(new TableCommand(table, options, messages, locale));
+    addon.register(new TableCommand(table, options, messages, locale, welcome, whatsNew));
 }

@@ -47,7 +47,20 @@ export function createCloseButton(window: Frame): void {
  */
 export function connectEscape(window: Frame): void {
     connectGamePadClose(window);
-    if (InCombatLockdown()) return;
+    // Built in a fight (a reload in one): the keyboard can be taken only once it is over
+    if (InCombatLockdown()) {
+        const waiter = CreateFrame("Frame");
+        waiter.RegisterEvent("PLAYER_REGEN_ENABLED");
+        waiter.SetScript("OnEvent", () => {
+            waiter.UnregisterAllEvents();
+            connectKeyboard(window);
+        });
+        return;
+    }
+    connectKeyboard(window);
+}
+
+function connectKeyboard(window: Frame): void {
     window.EnableKeyboard(true);
     window.SetPropagateKeyboardInput(true);
     window.SetScript("OnKeyDown", (_frame, key) => {

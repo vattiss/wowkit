@@ -25,7 +25,7 @@ export class CooldownsService {
     /** Spell ID -> the item whose use it is (false: none), kept until the equipment or the bars change. */
     private readonly useItems = new LuaMap<number, number | false>();
 
-    @OnGameEvent("PLAYER_EQUIPMENT_CHANGED", "ACTIONBAR_SLOT_CHANGED", "GET_ITEM_INFO_RECEIVED")
+    @OnGameEvent("PLAYER_EQUIPMENT_CHANGED", "ACTIONBAR_SLOT_CHANGED")
     forgetUseItems(): void {
         for (const [spellId] of this.useItems) this.useItems.delete(spellId);
     }

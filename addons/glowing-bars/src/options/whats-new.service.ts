@@ -43,6 +43,7 @@ export function isNewerVersion(a: string, b: string): boolean {
 export class WhatsNewService implements OnAddonLoaded, OnLogin {
     private data: AccountData = {};
     private openTab: ((this: void) => void) | undefined;
+    private tab: OptionsTab | undefined;
     /** The window is due, and waits for the fight to end. */
     private isWaitingForPeace = false;
     /** This character gets the Welcome tab first. */
@@ -55,9 +56,14 @@ export class WhatsNewService implements OnAddonLoaded, OnLogin {
         private readonly player: PlayerService,
     ) {}
 
-    /** How to open the settings window on the tab. */
-    useTab(open: (this: void) => void): void {
+    /** The tab in the settings window, and how to open the window on it. */
+    useTab(tab: OptionsTab, open: (this: void) => void): void {
+        this.tab = tab;
         this.openTab = open;
+    }
+
+    getTab(): OptionsTab | undefined {
+        return this.tab;
     }
 
     /** The versions on the left, the notes of the one picked on the right, filling the tab. */

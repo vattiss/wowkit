@@ -76,7 +76,7 @@ export class RemindersPage implements OptionsPage {
         this.welcome.useTab(welcomeTab, () => window.open(welcomeTab));
         const newsTab = window.addTab(this.locale.getText("TAB_WHATS_NEW"), false);
         this.addWhatsNewTab(newsTab);
-        this.whatsNew.useTab(() => window.open(newsTab));
+        this.whatsNew.useTab(newsTab, () => window.open(newsTab));
         this.addGeneralTab(window.addTab(this.locale.getText("TAB_GENERAL")));
         this.addRemindersTab(window.addTab(this.locale.getText("TAB_REMINDERS")));
         this.cooldownManagerSection.addCooldownManagerSection(window.addTab(this.locale.getText("HDR_COOLDOWN_MANAGER")));

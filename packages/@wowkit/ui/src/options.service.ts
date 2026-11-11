@@ -3,6 +3,7 @@
 // (SettingsService.change); whoever cares reacts to "setting.changed".
 import { OnGameEvent, type OnFirstLogin } from "@wowkit/core";
 import type { MessagesService } from "./messages.service";
+import type { OptionsTab } from "./options-tab";
 import { OptionsWindow } from "./options-window";
 
 /** The page of an addon: it adds its tabs and controls to the window. */
@@ -73,7 +74,7 @@ export class OptionsService implements OnFirstLogin {
     }
 
     /** Blizzard's panel closes first, and the window opens a frame later: out of whatever opened it, as a slash command. */
-    open(): void {
+    open(tab?: OptionsTab): void {
         // Not in a fight, as EllesmereUI does: closing Blizzard's panel then has rules of its own, and the gamepad would be held
         if (InCombatLockdown()) {
             this.messages.say(this.page.getTexts().inCombat);
@@ -81,6 +82,6 @@ export class OptionsService implements OnFirstLogin {
         }
         const panel = (_G as unknown as { SettingsPanel?: Frame }).SettingsPanel;
         if (panel?.IsShown() === true) HideUIPanel(panel);
-        C_Timer.After(0, () => this.window?.open());
+        C_Timer.After(0, () => this.window?.open(tab));
     }
 }
