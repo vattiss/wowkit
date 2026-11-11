@@ -93,7 +93,7 @@ export class CooldownManagerSection {
             );
         }
         if (this.viewer.isRunByOtherAddon()) tab.addText(() => this.locale.getText("CHOICE_ELLESMERE_TEXT"), "GameFontNormalSmall");
-        else tab.addText(() => this.locale.getText("WELCOME_WINDOWS_TEXT"), "GameFontNormalSmall");
+        else tab.addText(() => this.locale.getText("WELCOME_WINDOWS_TEXT"));
         this.widgets.addButton(
             tab,
             this.locale.getText("OPT_CHOICE_RELOAD"),
