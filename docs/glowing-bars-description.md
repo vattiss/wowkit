@@ -10,80 +10,39 @@ Play with a controller? The glows also show on **Forever's own gamepad bars**, t
 
 ## 🧩 Works with the following UI addons
 
-**Bartender4**, **Dominos**, **EllesmereUI**, **ElvUI** and **DaylightUI**: the glows show on their buttons too, their stance bar included. Their bar 1 to 8 counts as Action Bar 1 to 8, so the bar switches and the faded bars work on them as well.
+**Bartender4**, **Dominos** and **EllesmereUI**: the glows show on their buttons too, their stance bar included. Their bar 1 to 8 counts as Action Bar 1 to 8, so the bar switches and the faded bars work on them as well.
 
 Using another bar addon? Its buttons are detected automatically. Not sure it sees yours? Click **Scan** on the Welcome tab of **/gb settings**.
 
-## 👋 Welcome tab
+## ✨ What glows
 
-Once on each character, the settings window opens by itself on its Welcome tab. Its **Scan** button lights up every button the addon finds, and if nothing lights up, it gives you a report to send me. The same tab lets you choose how Glowing Bars uses Blizzard's Cooldown Manager, with a **Reload** button to make your choice work right away. See it again any time with **/gb settings**.
+*   **Missing buffs**: Fortitude, Mark of the Wild, Arcane Intellect, aspects, paladin auras, armors, also on party and raid members out of combat
+*   **Weapon buffs**: shaman imbues, rogue poisons and warlock stones
+*   **Paladin seals**: the seal you used last, in a fight
+*   **Gathering**: Find Minerals, Find Herbs or Find Treasure, when no tracking is on
+*   **Cooldowns that are back**: Recklessness, Rapid Fire, Innervate, racials and more, when they're ready again in a fight
+*   **Procs**: Overpower, Revenge, Execute, Riposte, Hammer of Wrath and more, while you can use them
+*   **Old ranks**: a spell on your bars at a lower rank than one you know
+*   **Low reagents and low stock**: the reagents of your group buffs, and any item you add
+*   **Your own picks**: add any spell, elixir, food or trinket by its ID
 
-## What glows
+In combat the game hides your buffs from addons, so Glowing Bars reads them from Blizzard's Cooldown Manager and remembers what you cast.
 
-*   **Missing buffs** – Fortitude, Mark of the Wild, Arcane Intellect, aspects, paladin auras, armors… Of a group (one aspect, one aura) any one counts. In combat, when the game hides your buffs, the ones you saw or cast are remembered.
-*   **Party buffs** – out of combat, a group member in range who misses your buff makes its button glow.
-    *   **Party and raid**: each has its own switch.
-    *   **Group versions**: when enough miss the buff (you counted, but never you alone) and the reagent is in your bags, Prayer of Fortitude, Gift of the Wild or Arcane Brilliance glows instead. You set how many, 1 to 5: 2 by default in a party, 1 in a raid.
-    *   **Paladins**: each class gets the blessing you last gave it; before that, Wisdom for casters and healers, Kings or Might for the rest. A Greater Blessing when enough of a class miss it, by the same setting. In a raid only the classes you buffed there.
-*   **Weapon buffs** – shaman imbues, rogue poisons (per hand) and warlock stones, when missing or about to run out. Sharpening stones and the like can be added by the *Use spell ID* from their tooltip, on a bar or in a macro. A macro with `/use 16` or `/use 17` glows only for that weapon.
-*   **Paladin seals** – in a fight (by default) with no seal up, the seal you used last glows gold, already a moment before it runs out. Before your first seal, the one of your talent tree.
-*   **Gathering** – a miner or a herbalist with no tracking on sees Find Minerals or Find Herbs glow, and a dwarf Find Treasure. Any tracking counts, so a hunter tracking beasts is left alone.
-*   **Low reagents** – the group buff on your bar glows quietly while its reagent runs low (below 10, or the limit you set in the table), and in a town or an inn a message names what to buy.
-*   **Low stock, if you add it** – add any item by its *Item ID* (arrows, drinks, candles). When only a few are left, a message says how many. If the item is on your bars, its button glows too.
-*   **Cooldowns that are back** – in a fight, an important cooldown of your class or your race (Recklessness, Rapid Fire, Adrenaline Rush, Innervate, Swift Judgement, Blood Fury, Stoneform, Desperate Prayer…) glows for a few seconds when it is ready again. If you like, the ready ones also glow as a fight starts.
-*   **Procs** – Overpower, Revenge, Execute, Victory Rush, Riposte, Counterattack, Mongoose Bite and Hammer of Wrath glow while you can use them. Overpower and Revenge glow in any stance, so you know when to switch.
-    *   **Alpha**: Execute in Defensive Stance on a low target, Arcane Missiles when it's free (Missile Barrage, Clearcasting) and Shadow Bolt when it's instant (Nightfall). These rows are marked in the table: if one doesn't work for you, switch it off in the Enabled column and let me know.
-*   **Old ranks** – a spell on your bars at a lower rank than the one you know glows quietly, and a short message tells you. A spell in a macro doesn't count.
-*   **Elixirs, food and drinks, if you add them** – turn on **Show spell and item IDs in tooltips** on the General tab of **/gb settings**, put the item on your bars, and add the *Use spell ID* from its tooltip in the **/gb** table as a missing buff. Only that item glows, under its own name in the table, and not when you have none left. A food or drink stops glowing once you have its Well Fed buff.
+## 👋 Getting started
 
-Macros glow for what pressing them casts now. A macro with `#showtooltip` or `#show` glows for the spell it shows, one without for every spell it casts. A spell for another stance or form doesn't count, and one you get by holding Shift, Ctrl or Alt does. To have `#showtooltip` and `#show` macros glow for every spell too, tick **Glow for every spell in a macro** on the General tab of **/gb settings**. **Glow on macros** turns the glow on macros off.
+On each new character, the settings window opens on its **Welcome** tab: a **Scan** shows which buttons the addon finds, and you choose how it may use Blizzard's Cooldown Manager.
 
-It stays quiet while you are dead, mounted or on a taxi. If you like, it can also stay quiet in towns and inns, except for low reagents and low stock: tick **Stay quiet in towns and inns** on the Welcome or General tab of **/gb settings**.
+*   **/gb** opens the table of every reminder
+*   **/gb settings** opens the settings window
 
-## Make it yours
+## 🎨 Make it yours
 
-Type **/gb** to open the table. It opens in a **Basic** view with the columns most people need; the **Advanced** button at the top shows all of them. Every reminder type has the same settings, and every spell of your class can have its own:
+In the **/gb** table, every reminder type, and every spell of your class, can have its own color, glow strength, message, sound, animation and timing, and can be switched off. In the settings window you choose which bars glow, which bars stay faded until they glow, how the messages look, and more. Your own sounds can be added too.
 
-*   **Color** of the glow and of the message
-*   **Glow %**, 1 to 100
-*   **Message** at the top of the screen, on or off. In the Advanced view, its gear sets what it says (the type, the spell or item, both, or your own words), its color and how long it stays
-*   **Sound**, from a short list of game sounds, or your own
-*   **Glow time**: how long the glow and the message show once it is due: 1 to 10 seconds, or until done (the default; 3 seconds for the ready cooldowns)
-*   **Animation**: circling, breathing or none, each in two looks: ants (Blizzard's own glow) or clean (a clean line running around, or a soft frame standing still)
-*   **Repeat**: every 5, 10, 30 or 60 seconds the glow, the message and the sound come again, for the glow time (off by default)
-*   **When**: always, in combat, out of combat, or only with an enemy targeted; the low reagents and the low stock can also keep their message and sound to towns and inns
-*   **Enabled**: turn a whole type, or one spell, on or off
+Macros glow for the spell they show with #showtooltip, and for every spell they cast without it.
 
-In the same table you can **add your own spells and items by their ID**, or fix the ID of a listed spell if the game uses another one. A new spell of Forever the addon doesn't know yet is a few clicks away. To find a spell's ID, turn on **Show spell and item IDs in tooltips**.
+## 💬 Feedback
 
-**Your own sounds**: make a folder named `GlowingBars_Sounds` in `Interface\AddOns`, next to the addon's folder, and put your files in it, named `custom1`, `custom2` and so on, as `.ogg` or `.mp3`. Open the table with **/gb**, scroll to the bottom, and under **Custom sounds** enter how many there are. They then appear in the Sound list. With **Add folder** you can use more folders; type **/reload** after adding one.
+Found a bug or want a spell on a list? Leave a comment here or open an issue on [GitHub](https://github.com/vattiss/wowkit/issues). If buttons don't glow, the **Scan** on the Welcome tab gives you a report to send.
 
-Sound packs may come later, from me or from anyone else: a pack is just a folder of sounds named this way, so you can already make one and share it.
-
-The defaults: buffs blue, weapon buffs orange, seals gold, gathering turquoise, cooldowns white, procs red, old ranks and low reagents a quieter yellow, low stock a quieter red. Only the old ranks, low stock and the low reagents (in a town) show a message by default, and nothing makes a sound until you pick one; the glow is the reminder.
-
-In the settings window (**/gb settings**, the **Settings** button of the table, or the button under _Options > AddOns > Glowing Bars_), in tabs:
-
-*   **Messages**: text size, vertical position, zoom in and out, two kinds of pulse, and one line per type
-*   **Rainbow when AFK** (off by default): your buttons light up in rainbow colors while you are away
-*   **Blizzard Cooldown Manager**: Glowing Bars reads your buffs from it in a fight. Choose whether it adds what it needs, only uses what's already there, or leaves it alone, and whether each of its windows shows. **Repair Hidden Windows** brings back a window set to Hidden in Edit Mode
-*   **Circling on round buttons**: breathing or none, where a glow cannot run around the button
-*   **Action Bars That Glow**: turn any of the eight bars or the Stance Bar off (your UI addon's bars too), or turn on the glow on Blizzard's Cooldown Manager, window by window (Essential Cooldowns, Utility Cooldowns, Tracked Buffs, Tracked Bars), which also lights spells that are only there
-*   **Faded Until They Glow**: any of the eight bars, the Stance Bar or a window of the Cooldown Manager stays faint until one of its buttons glows, so a bar in the middle of your screen shows only what's due
-*   **Spell and item IDs in tooltips** (off by default): spell tooltips show the Spell ID and item tooltips the Item ID; an elixir, potion, food or drink also shows the ID of the spell it casts
-*   The weapon buff to keep up, the party and raid buffs with their group version counts, and whether the ready cooldowns also glow as a fight starts
-
-*   **What's New**: the notes of every version, and whether they show by themselves after an update with new features
-*   **Help**: how to report a problem so it gets fixed soon, with the link to the issues
-
-All settings are kept per character. The settings window and the table can't be opened in a fight, and close when one starts.
-
-## Good to know
-
-*   Works with Blizzard's own action bars, Forever's gamepad bars and the UI addons above.
-*   Making a UI addon? Your action buttons can glow too: register them as the [Glowing Bars API](https://vattiss.github.io/wowkit/glowing-bars-api) page shows.
-*   In combat the game hides some things from addons (your auras, some cooldowns). Glowing Bars reads what it can from Blizzard's Cooldown Manager and remembers what it saw and what you cast, so it keeps working, but if something does not glow when it should, please tell me.
-
-## Feedback
-
-Found a bug or want a spell on a list? Leave a comment here or open an issue on [GitHub](https://github.com/vattiss/wowkit/issues).
+Making a UI addon? Your action buttons can glow too: see the [Glowing Bars API](https://vattiss.github.io/wowkit/glowing-bars-api).

@@ -2,11 +2,13 @@ name: Feature request
 description: A new idea, a spell for a list, or support for a UI addon.
 labels: ["enhancement"]
 body:
-  - type: input
+  - type: dropdown
     id: addon
     attributes:
       label: Addon
-      placeholder: Glowing Bars
+      options:
+        - Glowing Bars
+      default: 0
     validations:
       required: true
   - type: textarea

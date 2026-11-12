@@ -1,0 +1,1 @@
+Lights up your action bars for what you forgot: missing buffs (party too), weapon buffs, seals, tracking, cooldowns that are back, procs, old ranks and low reagents. Works with Bartender4, Dominos, EllesmereUI and gamepad bars.

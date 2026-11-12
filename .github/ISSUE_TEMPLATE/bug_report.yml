@@ -3,25 +3,30 @@ description: Something glows when it should not, does not glow, or shows an erro
 labels: ["bug"]
 body:
   - type: input
-    id: addon
+    id: version
     attributes:
-      label: Addon and version
-      description: The name and the version, from the AddOns list in the game.
-      placeholder: Glowing Bars 1.8.0
+      label: Glowing Bars version
+      description: It's at the top of the What's New tab in /gb settings.
+      value: latest
     validations:
       required: true
+  - type: input
+    id: game-version
+    attributes:
+      label: Game version
+      description: From the bottom left of the login screen, if you know it.
+      placeholder: 1.60.1
   - type: input
     id: character
     attributes:
       label: Class, level and talent tree
-      placeholder: Paladin, level 40, Protection
-    validations:
-      required: true
+      description: "For example: Shaman, level 30, Elemental."
+      value: unknown
   - type: input
     id: spell
     attributes:
       label: Spell or item
-      description: The name, and its ID if you know it (turn on "Show spell IDs in tooltips" on the Settings page).
+      description: The name, and its ID if you know it (turn on "Show spell and item IDs in tooltips" on the General tab of /gb settings).
       placeholder: Blessing of Kings, 20217
   - type: textarea
     id: what-happened
