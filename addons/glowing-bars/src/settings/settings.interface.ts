@@ -130,6 +130,8 @@ export interface AddonSettings {
     isReadyCooldownEnabled: boolean;
     /** As a fight starts, every ready cooldown glows too (a reminder to use it), for its glow time. */
     showCooldownsAtFightStart: boolean;
+    /** Was the glow at the start of a fight switched on, once, for a character from before it was on by default? */
+    hasFightStartGlowSwitchedOn?: boolean;
     /** A group buff's reagent runs low with fewer than this in the bags. */
     reagentBelow: number;
     /** The same of the items the player watches, and whether they are watched. */

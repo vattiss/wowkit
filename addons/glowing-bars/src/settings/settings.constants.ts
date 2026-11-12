@@ -56,7 +56,7 @@ export function createDefaultSettings(): AddonSettings {
         isOldRankEnabled: true,
         isLowReagentEnabled: true,
         isReadyCooldownEnabled: true,
-        showCooldownsAtFightStart: false,
+        showCooldownsAtFightStart: true,
         reagentBelow: 10,
         stockBelow: 20,
         isLowStockEnabled: true,

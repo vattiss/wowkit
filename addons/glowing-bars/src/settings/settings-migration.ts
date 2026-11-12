@@ -1,5 +1,7 @@
 // Brings the settings saved by 1.9.1 and before to the names of today, so a player who set things up before updating keeps
 // them. Each step looks only at the old names and takes them away, so settings that are already new pass through untouched.
+// Besides the names, a new default that has to reach the players of before is put on here once (the glow of the ready
+// cooldowns at the start of a fight), with a saved mark so a player who changes it again keeps their choice.
 import type { AddonSettings } from "./settings.interface";
 
 /** A saved table, read by its names: old ones are not in the types of today. */
@@ -135,6 +137,16 @@ function convertToLooks(values: SavedTable): void {
     values.cooldownGlowSeconds = undefined;
 }
 
+/**
+ * The glow of the ready cooldowns at the start of a fight became on by default: it is switched on once for every character,
+ * as nearly all had it off only by the old default. A player who switches it off again keeps it off.
+ */
+function applyFightStartGlowOnce(values: SavedTable): void {
+    if (values.hasFightStartGlowSwitchedOn === true) return;
+    values.showCooldownsAtFightStart = true;
+    values.hasFightStartGlowSwitchedOn = true;
+}
+
 /** Brings settings saved under the old names to the new ones; the saved values were already laid over the defaults. */
 export function convertOldSettings(settings: AddonSettings): void {
     const values = settings as unknown as SavedTable;
@@ -152,4 +164,5 @@ export function convertOldSettings(settings: AddonSettings): void {
     convertSwitchedOff(values, "barOff", "barsThatGlow");
     convertAddedSpells(values);
     convertToLooks(values);
+    applyFightStartGlowOnce(values);
 }

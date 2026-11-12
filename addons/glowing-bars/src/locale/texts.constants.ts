@@ -135,9 +135,8 @@ export const TEXTS = {
     OPT_AUTOMATIC: "Automatic",
 
     HDR_COOLDOWNS: "Ready Cooldowns",
-    OPT_COOLDOWNS_FIGHT_START: "Also at the start of a fight",
-    TIP_COOLDOWNS_FIGHT_START:
-        "When a fight starts, every ready cooldown glows too, as a reminder to use it (Berserking, Recklessness...).",
+    OPT_COOLDOWNS_FIGHT_START: "Glow ready cooldowns when a fight starts",
+    TIP_COOLDOWNS_FIGHT_START: "When a fight starts, ready cooldowns set to In combat glow too, as a reminder to use them.",
 
     HDR_REMINDERS: "Reminders",
     HDR_CUSTOM_SOUNDS: "Custom Sounds",

@@ -9,6 +9,7 @@ import type { AddedSpellsService } from "./added-spells.service";
 import { ALPHA_PROC_CUES, COOLDOWN_CUES, PROC_CUES, RACIAL_COOLDOWNS } from "./glow-cues.constants";
 import { READY_MARGIN, type CooldownTrackerService } from "./cooldown-tracker.service";
 import type { StanceProcsService } from "./stance-procs.service";
+import type { StyleService } from "../settings/style.service";
 
 export class GlowCuesService {
     /** The cooldowns that have been running at some point of this fight (or ready as it started, if the player asked). */
@@ -26,6 +27,7 @@ export class GlowCuesService {
         private readonly addedSpells: AddedSpellsService,
         private readonly stanceProcs: StanceProcsService,
         private readonly cooldownViewer: CooldownViewerService,
+        private readonly styles: StyleService,
     ) {}
 
     /**
@@ -60,9 +62,17 @@ export class GlowCuesService {
             }
             // No cooldown in this form (Faerie Fire out of Bear Form): nothing to wait for
             if (!this.tracker.hasCooldownNow(id)) continue;
-            if (!isInCombat || this.usedInCombat.has(id)) ready.push(id);
+            if (!isInCombat || this.usedInCombat.has(id) || this.isGlowingWheneverReady(id)) ready.push(id);
         }
         return ready;
+    }
+
+    /**
+     * A look whose When is not In combat (Always, Enemy targeted, Alert in town) glows whenever the cooldown is ready, in a
+     * fight too: the rule of what was used in the fight is the one of In combat.
+     */
+    private isGlowingWheneverReady(spellId: number): boolean {
+        return this.styles.getStyle("readyCooldown", spellId).when !== "inCombat";
     }
 
     /** Is the spell on its own cooldown (the global cooldown ignored)? A buff on cooldown cannot be cast again yet. */

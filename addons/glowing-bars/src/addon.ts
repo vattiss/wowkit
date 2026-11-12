@@ -143,6 +143,7 @@ function makeReminders(addon: Addon, addonName: string, game: Game, texts: Texts
             addedSpells,
             stanceProcs,
             game.cooldownViewer,
+            texts.styles,
         ),
     );
     const fedBuffs = addon.register(
@@ -260,8 +261,7 @@ function makeTable(addon: Addon, addonName: string, game: Game, texts: Texts, bu
     const edits = addon.register(
         new StyleEditsService(locale, reminders.addedSpells, tableNotice, switches, rows, styles, reminders.limits, reminders.reagents),
     );
-    const table = addon.register(new StyleTableService(locale, styles, rows, messages, choices, windows, edits));
-    return table;
+    return addon.register(new StyleTableService(locale, styles, rows, messages, choices, windows, edits));
 }
 
 /** The Settings panel. */

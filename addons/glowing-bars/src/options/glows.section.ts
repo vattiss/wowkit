@@ -1,5 +1,5 @@
-// The cooldown part of the Settings page: also at the start of a fight. Which cooldowns glow, how they look, when (in
-// combat only, by default) and for how long (3 seconds, by default), is the table's.
+// The cooldown part of the Settings page: the glow of ready cooldowns when a fight starts. Which cooldowns glow, how they
+// look, when (in combat only, by default) and for how long (3 seconds, by default), is the table's.
 
 import type { OptionsTab } from "@wowkit/ui";
 import type { GlowCuesService } from "../glows/glow-cues.service";
