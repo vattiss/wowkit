@@ -18,12 +18,6 @@ export interface FakeMenuChoice {
     choose: (this: void) => void;
 }
 
-/** The list the addon opened last. */
-export interface FakeMenu {
-    choices: FakeMenuChoice[];
-    isScrolling: boolean;
-}
-
 /** The game's color picker: it keeps what the addon set it up with, and answers with the color a test picks. */
 export interface FakeColorPicker {
     info: ColorPickerInfo | undefined;
@@ -55,7 +49,7 @@ function createChatFrame(frames: FrameRegistry, chat: string[]): FakeFrame {
     return frame;
 }
 
-export function installUi(frames: FrameRegistry, chat: string[], menu: FakeMenu): void {
+export function installUi(frames: FrameRegistry, chat: string[]): void {
     defineValues({
         CreateFrame: (frameType: string, name?: string, parent?: FakeFrame, template?: string) =>
             frames.create(frameType, name, parent, template),
@@ -69,20 +63,6 @@ export function installUi(frames: FrameRegistry, chat: string[], menu: FakeMenu)
         // The frames that Escape closes
         UISpecialFrames: [],
         ColorPickerFrame: createColorPicker(),
-        MenuUtil: {
-            CreateContextMenu: (owner: FakeFrame, generator: (this: void, owner: FakeFrame, root: unknown) => void) => {
-                menu.choices = [];
-                menu.isScrolling = false;
-                generator(owner, {
-                    SetScrollMode() {
-                        menu.isScrolling = true;
-                    },
-                    CreateRadio(label: string, isChosen: (this: void) => boolean, choose: (this: void) => void) {
-                        menu.choices.push({ label, isChosen, choose });
-                    },
-                });
-            },
-        },
         Enum: {
             SpellBookSpellBank: { Player: 0, Pet: 1 },
             SpellBookItemType: { None: 0, Spell: 1, FutureSpell: 2, PetAction: 3, Flyout: 4 },

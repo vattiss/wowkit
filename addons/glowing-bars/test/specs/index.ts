@@ -51,6 +51,7 @@ import "./low-stock.spec";
 import "./table-views.spec";
 import "./settings-migration.spec";
 import "./glow-picture.spec";
+import "./choice-list.spec";
 import "./reagent-languages.spec";
 import "./low-stock-table.spec";
 import "./food-buff-names.spec";

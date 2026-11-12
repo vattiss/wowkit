@@ -21,6 +21,10 @@ export interface FakeFrame {
     anchor?: FakeFrame;
     /** The width the addon set (36, the size of an action button, until it sets one). */
     width: number;
+    /** The height the addon set (36 until it sets one). */
+    height: number;
+    /** A scroll frame's content (SetScrollChild). */
+    scrollChild?: FakeFrame;
     scale: number;
     /** A check button's state. */
     isChecked: boolean;
@@ -56,7 +60,9 @@ export interface FakeFrame {
     IsVisible(): boolean;
     HookScript(script: string, handler: Script): void;
     GetEffectiveScale(): number;
-    SetSize(width: number, height: number): void;
+    SetSize(width: number, height?: number): void;
+    SetHeight(height: number): void;
+    SetScrollChild(child: FakeFrame): void;
     GetWidth(): number;
     GetHeight(): number;
     RegisterEvent(event: string): boolean;
@@ -103,6 +109,7 @@ function createFakeFrame(init: FrameInit): FakeFrame {
         isIgnoringParentAlpha: false,
         text: undefined,
         width: 36,
+        height: 36,
         scale: 1,
         isChecked: false,
         scripts: {},
@@ -171,14 +178,21 @@ function createFakeFrame(init: FrameInit): FakeFrame {
         GetEffectiveScale() {
             return 1;
         },
-        SetSize(width) {
+        SetSize(width, height) {
             this.width = width;
+            if (height !== undefined) this.height = height;
+        },
+        SetHeight(height) {
+            this.height = height;
+        },
+        SetScrollChild(child) {
+            this.scrollChild = child;
         },
         GetWidth() {
             return this.width;
         },
         GetHeight() {
-            return 36;
+            return this.height;
         },
         RegisterEvent(event) {
             this.events[event] = true;

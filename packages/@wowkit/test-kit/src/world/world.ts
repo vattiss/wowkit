@@ -12,7 +12,8 @@ import { installItems } from "./install-items";
 import { installTalents } from "./install-talents";
 import { installTooltips, type TooltipKind } from "./install-tooltips";
 import { installSpells } from "./install-spells";
-import { installUi, type FakeMenu, type FakeMenuChoice } from "./install-ui";
+import { installUi, type FakeMenuChoice } from "./install-ui";
+import { readChoiceList } from "./choice-list";
 import { installUnits } from "./install-units";
 
 /** A row of the settings window. */
@@ -100,8 +101,8 @@ export function createWorld(setup: (state: ClientState) => void, savedSettings?:
     installClock(clock);
     installUnits(state);
     installSpells(state);
-    const menu: FakeMenu = { choices: [], isScrolling: false };
-    installUi(frames, chat, menu);
+    installUi(frames, chat);
+    let isMenuScrolling = false;
     const listOptions = (variable: string) =>
         frames.all.filter((frame) => (frame as OptionFake).optionVariable === variable) as OptionFake[];
     const findOption = (variable: string) => {
@@ -111,9 +112,9 @@ export function createWorld(setup: (state: ClientState) => void, savedSettings?:
         return found[0]!;
     };
     const openMenu = (button: FakeFrame) => {
-        menu.choices = [];
-        button.scripts.OnClick!(button);
-        return menu.choices;
+        const list = readChoiceList(frames.all, button);
+        isMenuScrolling = list.isScrolling;
+        return list.choices;
     };
     installActionBars(state, frames);
     installAuras(state);
@@ -150,7 +151,7 @@ export function createWorld(setup: (state: ClientState) => void, savedSettings?:
         isOptionShown: (label) => frames.all.some((frame) => (frame as OptionFake).optionLabel === label && frame.isShown),
         frames: frames.all,
         openMenu: (button) => openMenu(button),
-        isMenuScrolling: () => menu.isScrolling,
+        isMenuScrolling: () => isMenuScrolling,
         pickFromMenu: (button, label) => {
             const choice = openMenu(button).find((listed) => listed.label === label);
             if (choice === undefined) throw new Error(`the list has no choice "${label}"`);
