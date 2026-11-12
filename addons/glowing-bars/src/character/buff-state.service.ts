@@ -32,6 +32,8 @@ export class BuffStateService {
     private shieldBlockCharges = 0;
     /** The buffs last seen cast by someone else (by name key): an icon only follows the player's own casts. */
     private readonly fromOthers = new LuaSet<string>();
+    /** The spell ID of each buff (by name key) last seen on the player or cast: the rank it is of. */
+    private readonly auraIds = new LuaMap<string, number>();
 
     constructor(
         private readonly auras: AurasService,
@@ -64,6 +66,7 @@ export class BuffStateService {
         const read = this.findAura(spellId);
         if (read.isFound) {
             this.noteBuffCaster(spellId, read.caster);
+            if (read.spellId !== undefined) this.auraIds.set(this.getBuffKey(spellId), read.spellId);
             this.memory.remember(spellId, undefined, read.remain, false);
             return lead === 0 || !hasKnownExpiry(read.remain) || read.remain > lead;
         }
@@ -88,6 +91,7 @@ export class BuffStateService {
         if (spellId === undefined || !isReadable(spellId)) return;
         this.memory.remember(spellId, undefined, undefined, true);
         this.fromOthers.delete(this.getBuffKey(spellId));
+        this.auraIds.set(this.getBuffKey(spellId), spellId);
         if (this.spells.getSpellName(spellId) === this.spells.getSpellName(Warrior.ShieldBlock))
             this.shieldBlockCharges = SHIELD_BLOCK_CHARGES;
     }
@@ -184,7 +188,7 @@ export class BuffStateService {
         if (ids.length === 0) return undefined;
         let hasIcon = false;
         for (const id of ids) {
-            const isUp = this.cooldownViewer.isBuffActive(this.getBuffName(id) ?? "");
+            const isUp = this.cooldownViewer.isBuffActive(this.getBuffName(id) ?? "", this.auraIds.get(this.getBuffKey(id)));
             if (isUp === true) return true;
             if (isUp === false) hasIcon = true;
         }
@@ -221,7 +225,8 @@ export class BuffStateService {
             (resolved !== undefined ? ids.get(resolved) : undefined) ??
             ids.get(spellId) ??
             (wantCategory ? categories.get(wantCategory.key) : undefined);
-        if (aura) return { isFound: true, remain: aura.remain, isUnreadable: false, caster: aura.caster, categories };
+        if (aura)
+            return { isFound: true, remain: aura.remain, isUnreadable: false, caster: aura.caster, spellId: aura.spellId, categories };
         return { isFound: false, remain: 0, isUnreadable, categories };
     }
 

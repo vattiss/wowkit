@@ -42,6 +42,8 @@ const NOT_DISPLAYED = -1;
 interface ViewerEntry {
     /** Its spell and the spells linked to it: the ranks, a Greater Blessing, the buff of a talent. */
     names: string[];
+    /** The spell IDs an icon of it takes an aura by, exactly: Blizzard compares no ranks. */
+    ids: number[];
     /** A spell whose icon shows a buff on the player. */
     isOwnBuff: boolean;
 }
@@ -65,6 +67,8 @@ const LAST_CATEGORY = 8;
 export class CooldownViewerService {
     private readonly entries = new LuaMap<number, ViewerEntry>();
     private iconStates = new LuaMap<string, boolean>();
+    /** The same, by each spell ID the icons take an aura by. */
+    private iconStatesById = new LuaMap<number, boolean>();
     private cooldownStates = new LuaMap<string, boolean>();
     private iconStatesAt = -1;
     /** Is the addon allowed to go by the icons? */
@@ -122,11 +126,15 @@ export class CooldownViewerService {
         this.setIconsVisible(windows, true);
     }
 
-    /** Is the buff up, by the icons that track it? Undefined when none has a say. Read once a frame, for every buff together. */
-    isBuffActive(spellName: string): boolean | undefined {
+    /**
+     * Is the buff up, by the icons that track it? Undefined when none has a say. Read once a frame, for every buff together.
+     * `auraSpellId`: the ID of the player's aura, when known. An icon takes an aura only by its entry's exact IDs, so one of
+     * another rank (an older Mark of the Wild still on a bar) leaves it out: it has no say over that aura.
+     */
+    isBuffActive(spellName: string, auraSpellId?: number): boolean | undefined {
         if (!this.isUsingIcons) return undefined;
         this.refreshIconStates();
-        return this.iconStates.get(spellName);
+        return auraSpellId !== undefined ? this.iconStatesById.get(auraSpellId) : this.iconStates.get(spellName);
     }
 
     /** The icons in these windows that show this spell or buff. Read only: they are Blizzard's frames. */
@@ -181,6 +189,7 @@ export class CooldownViewerService {
 
     private readIconStates(): void {
         this.iconStates = new LuaMap<string, boolean>();
+        this.iconStatesById = new LuaMap<number, boolean>();
         this.cooldownStates = new LuaMap<string, boolean>();
         for (const name of ALL_VIEWERS) {
             const viewer = this.getViewer(name);
@@ -206,7 +215,8 @@ export class CooldownViewerService {
         if (!isBuffViewer) this.noteCooldownState(item, entry);
         const isUp = isBuffViewer ? this.readBuffIcon(item) : entry.isOwnBuff ? this.readSpellIcon(item) : undefined;
         if (isUp === undefined) return;
-        for (const name of entry.names) if (isUp || !this.iconStates.has(name)) this.iconStates.set(name, isUp);
+        noteState(this.iconStates, entry.names, isUp);
+        noteState(this.iconStatesById, entry.ids, isUp);
     }
 
     /** The cooldown is of the entry's own spell, not of the spells linked to it. */
@@ -241,17 +251,13 @@ export class CooldownViewerService {
         const info = attempt(C_CooldownViewer.GetCooldownViewerCooldownInfo, cooldownId);
         if (info === undefined) return undefined;
         const names: string[] = [];
-        // Pushed one by one, its own spell first: a nil in the middle of a Lua list would hide what comes after it
-        const ids: number[] = [];
-        if (info.spellID !== undefined) ids.push(info.spellID);
-        if (info.overrideSpellID !== undefined) ids.push(info.overrideSpellID);
-        ids.push(...(info.linkedSpellIDs ?? []));
+        const ids = listEntrySpells(info);
         for (const id of ids) {
             const name = this.spells.getSpellName(getReadable(id));
             if (name !== undefined && name !== "" && !names.includes(name)) names.push(name);
         }
         if (names.length === 0) return undefined;
-        const entry = { names, isOwnBuff: getReadable(info.selfAura) === true };
+        const entry = { names, ids: listAuraIds(info, ids), isOwnBuff: getReadable(info.selfAura) === true };
         this.entries.set(cooldownId, entry);
         return entry;
     }
@@ -358,4 +364,29 @@ export class CooldownViewerService {
         for (const item of viewer.itemFramePool.EnumerateActive()) items.push(item);
         return items;
     }
+}
+
+/** One icon that is up settles it; one that is out says so only until another says up. */
+function noteState<Key extends AnyNotNil>(states: LuaMap<Key, boolean>, keys: Key[], isUp: boolean): void {
+    for (const key of keys) if (isUp || !states.has(key)) states.set(key, isUp);
+}
+
+/** An entry's spell, its override, then the spells linked to it. */
+function listEntrySpells(info: CooldownViewerCooldown): number[] {
+    // Pushed one by one, its own spell first: a nil in the middle of a Lua list would hide what comes after it
+    const ids: number[] = [];
+    if (info.spellID !== undefined) ids.push(info.spellID);
+    if (info.overrideSpellID !== undefined) ids.push(info.overrideSpellID);
+    ids.push(...(info.linkedSpellIDs ?? []));
+    return ids;
+}
+
+/** What Blizzard takes an aura by, exactly: the entry's spells and its tooltip's spell, as far as the game shows them. */
+function listAuraIds(info: CooldownViewerCooldown, spells: number[]): number[] {
+    const auraIds: number[] = [];
+    for (const id of [...spells, info.overrideTooltipSpellID]) {
+        const readable = getReadable(id);
+        if (readable !== undefined && !auraIds.includes(readable)) auraIds.push(readable);
+    }
+    return auraIds;
 }

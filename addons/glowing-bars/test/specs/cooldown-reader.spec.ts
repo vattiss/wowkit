@@ -95,6 +95,27 @@ describe("one reader for the icons", () => {
         expect(world.glowsOn(1)).toBe(0);
     });
 
+    it("does not believe the icon being out for an older rank of the buff, which Blizzard's icon does not follow", () => {
+        // Blizzard's icon counts an aura only by the exact spell IDs of its entry: the rank the player knows now
+        const RANK_1: SpellDefinition = { id: 1126, name: "Mark of the Wild", rank: 1, icon: 136078 };
+        const RANK_2: SpellDefinition = { id: 5232, name: "Mark of the Wild", rank: 2, icon: 136078 };
+        const world = createWorld((state) => {
+            playAs(state, DRUID);
+            learnSpell(state, RANK_1);
+            learnSpell(state, RANK_2);
+            state.bars[1] = RANK_2.id;
+            state.trackedBuffs.push({ spellId: RANK_2.id, isActive: false });
+        });
+        // The old rank, still on another bar, cast by the player
+        world.state.auras.push(world.makeAura(RANK_1.name, RANK_1.id, 1800, "player"));
+        world.advance(2);
+        expect(world.glowsOn(1)).toBe(0);
+        world.state.isInCombat = true;
+        world.state.areAurasHidden = true;
+        world.advance(2);
+        expect(world.glowsOn(1)).toBe(0);
+    });
+
     it("does not believe the icon being out for a buff of a player out of the group, whom the game does not name", () => {
         const world = createWorld((state) => {
             playAs(state, PRIEST);
