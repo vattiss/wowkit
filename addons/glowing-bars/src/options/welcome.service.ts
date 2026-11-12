@@ -63,8 +63,8 @@ export class WelcomeService implements OnLogin {
 
     onLogin(): void {
         if (this.settings.get("isWelcomeDone") && this.settings.get("isCooldownChoiceSeen")) return;
-        // Switched off for the account: it waits in /gb settings, and opens by itself again once switched back on
-        if (!this.whatsNew.isWelcomeShown()) return;
+        // The first character of a new install gets it, and chooses there for the others; it waits in /gb settings
+        if (!this.whatsNew.isNewInstall() && !this.whatsNew.isWelcomeShown()) return;
         this.whatsNew.useWelcomeFirst();
         this.clock.runAfter(OPEN_DELAY, () => this.openWhenAtPeace());
     }

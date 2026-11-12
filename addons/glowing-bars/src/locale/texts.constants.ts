@@ -10,7 +10,7 @@ export const TEXTS = {
         "After an update with new features, the What's new window opens once, on the first character you log in with. This choice is for your whole account.",
     OPT_SHOW_WELCOME: "Show the Welcome tab on new characters",
     TIP_SHOW_WELCOME:
-        "Once on each character, the settings window opens by itself on the Welcome tab, to set up Glowing Bars. You can always find it in /gb settings. This choice is for your whole account.",
+        "The settings window opens by itself on the Welcome tab on your first character, to set up Glowing Bars. Tick this to have it open on your other new characters too. You can always find it in /gb settings. This choice is for your whole account.",
     HDR_ALL_CHARACTERS: "All Characters",
     INFO_COPIED: "The link is in your chat box. Press Ctrl+A, then Ctrl+C to copy it.",
 

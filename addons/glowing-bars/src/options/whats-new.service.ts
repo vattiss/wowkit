@@ -1,6 +1,7 @@
 // What the account has seen of the addon's releases, kept in the account's saved data (## SavedVariables): the last
-// version it logged in with, and whether the What's New and the Welcome tabs may open by themselves. What's New does only
-// for a player who asked for it (it was on unless switched off, and is off for everyone since); Welcome unless switched off. After an update, at login, the settings
+// version it logged in with, and whether the What's New and the Welcome tabs may open by themselves. Each does only for a
+// player who asked for it (both were on unless switched off, and are off for everyone since); Welcome also on the first
+// character of a new install, where the player makes that choice. After an update, at login, the settings
 // window opens on it once if a release since then has something new, out of combat; a new player is told nothing
 // (everything is new to them).
 import { OnGameEvent, type OnAddonLoaded, type OnLogin } from "@wowkit/core";
@@ -19,7 +20,9 @@ interface AccountData {
     lastVersion?: string;
     /** The player ticked "Show what's new after new features": the window opens by itself after them. */
     isWhatsNewOn?: boolean;
-    /** The player unticked "Show the Welcome tab on new characters": it does not open by itself. */
+    /** The player ticked "Show the Welcome tab on new characters": it opens by itself on each new one. */
+    isWelcomeOn?: boolean;
+    /** The old switch of the Welcome tab, which was on unless unticked. Dropped: it is off for everyone now. */
     isWelcomeOff?: boolean;
     /** The old switch of What's New, which was on unless ticked off. Dropped: it is off for everyone now. */
     isWhatsNewOff?: boolean;
@@ -53,6 +56,8 @@ export class WhatsNewService implements OnAddonLoaded, OnLogin {
     private isWaitingForPeace = false;
     /** This character gets the Welcome tab first. */
     private isHeldForWelcome = false;
+    /** The account had never logged in with the addon: a new install, its first character. */
+    private isFirstInstall = false;
 
     constructor(
         private readonly saved: SavedVariablesService,
@@ -79,6 +84,8 @@ export class WhatsNewService implements OnAddonLoaded, OnLogin {
     onAddonLoaded(): void {
         this.data = this.saved.loadTable<AccountData>() ?? {};
         this.data.isWhatsNewOff = undefined;
+        this.data.isWelcomeOff = undefined;
+        this.isFirstInstall = this.data.lastVersion === undefined;
         this.saved.bindTable(this.data);
     }
 
@@ -116,11 +123,16 @@ export class WhatsNewService implements OnAddonLoaded, OnLogin {
     }
 
     isWelcomeShown(): boolean {
-        return this.data.isWelcomeOff !== true;
+        return this.data.isWelcomeOn === true;
     }
 
     setWelcomeShown(isShown: boolean): void {
-        this.data.isWelcomeOff = isShown ? undefined : true;
+        this.data.isWelcomeOn = isShown || undefined;
+    }
+
+    /** Is this the first character of a new install? It gets the Welcome tab, whatever the switch says. */
+    isNewInstall(): boolean {
+        return this.isFirstInstall;
     }
 
     /** A fight that ends opens the window that waited for it. */

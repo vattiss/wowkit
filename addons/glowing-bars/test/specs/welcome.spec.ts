@@ -52,18 +52,30 @@ describe("the Welcome tab", () => {
         expect(isTabShown(world, SCAN_LABEL)).toBe(true);
     });
 
-    it("stays closed for a new character when the player switched it off for the account", () => {
-        const world = createPlayer({ isWelcomeDone: false, isCooldownChoiceSeen: false }, { isWelcomeOff: true });
+    it("stays closed on a new character of an account that had the addon, unless the player asked for it", () => {
+        const fresh = { isWelcomeDone: false, isCooldownChoiceSeen: false };
+        const world = createPlayer(fresh, { lastVersion: "3.1.0" });
         world.advance(4);
         expect(findWindow(world)?.isShown ?? false).toBe(false);
+        const asked = createPlayer(fresh, { lastVersion: "3.1.0", isWelcomeOn: true });
+        asked.advance(4);
+        expect(isTabShown(asked, SCAN_LABEL)).toBe(true);
     });
 
-    it("is switched off for the account at the bottom of its tab, and on again on the General tab", () => {
-        const world = createPlayer({});
-        world.setOption("showWelcome", false);
-        expect(world.getAccountSaved()?.isWelcomeOff).toBe(true);
-        world.setOption("accountShowWelcome", true);
+    it("stays closed for a player who had the old switch on, which is dropped", () => {
+        const world = createPlayer({ isWelcomeDone: false, isCooldownChoiceSeen: false }, { lastVersion: "3.1.0", isWelcomeOff: false });
+        world.advance(4);
+        expect(findWindow(world)?.isShown ?? false).toBe(false);
         expect(world.getAccountSaved()?.isWelcomeOff).toBe(undefined);
+    });
+
+    it("starts unticked, and is switched on for the account at the bottom of its tab, and off again on the General tab", () => {
+        const world = createPlayer({});
+        expect(world.getAccountSaved()?.isWelcomeOn).toBe(undefined);
+        world.setOption("showWelcome", true);
+        expect(world.getAccountSaved()?.isWelcomeOn).toBe(true);
+        world.setOption("accountShowWelcome", false);
+        expect(world.getAccountSaved()?.isWelcomeOn).toBe(undefined);
     });
 
     it("stays closed for a character that saw both", () => {
@@ -128,7 +140,10 @@ describe("the Welcome tab", () => {
 
 describe("What's New with the Welcome tab", () => {
     it("does not take the window over: the Welcome tab comes first", () => {
-        const world = createPlayer({ isWelcomeDone: false, isCooldownChoiceSeen: false }, { lastVersion: "1.0.0" });
+        const world = createPlayer(
+            { isWelcomeDone: false, isCooldownChoiceSeen: false },
+            { lastVersion: "1.0.0", isWelcomeOn: true, isWhatsNewOn: true },
+        );
         world.advance(4);
         expect(isTabShown(world, SCAN_LABEL)).toBe(true);
     });

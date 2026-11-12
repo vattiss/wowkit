@@ -61,7 +61,7 @@ describe("the What's New tab", () => {
     });
 
     it("keeps the choices for the whole account when a character's General tab is put back to its defaults", () => {
-        const world = createAccountWorld({ lastVersion: "1.0.0", isWhatsNewOn: true, isWelcomeOff: true });
+        const world = createAccountWorld({ lastVersion: "1.0.0", isWhatsNewOn: true, isWelcomeOn: true });
         world.openOptions();
         const button = (text: string) => world.frames.find((frame) => frame.frameType === "Button" && frame.text === text)!;
         button("General").scripts.OnClick!(button("General"));
@@ -70,7 +70,7 @@ describe("the What's New tab", () => {
         const reset = world.frames.find((frame) => frame.parent === box && frame.text === "Reset")!;
         reset.scripts.OnClick!(reset);
         expect(world.getAccountSaved()?.isWhatsNewOn).toBe(true);
-        expect(world.getAccountSaved()?.isWelcomeOff).toBe(true);
+        expect(world.getAccountSaved()?.isWelcomeOn).toBe(true);
     });
 
     it("shows the notes of the newest version, and of another one picked on the left", () => {

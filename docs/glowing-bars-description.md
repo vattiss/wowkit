@@ -30,7 +30,7 @@ In combat the game hides your buffs from addons, so Glowing Bars reads them from
 
 ## 👋 Getting started
 
-On each new character, the settings window opens on its **Welcome** tab: a **Scan** shows which buttons the addon finds, and you choose how it may use Blizzard's Cooldown Manager.
+On your first character, the settings window opens on its **Welcome** tab: a **Scan** shows which buttons the addon finds, and you choose how it may use Blizzard's Cooldown Manager. Tick the box at its bottom to have it open on your other new characters too.
 
 *   **/gb** opens the table of every reminder
 *   **/gb settings** opens the settings window
