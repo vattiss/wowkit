@@ -11,6 +11,8 @@ import type { AddonSettingsService, ReminderType, Style } from "../settings/sett
 import type { StyleService } from "../settings/style.service";
 import { NOTICE_SECONDS, type ActionBarsService, type ClockService, type NoticeService, type Rgb, type SpellsService } from "@wowkit/wow";
 import { findWords, type Words } from "./message-words";
+import { OlderRankBuffNotes } from "./older-rank-buff-notes";
+import { MessagesService } from "@wowkit/ui";
 import type { Reminders } from "./tick.interface";
 
 /** A party message names this many members at most; past them, it counts them (a raid). */
@@ -59,6 +61,8 @@ function pickLonger(first: number, second: number): number {
 }
 
 export class NoticesService {
+    /** The chat line of a buff on the player at an older rank. */
+    private readonly olderRankNotes: OlderRankBuffNotes;
     /** The text showing now. */
     private lastText = "";
     /** How long the text showing now stays. */
@@ -81,10 +85,13 @@ export class NoticesService {
         private readonly locale: AddonLocale,
         private readonly styles: StyleService,
         private readonly settings: AddonSettingsService,
-    ) {}
+    ) {
+        this.olderRankNotes = new OlderRankBuffNotes(new MessagesService(notice, locale.getText("TITLE")), locale, settings, clock);
+    }
 
     /** Shows the lines that are due, with those that are still up: the notice takes one text. */
     showNoticeIfNew(reminders: Reminders): void {
+        this.olderRankNotes.sayNew(reminders.olderRankBuffs);
         if (this.actionBars.getSecondsSinceBarsChanged() <= NOTICE_AFTER_BAR_CHANGE) return;
         const now = this.clock.getCurrentTime();
         const lines = this.listLines(reminders);

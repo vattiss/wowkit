@@ -3,7 +3,7 @@
 // switched on, so a buff the player switched off hands the glow to the next.
 
 import { OnEvent } from "@wowkit/core";
-import type { BuffStateService } from "../character/buff-state.service";
+import type { BuffStateService, OlderRankBuff } from "../character/buff-state.service";
 import type { ActionBarsService, PlayerService, PlayerSpellCast, SpellsService } from "@wowkit/wow";
 import type { AddonSettingsService } from "../settings/settings.interface";
 import type { ClassBuff } from "./class-buff.interface";
@@ -39,6 +39,11 @@ export class BuffReminderService {
         private readonly classBuffs: ClassBuffsService,
         private readonly settings: AddonSettingsService,
     ) {}
+
+    /** The buffs on the player at an older rank than the player knows (BuffStateService). */
+    findOlderRankBuffs(): OlderRankBuff[] | undefined {
+        return this.auras.findOlderRankBuffs();
+    }
 
     /** Is this buff worth asking for now? */
     checkBuff(classBuff: ClassBuff): BuffCheck {

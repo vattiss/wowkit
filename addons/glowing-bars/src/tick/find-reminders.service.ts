@@ -85,6 +85,8 @@ export class FindRemindersService {
         found.seals = this.sealReminder.findMissingSeal();
         found.trackings = this.trackingReminder.findMissingTrackings();
         found.outdatedRanks = this.settings.get("isOldRankEnabled") ? this.outdatedRanks.findOutdatedRanks() : none.outdatedRanks;
+        // Its own switches: the chat line does not wait for the Old rank reminder
+        found.olderRankBuffs = this.buffReminder.findOlderRankBuffs();
         found.readyCooldowns = this.glowCues.findReadyCooldowns();
         found.procs = this.glowCues.findProcs();
         found.reagentSpells = reagentSpells;

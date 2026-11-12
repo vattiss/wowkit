@@ -80,6 +80,10 @@ export interface AddonSettings {
     isOneLinePerType: boolean;
     /** Does the greeting in the chat come at each login? */
     shouldShowGreeting: boolean;
+    /** A line in the chat when a buff the player cast on themselves is an older rank than they know? */
+    shouldNoteOwnOlderRankBuffs: boolean;
+    /** The same for a buff another player gave them. */
+    shouldNoteOthersOlderRankBuffs: boolean;
     shouldStayQuietInTowns: boolean;
     /** Has this character seen the welcome window? */
     isWelcomeDone: boolean;

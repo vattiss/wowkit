@@ -24,6 +24,17 @@ export interface BuffRead extends AuraRead {
 
 export type UnitBuffState = "has" | "missing" | "unknown";
 
+/** A buff on the player at a lower rank than the player knows, cast by the player or by another. */
+export interface OlderRankBuff {
+    spellId: number;
+    name: string;
+    rank: number;
+    /** The highest rank the player knows. */
+    best: number;
+    caster: "player" | "other";
+    remain: number;
+}
+
 /** Shield Block ends after this many blocks (its stacks on Forever), or when its time is up. */
 const SHIELD_BLOCK_CHARGES = 2;
 
@@ -84,6 +95,23 @@ export class BuffStateService {
         if (scan.auras.length === 0 && this.isEmptyListSuspicious()) return undefined;
         const wantKey = buildNameKey(this.getBuffName(spellId) ?? "");
         return scan.auras.filter((aura) => buildNameKey(aura.name!) === wantKey);
+    }
+
+    /**
+     * The buffs on the player at a lower rank than the highest the player knows, out of combat: in a fight the game hides their
+     * IDs, so undefined there. Any buff with ranks the player can cast, not only those the addon reminds of.
+     */
+    findOlderRankBuffs(): OlderRankBuff[] | undefined {
+        if (this.player.isInCombat()) return undefined;
+        const found: OlderRankBuff[] = [];
+        for (const aura of this.auras.scanAuras("player").auras) {
+            if (aura.isHidden || aura.spellId === undefined || aura.name === undefined || aura.caster === "hidden") continue;
+            const rank = this.spells.getSpellRank(aura.spellId);
+            const best = rank !== undefined ? this.spells.getHighestRank(aura.spellId) : undefined;
+            if (rank === undefined || best === undefined || rank >= best) continue;
+            found.push({ spellId: aura.spellId, name: aura.name, rank, best, caster: aura.caster, remain: aura.remain });
+        }
+        return found;
     }
 
     /** The player cast a spell: if it is a buff on the player, it is up now. */

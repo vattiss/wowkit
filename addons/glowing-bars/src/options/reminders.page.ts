@@ -143,9 +143,9 @@ export class RemindersPage implements OptionsPage {
     }
 
     private addRemindersTab(tab: OptionsTab): void {
+        this.reminderControls.addHeader(tab, "HDR_BUFFS");
         // The party members: a part of the buff reminder that is not one buff
         if (this.classBuffs.getClassBuffs().some((classBuff) => classBuff.party !== undefined)) {
-            this.reminderControls.addHeader(tab, "HDR_BUFFS");
             // Each switch with the number of members its group versions wait for, under it
             const hasGroupVersion = this.classBuffs.getClassBuffs().some((classBuff) => classBuff.party?.groupIds !== undefined);
             this.reminderControls.addSwitch(tab, "showPartyBuffs", "OPT_PARTY_BUFFS", "TIP_PARTY_BUFFS");
@@ -153,6 +153,8 @@ export class RemindersPage implements OptionsPage {
             this.reminderControls.addSwitch(tab, "showRaidBuffs", "OPT_RAID_BUFFS", "TIP_RAID_BUFFS");
             if (hasGroupVersion) this.reminderControls.addGroupMin(tab, "raidGroupFrom", "TIP_RAID_GROUP_MIN", "showRaidBuffs");
         }
+        this.reminderControls.addSwitch(tab, "shouldNoteOwnOlderRankBuffs", "OPT_NOTE_OWN_OLDER_RANK", "TIP_NOTE_OWN_OLDER_RANK");
+        this.reminderControls.addSwitch(tab, "shouldNoteOthersOlderRankBuffs", "OPT_NOTE_OTHERS_OLDER_RANK", "TIP_NOTE_OTHERS_OLDER_RANK");
         this.weaponSection.addWeaponSection(tab);
         this.glowsSection.addGlowsSection(tab);
     }

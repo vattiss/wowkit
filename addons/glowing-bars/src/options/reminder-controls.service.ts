@@ -17,6 +17,8 @@ type FeatureKey =
     | "isWeaponBuffEnabled"
     | "showPartyBuffs"
     | "showRaidBuffs"
+    | "shouldNoteOwnOlderRankBuffs"
+    | "shouldNoteOthersOlderRankBuffs"
     | "isOldRankEnabled"
     | "isLowReagentEnabled"
     | "isReadyCooldownEnabled"

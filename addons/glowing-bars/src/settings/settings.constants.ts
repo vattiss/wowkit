@@ -20,10 +20,13 @@ export const WINDOW_ICONS_SETTINGS = {
 /** Every window of the Cooldown Manager kept out of sight, for a player who did not use it. */
 const HIDDEN_WINDOWS = { trackedBuffsIcons: "hide", trackedBarsIcons: "hide", essentialIcons: "hide", utilityIcons: "hide" } as const;
 
+/** The lines the addon writes in the chat by itself: the greeting, and the notes of a buff of an older rank. */
+const CHAT_LINES = { shouldShowGreeting: true, shouldNoteOwnOlderRankBuffs: true, shouldNoteOthersOlderRankBuffs: true } as const;
+
 export function createDefaultSettings(): AddonSettings {
     return {
         isDisabled: false,
-        shouldShowGreeting: true,
+        ...CHAT_LINES,
         shouldStayQuietInTowns: false,
         isAfkRainbowOn: false,
         shouldGlowOnMacros: true,

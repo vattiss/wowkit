@@ -19,6 +19,7 @@ export function createEmptyReminders(): Reminders {
         buffsNotOnBars: [],
         partySuggestions: [],
         outdatedRanks: [],
+        olderRankBuffs: undefined,
         readyCooldowns: [],
         reagentSpells: [],
         lowReagents: [],
@@ -64,6 +65,8 @@ export function filterReminders(target: Reminders, reminders: Reminders, isShown
     copyShown(target.seals, reminders.seals, "missingSeal", getOwnId, isShown);
     copyShown(target.trackings, reminders.trackings, "missingTracking", getOwnId, isShown);
     copyShown(target.outdatedRanks, reminders.outdatedRanks, "oldRank", getRankId, isShown);
+    // Only a chat line, with switches of its own: none of the table's rules
+    target.olderRankBuffs = reminders.olderRankBuffs;
     copyShown(target.lowStock, reminders.lowStock, "lowStock", getStockKey, isShown);
     copyShown(target.reagentSpells, reminders.reagentSpells, "lowReagent", getOwnId, isShown);
     copyShown(target.lowReagents, reminders.lowReagents, "lowReagent", getSuggestionId, isShown);

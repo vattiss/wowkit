@@ -1,3 +1,4 @@
+import type { OlderRankBuff } from "../character/buff-state.service";
 import type { LowReagent } from "../reagents/reagent.interface";
 import type { OutdatedRank } from "../reminders/outdated-ranks.service";
 import type { PartySuggestion, LowStock } from "../reminders/reminders.interface";
@@ -24,6 +25,8 @@ export interface Reminders {
     partySuggestions: PartySuggestion[];
     /** Spells on the bars at a lower rank than the highest learned one. */
     outdatedRanks: OutdatedRank[];
+    /** Buffs on the player at an older rank than the player knows: a line in the chat, once each. Undefined: not looked at. */
+    olderRankBuffs: OlderRankBuff[] | undefined;
     /** The items the player watches that run low: they glow if on a button, and say so on a bar or not. */
     lowStock: LowStock[];
     /** The reagents running low, on a bar or not: the message names them. */
