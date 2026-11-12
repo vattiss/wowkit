@@ -16,6 +16,12 @@ body:
       label: Game version
       description: From the bottom left of the login screen, if you know it.
       placeholder: 1.60.1
+  - type: textarea
+    id: scan
+    attributes:
+      label: Scan report
+      description: In /gb settings, open the Welcome tab, click Scan, then Select, and press Ctrl+C. Paste it here.
+      render: text
   - type: input
     id: character
     attributes:
