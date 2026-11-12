@@ -1,6 +1,7 @@
 // The addon's own settings window, with a tab for each subject. The game's Settings panel reuses the same rows on all its
 // pages, so rows that drew an addon's settings carry its taint to the game's own pages (the action bars among them), and
 // the game then refuses to lay out the bars in a fight. Nothing here is shared with the game.
+import { DefaultsQuestion, type DefaultsQuestionTexts } from "./defaults-question";
 import { OptionsTab } from "./options-tab";
 import { applyScrollBarTint, connectEscape, createCloseButton, createFrameWithBorder, updateScrollBar } from "./window-frame";
 
@@ -23,10 +24,12 @@ export class OptionsWindow {
     private readonly tabButtons: Button[] = [];
     private current: OptionsTab | undefined;
     private defaultsButton: Button | undefined;
+    private readonly question: DefaultsQuestion;
 
     private readonly contentWidth: number;
 
-    constructor(name: string, title: string, defaultsText: string, size: { width: number; height: number }) {
+    /** `texts`: the Defaults button, and the question it asks first. */
+    constructor(name: string, title: string, texts: DefaultsQuestionTexts & { defaults: string }, size: { width: number; height: number }) {
         this.contentWidth = size.width - SIDE * 2 - SCROLL_BAR_WIDTH;
         this.window = this.createFrame(name, title);
         this.window.SetSize(size.width, size.height);
@@ -34,7 +37,8 @@ export class OptionsWindow {
         this.scroll.SetPoint("TOPLEFT", this.window, "TOPLEFT", SIDE, -SCROLL_TOP);
         this.scroll.SetPoint("BOTTOMRIGHT", this.window, "BOTTOMRIGHT", -SIDE - 24, SCROLL_BOTTOM);
         applyScrollBarTint(this.scroll);
-        this.createDefaultsButton(defaultsText);
+        this.createDefaultsButton(texts.defaults);
+        this.question = new DefaultsQuestion(this.window, `${name}Question`, texts);
         // A new frame is shown; the window opens when it is asked for
         this.window.Hide();
     }
@@ -63,7 +67,10 @@ export class OptionsWindow {
         button.SetPoint("BOTTOMRIGHT", this.window, "BOTTOMRIGHT", -SIDE, 16);
         this.defaultsButton = button;
         button.SetText(text);
-        button.SetScript("OnClick", () => this.current?.resetToDefaults());
+        button.SetScript("OnClick", () => {
+            const tab = this.current;
+            if (tab !== undefined) this.question.open(tab.title, () => tab.resetToDefaults());
+        });
     }
 
     /** A button in the top corner, beside the close button, to another window: this one closes for it. */

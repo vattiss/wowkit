@@ -61,6 +61,14 @@ export function buildWelcomeTab(tab: OptionsTab, parts: WelcomeTabParts): void {
     );
     tab.addText(() => locale.getText("WELCOME_CLOSING"));
     tab.addText(() => locale.getText("WELCOME_TIP"), "GameFontNormalSmall");
+    // At the bottom, as on the What's New tab: for the whole account
+    controls.addFooterCheckbox(
+        tab,
+        "showWelcome",
+        locale.getText("OPT_SHOW_WELCOME"),
+        () => welcome.isWelcomeShown(),
+        (isChecked) => welcome.setWelcomeShown(isChecked),
+    );
 }
 
 /** The icon, the greeting in large letters and the addon's motto under it: words of the game's own fonts, readable at this size. */

@@ -8,6 +8,10 @@ export const TEXTS = {
     OPT_SHOW_WHATS_NEW: "Show what's new after new features",
     TIP_SHOW_WHATS_NEW:
         "After an update with new features, the What's new window opens once, on the first character you log in with. This choice is for your whole account.",
+    OPT_SHOW_WELCOME: "Show the Welcome tab on new characters",
+    TIP_SHOW_WELCOME:
+        "Once on each character, the settings window opens by itself on the Welcome tab, to set up Glowing Bars. You can always find it in /gb settings. This choice is for your whole account.",
+    HDR_ALL_CHARACTERS: "All Characters",
     INFO_COPIED: "The link is in your chat box. Press Ctrl+A, then Ctrl+C to copy it.",
 
     HDR_CHARACTER: "This Character",
@@ -48,6 +52,8 @@ export const TEXTS = {
     BTN_OPEN_TABLE: "Open Table",
     BTN_SETTINGS: "Settings",
     BTN_DEFAULTS: "Defaults",
+    MSG_DEFAULTS_QUESTION: "Reset the %s tab to its defaults?",
+    BTN_CANCEL: "Cancel",
     BTN_OPEN_SETTINGS: "Open Glowing Bars Settings",
     TIP_OPEN_SETTINGS: "You can also open them with /gb settings.",
     TIP_MANAGER_RELOAD: "Blizzard applies the Cooldown Manager's changes the next time your interface loads.",

@@ -125,7 +125,7 @@ function makeReminders(addon: Addon, addonName: string, game: Game, texts: Texts
     const weaponMemory = addon.register(new WeaponMemoryService());
     const weaponReading = addon.register(new WeaponReadingService(buffs.state, game.weaponEnchants, weaponChoice));
     const weapon = addon.register(new WeaponReminderService(game.clock, game.weaponEnchants, weaponChoice, weaponMemory, weaponReading));
-    const outdatedRanks = addon.register(new OutdatedRanksService(game.actionBars, game.spells, settings));
+    const outdatedRanks = addon.register(new OutdatedRanksService(game.actionBars, game.spells, settings, game.barKeys));
     const addedSpells = addon.register(new AddedSpellsService(game.spells, settings, game.cooldowns, reagents));
     // A spell the player gave another ID is asked of that ID everywhere: buffs, weapon buffs, reagents, cooldowns, procs
     game.spells.useIdAlias((spellId) => addedSpells.getEffectiveId(spellId));

@@ -43,6 +43,14 @@ export class WelcomeService implements OnLogin {
         return this.tab;
     }
 
+    isWelcomeShown(): boolean {
+        return this.whatsNew.isWelcomeShown();
+    }
+
+    setWelcomeShown(isShown: boolean): void {
+        this.whatsNew.setWelcomeShown(isShown);
+    }
+
     /** What the scan says: that it runs, or what it found; empty before the first. */
     getScanText(): string {
         return this.scanText;
@@ -55,6 +63,8 @@ export class WelcomeService implements OnLogin {
 
     onLogin(): void {
         if (this.settings.get("isWelcomeDone") && this.settings.get("isCooldownChoiceSeen")) return;
+        // Switched off for the account: it waits in /gb settings, and opens by itself again once switched back on
+        if (!this.whatsNew.isWelcomeShown()) return;
         this.whatsNew.useWelcomeFirst();
         this.clock.runAfter(OPEN_DELAY, () => this.openWhenAtPeace());
     }

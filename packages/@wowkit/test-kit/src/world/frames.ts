@@ -46,6 +46,7 @@ export interface FakeFrame {
     SetWidth(width: number): void;
     SetScale(scale: number): void;
     SetPoint(point: string, relativeTo?: unknown): void;
+    SetParent(parent: unknown): void;
     IsVisible(): boolean;
     HookScript(script: string, handler: Script): void;
     GetEffectiveScale(): number;
@@ -144,6 +145,9 @@ function createFakeFrame(init: FrameInit): FakeFrame {
         },
         SetPoint(_point, relativeTo) {
             if (type(relativeTo) === "table") this.anchor = relativeTo as FakeFrame;
+        },
+        SetParent(parent) {
+            this.parent = type(parent) === "table" ? (parent as FakeFrame) : undefined;
         },
         // Shown, and every parent shown too
         IsVisible() {

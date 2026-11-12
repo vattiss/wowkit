@@ -52,6 +52,20 @@ describe("the Welcome tab", () => {
         expect(isTabShown(world, SCAN_LABEL)).toBe(true);
     });
 
+    it("stays closed for a new character when the player switched it off for the account", () => {
+        const world = createPlayer({ isWelcomeDone: false, isCooldownChoiceSeen: false }, { isWelcomeOff: true });
+        world.advance(4);
+        expect(findWindow(world)?.isShown ?? false).toBe(false);
+    });
+
+    it("is switched off for the account at the bottom of its tab, and on again on the General tab", () => {
+        const world = createPlayer({});
+        world.setOption("showWelcome", false);
+        expect(world.getAccountSaved()?.isWelcomeOff).toBe(true);
+        world.setOption("accountShowWelcome", true);
+        expect(world.getAccountSaved()?.isWelcomeOff).toBe(undefined);
+    });
+
     it("stays closed for a character that saw both", () => {
         const world = createPlayer({});
         world.advance(4);

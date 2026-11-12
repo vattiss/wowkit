@@ -10,6 +10,7 @@ import type { ButtonRegistryService, ButtonShape } from "./button-registry.servi
 import type { ClockService } from "./clock.service";
 import { findButtonItem, findItemUseSpell, getItemButtonKey, readTextureKey } from "./utils/item-button.utils";
 import { clearMap, pushToList } from "./utils/lua-map.utils";
+import { addSpellIconKeys } from "./utils/spell-icon.utils";
 import { buildButtonKey, findMacroOfAction, findSpellMacroOfSlot, isMacroSlot, readMacroSpells } from "./utils/macro-text.utils";
 import { attempt, attemptMulti } from "./utils/protected-call.utils";
 import { getReadableId, isReadable } from "./utils/secret-value.utils";
@@ -171,8 +172,8 @@ export class ActionBarsService implements OnFirstLogin {
     /** The buttons that show the spell's icon, where few do (an icon many buttons share tells nothing). */
     private listIconButtons(id: number | undefined, resolved: number | undefined): ActionButton[][] {
         const icons = new LuaSet<number | string>();
-        this.addIconKeys(id, icons);
-        this.addIconKeys(resolved ?? id, icons);
+        addSpellIconKeys(id, this.spells.getSpellInfo(id), icons);
+        addSpellIconKeys(resolved ?? id, this.spells.getSpellInfo(resolved ?? id), icons);
         const lists: ActionButton[][] = [];
         for (const key of icons) {
             const list = this.buttonsByIcon.get(key);
@@ -190,6 +191,11 @@ export class ActionBarsService implements OnFirstLogin {
             if (slot !== undefined) return slot;
         }
         return undefined;
+    }
+
+    /** The buttons on the screen now that hold exactly this spell ID, not another rank of its name. */
+    listShownButtonsWith(spellId: number): ActionButton[] {
+        return (this.buttonsBySpell.get(spellId) ?? []).filter((button) => attempt(() => button.IsVisible()) === true);
     }
 
     /** Every spell of a macro counts, or only the one it shows (see readMacroSpells); the bars are mapped again on a change. */
@@ -296,20 +302,6 @@ export class ActionBarsService implements OnFirstLogin {
         if (slot !== undefined && attempt(C_ActionBar.HasAction, slot) === true) this.addIcons(button, slot);
         if (kind === "spell" && id !== undefined) {
             this.addSpell(getReadableId(this.spells.getSpellInfo(getReadableId(id))?.spellID) ?? getReadableId(id), button);
-        }
-    }
-
-    private addIconKeys(spellId: number | undefined, keys: LuaSet<number | string>): void {
-        if (spellId === undefined) return;
-        const add = (value: unknown) => {
-            const key = readTextureKey(value);
-            if (key !== undefined) keys.add(key);
-        };
-        add(attempt(() => C_Spell.GetSpellTexture(spellId)));
-        const info = this.spells.getSpellInfo(spellId);
-        if (info) {
-            add(info.iconID);
-            add(info.originalIconID);
         }
     }
 

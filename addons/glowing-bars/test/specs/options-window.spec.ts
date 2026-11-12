@@ -212,11 +212,15 @@ describe("the Help tab", () => {
 });
 
 describe("the Defaults button of a tab", () => {
-    function clickDefaults(world: World, tabTitle: string): void {
+    /** Defaults on the tab, then the answer to its question: Reset or Cancel. */
+    function clickDefaults(world: World, tabTitle: string, answer = "Reset"): void {
         world.openOptions();
         const button = (text: string) => world.frames.find((frame) => frame.frameType === "Button" && frame.text === text)!;
         button(tabTitle).scripts.OnClick!(button(tabTitle));
         button("Defaults").scripts.OnClick!(button("Defaults"));
+        const box = world.frames.find((frame) => frame.name === "GlowingBarsOptionsQuestion")!;
+        const choice = world.frames.find((frame) => frame.parent === box && frame.text === answer)!;
+        choice.scripts.OnClick!(choice);
     }
 
     it("puts that tab back and leaves the others", () => {
@@ -226,6 +230,16 @@ describe("the Defaults button of a tab", () => {
         clickDefaults(world, "Messages");
         expect(world.getSavedSettings()?.messageSize).toBe(100);
         expect(world.getSavedSettings()?.isDisabled).toBe(true);
+    });
+
+    it("asks first, naming the tab, and changes nothing on Cancel", () => {
+        const world = createPlayer();
+        world.setOption("messageSize", 150);
+        clickDefaults(world, "Messages", "Cancel");
+        expect(world.getSavedSettings()?.messageSize).toBe(150);
+        const box = world.frames.find((frame) => frame.name === "GlowingBarsOptionsQuestion")!;
+        expect(box.fontStrings.some((text) => text.text === "Reset the Messages tab to its defaults?")).toBe(true);
+        expect(box.parent?.isShown).toBe(false);
     });
 });
 

@@ -32,7 +32,8 @@ export class ControlsService<T extends object> {
         variable: string,
         label: string,
         tooltip: string | undefined,
-        isOnByDefault: boolean,
+        /** Undefined: the tab's Defaults leaves it alone (a choice for the whole account, on a tab of the character's). */
+        isOnByDefault: boolean | undefined,
         get: () => boolean,
         set: (isChecked: boolean) => void,
     ): OptionRow {
@@ -50,7 +51,7 @@ export class ControlsService<T extends object> {
             apply,
             refresh: () => box.SetChecked(get()),
             setEnabled: (isEnabled) => box.SetEnabled(isEnabled),
-            reset: () => set(isOnByDefault),
+            reset: isOnByDefault !== undefined ? () => set(isOnByDefault) : undefined,
         });
     }
 

@@ -1,5 +1,6 @@
 // What the account has seen of the addon's releases, kept in the account's saved data (## SavedVariables): the last
-// version it logged in with, and whether the What's New tab may open by itself. After an update, at login, the settings
+// version it logged in with, and whether the What's New and the Welcome tabs may open by themselves. What's New does only
+// for a player who asked for it (it was on unless switched off, and is off for everyone since); Welcome unless switched off. After an update, at login, the settings
 // window opens on it once if a release since then has something new, out of combat; a new player is told nothing
 // (everything is new to them).
 import { OnGameEvent, type OnAddonLoaded, type OnLogin } from "@wowkit/core";
@@ -16,7 +17,11 @@ const OPEN_DELAY = 3;
 interface AccountData {
     /** The version the account last logged in with. */
     lastVersion?: string;
-    /** The player ticked the box: the window does not open by itself. */
+    /** The player ticked "Show what's new after new features": the window opens by itself after them. */
+    isWhatsNewOn?: boolean;
+    /** The player unticked "Show the Welcome tab on new characters": it does not open by itself. */
+    isWelcomeOff?: boolean;
+    /** The old switch of What's New, which was on unless ticked off. Dropped: it is off for everyone now. */
     isWhatsNewOff?: boolean;
 }
 
@@ -73,6 +78,7 @@ export class WhatsNewService implements OnAddonLoaded, OnLogin {
 
     onAddonLoaded(): void {
         this.data = this.saved.loadTable<AccountData>() ?? {};
+        this.data.isWhatsNewOff = undefined;
         this.saved.bindTable(this.data);
     }
 
@@ -80,7 +86,7 @@ export class WhatsNewService implements OnAddonLoaded, OnLogin {
     onLogin(): void {
         const last = this.data.lastVersion;
         this.data.lastVersion = ADDON_VERSION;
-        if (last === undefined || this.data.isWhatsNewOff === true) return;
+        if (last === undefined || !this.isWhatsNewShown()) return;
         // Only a minor or major release with something new opens it (2.9.0, not 2.9.1)
         const hasNew = RELEASE_NOTES.some(
             (note) =>
@@ -101,12 +107,20 @@ export class WhatsNewService implements OnAddonLoaded, OnLogin {
         if (!this.isHeldForWelcome) this.openWhenAtPeace();
     }
 
-    isOff(): boolean {
-        return this.data.isWhatsNewOff === true;
+    isWhatsNewShown(): boolean {
+        return this.data.isWhatsNewOn === true;
     }
 
-    setOff(isOff: boolean): void {
-        this.data.isWhatsNewOff = isOff;
+    setWhatsNewShown(isShown: boolean): void {
+        this.data.isWhatsNewOn = isShown || undefined;
+    }
+
+    isWelcomeShown(): boolean {
+        return this.data.isWelcomeOff !== true;
+    }
+
+    setWelcomeShown(isShown: boolean): void {
+        this.data.isWelcomeOff = isShown ? undefined : true;
     }
 
     /** A fight that ends opens the window that waited for it. */

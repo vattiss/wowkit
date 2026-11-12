@@ -56,6 +56,9 @@ export class RemindersPage implements OptionsPage {
             open: this.locale.getText("BTN_OPEN_SETTINGS"),
             openTip: this.locale.getText("TIP_OPEN_SETTINGS"),
             defaults: this.locale.getText("BTN_DEFAULTS"),
+            defaultsQuestion: this.locale.getText("MSG_DEFAULTS_QUESTION"),
+            reset: this.locale.getText("BTN_RESET"),
+            cancel: this.locale.getText("BTN_CANCEL"),
             inCombat: this.locale.getText("MSG_NOT_IN_COMBAT"),
             closedForCombat: this.locale.getText("MSG_CLOSED_FOR_COMBAT"),
             size: { width: BASIC_WINDOW_WIDTH, height: WINDOW_HEIGHT },
@@ -113,6 +116,30 @@ export class RemindersPage implements OptionsPage {
             .enableWhen(() => this.settings.get("shouldGlowOnMacros"))
             .setIndented();
         this.reminderControls.addSwitch(tab, "shouldShowGreeting", "OPT_SHOW_GREETING", "TIP_SHOW_GREETING");
+        this.addAccountSection(tab);
+    }
+
+    /** The choices for the whole account: the windows that open by themselves. The tab's Defaults, a character's, leaves them alone. */
+    private addAccountSection(tab: OptionsTab): void {
+        this.reminderControls.addHeader(tab, "HDR_ALL_CHARACTERS");
+        this.controls.addCheckbox(
+            tab,
+            "accountShowWhatsNew",
+            this.locale.getText("OPT_SHOW_WHATS_NEW"),
+            this.locale.getText("TIP_SHOW_WHATS_NEW"),
+            undefined,
+            () => this.whatsNew.isWhatsNewShown(),
+            (isChecked) => this.whatsNew.setWhatsNewShown(isChecked),
+        );
+        this.controls.addCheckbox(
+            tab,
+            "accountShowWelcome",
+            this.locale.getText("OPT_SHOW_WELCOME"),
+            this.locale.getText("TIP_SHOW_WELCOME"),
+            undefined,
+            () => this.whatsNew.isWelcomeShown(),
+            (isChecked) => this.whatsNew.setWelcomeShown(isChecked),
+        );
     }
 
     private addRemindersTab(tab: OptionsTab): void {
@@ -188,8 +215,8 @@ export class RemindersPage implements OptionsPage {
             tab,
             "showWhatsNew",
             this.locale.getText("OPT_SHOW_WHATS_NEW"),
-            () => !this.whatsNew.isOff(),
-            (isChecked) => this.whatsNew.setOff(!isChecked),
+            () => this.whatsNew.isWhatsNewShown(),
+            (isChecked) => this.whatsNew.setWhatsNewShown(isChecked),
         );
         this.whatsNew.addNotes(tab, NOTES_WIDTH, NOTES_HEIGHT);
     }

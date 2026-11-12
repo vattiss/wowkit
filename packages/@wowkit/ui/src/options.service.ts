@@ -19,6 +19,10 @@ export interface OptionsTexts {
     /** The tooltip of that button: another way to open the window. */
     openTip: string;
     defaults: string;
+    /** Asked before the Defaults button puts a tab back: "Reset the %s tab to its defaults?". */
+    defaultsQuestion: string;
+    reset: string;
+    cancel: string;
     /** Said instead of opening the window in a fight. */
     inCombat: string;
     /** Said when a fight starts while the window is open, and it closes. */
@@ -45,7 +49,12 @@ export class OptionsService implements OnFirstLogin {
 
     private registerPage(): void {
         const texts = this.page.getTexts();
-        const window = new OptionsWindow(this.windowName, texts.title, texts.defaults, texts.size);
+        const window = new OptionsWindow(
+            this.windowName,
+            texts.title,
+            { defaults: texts.defaults, question: texts.defaultsQuestion, reset: texts.reset, cancel: texts.cancel },
+            texts.size,
+        );
         this.page.buildPage(window);
         this.window = window;
         if (typeof Settings === "undefined") return;

@@ -11,6 +11,7 @@ import {
     SMITE_RANK_1,
     SMITE_RANK_2,
     type ClientState,
+    type SpellDefinition,
     type World,
 } from "@wowkit/test-kit";
 
@@ -21,6 +22,57 @@ function setUpPriest(state: ClientState, isResting: boolean): void {
     state.bars[1] = SMITE_RANK_1.id;
     state.isResting = isResting;
 }
+
+describe("an old rank no one can see (issue #55)", () => {
+    const BAR_7_FIRST_SLOT = 157;
+
+    function createWithRankOnBar7(saved: Record<string, unknown> = {}): World {
+        const world = createWorld((state) => {
+            playAs(state, PRIEST);
+            for (const spell of [SMITE_RANK_1, SMITE_RANK_2]) learnSpell(state, spell);
+            state.bars[BAR_7_FIRST_SLOT] = SMITE_RANK_1.id;
+        }, saved);
+        world.advance(3);
+        return world;
+    }
+
+    it("is told while its button is on the screen", () => {
+        expect(createWithRankOnBar7().notice()).toContain("Old spell rank: Smite");
+    });
+
+    it("is not told when its bar is hidden, and is once it is shown", () => {
+        const world = createWorld((state) => {
+            playAs(state, PRIEST);
+            for (const spell of [SMITE_RANK_1, SMITE_RANK_2]) learnSpell(state, spell);
+            state.bars[BAR_7_FIRST_SLOT] = SMITE_RANK_1.id;
+        });
+        const button = world.frames.find((frame) => frame.name === "MultiBar6Button1")!;
+        button.isShown = false;
+        world.advance(3);
+        expect(world.notice()).toBe("");
+        button.isShown = true;
+        world.advance(1);
+        expect(world.notice()).toContain("Old spell rank: Smite");
+    });
+
+    it("is told for a rank on the screen, even with a higher one on a hidden bar", () => {
+        const SMITE_RANK_3: SpellDefinition = { ...SMITE_RANK_1, id: 984, rank: 3 };
+        const world = createWorld((state) => {
+            playAs(state, PRIEST);
+            for (const spell of [SMITE_RANK_1, SMITE_RANK_2, SMITE_RANK_3]) learnSpell(state, spell);
+            state.bars[1] = SMITE_RANK_1.id;
+            state.bars[BAR_7_FIRST_SLOT] = SMITE_RANK_2.id;
+        });
+        world.frames.find((frame) => frame.name === "MultiBar6Button1")!.isShown = false;
+        world.advance(3);
+        expect(world.notice()).toContain("Old spell rank: Smite");
+        expect(world.glowsOn(1)).toBe(1);
+    });
+
+    it("is not told when its bar does not glow", () => {
+        expect(createWithRankOnBar7({ barsThatGlow: { "7": false } }).notice()).toBe("");
+    });
+});
 
 describe("a priest with Smite rank 1 on the bar, who knows rank 2", () => {
     let world!: World;
@@ -35,7 +87,7 @@ describe("a priest with Smite rank 1 on the bar, who knows rank 2", () => {
     });
 
     it("sees the message in the yellow of the glow, and the old rank glow quiet", () => {
-        expect(world.notice()).toContain("|cffffd933Old spell rank|r");
+        expect(world.notice()).toContain("|cffffd933Old spell rank: Smite|r");
         expect(world.glowsOn(1)).toBe(1);
         expect(world.glowAlphasOn(1)).toEqual([0.5]);
     });
@@ -43,7 +95,7 @@ describe("a priest with Smite rank 1 on the bar, who knows rank 2", () => {
     it("sees the message in the color the player picked for it", () => {
         world = createWorld((state) => setUpPriest(state, false), { styles: { oldRank: { color: [1, 0, 0] } } });
         world.advance(3);
-        expect(world.notice()).toContain("|cffff0000Old spell rank|r");
+        expect(world.notice()).toContain("|cffff0000Old spell rank: Smite|r");
     });
 
     it("is told nothing any more once the bar holds the best rank", () => {

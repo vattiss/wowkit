@@ -21,6 +21,9 @@ const PARTS: (keyof Style)[] = [
     "messageShowFor",
 ];
 
+/** The types whose message names what it is about by default: what to buy, or which button to change. */
+const NAMED_TYPES: ReminderType[] = ["lowStock", "lowReagent", "oldRank"];
+
 export class StyleService {
     /** Is this a spell whose look goes by its ID, not its name (see useOwnLooks)? */
     private hasOwnLook: (this: void, spellId: number) => boolean = () => false;
@@ -69,7 +72,7 @@ export class StyleService {
     /** What the message of a type or a spell says: what the player chose; else the item and its count, or the type alone. */
     getMessageTextChoice(reminderType: ReminderType, spellId: number | undefined): MessageTextChoice {
         const choice = this.getStyle(reminderType, spellId).messageTextChoice;
-        return choice ?? (reminderType === "lowStock" || reminderType === "lowReagent" ? "typeAndName" : "typeOnly");
+        return choice ?? (NAMED_TYPES.includes(reminderType) ? "typeAndName" : "typeOnly");
     }
 
     /** The spell's own default look, where it has one; the same for every rank (by name). */
