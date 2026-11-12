@@ -55,6 +55,8 @@ export const TEXTS = {
     BTN_CANCEL: "Cancel",
     BTN_OPEN_SETTINGS: "Open Glowing Bars Settings",
     TIP_OPEN_SETTINGS: "You can also open them with /gb settings.",
+    WARN_MANAGER_TURNS_ON: "The Cooldown Manager turns on at your next reload or login. Until then, some buffs may go unseen in a fight.",
+    WARN_MANAGER_TURNS_OFF: "The Cooldown Manager turns off at your next reload or login.",
     TIP_MANAGER_RELOAD: "Blizzard applies the Cooldown Manager's changes the next time your interface loads.",
     OPT_MANAGER_ACCESS: "Blizzard Cooldown Manager",
     TIP_MANAGER_ACCESS:

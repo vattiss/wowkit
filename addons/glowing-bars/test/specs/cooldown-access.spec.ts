@@ -10,14 +10,43 @@ import {
     PRIEST,
     SHAMAN,
     WARRIOR,
+    type World,
 } from "@wowkit/test-kit";
 
+/** The warning line of the Cooldown Manager tab, while the manager waits for a reload. */
+function isWarningShown(world: World, words: string): boolean {
+    return world.frames.some((frame) => frame.isShown && frame.fontStrings.some((line) => line.text?.includes(words) === true));
+}
+
 describe("the Cooldown Manager at login", () => {
-    it("is turned on for every class, and kept out of sight", () => {
+    it("is turned on for every class at the next logout or reload, not while the game runs (that taints Blizzard's code)", () => {
         const world = createWorld((state) => playAs(state, WARRIOR));
         world.advance(1);
-        expect(world.state.cvars.cooldownViewerEnabled).toBe(true);
+        expect(world.state.cvars.cooldownViewerEnabled).toBe(undefined);
         expect(world.state.viewerAlpha).toBe(0);
+        world.fire("PLAYER_LOGOUT");
+        expect(world.state.cvars.cooldownViewerEnabled).toBe(true);
+        expect(world.getSavedSettings()?.isCooldownManagerOurs).toBe(true);
+    });
+
+    it("is turned on by the Reload button just before it reloads, and the tab warns until then", () => {
+        const world = createWorld((state) => playAs(state, WARRIOR));
+        world.advance(1);
+        world.openOptions();
+        expect(isWarningShown(world, "turns on at your next reload")).toBe(true);
+        world.clickOption("Your choice works after a reload");
+        expect(world.state.cvars.cooldownViewerEnabled).toBe(true);
+        expect(world.state.reloads).toBe(1);
+    });
+
+    it("gives no warning when the manager is on already", () => {
+        const world = createWorld((state) => {
+            playAs(state, WARRIOR);
+            state.cvars.cooldownViewerEnabled = true;
+        });
+        world.advance(1);
+        world.openOptions();
+        expect(isWarningShown(world, "turns on at your next reload")).toBe(false);
     });
 
     it("is left as it is for a player who had it on: read only, and it shows", () => {
@@ -134,6 +163,11 @@ describe("the Cooldown Manager at login", () => {
             { isCooldownManagerSetUp: true, isCooldownManagerOurs: true, cooldownManagerAccess: "off" },
         );
         world.advance(1);
+        expect(world.state.cvars.cooldownViewerEnabled).toBe(true);
+        world.openOptions();
+        expect(isWarningShown(world, "turns off at your next reload")).toBe(true);
+        world.fire("PLAYER_LOGOUT");
         expect(world.state.cvars.cooldownViewerEnabled).toBe(false);
+        expect(world.getSavedSettings()?.isCooldownManagerOurs).toBe(false);
     });
 });

@@ -2,6 +2,7 @@
 // itself, showing them is that addon's business.
 import type { ControlsService, MessagesService, WidgetsService, OptionsTab, OptionRow } from "@wowkit/ui";
 import { COOLDOWN_WINDOWS, hasHiddenWindows, repairHiddenWindows, type CooldownViewerService, type PlayerService } from "@wowkit/wow";
+import { applyWaitingSwitch, findWaitingSwitch } from "../character/cooldown-switch";
 import type { AddonLocale } from "../locale/locale.interface";
 import type { TextKey } from "../locale/texts.constants";
 import { WINDOW_ICONS_SETTINGS } from "../settings/settings.constants";
@@ -20,6 +21,8 @@ const WELCOME_CHOICES: [value: CooldownManagerAccess, label: TextKey, meaning: T
     ["readOnly", "OPT_MANAGER_ACCESS_READ", "CHOICE_READ_TEXT"],
     ["off", "OPT_MANAGER_ACCESS_OFF", "CHOICE_OFF_TEXT"],
 ];
+/** The game's own yellow "!" of its dialogs, as on the Welcome tab. */
+const ALERT_ICON = "Interface\\DialogFrame\\UI-Dialog-Icon-AlertNew";
 const ICON_CHOICES: [value: CooldownManagerIcons, label: TextKey][] = [
     ["hide", "OPT_MANAGER_ICONS_HIDE"],
     ["show", "OPT_MANAGER_ICONS_SHOW"],
@@ -42,12 +45,9 @@ export class CooldownManagerSection {
         if (!this.viewer.isRunByOtherAddon()) tab.addText(() => this.locale.getText("CHOICE_WINDOWS_TEXT"), "GameFontNormalSmall");
         this.addChoice(tab, "cooldownManagerAccess", this.locale.getText("OPT_MANAGER_ACCESS"), "TIP_MANAGER_ACCESS", ACCESS_CHOICES);
         // Right under the choice it is for, always there: a change of it works from the next load of the interface
-        this.widgets.addButton(
-            tab,
-            this.locale.getText("OPT_CHOICE_RELOAD"),
-            this.locale.getText("BTN_RELOAD"),
-            () => C_UI.Reload(),
-            this.locale.getText("TIP_MANAGER_RELOAD"),
+        this.addReloadButton(tab);
+        tab.addText(() => this.readSwitchWarning(), "GameFontNormalSmall").showWhen(
+            () => findWaitingSwitch(this.settings, this.viewer) !== undefined,
         );
         const isRunByOther = this.viewer.isRunByOtherAddon();
         for (const window of COOLDOWN_WINDOWS) {
@@ -94,13 +94,28 @@ export class CooldownManagerSection {
         }
         if (this.viewer.isRunByOtherAddon()) tab.addText(() => this.locale.getText("CHOICE_ELLESMERE_TEXT"), "GameFontNormalSmall");
         else tab.addText(() => this.locale.getText("WELCOME_WINDOWS_TEXT"));
+        this.addReloadButton(tab);
+    }
+
+    /** The manager is turned on or off just before the reload: while the interface runs, that would taint the game's code. */
+    private addReloadButton(tab: OptionsTab): void {
         this.widgets.addButton(
             tab,
             this.locale.getText("OPT_CHOICE_RELOAD"),
             this.locale.getText("BTN_RELOAD"),
-            () => C_UI.Reload(),
+            () => {
+                applyWaitingSwitch(this.settings, this.viewer);
+                C_UI.Reload();
+            },
             this.locale.getText("TIP_MANAGER_RELOAD"),
         );
+    }
+
+    /** Only while the manager waits to be turned on or off, after the game's "!". */
+    private readSwitchWarning(): string {
+        const waiting = findWaitingSwitch(this.settings, this.viewer);
+        if (waiting === undefined) return "";
+        return `|T${ALERT_ICON}:16|t ${this.locale.getText(waiting === "on" ? "WARN_MANAGER_TURNS_ON" : "WARN_MANAGER_TURNS_OFF")}`;
     }
 
     /** Picked on the Welcome tab: it counts at once, and works from the next load of the interface. */

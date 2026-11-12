@@ -1,7 +1,7 @@
 // In a fight the game hides the player's buffs; Blizzard's Cooldown Manager still knows them. How far the addon may use it is
 // the player's choice: add what it needs, only read what is there, or leave it alone. On the first login the choice is made
 // to change nothing for a player who already uses the manager.
-import { OnEvent, OnGameEvent, type OnLogin } from "@wowkit/core";
+import { OnEvent, OnGameEvent, type OnLogin, type OnLogout } from "@wowkit/core";
 import {
     COOLDOWN_WINDOWS,
     type ButtonRegistryService,
@@ -13,6 +13,7 @@ import {
     type SpellsService,
 } from "@wowkit/wow";
 import type { AddedSpellsService } from "../glows/added-spells.service";
+import { applyWaitingSwitch } from "./cooldown-switch";
 import type { GlowCuesService } from "../glows/glow-cues.service";
 import type { ClassBuffsService } from "../reminders/class-buffs.service";
 import type { SealReminderService } from "../reminders/seal-reminder.service";
@@ -25,7 +26,7 @@ const TRACK_DELAY = 5;
 /** How often the windows kept out of sight are looked after. */
 const HIDE_CHECK_SECONDS = 1;
 
-export class CooldownManagerService implements OnLogin {
+export class CooldownManagerService implements OnLogin, OnLogout {
     private isTrackingDue = false;
 
     constructor(
@@ -53,6 +54,11 @@ export class CooldownManagerService implements OnLogin {
         this.applyAccess();
         this.ensureIconsHidden();
         this.waitToTrackBuffs();
+    }
+
+    /** Any reload, a logout or quitting the game: the moment to turn the manager on or off (see cooldown-switch). */
+    onLogout(): void {
+        applyWaitingSwitch(this.settings, this.viewer);
     }
 
     /** The windows that glow. The icons must be on the screen: a glow on a hidden one would float over nothing. */
@@ -93,14 +99,7 @@ export class CooldownManagerService implements OnLogin {
         const isOff = this.settings.get("cooldownManagerAccess") === "off";
         const isRunByOther = this.viewer.isRunByOtherAddon();
         this.viewer.useIcons(!isOff);
-        if (isOff && this.settings.get("isCooldownManagerOurs")) {
-            this.viewer.disable();
-            this.settings.change("isCooldownManagerOurs", false);
-        }
-        if (!isOff && !isRunByOther && !this.viewer.isTurnedOn()) {
-            this.viewer.enable();
-            this.settings.change("isCooldownManagerOurs", true);
-        }
+        // Turning the manager on or off waits for the next reload (see cooldown-switch)
         const hidden = this.listHiddenWindows();
         this.viewer.hideIcons(hidden);
         if (!isRunByOther) this.viewer.showIcons(COOLDOWN_WINDOWS.filter((window) => !hidden.includes(window)));
