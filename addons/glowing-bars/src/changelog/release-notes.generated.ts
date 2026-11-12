@@ -1,7 +1,7 @@
 // Written by scripts/generate-release-notes.ts from release-notes/*.md, at each build: not to be edited by hand.
 
 /** The version of the addon this build is. */
-export const ADDON_VERSION = "3.1.0";
+export const ADDON_VERSION = "3.2.0";
 
 export interface ReleaseNote {
     version: string;
@@ -15,6 +15,7 @@ export interface ReleaseNote {
 
 /** Every release, the newest first. */
 export const RELEASE_NOTES: ReleaseNote[] = [
+    { version: "3.2.0", date: "2026-11-12", hasNew: false, text: "|cffffd100Fixed|r\n\n• The old spell rank message no longer comes for a spell on a hidden bar, or on a bar that doesn't glow.\n\n|cffffd100Changed|r\n\n• The old spell rank message now names the spell.\n• What's New no longer opens by itself after an update. To see it after new features, tick \"Show what's new after new features\" on the What's New tab, or under All Characters on the General tab.\n• To keep the Welcome tab from opening by itself on new characters, untick \"Show the Welcome tab on new characters\" at the bottom of the tab, or under All Characters on the General tab.\n• The Defaults button asks before it resets a tab." },
     { version: "3.1.0", date: "2026-11-11", hasNew: false, text: "|cffffd100Fixed|r\n\n• A macro with #showtooltip or #show glows again only for the spell it shows, like before 3.0. A macro without them glows for every spell it casts. A spell for another stance or form doesn't count.\n\n|cffffd100Changed|r\n\n• A setting under This Character, \"Glow for every spell in a macro\", makes #showtooltip and #show macros glow for every spell they cast.\n• Macro glows follow a stance or form change faster." },
     { version: "3.0.3", date: "2026-11-11", hasNew: false, text: "|cffffd100Fixed|r\n\n• Buffs you got from a player outside your group, like Mark of the Wild from a passing druid, no longer glow as missing in a fight.\n• Tracked Bars of the Cooldown Manager now has its own Show/Hide on the Cooldown Manager tab, apart from Tracked Buffs. It can also glow and fade, from the Bars tab." },
     { version: "3.0.1", date: "2026-11-11", hasNew: false, text: "|cffffd100Fixed|r\n\n• Faerie Fire can now be added as a Ready cooldown. It glows in Bear Form, where it has a 6 second cooldown, and not in other forms.\n• A cooldown that only the spell's tooltip shows is now recognized, in every client language." },
