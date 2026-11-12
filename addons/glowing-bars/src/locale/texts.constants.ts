@@ -9,8 +9,7 @@ export const TEXTS = {
     TIP_SHOW_WHATS_NEW:
         "After an update with new features, the What's new window opens once, on the first character you log in with. This choice is for your whole account.",
     OPT_SHOW_WELCOME: "Show the Welcome tab on new characters",
-    TIP_SHOW_WELCOME:
-        "The settings window opens by itself on the Welcome tab on your first character, to set up Glowing Bars. Tick this to have it open on your other new characters too. You can always find it in /gb settings. This choice is for your whole account.",
+    TIP_SHOW_WELCOME: "Opens the Welcome tab on each new character. Your first character always gets it.",
     HDR_ALL_CHARACTERS: "All Characters",
     INFO_COPIED: "The link is in your chat box. Press Ctrl+A, then Ctrl+C to copy it.",
 
@@ -59,7 +58,7 @@ export const TEXTS = {
     TIP_MANAGER_RELOAD: "Blizzard applies the Cooldown Manager's changes the next time your interface loads.",
     OPT_MANAGER_ACCESS: "Blizzard Cooldown Manager",
     TIP_MANAGER_ACCESS:
-        "Glowing Bars can only read what's turned on in Blizzard's Cooldown Manager. Anything else falls back to older checks, which can be less exact in a fight. For the best results, choose \"Add what Glowing Bars needs\". Changes apply after your next login or /reload.",
+        'How much Glowing Bars may use Blizzard\'s Cooldown Manager to see your buffs in a fight. "Add what Glowing Bars needs" works best. Changes apply after a /reload.',
     OPT_MANAGER_ACCESS_FULL: "Add what Glowing Bars needs",
     OPT_MANAGER_ACCESS_READ: "Only use what's already there",
     OPT_MANAGER_ACCESS_OFF: "Don't use it",
@@ -83,8 +82,7 @@ export const TEXTS = {
     TIP_GLOW_ON_MACROS:
         "Macro buttons glow for the spells and items they use. Turn this off to have only the buttons of spells and items glow.",
     OPT_GLOW_EVERY_MACRO_SPELL: "Glow for every spell in a macro",
-    TIP_GLOW_EVERY_MACRO_SPELL:
-        "A macro with #showtooltip or #show glows only for the spell it shows. Turn this on to have it glow for every spell it casts. Spells for another stance or form still don't glow.",
+    TIP_GLOW_EVERY_MACRO_SPELL: "Macros with #showtooltip or #show glow for every spell they cast, not only the one they show.",
     OPT_SHOW_GREETING: "Show the login message",
     TIP_SHOW_GREETING: "At each login, a line in the chat says that Glowing Bars is loaded, and how to open its table (/gb).",
     OPT_STAY_QUIET_IN_TOWNS: "Stay quiet in towns and inns",
@@ -112,13 +110,12 @@ export const TEXTS = {
     TIP_PARTY_BUFFS:
         "Out of combat, in a party, lists members in range who are missing one of your buffs, and the buff's button glows. Off: only your own buffs are watched.",
     OPT_RAID_BUFFS: "Raid members missing your buffs",
-    TIP_RAID_BUFFS:
-        "Out of combat, in a raid, lists members in range who are missing one of your buffs, and the buff's button glows. Your blessings only on the classes you gave one there. Off: only your own buffs are watched.",
+    TIP_RAID_BUFFS: "Out of combat, raid members in range who miss your buff make its button glow.",
     OPT_GROUP_FROM: "Group version from",
     TIP_PARTY_GROUP_MIN:
-        "In a party, how many missing a buff (you counted, but never you alone) make the group version glow instead: Prayer of Fortitude, Gift of the Wild, Arcane Brilliance, or a Greater Blessing (counting one class). It needs its reagent in your bags.",
+        "In a party, how many missing a buff make its group version glow instead, like Prayer of Fortitude. It needs its reagent.",
     TIP_RAID_GROUP_MIN:
-        "In a raid, how many missing a buff (you counted, but never you alone) make the group version glow instead: Prayer of Fortitude, Gift of the Wild, Arcane Brilliance, or a Greater Blessing (counting one class). It needs its reagent in your bags.",
+        "In a raid, how many missing a buff make its group version glow instead, like Prayer of Fortitude. It needs its reagent.",
     OPT_MEMBER_MISSING: "%d member missing",
     OPT_MEMBERS_MISSING: "%d members missing",
 
@@ -141,19 +138,24 @@ export const TEXTS = {
     BTN_ADD_FOLDER: "Add folder",
     TEXT_CUSTOM_TIP: "Tip: type /reload after adding a folder.",
     TIP_CUSTOM_SOUNDS:
-        "Sounds of your own for the Sound list. Make a folder next to this addon's folder, in AddOns, and enter its name here. Put your files in it, named custom1, custom2 and so on, as .ogg or .mp3, and enter how many there are. Restart the game if /reload is not enough.",
+        "Put custom1, custom2 and so on (.ogg or .mp3) in a folder next to this addon, then enter its name and how many there are.",
     OPT_TABLE: "Colors, sounds and on/off per spell",
     TIP_TABLE: "Set the color, glow, message and sound of each reminder type and each spell, and turn them on or off. Also /gb.",
     BTN_OPEN: "Open",
     OPT_ROUND_ANIMATION: "Circling on round buttons (alpha)",
-    TIP_ROUND_ANIMATION:
-        "A round button (the gamepad bars, or another addon's round buttons) cannot have a glow running around it. Where the table's Animation column says Circling (ants or clean), a round button breathes instead, or stands still.",
+    TIP_ROUND_ANIMATION: "Round buttons can't have a circling glow. Where a row's Animation is Circling, they do this instead.",
     ANIMATION_CIRCLING: "Circling (ants)",
     ANIMATION_CLEAN: "Circling (clean)",
+    ANIMATION_CIRCLING_CLASSIC: "Circling (classic)",
+    ANIMATION_CIRCLING_ORIGINAL: "Circling (original)",
     ANIMATION_BREATHING: "Breathing (ants)",
     ANIMATION_BREATHING_CLEAN: "Breathing (clean)",
+    ANIMATION_BREATHING_CLASSIC: "Breathing (classic)",
+    ANIMATION_BREATHING_ORIGINAL: "Breathing (original)",
     ANIMATION_NONE: "None (ants)",
     ANIMATION_NONE_CLEAN: "None (clean)",
+    ANIMATION_NONE_CLASSIC: "None (classic)",
+    ANIMATION_NONE_ORIGINAL: "None (original)",
     ANIMATION_ROUND_BREATHING: "Breathing",
     ANIMATION_ROUND_NONE: "None",
     BTN_RESET: "Reset",
@@ -166,12 +168,11 @@ export const TEXTS = {
     COL_SPELL_ITEM_ID: "Spell / Item ID",
     COL_ENABLED: "Enabled",
     TIP_TYPE: "The type of the reminder. Its row under Defaults sets the look of all its rows, unless you change a row.",
-    TIP_ID: "The ID the addon looks for. Change it if the game uses a different ID, e.g. after a patch the addon hasn't caught up with yet. The ID of an item or an old rank can't be changed.",
+    TIP_ID: "The ID the addon looks for. Change it if the game uses another one.",
     TIP_COLOR: "The color of the glow and the message. Click to choose another.",
     TIP_GLOW_PERCENT: "How strong the glow is, 1 to 100. Type a number.",
     TIP_MESSAGE: "Shows a short message at the top of the screen.",
-    TIP_WHEN:
-        "When the reminder may show: always, only in combat, only out of combat, or only while a living enemy is targeted. Low reagent and Low stock also have Alert in town: the button glows anywhere, and the message and the sound come only in a town or an inn.",
+    TIP_WHEN: "When the reminder may show. With Alert in town, the glow shows anywhere, but the message and sound only in towns.",
     TIP_BELOW:
         "Reminds you when you have fewer than this. The number on a row under Defaults is used for every row of that type, unless you set a different number on the row.",
     TIP_ENABLED:
@@ -232,8 +233,7 @@ export const TEXTS = {
         "Tip: Low stock needs an Item ID, every other type a Spell ID (for an item, its Use spell ID). IDs show in tooltips, if turned on in Settings / General.",
     HDR_TABLE_ADD: "Add Spell/Item by ID",
     OPT_TOOLTIP_IDS: "Show spell and item IDs in tooltips",
-    TIP_TOOLTIP_IDS:
-        "Shows the Spell ID on spell tooltips and the Item ID on item tooltips. If an item has a use (an elixir, a potion, food, a drink), it also shows the ID of the spell it casts. Handy for adding a spell or item in the table.",
+    TIP_TOOLTIP_IDS: "Shows spell and item IDs in tooltips, for adding them in the table.",
     TOOLTIP_SPELL_ID: "Spell ID: %d",
     TOOLTIP_USE_SPELL_ID: "Use spell ID: %d",
     TOOLTIP_ITEM_ID: "Item ID: %d",
@@ -253,11 +253,9 @@ export const TEXTS = {
     COL_REPEAT: "Repeat",
     REPEAT_OFF: "Off",
     REPEAT_SECONDS: "%d s",
-    TIP_REPEAT:
-        "Every so many seconds, the glow, the message and the sound come again, for the glow time (with Until done the glow stays, and the sound and the message come again). Off shows them once, as the reminder starts.",
+    TIP_REPEAT: "Shows the glow, message and sound again every so many seconds.",
     COL_ANIMATION: "Animation",
-    TIP_ANIMATION:
-        "How the glow moves. Circling: it runs around the button. Breathing: it stands still and slowly fades out and in. None: it stands still, fading in and out only as it comes and goes. Ants is Blizzard's glow; clean is a clean line when circling, and a soft frame when standing still. Round buttons cannot circle: there both Circling choices do what Settings / General says (Breathing by default).",
+    TIP_ANIMATION: "How the glow moves and looks. Original keeps the game's own colors, whatever color you pick.",
     COL_GLOW_TIME: "Glow time",
     GLOW_UNTIL_DONE: "Until done",
     TIP_GLOW_TIME:

@@ -9,9 +9,8 @@
 
 import { isSameButtons } from "./utils/glow-buttons.utils";
 import type { Overlay } from "./utils/glow-overlay.interface";
-import { isBreathing, isStill, type GlowAnimation } from "./utils/glow-animation.utils";
+import { isBreathing, isCircling, isClassic, isStill, type GlowAnimation } from "./utils/glow-animation.utils";
 import {
-    GLOW_FALLBACK,
     GLOW_SCALE,
     GLOW_ALPHA,
     RING_ATLAS,
@@ -25,6 +24,8 @@ import {
 import { showLoopPicture } from "./utils/glow-picture.utils";
 import { createLineGlow } from "./utils/glow-line.utils";
 import { BORDER_SCALE, createSoftFrame } from "./utils/glow-border.utils";
+import { CLASSIC_ANTS_SCALE, CLASSIC_SCALE, createClassicGlow, createFallbackGlow } from "./utils/glow-classic.utils";
+import { applyGlowColor } from "./utils/glow-color.utils";
 import { createStillFades } from "./utils/glow-fade.utils";
 import type { ActionBarsService } from "./action-bars.service";
 import { attempt, tryCall } from "./utils/protected-call.utils";
@@ -45,7 +46,7 @@ export interface ButtonGlow {
     setAlpha: (this: void, alpha: HiddenAlpha | number | undefined) => void;
 }
 
-export { isBreathing, isStill, type GlowAnimation };
+export { isBreathing, isCircling, isStill, type GlowAnimation };
 
 export class GlowService {
     /** Overlays per button and reminder type. Kept here, never written onto Blizzard's buttons. */
@@ -182,7 +183,7 @@ export class GlowService {
         return false;
     }
 
-    private getOverlay(button: ActionButton, key: string, [r, g, b]: Rgb, animation: GlowAnimation): Overlay {
+    private getOverlay(button: ActionButton, key: string, color: Rgb, animation: GlowAnimation): Overlay {
         let byKey = this.overlays.get(button);
         if (!byKey) {
             byKey = new LuaMap();
@@ -194,17 +195,7 @@ export class GlowService {
             byKey.set(key, entry);
         }
         this.applySize(entry, button);
-        if (entry.alert) {
-            // Desaturated, so the reminder color tints the glow instead of mixing with gold
-            for (const texture of [entry.alert.ProcStartFlipbook, entry.alert.ProcLoopFlipbook]) {
-                texture?.SetDesaturated(true);
-                texture?.SetVertexColor(r, g, b);
-            }
-            entry.frame.SetAlpha(GLOW_ALPHA);
-        } else {
-            for (const part of entry.parts ?? [entry.texture!]) part.SetVertexColor(r, g, b, GLOW_ALPHA);
-            entry.halo?.SetVertexColor(r, g, b, GLOW_ALPHA);
-        }
+        applyGlowColor(entry, color);
         return entry;
     }
 
@@ -214,7 +205,8 @@ export class GlowService {
         // A glow beside the button is sized in its own parent's scale
         const scale = (entry.isRing === true ? RING_SCALE : (entry.scale ?? GLOW_SCALE)) * (entry.isBeside === true ? buttonScale : 1);
         entry.frame.SetSize(width * scale, height * scale);
-        entry.halo?.SetSize(width * scale * HALO_SCALE, height * scale * HALO_SCALE);
+        const haloScale = entry.haloScale ?? HALO_SCALE;
+        entry.halo?.SetSize(width * scale * haloScale, height * scale * haloScale);
     }
 
     /** The button's size and scale against the screen: the last readable ones (36 and 1 before any, or not laid out yet). */
@@ -256,9 +248,9 @@ export class GlowService {
      */
     private startAlert(alert: SpellAlertFrame, fades: Pick<Overlay, "fadeIn" | "breathe" | "animation">): void {
         alert.ProcLoop!.Stop();
-        const isCircling = fades.animation === "circling";
-        alert.ProcStartFlipbook?.SetShown(isCircling);
-        if (isCircling) {
+        const isMarching = fades.animation === "circling";
+        alert.ProcStartFlipbook?.SetShown(isMarching);
+        if (isMarching) {
             // The whole flipbook again, hidden until the loop shows it (as the template has it)
             alert.ProcLoopFlipbook?.SetAtlas(LOOP_ATLAS);
             alert.ProcLoopFlipbook?.SetAlpha(0);
@@ -278,14 +270,14 @@ export class GlowService {
     }
 
     /** The drawn border, still: it breathes, or fades in as it lights and out as it goes. */
-    private setUpBorder(frame: Frame, inner: Frame, parts: Texture[], animation: GlowAnimation): Overlay {
+    private setUpBorder(frame: Frame, inner: Frame, parts: Texture[], animation: GlowAnimation, scale = BORDER_SCALE): Overlay {
         const fades = createStillFades(frame, inner);
         frame.SetScript("OnShow", () => this.startStill({ ...fades, animation }));
         frame.SetScript("OnHide", () => {
             for (const fade of [fades.fadeIn, fades.fadeOut, fades.breathe]) fade?.Stop();
             if (fades.breathe !== undefined) this.pulses.delete(fades.breathe);
         });
-        return { frame, texture: parts[0], parts, animation, scale: BORDER_SCALE, ...fades };
+        return { frame, texture: parts[0], parts, animation, scale, ...fades };
     }
 
     private createOverlay(button: ActionButton, animation: GlowAnimation): Overlay {
@@ -302,6 +294,7 @@ export class GlowService {
         const level = button.GetFrameLevel() + 6;
         if (this.isRoundButton(button)) return this.createRing(parent, button, level, animation);
         if (animation === "clean") return { ...createLineGlow(parent, button, level), animation };
+        if (isClassic(animation)) return this.createClassic(parent, button, level, animation);
         // Clean, standing still (breathing, or none): Blizzard's soft square frame around the button
         if (animation === "breathingClean" || animation === "noneClean") {
             const border = createSoftFrame(parent, button, level);
@@ -327,16 +320,17 @@ export class GlowService {
             alert.Hide();
             return { frame: alert, alert, ...fades };
         }
-        const frame = CreateFrame("Frame", undefined, parent);
-        frame.SetFrameStrata("MEDIUM");
-        frame.SetFrameLevel(level);
-        frame.SetPoint("CENTER", button, "CENTER", 0, 0);
-        const texture = frame.CreateTexture(undefined, "OVERLAY");
-        texture.SetAllPoints(frame);
-        texture.SetTexture(GLOW_FALLBACK);
-        texture.SetBlendMode("ADD");
-        frame.Hide();
-        return { frame, texture, animation };
+        return { ...createFallbackGlow(parent, button, level), animation };
+    }
+
+    /** Blizzard's older gold proc border: its ants march when it circles; standing still, it breathes or fades like the others. */
+    private createClassic(parent: Frame, button: ActionButton, level: number, animation: GlowAnimation): Overlay {
+        const isMarching = isCircling(animation);
+        const glow = createClassicGlow(parent, button, level, isMarching);
+        // The ants are smaller than the frame: sized as the halo is, against it (see applySize)
+        const extras = { halo: glow.ants, haloScale: CLASSIC_ANTS_SCALE };
+        if (isMarching) return { frame: glow.frame, parts: glow.parts, animation, scale: CLASSIC_SCALE, ...extras };
+        return { ...this.setUpBorder(glow.frame, glow.inner, glow.parts, animation, CLASSIC_SCALE), ...extras };
     }
 
     /** A round button: one another addon registered as round, or a round one of the gamepad bars (Forever). */
@@ -369,9 +363,8 @@ export class GlowService {
             fade.SetDuration(RING_PULSE_SECONDS);
             pulse.SetLooping("BOUNCE");
             frame.SetScript("OnShow", () => {
-                // Neither way of circling can run around a round button: there it does what the round buttons' animation says
-                const isCircling = animation === "circling" || animation === "clean";
-                if (!isBreathing(isCircling ? this.roundAnimation : animation)) return;
+                // No way of circling can run around a round button: there it does what the round buttons' animation says
+                if (!isBreathing(isCircling(animation) ? this.roundAnimation : animation)) return;
                 this.pulses.add(pulse);
                 this.syncPulses();
             });

@@ -27,6 +27,12 @@ export interface FakeFrame {
     scripts: { [script: string]: Script | undefined };
     events: { [event: string]: true | undefined };
     fontStrings: FakeFrame[];
+    /** The textures it made, each with the file it was given (SetTexture). */
+    textures: FakeFrame[];
+    file?: string;
+    /** A texture's look: gray or not, and the color it is tinted with. */
+    isDesaturated?: boolean;
+    vertexColor?: number[];
     // The parts of the spell-alert glow template
     ProcStartAnim?: FakeFrame;
     ProcLoop?: FakeFrame;
@@ -102,6 +108,7 @@ function createFakeFrame(init: FrameInit): FakeFrame {
         scripts: {},
         events: {},
         fontStrings: [],
+        textures: [],
         Show() {
             if (this.isShown) return;
             this.isShown = true;
@@ -205,7 +212,23 @@ function createFakeFrame(init: FrameInit): FakeFrame {
             return fontString;
         },
         CreateTexture() {
-            return createFakeFrame({ frameType: "Texture", parent: this });
+            const texture = createFakeFrame({ frameType: "Texture", parent: this });
+            const parts = texture as FakeFrame & {
+                SetTexture(file: string): void;
+                SetDesaturated(isDesaturated: boolean): void;
+                SetVertexColor(...color: number[]): void;
+            };
+            parts.SetTexture = (file) => {
+                texture.file = file;
+            };
+            parts.SetDesaturated = (isDesaturated) => {
+                texture.isDesaturated = isDesaturated;
+            };
+            parts.SetVertexColor = (...color) => {
+                texture.vertexColor = color;
+            };
+            this.textures.push(texture);
+            return texture;
         },
     };
     return setmetatable(frame, unmodelledMethods);

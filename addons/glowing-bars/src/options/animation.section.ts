@@ -11,13 +11,19 @@ import type { ControlsService, OptionsTab } from "@wowkit/ui";
 export const ANIMATION_TEXTS: { [style in GlowAnimation]: TextKey } = {
     circling: "ANIMATION_CIRCLING",
     clean: "ANIMATION_CLEAN",
+    circlingClassic: "ANIMATION_CIRCLING_CLASSIC",
+    circlingOriginal: "ANIMATION_CIRCLING_ORIGINAL",
     breathing: "ANIMATION_BREATHING",
     breathingClean: "ANIMATION_BREATHING_CLEAN",
+    breathingClassic: "ANIMATION_BREATHING_CLASSIC",
+    breathingOriginal: "ANIMATION_BREATHING_ORIGINAL",
     none: "ANIMATION_NONE",
     noneClean: "ANIMATION_NONE_CLEAN",
+    noneClassic: "ANIMATION_NONE_CLASSIC",
+    noneOriginal: "ANIMATION_NONE_ORIGINAL",
 };
 
-/** The words of the round buttons' choices: their ring is neither ants nor clean. */
+/** The words of the round buttons' choices: their ring is none of the looks. */
 const ROUND_TEXTS: { [style in GlowAnimation]?: TextKey } = {
     breathing: "ANIMATION_ROUND_BREATHING",
     none: "ANIMATION_ROUND_NONE",

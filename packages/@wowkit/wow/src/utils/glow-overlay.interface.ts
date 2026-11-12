@@ -20,6 +20,8 @@ export interface Overlay {
     /** The ring of a round button; its halo is drawn around it. */
     isRing?: boolean;
     halo?: Texture;
+    /** The halo's size against the glow's, where it is not the round button's (the ants of the classic glow). */
+    haloScale?: number;
     /** How it moves: the animation of its glow (on a round button, circling is the round buttons' animation). */
     animation: GlowAnimation;
 }

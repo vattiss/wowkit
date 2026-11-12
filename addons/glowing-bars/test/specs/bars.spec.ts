@@ -145,7 +145,7 @@ describe("a priest who chose how the glow moves", () => {
         toggleTable();
         const row = findLabel(world, FORTITUDE.name)!.parent;
         const button = world.frames.find(
-            (frame) => frame.parent === row && frame.frameType === "Button" && frame.text === "Circling (ants)" && frame.width === 106,
+            (frame) => frame.parent === row && frame.frameType === "Button" && frame.text === "Circling (ants)" && frame.width === 124,
         )!;
         world.pickFromMenu(button, "Breathing (ants)");
         expect(button.text).toBe("Breathing (ants)");
