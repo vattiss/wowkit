@@ -70,6 +70,8 @@ export const PROC_CUES: { [classToken: string]: number[] | undefined } = {
 export const SPELL_PROC_CUES: { [classToken: string]: { id: number; sign: "free" | "instant"; auras: number[] }[] | undefined } = {
     MAGE: [{ id: Mage.ArcaneMissiles, sign: "free", auras: [Mage.MissileBarrage, Mage.Clearcasting] }],
     WARLOCK: [{ id: Warlock.ShadowBolt, sign: "instant", auras: [Warlock.ShadowTrance] }],
+    // Instant with 5 stacks of Maelstrom Weapon only. No buff to ask: its icon shows at any number of stacks
+    SHAMAN: [{ id: Shaman.LightningBolt, sign: "instant", auras: [] }],
 };
 
 /**

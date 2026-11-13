@@ -100,6 +100,8 @@ export class GlowCuesService {
 
     /** What the icons of a proc's buffs say: up when one is, gone when all are out, undefined when one has no say. */
     private readProcIcons(auras: number[]): boolean | undefined {
+        // No buff to ask: the spell tells
+        if (auras.length === 0) return undefined;
         let isAnyUnknown = false;
         for (const id of auras) {
             const name = this.spells.getSpellName(id);
