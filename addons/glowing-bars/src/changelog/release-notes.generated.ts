@@ -1,7 +1,7 @@
 // Written by scripts/generate-release-notes.ts from release-notes/*.md, at each build: not to be edited by hand.
 
 /** The version of the addon this build is. */
-export const ADDON_VERSION = "3.3.0";
+export const ADDON_VERSION = "3.3.1";
 
 export interface ReleaseNote {
     version: string;
@@ -15,6 +15,7 @@ export interface ReleaseNote {
 
 /** Every release, the newest first. */
 export const RELEASE_NOTES: ReleaseNote[] = [
+    { version: "3.3.1", date: "2026-11-13", hasNew: false, text: "|cffffd100Fixed|r\n\n• Ready cooldowns set to Always no longer stop glowing when a fight starts.\n• A paladin's own blessing and aura now glow even when another paladin's different blessing or aura is on you. The same blessing or aura from another paladin still counts, as they don't stack. In a party or raid, a member who already has another paladin's same blessing is no longer named.\n\n|cffffd100Changed|r\n\n• Ready cooldowns now glow when a fight starts, for everyone. To switch it off, untick \"Glow ready cooldowns when a fight starts\" on the Reminders tab." },
     { version: "3.3.0", date: "2026-11-12", hasNew: true, text: "|cffffd100New|r\n\n• Classic glow looks: every animation now also comes as classic (Blizzard's older gold proc border, in your reminder's color) and original (in the game's own gold). Pick them in the table's Animation column.\n• A chat line when a buff on you is an older rank than you know, naming the highest rank you can cast. Switch it off on the Reminders tab, separately for your own buffs and for buffs from others.\n\n|cffffd100Fixed|r\n\n• A buff cast at an older rank, such as Mark of the Wild, no longer glows as missing in combat.\n• Turning the Cooldown Manager on or off no longer causes an error in combat. It now happens at your next reload or login, and the Cooldown Manager tab says when it's waiting.\n• In gamepad mode, the settings' dropdowns no longer cause \"blocked an action\" messages.\n\n|cffffd100Changed|r\n\n• Shorter tooltips." },
     { version: "3.2.1", date: "2026-11-12", hasNew: false, text: "|cffffd100Changed|r\n\n• The Welcome tab opens by itself only on the first character of a new install. To have it open on your other new characters too, tick \"Show the Welcome tab on new characters\" at the bottom of the tab, or under All Characters on the General tab." },
     { version: "3.2.0", date: "2026-11-12", hasNew: false, text: "|cffffd100Fixed|r\n\n• The old spell rank message no longer comes for a spell on a hidden bar, or on a bar that doesn't glow.\n\n|cffffd100Changed|r\n\n• The old spell rank message now names the spell.\n• What's New no longer opens by itself after an update. To see it after new features, tick \"Show what's new after new features\" on the What's New tab, or under All Characters on the General tab.\n• To keep the Welcome tab from opening by itself on new characters, untick \"Show the Welcome tab on new characters\" at the bottom of the tab, or under All Characters on the General tab.\n• The Defaults button asks before it resets a tab." },
