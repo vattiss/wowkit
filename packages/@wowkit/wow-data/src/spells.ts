@@ -306,6 +306,8 @@ export const Shaman = {
     FrostShock: 8056,
     Stormstrike: 17364,
     LavaBurst: 408490,
+    // Not a totem on Forever: it erupts at the fire totem that stands
+    FireNova: 408341,
     Purge: 370,
     // Heals
     HealingWave: 331,
@@ -315,7 +317,6 @@ export const Shaman = {
     // Totems
     SearingTotem: 3599,
     MagmaTotem: 8190,
-    FireNovaTotem: 408341,
     EarthbindTotem: 2484,
     StoneclawTotem: 5730,
     StrengthOfEarthTotem: 8075,
@@ -569,7 +570,7 @@ export const SPELL_NAME_HINT: { [spellId: number]: string | string[] | undefined
     [Shaman.LavaBurst]: "Lava Burst",
     [Shaman.Riptide]: "Riptide",
     [Shaman.TotemicProjection]: "Totemic Projection",
-    [Shaman.FireNovaTotem]: ["Fire Nova", "Fire Nova Totem"],
+    [Shaman.FireNova]: ["Fire Nova", "Fire Nova Totem"],
     [Mage.FrostfireBolt]: "Frostfire Bolt",
     [Mage.IceLance]: "Ice Lance",
     [Mage.ArcaneBlast]: "Arcane Blast",
