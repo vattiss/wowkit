@@ -1,17 +1,17 @@
 // Soul Link, the warlock's talent (issue #63): a buff with no end, cast again for each demon summoned. It glows when it is
-// missing and can be cast, so not without a demon.
+// missing with a living demon out: without one it cannot be cast, though the client may call it usable.
 import { createWorld, describe, expect, it, learnSpell, playAs, type SpellDefinition, type World } from "@wowkit/test-kit";
 
 const WARLOCK = { name: "Warlock", token: "WARLOCK", id: 9 };
 const SOUL_LINK: SpellDefinition = { id: 19028, name: "Soul Link", rank: 1, icon: 136160, isHelpful: true };
 
-/** A warlock with Soul Link on button 1; `hasDemon`: it can be cast. */
+/** A warlock with Soul Link on button 1; `hasDemon`: a demon is out. */
 function createWarlock(hasDemon: boolean, isLinked: boolean): World {
     const world = createWorld((state) => {
         playAs(state, WARLOCK);
         learnSpell(state, SOUL_LINK);
         state.bars[1] = SOUL_LINK.id;
-        if (!hasDemon) state.unusableSpells[SOUL_LINK.id] = true;
+        if (hasDemon) state.pet = {};
         if (isLinked) state.auras.push({ name: SOUL_LINK.name, spellId: SOUL_LINK.id, expirationTime: 0, sourceUnit: "player" });
     });
     world.advance(1);
@@ -23,8 +23,23 @@ describe("Soul Link, a warlock's buff cast again for each demon", () => {
         expect(createWarlock(true, false).glowsOn(1)).toBe(1);
     });
 
-    it("does not glow without a demon: it cannot be cast", () => {
+    it("does not glow without a demon: it cannot be cast, though the client calls it usable", () => {
         expect(createWarlock(false, false).glowsOn(1)).toBe(0);
+    });
+
+    it("does not glow while the demon is dead", () => {
+        const world = createWarlock(true, false);
+        world.state.pet = { isDead: true };
+        world.advance(1);
+        expect(world.glowsOn(1)).toBe(0);
+    });
+
+    it("goes out at once when the demon is dismissed", () => {
+        const world = createWarlock(true, false);
+        world.state.pet = undefined;
+        world.fire("UNIT_PET", "player");
+        world.advance(0.1);
+        expect(world.glowsOn(1)).toBe(0);
     });
 
     it("does not glow while it is on", () => {
@@ -33,9 +48,9 @@ describe("Soul Link, a warlock's buff cast again for each demon", () => {
 
     it("glows once the demon is summoned again", () => {
         const world = createWarlock(false, false);
-        delete world.state.unusableSpells[SOUL_LINK.id];
-        world.fire("SPELL_UPDATE_USABLE");
-        world.advance(1);
+        world.state.pet = {};
+        world.fire("UNIT_PET", "player");
+        world.advance(0.1);
         expect(world.glowsOn(1)).toBe(1);
     });
 });

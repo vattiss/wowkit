@@ -31,6 +31,8 @@ export interface ClassBuff {
     race?: string;
     /** Only asked for while swimming. */
     isSwimmingOnly?: boolean;
+    /** Only asked for with a living pet: it cannot be cast without one (Soul Link, on the demon). */
+    isPetOnly?: boolean;
     /** Off by default: a buff only one role wants. */
     isOnByDefault: boolean;
     /** Also reminded for party members. */

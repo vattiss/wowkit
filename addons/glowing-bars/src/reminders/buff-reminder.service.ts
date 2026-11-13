@@ -49,13 +49,19 @@ export class BuffReminderService {
     checkBuff(classBuff: ClassBuff): BuffCheck {
         const id = this.spells.resolve(classBuff.id);
         if (id === undefined || !this.spells.isLearned(id)) return NOT_WANTED;
-        if (classBuff.isSwimmingOnly && !this.player.isSwimming()) return NOT_WANTED;
+        if (!this.isSituationMet(classBuff)) return NOT_WANTED;
         // A blessing or a paladin aura: another paladin's other one does not take the place of the player's own
         if (classBuff.isOnePerCaster === true) {
             return this.auras.hasPerCasterBuff(id, classBuff.party?.groupIds ?? [], classBuff.lead) ? NOT_WANTED : WANTED;
         }
         // hasAura reads the aura, and falls back on what was seen or cast while the client hides auras
         return this.hasCategoryMember(classBuff) || this.auras.hasAura(id, classBuff.lead) ? NOT_WANTED : WANTED;
+    }
+
+    /** Is the player where the buff is asked for: in water for one only asked while swimming, with a living pet for Soul Link? */
+    private isSituationMet(classBuff: ClassBuff): boolean {
+        if (classBuff.isSwimmingOnly === true && !this.player.isSwimming()) return false;
+        return classBuff.isPetOnly !== true || this.player.hasLivingPet();
     }
 
     /** Is another buff of its category up (any aspect for an aspect)? */

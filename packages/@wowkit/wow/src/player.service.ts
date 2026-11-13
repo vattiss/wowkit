@@ -45,6 +45,11 @@ export class PlayerService {
         return attempt(IsSwimming) === true;
     }
 
+    /** Has the player a pet out, alive (a warlock's demon, a hunter's beast)? */
+    hasLivingPet(): boolean {
+        return attempt(UnitExists, "pet") === true && attempt(UnitIsDead, "pet") !== true;
+    }
+
     isDead(): boolean {
         return attempt(UnitIsDeadOrGhost, "player") === true;
     }
