@@ -27,7 +27,8 @@ export const COOLDOWN_CUES: { [classToken: string]: number[] | undefined } = {
 /**
  * The racials worth a glow in a fight, of every race: only the ones the player has learned count. Offensive (Blood Fury,
  * Berserking, Elune's Light, Eureka), defensive (Stoneform, Will to Survive, Rapid Regeneration), and the ones that break
- * out of a hold (Will of the Forsaken, Escape Artist, Shatter Curse), War Stomp and Perception. And the priest's spells
+ * out of a hold (Will of the Forsaken, Escape Artist, Shatter Curse), War Stomp and Perception, and Cultivation, the
+ * tauren's second herb (out of combat by its default look). And the priest's spells
  * of each race that have a cooldown (Desperate Prayer, Elune's Grace, Feedback, Divine Grace...); the ones without one
  * (Touch of Weakness, Shadowguard, Hex of Weakness) are buffs and debuffs, not cooldowns.
  */
@@ -43,6 +44,7 @@ export const RACIAL_COOLDOWNS: number[] = [
     Racial.EscapeArtist,
     Racial.ShatterCurse,
     Racial.WarStomp,
+    Racial.Cultivation,
     Racial.Perception,
     Priest.DesperatePrayer,
     Priest.DivineGrace,

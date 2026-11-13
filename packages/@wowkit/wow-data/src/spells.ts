@@ -436,6 +436,7 @@ export const Racial = {
     Shadowmeld: 20580,
     WillOfTheForsaken: 7744,
     WarStomp: 20549,
+    Cultivation: 20552,
     EscapeArtist: 20589,
     Berserking: 20554,
     Cannibalize: 20577,

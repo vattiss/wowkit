@@ -1,6 +1,6 @@
 import { isSoundKey } from "@wowkit/ui";
 import { tryCall, type GlowAnimation } from "@wowkit/wow";
-import { Warrior } from "@wowkit/wow-data";
+import { Racial, Warrior } from "@wowkit/wow-data";
 import { convertOldSettings } from "./settings-migration";
 import type { AddonSettings, ReminderType, AddableType, Style, StyleOverride, When, MessageTextChoice } from "./settings.interface";
 
@@ -95,6 +95,8 @@ export const SPELL_STYLE_DEFAULTS: { [key in ReminderType]?: { [spellId: number]
     proc: { [DEFENSIVE_EXECUTE_ROW]: { messageTextChoice: "name" } },
     // Shield Block lasts 7 seconds: out of a fight it is no use
     missingBuff: { [Warrior.ShieldBlock]: { when: "inCombat" } },
+    // Cultivation grows a second herb: it is used while gathering, out of a fight
+    readyCooldown: { [Racial.Cultivation]: { when: "outOfCombat" } },
 };
 
 export const STYLE_DEFAULTS: { [key in ReminderType]: Style } = {
