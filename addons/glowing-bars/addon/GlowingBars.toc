@@ -11,5 +11,6 @@
 ## DefaultState: enabled
 ## X-Website: https://github.com/vattiss/wowkit
 ## X-Curse-Project-ID: 1754997
+## X-Wago-ID: ZKbq1961
 
 GlowingBars.lua

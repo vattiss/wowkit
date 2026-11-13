@@ -1,5 +1,7 @@
-# Makes the zip of one addon when a tag like glowing-bars-v1.0.0 is pushed, and attaches it to a GitHub release, from
-# where it is downloaded and uploaded to CurseForge by hand. See docs/releasing.md.
+# Makes the zip of one addon when a tag like glowing-bars-v1.0.0 is pushed, attaches it to a GitHub release, and uploads it
+# to CurseForge and Wago. Each upload is a job of its own, run once the release is made: one that fails is run again alone
+# ("Re-run failed jobs"), without uploading twice to the other site. A failed release publishes nothing, and runs again
+# as a whole: its GitHub release only replaces the zip of one an earlier run made. See docs/releasing.md.
 name: Release
 
 on:
@@ -12,6 +14,8 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.tag.outputs.version }}
     env:
       LUA: lua
     steps:
@@ -48,6 +52,7 @@ jobs:
           packaged="$(jq -r .version "addons/$addon/package.json")"
           test "$packaged" = "$version" || { echo "Tag says $version, addons/$addon/package.json says $packaged"; exit 1; }
           echo "addon=$addon" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - name: Test
         run: pnpm test
@@ -63,4 +68,49 @@ jobs:
           # A version like 1.0.0-beta.1 must not become the latest release
           flags=()
           case "${GITHUB_REF_NAME##*-v}" in *-*) flags+=(--prerelease) ;; esac
-          gh release create "$GITHUB_REF_NAME" "$dist"/*.zip --title "$GITHUB_REF_NAME" --notes-file "$dist/changelog.md" "${flags[@]}"
+          # Run again, a release an earlier run made only gets the new zip
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" "$dist"/*.zip --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" "$dist"/*.zip --title "$GITHUB_REF_NAME" --notes-file "$dist/changelog.md" "${flags[@]}"
+          fi
+
+      # For the uploads: the zip, the changelog and the built TOC (the project IDs, the game version)
+      - name: Keep the release for the uploads
+        uses: actions/upload-artifact@v4
+        with:
+          name: release
+          path: addons/${{ steps.tag.outputs.addon }}/dist
+
+  # Each site with its token from the repository's secrets; without one, that site is skipped
+  curseforge:
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: release
+          path: release
+
+      - name: Upload to CurseForge
+        env:
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
+        run: bash .github/scripts/upload-release.sh curseforge release "${{ needs.release.outputs.version }}"
+
+  wago:
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: release
+          path: release
+
+      - name: Upload to Wago
+        env:
+          WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
+        run: bash .github/scripts/upload-release.sh wago release "${{ needs.release.outputs.version }}"
