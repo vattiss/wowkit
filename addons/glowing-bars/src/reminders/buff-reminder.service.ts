@@ -50,12 +50,17 @@ export class BuffReminderService {
         const id = this.spells.resolve(classBuff.id);
         if (id === undefined || !this.spells.isLearned(id)) return NOT_WANTED;
         if (classBuff.isSwimmingOnly && !this.player.isSwimming()) return NOT_WANTED;
-        for (const other of classBuff.categoryMembers ?? []) {
-            if (this.auras.hasAura(other)) return NOT_WANTED;
+        // A blessing or a paladin aura: another paladin's other one does not take the place of the player's own
+        if (classBuff.isOnePerCaster === true) {
+            return this.auras.hasPerCasterBuff(id, classBuff.party?.groupIds ?? [], classBuff.lead) ? NOT_WANTED : WANTED;
         }
         // hasAura reads the aura, and falls back on what was seen or cast while the client hides auras
-        if (this.auras.hasAura(id, classBuff.lead)) return NOT_WANTED;
-        return WANTED;
+        return this.hasCategoryMember(classBuff) || this.auras.hasAura(id, classBuff.lead) ? NOT_WANTED : WANTED;
+    }
+
+    /** Is another buff of its category up (any aspect for an aspect)? */
+    private hasCategoryMember(classBuff: ClassBuff): boolean {
+        return (classBuff.categoryMembers ?? []).some((other) => this.auras.hasAura(other));
     }
 
     /**

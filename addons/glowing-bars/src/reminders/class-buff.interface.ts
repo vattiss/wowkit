@@ -16,6 +16,11 @@ export interface ClassBuff {
     /** Any buff of this category counts (one aspect, one paladin aura, one armor). */
     categoryMembers?: number[];
     /**
+     * Each caster keeps one buff of the category on a target, and different casters' stack (a paladin's blessing, a paladin's
+     * aura): another caster's counts only when it is the same buff.
+     */
+    isOnePerCaster?: boolean;
+    /**
      * How long the buff lasts (seconds), so it still counts as on you in combat, when the client
      * hides the auras.
      */

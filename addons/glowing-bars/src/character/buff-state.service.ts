@@ -45,6 +45,8 @@ export class BuffStateService {
     private readonly fromOthers = new LuaSet<string>();
     /** The spell ID of each buff (by name key) last seen on the player or cast: the rank it is of. */
     private readonly auraIds = new LuaMap<string, number>();
+    /** The answer of the last look at each buff of hasPerCasterBuff (by spell ID): it holds while the client hides auras. */
+    private readonly perCasterVerdicts = new LuaMap<number, boolean>();
 
     constructor(
         private readonly auras: AurasService,
@@ -114,14 +116,55 @@ export class BuffStateService {
         return found;
     }
 
+    /**
+     * Is a buff of which each caster keeps one on a target (a paladin's blessing or aura) up on the player, as the player's own
+     * counts? The same buff or its group version (`sameIds`: a Greater Blessing) from anyone, as they do not stack; another of
+     * its category only the player's own, as the others' stack with it. While the client hides auras (a fight), the answer of
+     * the last look holds.
+     */
+    hasPerCasterBuff(spellId: number, sameIds: number[], lead = 0): boolean {
+        const scan = this.auras.scanAuras("player");
+        const isUnreadable =
+            scan.isUnreadable ||
+            scan.auras.some((aura) => aura.isHidden || aura.name === undefined) ||
+            (scan.auras.length === 0 && this.isEmptyListSuspicious());
+        if (isUnreadable) return this.perCasterVerdicts.get(spellId) ?? this.hasAura(spellId, lead);
+        const sameKeys = [spellId, ...sameIds].map((id) => this.getBuffKey(id));
+        const category = this.knowledge.findCategory(this.getBuffName(spellId), spellId);
+        const isUp = scan.auras.some((aura) => this.isPerCasterCounted(aura, sameKeys, category, lead));
+        this.perCasterVerdicts.set(spellId, isUp);
+        return isUp;
+    }
+
+    /** One aura of the player, for hasPerCasterBuff: the same buff from anyone, or another of the player's own, still up. */
+    private isPerCasterCounted(aura: AuraEntry, sameKeys: string[], category: BuffCategory | undefined, lead: number): boolean {
+        const isSame = sameKeys.includes(buildNameKey(aura.name!));
+        const isOwnOther =
+            aura.caster === "player" && category !== undefined && this.knowledge.findCategory(aura.name, aura.spellId) === category;
+        return (isSame || isOwnOther) && (lead === 0 || !hasKnownExpiry(aura.remain) || aura.remain > lead);
+    }
+
     /** The player cast a spell: if it is a buff on the player, it is up now. */
     noteSelfBuff(spellId: number | undefined): void {
         if (spellId === undefined || !isReadable(spellId)) return;
         this.memory.remember(spellId, undefined, undefined, true);
         this.fromOthers.delete(this.getBuffKey(spellId));
         this.auraIds.set(this.getBuffKey(spellId), spellId);
+        this.notePerCasterCast(spellId);
         if (this.spells.getSpellName(spellId) === this.spells.getSpellName(Warrior.ShieldBlock))
             this.shieldBlockCharges = SHIELD_BLOCK_CHARGES;
+    }
+
+    /**
+     * A blessing or a paladin aura cast: the player's own of its category is up now, for hasPerCasterBuff while the client
+     * hides auras (a fight). The next look out of combat reads them again.
+     */
+    private notePerCasterCast(spellId: number): void {
+        const category = this.knowledge.findCategory(this.getBuffName(spellId), spellId);
+        if (category === undefined) return;
+        for (const [id] of this.perCasterVerdicts) {
+            if (this.knowledge.findCategory(this.getBuffName(id), id) === category) this.perCasterVerdicts.set(id, true);
+        }
     }
 
     /** The player blocked: a charge of Shield Block is used, and with the last one it is gone, before its time. */
@@ -139,18 +182,19 @@ export class BuffStateService {
 
     /**
      * Does another unit (a party member) have the buff, or another buff of its category (Prayer of
-     * Fortitude for Fortitude)? `isOwnOnly`: only an aura the player cast counts. "unknown" when the client hid
-     * the auras: there is no memory for other units, so a hidden aura never counts as missing.
+     * Fortitude for Fortitude)? `isOwnOnly` (a blessing): the same buff or its group version (`sameIds`) counts from anyone,
+     * as they do not stack, another of its category only if the player cast it. "unknown" when the client hid the auras: there
+     * is no memory for other units, so a hidden aura never counts as missing.
      */
-    getUnitBuffState(unit: UnitToken, spellId: number, isOwnOnly: boolean): UnitBuffState {
+    getUnitBuffState(unit: UnitToken, spellId: number, isOwnOnly: boolean, sameIds: number[] = []): UnitBuffState {
         const wantName = this.getBuffName(spellId);
         if (wantName === undefined) return "unknown";
-        const wantKey = buildNameKey(wantName);
+        const wantKeys = [buildNameKey(wantName), ...sameIds.map((id) => this.getBuffKey(id))];
         const wantCategory = this.knowledge.findCategory(wantName, spellId);
         const scan = this.auras.scanAuras(unit);
         let isUnreadable = scan.isUnreadable;
         for (const aura of scan.auras) {
-            const verdict = this.judgeUnitAura(aura, wantKey, wantCategory, isOwnOnly);
+            const verdict = this.judgeUnitAura(aura, wantKeys, wantCategory, isOwnOnly);
             if (verdict === "has") return "has";
             if (verdict === "hidden") isUnreadable = true;
         }
@@ -178,16 +222,16 @@ export class BuffStateService {
     /** What one aura of another unit says about the wanted buff: it is the buff, it hides what it is, or it is another one. */
     private judgeUnitAura(
         aura: AuraEntry,
-        wantKey: string,
+        wantKeys: string[],
         wantCategory: BuffCategory | undefined,
         isOwnOnly: boolean,
     ): "has" | "hidden" | "other" {
         if (aura.isHidden || aura.name === undefined) return "hidden";
-        const isWanted =
-            buildNameKey(aura.name) === wantKey ||
-            (wantCategory !== undefined && this.knowledge.findCategory(aura.name, aura.spellId) === wantCategory);
-        if (!isWanted) return "other";
-        if (!isOwnOnly || aura.caster === "player") return "has";
+        const isSame = wantKeys.includes(buildNameKey(aura.name));
+        const isOfCategory = wantCategory !== undefined && this.knowledge.findCategory(aura.name, aura.spellId) === wantCategory;
+        if (!isSame && !isOfCategory) return "other";
+        // The same blessing from another paladin does not stack with the player's: it counts as well
+        if (!isOwnOnly || isSame || aura.caster === "player") return "has";
         return aura.caster === "hidden" ? "hidden" : "other";
     }
 

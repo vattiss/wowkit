@@ -53,6 +53,7 @@ import "./settings-migration.spec";
 import "./glow-picture.spec";
 import "./choice-list.spec";
 import "./older-rank-buffs.spec";
+import "./blessings-from-others.spec";
 import "./reagent-languages.spec";
 import "./low-stock-table.spec";
 import "./food-buff-names.spec";

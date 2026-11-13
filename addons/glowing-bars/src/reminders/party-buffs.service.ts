@@ -208,7 +208,7 @@ export class PartyBuffsService {
         return (
             (!party.isManaOnly || this.party.doesUseMana(member.unit)) &&
             this.party.isInSpellRange(classBuff.id, member.unit) &&
-            this.auras.getUnitBuffState(member.unit, classBuff.id, party.isOwnOnly === true) === "missing"
+            this.auras.getUnitBuffState(member.unit, classBuff.id, party.isOwnOnly === true, party.groupIds) === "missing"
         );
     }
 
