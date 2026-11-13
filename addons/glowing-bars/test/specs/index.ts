@@ -54,6 +54,7 @@ import "./glow-picture.spec";
 import "./choice-list.spec";
 import "./older-rank-buffs.spec";
 import "./blessings-from-others.spec";
+import "./ready-cooldown-choices.spec";
 import "./reagent-languages.spec";
 import "./low-stock-table.spec";
 import "./food-buff-names.spec";
