@@ -55,11 +55,10 @@ describe("a proc told by its spell", () => {
         expect(world.glowsOn(1)).toBe(1);
     });
 
-    it("has an alpha row in the table, with a tooltip on its name", () => {
+    it("has a row of its own in the table, under its plain name", () => {
         const world = createWarlock();
         toggleTable();
-        const row = findLabel(world, "Shadow Bolt (alpha)")?.parent;
-        expect(row).toBeDefined();
-        expect(world.frames.some((frame) => frame.parent === row && frame.scripts.OnEnter !== undefined)).toBe(true);
+        expect(findLabel(world, "Shadow Bolt")).toBeDefined();
+        expect(findLabel(world, "Shadow Bolt (alpha)")).toBeUndefined();
     });
 });

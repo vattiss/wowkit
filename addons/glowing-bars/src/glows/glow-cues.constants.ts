@@ -64,10 +64,10 @@ export const PROC_CUES: { [classToken: string]: number[] | undefined } = {
 };
 
 /**
- * Procs the game hides in a fight, as buffs: their icons in the Cooldown Manager tell (`auras`), else their spell, by turning free or instant. Alpha: the table says so.
- * Without the talent the spell never does, so no other check is needed.
+ * Procs told by their spell: the game hides them in a fight, as buffs. Their icons in the Cooldown Manager tell (`auras`),
+ * else their spell, by turning free or instant. Without the talent the spell never does, so no other check is needed.
  */
-export const ALPHA_PROC_CUES: { [classToken: string]: { id: number; sign: "free" | "instant"; auras: number[] }[] | undefined } = {
+export const SPELL_PROC_CUES: { [classToken: string]: { id: number; sign: "free" | "instant"; auras: number[] }[] | undefined } = {
     MAGE: [{ id: Mage.ArcaneMissiles, sign: "free", auras: [Mage.MissileBarrage, Mage.Clearcasting] }],
     WARLOCK: [{ id: Warlock.ShadowBolt, sign: "instant", auras: [Warlock.ShadowTrance] }],
 };

@@ -6,7 +6,7 @@ import { OnEvent, OnGameEvent } from "@wowkit/core";
 import type { ActionBarsService, PlayerService, SpellDetailsService, SpellsService, CooldownViewerService } from "@wowkit/wow";
 import type { AddonSettingsService, AddableType } from "../settings/settings.interface";
 import type { AddedSpellsService } from "./added-spells.service";
-import { ALPHA_PROC_CUES, COOLDOWN_CUES, PROC_CUES, RACIAL_COOLDOWNS } from "./glow-cues.constants";
+import { COOLDOWN_CUES, PROC_CUES, RACIAL_COOLDOWNS, SPELL_PROC_CUES } from "./glow-cues.constants";
 import { READY_MARGIN, type CooldownTrackerService } from "./cooldown-tracker.service";
 import type { StanceProcsService } from "./stance-procs.service";
 import type { StyleService } from "../settings/style.service";
@@ -86,19 +86,15 @@ export class GlowCuesService {
         return this.listCues(this.listCueIds("proc")).filter((id) => this.isProcUp(id) && this.tracker.getRemaining(id) <= READY_MARGIN);
     }
 
-    /** Is this one of the procs that are told by their spell, not by the game calling it usable? (Marked alpha in the table.) */
-    isAlphaProc(listId: number): boolean {
-        return this.listAlphaProcs().some((proc) => proc.id === listId);
-    }
-
-    private listAlphaProcs() {
-        return ALPHA_PROC_CUES[this.player.getClassToken() ?? ""] ?? [];
+    /** The procs told by their spell, not by the game calling it usable. */
+    private listSpellProcs() {
+        return SPELL_PROC_CUES[this.player.getClassToken() ?? ""] ?? [];
     }
 
     /** The buffs of the procs told by their spell, for the Cooldown Manager to track. */
     listProcAuras(): number[] {
         const ids: number[] = [];
-        for (const proc of this.listAlphaProcs()) ids.push(...proc.auras);
+        for (const proc of this.listSpellProcs()) ids.push(...proc.auras);
         return ids;
     }
 
@@ -116,11 +112,11 @@ export class GlowCuesService {
 
     private isProcUp(id: number): boolean {
         const name = this.spells.getSpellLabel(id);
-        const alpha = this.listAlphaProcs().find((proc) => this.spells.getSpellLabel(proc.id) === name);
-        if (alpha !== undefined)
+        const spellProc = this.listSpellProcs().find((proc) => this.spells.getSpellLabel(proc.id) === name);
+        if (spellProc !== undefined)
             return (
-                this.readProcIcons(alpha.auras) ??
-                (alpha.sign === "free" ? this.spellDetails.isFreeNow(id) : this.spellDetails.isInstantNow(id))
+                this.readProcIcons(spellProc.auras) ??
+                (spellProc.sign === "free" ? this.spellDetails.isFreeNow(id) : this.spellDetails.isInstantNow(id))
             );
         return this.spellDetails.readUsability(id).isUsable === true || this.stanceProcs.isOpen(id);
     }
@@ -131,7 +127,7 @@ export class GlowCuesService {
      */
     listBuiltInIds(reminderType: AddableType): number[] {
         const classToken = this.player.getClassToken() ?? "";
-        if (reminderType === "proc") return [...(PROC_CUES[classToken] ?? []), ...this.listAlphaProcs().map((proc) => proc.id)];
+        if (reminderType === "proc") return [...(PROC_CUES[classToken] ?? []), ...this.listSpellProcs().map((proc) => proc.id)];
         const racials = RACIAL_COOLDOWNS.filter((id) => this.spells.isLearned(this.addedSpells.getEffectiveId(id)));
         return (COOLDOWN_CUES[classToken] ?? []).concat(racials);
     }
