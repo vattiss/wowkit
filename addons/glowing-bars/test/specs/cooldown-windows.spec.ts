@@ -276,4 +276,13 @@ describe("a glow beside a Cooldown Manager icon that its window makes transparen
         world.advance(1);
         expect(readHolderAlphas(world).join(",")).toBe("1");
     });
+
+    it("leaves the interface's own fading out of it: the holder is in it already", () => {
+        // The interface at half, the icon at half of that: the holder takes the icon's own half only
+        const world = createWorldWithIcon(0.25);
+        (UIParent as unknown as FakeFrame).alpha = 0.5;
+        world.advance(1);
+        expect(readHolderAlphas(world).join(",")).toBe("0.5");
+        (UIParent as unknown as FakeFrame).alpha = 1;
+    });
 });

@@ -1,7 +1,8 @@
 // A glow beside its button (a Cooldown Manager icon, a gamepad button) is made on the screen, not in the button, so it takes
 // none of the button's transparency: a window's Opacity, or a visibility rule that fades it out. It goes into a holder of
 // its own that copies the button's effective transparency, and the game multiplies that with the glow's own, which can be
-// a secret value that addon code cannot compute with. EllesmereUI holds its frames beside the icons the same way.
+// a secret value that addon code cannot compute with. The holder is in UIParent, whose transparency the button's has in it
+// already, so that is taken out. EllesmereUI holds its frames beside the icons the same way.
 import { attempt } from "./protected-call.utils";
 import { getReadable } from "./secret-value.utils";
 
@@ -25,9 +26,11 @@ export class GlowHolders {
         for (const [button, holder] of this.holders) this.matchButton(button, holder);
     }
 
-    /** A transparency the game hides keeps the last one known. */
+    /** A transparency the game hides keeps the last one known; an interface faded out entirely shows nothing anyway. */
     private matchButton(button: ActionButton, holder: Frame): void {
         const alpha = getReadable(attempt(() => button.GetEffectiveAlpha()));
-        if (alpha !== undefined && type(alpha) === "number") holder.SetAlpha(alpha);
+        const screenAlpha = getReadable(attempt(() => UIParent.GetEffectiveAlpha()));
+        if (alpha === undefined || type(alpha) !== "number" || screenAlpha === undefined || type(screenAlpha) !== "number") return;
+        if (screenAlpha > 0) holder.SetAlpha(math.min(1, alpha / screenAlpha));
     }
 }

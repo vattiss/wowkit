@@ -49,6 +49,8 @@ export interface FakeFrame {
     SetShown(isShown: boolean): void;
     SetAlpha(alpha: number): void;
     GetAlpha(): number;
+    /** Its opacity times its parents', unless it ignores theirs. */
+    GetEffectiveAlpha(): number;
     SetIgnoreParentAlpha(ignore: boolean): void;
     SetScript(script: string, handler: Script | undefined): void;
     GetName(): string | undefined;
@@ -135,6 +137,10 @@ function createFakeFrame(init: FrameInit): FakeFrame {
         },
         GetAlpha() {
             return this.alpha;
+        },
+        GetEffectiveAlpha() {
+            const parentAlpha = this.parent !== undefined && this.isIgnoringParentAlpha !== true ? this.parent.GetEffectiveAlpha() : 1;
+            return this.alpha * parentAlpha;
         },
         SetIgnoreParentAlpha(ignore) {
             this.isIgnoringParentAlpha = ignore;
