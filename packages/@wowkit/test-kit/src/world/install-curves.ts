@@ -83,6 +83,7 @@ function installCooldownViewers(state: ClientState): void {
         icon.cooldownID = buff.spellId;
         icon.auraInstanceID = isInSpells && buff.isActive ? 1 : undefined;
         icon.auraDataUnit = buff.unit;
+        icon.totemData = buff.isTotem === true && buff.isActive ? { slot: 0 } : undefined;
         icon.IsActive = (_self: unknown) => (isInSpells ? true : buff.isActive);
         icon.isOnActualCooldown = buff.isOnCooldown;
         icon.IsVisible = (_self: unknown) => buff.isDrawn !== false;

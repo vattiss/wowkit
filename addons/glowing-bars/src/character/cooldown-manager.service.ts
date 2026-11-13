@@ -18,6 +18,7 @@ import type { GlowCuesService } from "../glows/glow-cues.service";
 import type { ClassBuffsService } from "../reminders/class-buffs.service";
 import type { SealReminderService } from "../reminders/seal-reminder.service";
 import type { TrackingReminderService } from "../reminders/tracking-reminder.service";
+import type { TotemReminderService } from "../reminders/totem-reminder.service";
 import { WINDOW_ICONS_SETTINGS } from "../settings/settings.constants";
 import type { AddonSettingsService } from "../settings/settings.interface";
 
@@ -39,6 +40,7 @@ export class CooldownManagerService implements OnLogin, OnLogout {
         private readonly addedSpells: AddedSpellsService,
         private readonly seals: SealReminderService,
         private readonly trackings: TrackingReminderService,
+        private readonly totems: TotemReminderService,
         private readonly glowCues: GlowCuesService,
         private readonly glow: GlowService,
         private readonly buttons: ButtonRegistryService,
@@ -148,11 +150,12 @@ export class CooldownManagerService implements OnLogin, OnLogout {
         if (this.viewer.trackBuffs(this.listWantedNames())) this.isTrackingDue = false;
     }
 
-    /** The buffs of the table of this class, by name: every rank goes by one. */
+    /** The buffs of the table of this class, and the shaman's totems, by name: every rank goes by one. */
     private listWantedNames(): string[] {
         const ids = [
             ...this.seals.listSeals(),
             ...this.trackings.listTrackings(),
+            ...this.totems.listTotems().map((totem) => totem.listId),
             ...this.addedSpells.listAdded("missingBuff"),
             ...this.glowCues.listBuiltInIds("proc"),
             ...this.glowCues.listCueIds("readyCooldown"),

@@ -239,6 +239,8 @@ interface CooldownViewerItem extends Frame {
     IsActive(): boolean;
     /** The icons of the Spells tab only: on its own cooldown, the global cooldown ignored. */
     isOnActualCooldown?: boolean;
+    /** A buff icon of a totem entry: the player's totem it shows, while one stands (a table of the game, possibly secret). */
+    totemData?: object;
 }
 
 /** Blizzard's read-only layouts of Edit Mode. */

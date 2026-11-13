@@ -1,13 +1,15 @@
 // The shaman's totems: a totem glows while no totem stands in its slot (its element: fire, earth, water or air), and every
 // totem of the slot goes quiet once one is dropped. Out of combat the slots are read; in a fight the client hides them, so
-// a change of a slot (PLAYER_TOTEM_UPDATE) right after the player's own cast of a totem, or of a call of four, is one
-// dropped, and any other change one gone (killed, run out, recalled). A totem switched off in the table, or on no bar,
+// the Cooldown Manager's icons of the totems tell, where every totem of the slot has one; else a change of a slot
+// (PLAYER_TOTEM_UPDATE) right after the player's own cast of a totem, or of a call of four, is one dropped, and any other
+// change one gone (killed, run out, recalled). A totem switched off in the table, or on no bar,
 // does not glow. The totems are the ones the game lists for each slot, and those of the list below that it does not.
 import { OnEvent, OnGameEvent } from "@wowkit/core";
 import {
     getReadable,
     type ActionBarsService,
     type ClockService,
+    type CooldownViewerService,
     type PlayerSpellCast,
     type SpellsService,
     type TotemsService,
@@ -40,6 +42,7 @@ export class TotemReminderService {
         private readonly totems: TotemsService,
         private readonly settings: AddonSettingsService,
         private readonly clock: ClockService,
+        private readonly viewer: CooldownViewerService,
     ) {}
 
     /** The totems the player knows, in slot order. */
@@ -79,7 +82,7 @@ export class TotemReminderService {
         const enabledSpells = this.settings.get("enabledSpells");
         const missing: number[] = [];
         for (const slot of TOTEM_SLOTS) {
-            if (this.readSlot(slot) ?? this.isSlotTaken.get(slot) === true) continue;
+            if (this.readSlot(slot) ?? this.readSlotIcons(slot) ?? this.isSlotTaken.get(slot) === true) continue;
             for (const totem of this.listTotems()) {
                 if (totem.slot !== slot || enabledSpells[string.format("%d", totem.listId)] === false) continue;
                 const id = this.spells.resolve(totem.listId) ?? totem.listId;
@@ -95,6 +98,27 @@ export class TotemReminderService {
         if (standing === undefined) return undefined;
         this.isSlotTaken.set(slot, standing !== false);
         return standing !== false;
+    }
+
+    /**
+     * Does a totem stand in the slot, by the Cooldown Manager's icons of its totems? Undefined unless they can tell: a totem
+     * of the slot that no icon tracks may stand. What they say is kept for then.
+     */
+    private readSlotIcons(slot: number): boolean | undefined {
+        let isEveryTracked = true;
+        for (const totem of this.listTotems()) {
+            if (totem.slot !== slot) continue;
+            const name = this.spells.getSpellName(totem.listId);
+            const isStanding = name !== undefined ? this.viewer.isTotemStanding(name) : undefined;
+            if (isStanding === true) return this.noteSlot(slot, true);
+            if (isStanding === undefined) isEveryTracked = false;
+        }
+        return isEveryTracked ? this.noteSlot(slot, false) : undefined;
+    }
+
+    private noteSlot(slot: number, isTaken: boolean): boolean {
+        this.isSlotTaken.set(slot, isTaken);
+        return isTaken;
     }
 
     /** The game's totems of each slot, by the list's ID when it has the totem (its row stays through new ranks), then the list's learned ones it left out. */

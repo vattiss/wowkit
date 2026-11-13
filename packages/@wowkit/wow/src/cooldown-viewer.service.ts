@@ -70,6 +70,8 @@ export class CooldownViewerService {
     /** The same, by each spell ID the icons take an aura by. */
     private iconStatesById = new LuaMap<number, boolean>();
     private cooldownStates = new LuaMap<string, boolean>();
+    /** The totems of the buff icons, by name: true while an icon holds the player's own totem. */
+    private totemStates = new LuaMap<string, boolean>();
     private iconStatesAt = -1;
     /** Is the addon allowed to go by the icons? */
     private isUsingIcons = true;
@@ -173,6 +175,16 @@ export class CooldownViewerService {
             .join(",");
     }
 
+    /**
+     * Does the player's totem of this name stand, by the buff icons? Undefined when none tracks it. An icon holds the totem
+     * itself, so the aura of another shaman's totem of the same name does not count.
+     */
+    isTotemStanding(totemName: string): boolean | undefined {
+        if (!this.isUsingIcons) return undefined;
+        this.refreshIconStates();
+        return this.totemStates.get(totemName);
+    }
+
     /** Is the spell on its own cooldown (the global cooldown ignored), by its icon on the Spells tab? Undefined with no such icon. */
     isSpellOnCooldown(spellName: string): boolean | undefined {
         if (!this.isUsingIcons) return undefined;
@@ -191,6 +203,7 @@ export class CooldownViewerService {
         this.iconStates = new LuaMap<string, boolean>();
         this.iconStatesById = new LuaMap<number, boolean>();
         this.cooldownStates = new LuaMap<string, boolean>();
+        this.totemStates = new LuaMap<string, boolean>();
         for (const name of ALL_VIEWERS) {
             const viewer = this.getViewer(name);
             if (viewer === undefined || !this.isRunning(viewer)) continue;
@@ -217,6 +230,8 @@ export class CooldownViewerService {
         if (isUp === undefined) return;
         noteState(this.iconStates, entry.names, isUp);
         noteState(this.iconStatesById, entry.ids, isUp);
+        // Comparing with nil is allowed on a secret: the table is never looked into
+        if (isBuffViewer) noteState(this.totemStates, entry.names, isUp && item.totemData !== undefined);
     }
 
     /** The cooldown is of the entry's own spell, not of the spells linked to it. */

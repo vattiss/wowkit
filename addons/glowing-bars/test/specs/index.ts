@@ -44,6 +44,7 @@ import "./cultivation.spec";
 import "./soul-link.spec";
 import "./totems.spec";
 import "./totems-matrix.spec";
+import "./totem-icons.spec";
 import "./welcome.spec";
 import "./afk-rainbow.spec";
 import "./message-look.spec";

@@ -114,6 +114,8 @@ export interface ClientState {
         isDrawn?: boolean;
         /** A bar in Tracked Bars, not an icon in Tracked Buffs. */
         isBar?: boolean;
+        /** The icon of a totem entry: while active, it holds the player's totem (totemData), not an aura. */
+        isTotem?: boolean;
     }[];
     /** The spells linked to an entry of the Cooldown Manager, by its cooldown ID. */
     linkedSpells: { [cooldownId: number]: number[] | undefined };

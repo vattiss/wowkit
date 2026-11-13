@@ -160,7 +160,9 @@ export type Reminders = ReturnType<typeof makeReminders>;
 function makeClassReminders(addon: Addon, game: Game, buffs: Buffs, settings: AddonSettingsService, addedSpells: AddedSpellsService) {
     const seal = addon.register(new SealReminderService(game.spells, game.actionBars, buffs.state, game.player, settings, addedSpells));
     const tracking = addon.register(new TrackingReminderService(game.spells, game.actionBars, buffs.state, settings, addedSpells));
-    const totem = addon.register(new TotemReminderService(game.spells, game.actionBars, game.totems, settings, game.clock));
+    const totem = addon.register(
+        new TotemReminderService(game.spells, game.actionBars, game.totems, settings, game.clock, game.cooldownViewer),
+    );
     return { seal, tracking, totem };
 }
 
@@ -177,6 +179,7 @@ function makeCooldownManager(addon: Addon, game: Game, texts: Texts, buffs: Buff
             reminders.addedSpells,
             reminders.seal,
             reminders.tracking,
+            reminders.totem,
             reminders.glowCues,
             game.glow,
             game.buttonRegistry,
