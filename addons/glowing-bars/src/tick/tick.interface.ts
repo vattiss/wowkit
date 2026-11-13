@@ -17,8 +17,6 @@ export interface Reminders {
     addedWeaponSpells: number[];
     /** A paladin with no seal up: the seal to put on. */
     seals: number[];
-    /** A shaman with a slot no totem stands in: the totems of that slot to drop. */
-    totems: number[];
     /** A miner or a herbalist with no tracking on: the gathering trackings to put on. */
     trackings: number[];
     /** Missing buffs the player has learned but put on no action bar. */

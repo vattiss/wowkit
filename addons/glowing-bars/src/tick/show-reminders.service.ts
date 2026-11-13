@@ -6,7 +6,7 @@
 import type { MessagesService, SoundKey } from "@wowkit/ui";
 import type { StyleService } from "../settings/style.service";
 import { WINDOW_ICONS_SETTINGS } from "../settings/settings.constants";
-import type { AddonSettingsService, Style } from "../settings/settings.interface";
+import type { AddonSettingsService, ReminderType, Style } from "../settings/settings.interface";
 import {
     type ActionBarsService,
     type BarFadeService,
@@ -18,14 +18,99 @@ import {
     type ButtonGlow,
     type Rgb,
     isOutOfItem,
-    isTotemBarButton,
     STANCE_BAR_KEY,
     COOLDOWN_WINDOWS,
 } from "@wowkit/wow";
 import type { NoticesService } from "./notices.service";
 import type { FedBuffsService } from "../reminders/fed-buffs.service";
 import type { Reminders } from "./tick.interface";
-import { pushAll, TYPES } from "./glow-types";
+
+/** One type of reminder: the setting that switches it on, and the spells of the reminders that make it glow. */
+interface GlowType {
+    category: ReminderType;
+    isOnSetting:
+        | "isMissingBuffEnabled"
+        | "isWeaponBuffEnabled"
+        | "isMissingSealEnabled"
+        | "isMissingTrackingEnabled"
+        | "isReadyCooldownEnabled"
+        | "isProcEnabled"
+        | "isOldRankEnabled"
+        | "isLowReagentEnabled"
+        | "isLowStockEnabled";
+    /** Does it glow on the Cooldown Manager's icons too? A buff, a cooldown or a proc does; a rank or a reagent is the button's. */
+    isOnIcons: boolean;
+    /** Puts the spells of the type's reminders into `spells`, an empty list. */
+    collectSpells: (this: void, reminders: Reminders, spells: number[]) => void;
+}
+
+function pushAll(spells: number[], ids: number[]): void {
+    for (const id of ids) spells.push(id);
+}
+
+const TYPES: GlowType[] = [
+    {
+        category: "missingBuff",
+        isOnSetting: "isMissingBuffEnabled",
+        isOnIcons: true,
+        collectSpells: (reminders, spells) => pushAll(spells, reminders.buffsToCast),
+    },
+    {
+        category: "weaponBuff",
+        isOnSetting: "isWeaponBuffEnabled",
+        isOnIcons: true,
+        collectSpells: (reminders, spells) => {
+            if (reminders.weaponSpell !== undefined) spells.push(reminders.weaponSpell);
+            pushAll(spells, reminders.addedWeaponSpells);
+        },
+    },
+    {
+        category: "missingSeal",
+        isOnSetting: "isMissingSealEnabled",
+        isOnIcons: true,
+        collectSpells: (reminders, spells) => pushAll(spells, reminders.seals),
+    },
+    {
+        category: "missingTracking",
+        isOnSetting: "isMissingTrackingEnabled",
+        isOnIcons: true,
+        collectSpells: (reminders, spells) => pushAll(spells, reminders.trackings),
+    },
+    {
+        category: "readyCooldown",
+        isOnSetting: "isReadyCooldownEnabled",
+        isOnIcons: true,
+        collectSpells: (reminders, spells) => pushAll(spells, reminders.readyCooldowns),
+    },
+    {
+        category: "proc",
+        isOnSetting: "isProcEnabled",
+        isOnIcons: true,
+        collectSpells: (reminders, spells) => pushAll(spells, reminders.procs),
+    },
+    {
+        category: "oldRank",
+        isOnSetting: "isOldRankEnabled",
+        isOnIcons: false,
+        collectSpells: (reminders, spells) => {
+            for (const rank of reminders.outdatedRanks) spells.push(rank.id);
+        },
+    },
+    {
+        category: "lowReagent",
+        isOnSetting: "isLowReagentEnabled",
+        isOnIcons: false,
+        collectSpells: (reminders, spells) => pushAll(spells, reminders.reagentSpells),
+    },
+    {
+        category: "lowStock",
+        isOnSetting: "isLowStockEnabled",
+        isOnIcons: false,
+        collectSpells: (reminders, spells) => {
+            for (const stock of reminders.lowStock) spells.push(stock.key);
+        },
+    },
+];
 
 /** The spells that glow in one color, glow % and animation: one glow shows them. */
 interface GlowGroup {
@@ -49,7 +134,6 @@ const SETTINGS_OF_THE_LOOK: string[] = [
     "roundAnimation",
     "shouldGlowOnMacros",
     "shouldGlowOnEveryMacroSpell",
-    "shouldGlowTotemsOnlyOnTotemBar",
     "cooldownManagerAccess",
     ...Object.values(WINDOW_ICONS_SETTINGS),
 ];
@@ -77,8 +161,6 @@ export class ShowRemindersService {
     private usedUpShown: number[] = [];
     /** The spells of each glow, by its look. */
     private groupSpells = new LuaMap<string, number[]>();
-    /** The totems of this tick to drop (the tick's own list). */
-    private missingTotems: number[] = [];
     /** The weapon buff that glows, and the weapon it is for: a macro for the other weapon stays dark. */
     private weaponSpell: number | undefined;
     private weaponHandSlot: number | undefined;
@@ -99,7 +181,6 @@ export class ShowRemindersService {
     ) {}
 
     showReminders(reminders: Reminders): void {
-        this.missingTotems = reminders.totems;
         // Nothing when it is the same; the bars are mapped again when it changes
         this.actionBars.useEveryMacroSpell(this.settings.get("shouldGlowOnEveryMacroSpell"));
         const isSameHand = reminders.weaponHandSlot === this.weaponHandSlot && this.isSameCovered(reminders.coveredWeaponButtons);
@@ -248,15 +329,8 @@ export class ShowRemindersService {
         const spells = this.groupSpells.get(groupKey) ?? [];
         const isOwnUsedUp = spells.some((id) => this.usedUpShown.includes(id) && this.actionBars.findButtonsOf(id).includes(button));
         if (!isOwnUsedUp && !this.fedBuffs.isButtonWanted(button, spells)) return false;
-        if (this.isTotemKeptOff(button, spells)) return false;
         const bar = this.barKeys.getBarKey(button);
         return bar === undefined || this.settings.get("barsThatGlow")[bar] !== false;
-    }
-
-    /** A missing totem on an action bar, when the player wants totems to glow on the totem bar alone. */
-    private isTotemKeptOff(button: ActionButton, spells: number[]): boolean {
-        if (!this.settings.get("shouldGlowTotemsOnlyOnTotemBar") || isTotemBarButton(button)) return false;
-        return spells.some((id) => this.missingTotems.includes(id) && this.actionBars.findButtonsOf(id).includes(button));
     }
 
     private isSameCovered(buttons: ActionButton[]): boolean {

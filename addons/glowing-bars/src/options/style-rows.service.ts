@@ -11,8 +11,6 @@ import type { ReagentsService } from "../reagents/reagents.service";
 import type { ClassBuffsService } from "../reminders/class-buffs.service";
 import type { FedBuffsService } from "../reminders/fed-buffs.service";
 import type { SealReminderService } from "../reminders/seal-reminder.service";
-import type { TotemReminderService } from "../reminders/totem-reminder.service";
-import { TOTEM_SLOT_TEXTS } from "../reminders/totems.constants";
 import type { TrackingReminderService } from "../reminders/tracking-reminder.service";
 import type { WeaponChoiceService } from "../reminders/weapon/weapon-choice.service";
 import { ADDABLE_TYPES, TYPE_ORDER, DEFENSIVE_EXECUTE_ROW } from "../settings/settings.constants";
@@ -38,9 +36,6 @@ export interface StyleRow {
     sharesIdOf?: number;
     /** A glow only the game itself can light: what would have to know when it starts is faded on the row. */
     isFadeOnly?: boolean;
-    /** A part of its type the row is in, under a small heading of its own (a totem's element), and where that part goes. */
-    group?: TextKey;
-    groupOrder?: number;
 }
 
 /** The words that name each type of reminder. */
@@ -49,7 +44,6 @@ export const TYPE_TEXTS: { [reminderType in ReminderType]: TextKey } = {
     weaponBuff: "TYPE_WEAPON_BUFF",
     missingSeal: "TYPE_MISSING_SEAL",
     missingTracking: "TYPE_MISSING_TRACKING",
-    missingTotem: "TYPE_MISSING_TOTEM",
     readyCooldown: "TYPE_READY_COOLDOWN",
     proc: "TYPE_PROC",
     oldRank: "TYPE_OLD_RANK",
@@ -69,7 +63,6 @@ export class StyleRowsService {
         private readonly glowCues: GlowCuesService,
         private readonly addedSpells: AddedSpellsService,
         private readonly sealReminder: SealReminderService,
-        private readonly totemReminder: TotemReminderService,
         private readonly trackingReminder: TrackingReminderService,
         private readonly fedBuffs: FedBuffsService,
     ) {}
@@ -81,21 +74,6 @@ export class StyleRowsService {
             spellId: undefined,
             label: this.locale.getText(TYPE_TEXTS[reminderType]),
             iconId: undefined,
-        }));
-    }
-
-    /** The rows of a class's own reminders: the paladin's seals, and the shaman's totems under the heading of their element. */
-    private listClassRows(): { reminderType: ReminderType; id: number; extra: Partial<StyleRow> }[] {
-        const rows = this.sealReminder.listSeals().map((listId) => ({ reminderType: "missingSeal" as const, listId, extra: {} }));
-        const totems = this.totemReminder.listTotems().map(({ listId, slot }) => ({
-            reminderType: "missingTotem" as const,
-            listId,
-            extra: { group: TOTEM_SLOT_TEXTS[slot], groupOrder: slot },
-        }));
-        return [...rows, ...totems].map(({ reminderType, listId, extra }) => ({
-            reminderType,
-            id: this.addedSpells.getEffectiveId(listId),
-            extra: { listId, ...extra },
         }));
     }
 
@@ -171,7 +149,7 @@ export class StyleRowsService {
         };
         for (const classBuff of this.classBuffs.getClassBuffs()) addListed("missingBuff", classBuff.id);
         for (const entry of this.weaponChoice.getWeaponChoices()) addListed("weaponBuff", entry.id);
-        for (const { reminderType, id, extra } of this.listClassRows()) add(reminderType, id, extra);
+        for (const id of this.sealReminder.listSeals()) addListed("missingSeal", id);
         for (const id of this.trackingReminder.listTrackings()) addListed("missingTracking", id);
         for (const reminderType of ["readyCooldown", "proc"] as const) {
             for (const id of this.glowCues.listBuiltInIds(reminderType)) addListed(reminderType, id);
@@ -206,8 +184,6 @@ export class StyleRowsService {
     private compareRows(a: StyleRow, b: StyleRow): number {
         const byType = TYPE_ORDER.indexOf(a.reminderType) - TYPE_ORDER.indexOf(b.reminderType);
         if (byType !== 0) return byType;
-        const byGroup = (a.groupOrder ?? 0) - (b.groupOrder ?? 0);
-        if (byGroup !== 0) return byGroup;
         return a.label < b.label ? -1 : a.label > b.label ? 1 : 0;
     }
 }

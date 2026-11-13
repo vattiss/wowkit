@@ -79,13 +79,10 @@ export function installActionBars(state: ClientState, frames: FrameRegistry): vo
             return $multi("spell", spellId, undefined, spellId);
         },
         GetTotemInfo: (slot) => {
-            // A secret answer, which addon code cannot test: the guarded call fails
-            if (state.areTotemsHidden) error("secret totem slot");
             const totem = state.totems[slot];
             if (!totem) return $multi(false, "", 0, 0, 0, 0, 0);
             return $multi(true, totem.name, totem.start, totem.duration, 0, 0, 0);
         },
-        GetMultiCastTotemSpells: (slot: number) => $multi(...(state.totemSpells[slot] ?? [])),
         strtrim: (text: string) => string.match(text, "^%s*(.-)%s*$")[0] ?? "",
         GetMacroSpell: (macro) => state.barMacros[macro as number]?.spellId,
         GetMacroInfo: (macro) => {

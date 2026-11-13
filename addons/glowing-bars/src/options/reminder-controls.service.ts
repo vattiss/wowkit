@@ -17,7 +17,6 @@ type FeatureKey =
     | "isWeaponBuffEnabled"
     | "showPartyBuffs"
     | "showRaidBuffs"
-    | "shouldGlowTotemsOnlyOnTotemBar"
     | "shouldNoteOwnOlderRankBuffs"
     | "shouldNoteOthersOlderRankBuffs"
     | "isOldRankEnabled"

@@ -42,8 +42,6 @@ import "./defensive-execute.spec";
 import "./spell-procs.spec";
 import "./cultivation.spec";
 import "./soul-link.spec";
-import "./totems.spec";
-import "./totems-matrix.spec";
 import "./welcome.spec";
 import "./afk-rainbow.spec";
 import "./message-look.spec";

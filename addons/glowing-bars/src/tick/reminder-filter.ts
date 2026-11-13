@@ -15,7 +15,6 @@ export function createEmptyReminders(): Reminders {
         addedWeaponSpells: [],
         coveredWeaponButtons: [],
         seals: [],
-        totems: [],
         trackings: [],
         buffsNotOnBars: [],
         partySuggestions: [],
@@ -64,7 +63,6 @@ export function filterReminders(target: Reminders, reminders: Reminders, isShown
     target.coveredWeaponButtons = reminders.coveredWeaponButtons;
     copyShown(target.addedWeaponSpells, reminders.addedWeaponSpells, "weaponBuff", getOwnId, isShown);
     copyShown(target.seals, reminders.seals, "missingSeal", getOwnId, isShown);
-    copyShown(target.totems, reminders.totems, "missingTotem", getOwnId, isShown);
     copyShown(target.trackings, reminders.trackings, "missingTracking", getOwnId, isShown);
     copyShown(target.outdatedRanks, reminders.outdatedRanks, "oldRank", getRankId, isShown);
     // Only a chat line, with switches of its own: none of the table's rules

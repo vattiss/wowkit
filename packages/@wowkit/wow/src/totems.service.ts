@@ -24,17 +24,6 @@ export class TotemsService {
         return { name: name!, startTime: tonumber(startTime) ?? 0, duration: tonumber(duration) ?? 0 };
     }
 
-    /** The totem spells the player knows for a slot, as the totem bar offers them; none when the client gives no answer. */
-    listSlotSpells(slot: number): number[] {
-        const ids = attempt(() => [...GetMultiCastTotemSpells(slot)]) ?? [];
-        const spells: number[] = [];
-        for (const id of ids) {
-            const readable = getReadable(id);
-            if (readable !== undefined && type(readable) === "number") spells.push(readable);
-        }
-        return spells;
-    }
-
     /** The spells the player put into the totem bar (MultiCastActionButton1-4, readable in combat), in slot order. */
     listTotemBarSpells(): number[] {
         const spells: number[] = [];
