@@ -109,6 +109,8 @@ export interface ClientState {
         isOwnBuff?: boolean;
         isOnCooldown?: boolean;
         iconAlpha?: number;
+        /** How transparent the icon shows, its window's Opacity and fading in: 1, unless the test says so. */
+        effectiveAlpha?: number;
         isDrawn?: boolean;
         /** A bar in Tracked Bars, not an icon in Tracked Buffs. */
         isBar?: boolean;

@@ -121,10 +121,12 @@ describe("Tracked Bars, a window of its own", () => {
             { isCooldownManagerSetUp: true, isTrackedBarsSplit: true, trackedBarsIcons: "show", barsThatGlow: { trackedBars: true } },
         );
         world.advance(3);
-        // Beside the icon of the bar: on the screen, as on the icons of the other windows
+        // Beside the icon of the bar: in a holder on the screen, as on the icons of the other windows
         const besideIcons = world.frames.filter(
             (frame) =>
-                frame.parent === (UIParent as unknown as FakeFrame) && frame.template === "ActionButtonSpellAlertTemplate" && frame.isShown,
+                frame.parent?.parent === (UIParent as unknown as FakeFrame) &&
+                frame.template === "ActionButtonSpellAlertTemplate" &&
+                frame.isShown,
         );
         expect(besideIcons.length).toBe(1);
         // On the icon at the end of the bar, not on the bar, which carries the cooldown ID
@@ -234,5 +236,44 @@ describe("repairing the hidden windows", () => {
         world.advance(1);
         world.openOptions();
         expect(world.isOptionShown("Repair Hidden Windows")).toBe(false);
+    });
+});
+
+describe("a glow beside a Cooldown Manager icon that its window makes transparent (issue #71)", () => {
+    /** A priest whose Inner Fire glows on its Tracked Buffs icon too, shown as transparent as `alpha`. */
+    function createWorldWithIcon(alpha: number): World {
+        const world = createWorld(
+            (state) => {
+                playAs(state, PRIEST);
+                learnSpell(state, INNER_FIRE);
+                state.bars[1] = INNER_FIRE.id;
+                state.trackedBuffs.push({ spellId: INNER_FIRE.id, isActive: false, effectiveAlpha: alpha });
+            },
+            { isCooldownManagerSetUp: true, trackedBuffsIcons: "show", barsThatGlow: { trackedBuffs: true } },
+        );
+        world.advance(3);
+        return world;
+    }
+
+    /** The holders of the glows beside the icons that are lit: how transparent each is. */
+    function readHolderAlphas(world: World): number[] {
+        return world.frames
+            .filter((frame) => frame.parent?.parent === (UIParent as unknown as FakeFrame) && frame.isShown)
+            .filter((frame) => frame.template === "ActionButtonSpellAlertTemplate")
+            .map((frame) => frame.parent!.alpha);
+    }
+
+    it("takes the icon's transparency: none at all while the icon cannot be seen", () => {
+        const world = createWorldWithIcon(0);
+        expect(world.glowsOn(1)).toBe(1);
+        expect(readHolderAlphas(world).join(",")).toBe("0");
+    });
+
+    it("is as faint as a half transparent icon, and full once the window shows it again", () => {
+        const world = createWorldWithIcon(0.5);
+        expect(readHolderAlphas(world).join(",")).toBe("0.5");
+        world.state.trackedBuffs[0]!.effectiveAlpha = 1;
+        world.advance(1);
+        expect(readHolderAlphas(world).join(",")).toBe("1");
     });
 });

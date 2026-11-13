@@ -86,6 +86,7 @@ function installCooldownViewers(state: ClientState): void {
         icon.IsActive = (_self: unknown) => (isInSpells ? true : buff.isActive);
         icon.isOnActualCooldown = buff.isOnCooldown;
         icon.IsVisible = (_self: unknown) => buff.isDrawn !== false;
+        icon.GetEffectiveAlpha = (_self: unknown) => buff.effectiveAlpha ?? 1;
         icon.GetFrameLevel = (_self: unknown) => 1;
         icon.SetAlpha = (_self: unknown, alpha: number) => {
             buff.iconAlpha = alpha;
@@ -95,6 +96,7 @@ function installCooldownViewers(state: ClientState): void {
             const barIcon = barIcons.get(buff) ?? createInertObject<Record<string, unknown>>();
             barIcons.set(buff, barIcon);
             barIcon.IsVisible = (_self: unknown) => buff.isDrawn !== false;
+            barIcon.GetEffectiveAlpha = (_self: unknown) => buff.effectiveAlpha ?? 1;
             barIcon.GetFrameLevel = (_self: unknown) => 1;
             icon.Icon = barIcon;
         }

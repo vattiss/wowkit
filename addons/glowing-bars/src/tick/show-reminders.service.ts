@@ -205,6 +205,8 @@ export class ShowRemindersService {
     }
 
     private updateGlows(isSame: boolean): void {
+        // Every tick, whether the glows changed or not: a window fades with no event
+        this.glow.matchBesideButtons();
         // No type's spells changed, and the glows shown are still right: nothing to do. Icons that glow can be reused for another spell
         const extraKey = this.glow.getExtraTargetsKey();
         if (isSame && this.shownGlowKey !== undefined && extraKey === "") return;

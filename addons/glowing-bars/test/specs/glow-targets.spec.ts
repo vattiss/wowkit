@@ -67,7 +67,9 @@ function createPriest(saved: Record<string, unknown>): World {
 function countIconGlows(world: World): number {
     return world.frames.filter(
         (frame) =>
-            frame.parent === (UIParent as unknown as FakeFrame) && frame.template === "ActionButtonSpellAlertTemplate" && frame.isShown,
+            frame.parent?.parent === (UIParent as unknown as FakeFrame) &&
+            frame.template === "ActionButtonSpellAlertTemplate" &&
+            frame.isShown,
     ).length;
 }
 

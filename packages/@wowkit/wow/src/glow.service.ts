@@ -25,6 +25,7 @@ import { showLoopPicture } from "./utils/glow-picture.utils";
 import { createLineGlow } from "./utils/glow-line.utils";
 import { BORDER_SCALE, createSoftFrame } from "./utils/glow-border.utils";
 import { CLASSIC_ANTS_SCALE, CLASSIC_SCALE, createClassicGlow, createFallbackGlow } from "./utils/glow-classic.utils";
+import { GlowHolders } from "./utils/glow-holders";
 import { applyGlowColor } from "./utils/glow-color.utils";
 import { createStillFades } from "./utils/glow-fade.utils";
 import type { ActionBarsService } from "./action-bars.service";
@@ -58,6 +59,8 @@ export class GlowService {
     private readonly sizes = new LuaMap<ActionButton, [width: number, height: number, scale: number]>();
     /** The gamepad buttons whose showing and hiding the glows beside them follow. */
     private readonly tracked = new LuaSet<ActionButton>();
+    /** The holders of the glows beside their buttons, as transparent as the buttons. */
+    private readonly holders = new GlowHolders();
     /** The breathing of the glows that show (round, or square and breathing): they restart together, in step. */
     private readonly pulses = new LuaSet<AnimationGroup>();
     /** Other frames a spell can glow on (icons of the Cooldown Manager), and a text that changes when they do. */
@@ -166,6 +169,11 @@ export class GlowService {
         entry.isWanted = false;
         if (isStill(entry.animation) && entry.fadeOut !== undefined && entry.frame.IsShown()) entry.fadeOut.Play();
         else entry.frame.Hide();
+    }
+
+    /** The glows beside their buttons fade as the buttons do: a Cooldown Manager window's Opacity, or its fading out. */
+    matchBesideButtons(): void {
+        this.holders.matchButtons();
     }
 
     /** The buttons a glow is lit on, but those of the gamepad bars: their glow is beside them. */
@@ -283,13 +291,13 @@ export class GlowService {
     private createOverlay(button: ActionButton, animation: GlowAnimation): Overlay {
         if (!this.isBesideButton(button)) return this.createOverlayIn(button, button, animation);
         this.trackButton(button);
-        const overlay = this.createOverlayIn(UIParent, button, animation);
+        const overlay = this.createOverlayIn(this.holders.getHolder(button), button, animation);
         overlay.isBeside = true;
         overlay.frame.SetFrameStrata(button.GetFrameStrata());
         return overlay;
     }
 
-    /** The glow of the button, made in `parent`: the button itself, or the screen for a button of the gamepad bars. */
+    /** The glow of the button, made in `parent`: the button itself, or the holder of a glow beside it (see GlowHolders). */
     private createOverlayIn(parent: Frame, button: ActionButton, animation: GlowAnimation): Overlay {
         const level = button.GetFrameLevel() + 6;
         if (this.isRoundButton(button)) return this.createRing(parent, button, level, animation);
