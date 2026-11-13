@@ -129,5 +129,7 @@ export const BUFF_LISTS: { [classToken: string]: ClassBuff[] | undefined } = {
         createClassBuff("DemonArmor", L.DemonArmor, { categoryMembers: lockSkins }),
         createClassBuff("DemonSkin", L.DemonSkin, { categoryMembers: lockSkins }),
         createClassBuff("UnendingBreath", L.UnendingBreath, { isSwimmingOnly: true, last: 600 }),
+        // Cast again for each demon summoned; without a demon it cannot be cast, so it does not glow
+        createClassBuff("SoulLink", L.SoulLink),
     ],
 };

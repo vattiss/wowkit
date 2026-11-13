@@ -41,6 +41,7 @@ import "./options-window.spec";
 import "./defensive-execute.spec";
 import "./spell-procs.spec";
 import "./cultivation.spec";
+import "./soul-link.spec";
 import "./welcome.spec";
 import "./afk-rainbow.spec";
 import "./message-look.spec";

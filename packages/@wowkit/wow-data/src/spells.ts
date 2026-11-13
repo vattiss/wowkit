@@ -389,6 +389,8 @@ export const Warlock = {
     DemonArmor: 706,
     DemonSkin: 687,
     UnendingBreath: 5697,
+    // A talent: it shares damage with the demon, and is cast again for each one summoned
+    SoulLink: 19028,
     Firestone: 6366,
     Spellstone: 2362,
     DetectInvisibility: 132,
