@@ -22,10 +22,12 @@ export class AuraWatchService {
         this.refresh.requestTick();
     }
 
-    /** The player's pet came or went (a demon summoned or dismissed): Soul Link is asked for only with one. */
+    /** The player's pet came or went (a demon summoned or dismissed): Soul Link is asked for only with one, and cast again. */
     @OnGameEvent("UNIT_PET")
     notePetChange(unit: UnitToken): void {
-        if (unit === "player") this.refresh.requestTick();
+        if (unit !== "player") return;
+        this.auras.notePetChange();
+        this.refresh.requestTick();
     }
 
     @OnUnitEvent("UNIT_AURA")

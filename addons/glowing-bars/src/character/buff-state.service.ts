@@ -12,7 +12,7 @@ import {
     buildNameKey,
     hasKnownExpiry,
 } from "@wowkit/wow";
-import { Warrior } from "@wowkit/wow-data";
+import { Warlock, Warrior } from "@wowkit/wow-data";
 import type { BuffCategory } from "../knowledge/buff-categories.constants";
 import type { BuffKnowledgeService } from "../knowledge/buff-knowledge.service";
 import type { BuffMemoryService } from "./buff-memory.service";
@@ -172,6 +172,11 @@ export class BuffStateService {
         if (this.shieldBlockCharges === 0) return;
         this.shieldBlockCharges -= 1;
         if (this.shieldBlockCharges === 0) this.memory.forget(Warrior.ShieldBlock);
+    }
+
+    /** The player's pet came or went: Soul Link was on the demon before, and goes with it, also in a fight. */
+    notePetChange(): void {
+        this.memory.forget(Warlock.SoulLink);
     }
 
     /** A shapeshift happened. */

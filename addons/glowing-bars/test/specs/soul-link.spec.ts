@@ -63,6 +63,18 @@ describe("Soul Link in a fight, while the game hides the auras", () => {
         world.advance(1);
     }
 
+    it("glows for a new demon summoned in the fight, though the old one had it", () => {
+        const world = createWarlock(true, true);
+        startFight(world);
+        expect(world.glowsOn(1)).toBe(0);
+        // The demon dies and another is summoned: Soul Link went with the first
+        world.state.auras = [];
+        world.state.pet = {};
+        world.fire("UNIT_PET", "player");
+        world.advance(0.1);
+        expect(world.glowsOn(1)).toBe(1);
+    });
+
     it("stays dark when it was cast before the fight", () => {
         const world = createWarlock(true, true);
         startFight(world);
