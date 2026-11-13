@@ -1,7 +1,7 @@
 // Written by scripts/generate-release-notes.ts from release-notes/*.md, at each build: not to be edited by hand.
 
 /** The version of the addon this build is. */
-export const ADDON_VERSION = "3.3.1";
+export const ADDON_VERSION = "3.3.2-beta.1";
 
 export interface ReleaseNote {
     version: string;
