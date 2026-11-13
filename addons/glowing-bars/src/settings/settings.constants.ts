@@ -2,7 +2,8 @@ import { isSoundKey } from "@wowkit/ui";
 import { tryCall, type GlowAnimation } from "@wowkit/wow";
 import { Racial, Warrior } from "@wowkit/wow-data";
 import { convertOldSettings } from "./settings-migration";
-import type { AddonSettings, ReminderType, AddableType, Style, StyleOverride, When, MessageTextChoice } from "./settings.interface";
+import { ADDABLE_TYPES, TYPE_ORDER } from "./type-order.constants";
+import type { AddonSettings, ReminderType, Style, StyleOverride, When, MessageTextChoice } from "./settings.interface";
 
 /** The global the TOC saves per character (## SavedVariablesPerCharacter). */
 export const SAVED_VARIABLES_NAME = "GlowingBarsCharDB";
@@ -19,6 +20,14 @@ export const WINDOW_ICONS_SETTINGS = {
 
 /** Every window of the Cooldown Manager kept out of sight, for a player who did not use it. */
 const HIDDEN_WINDOWS = { trackedBuffsIcons: "hide", trackedBarsIcons: "hide", essentialIcons: "hide", utilityIcons: "hide" } as const;
+
+/** The types of a class of their own, on: seals, trackings and totems; the totems on every bar. */
+const TYPE_SWITCHES = {
+    isMissingSealEnabled: true,
+    isMissingTrackingEnabled: true,
+    isMissingTotemEnabled: true,
+    shouldGlowTotemsOnlyOnTotemBar: false,
+} as const;
 
 /** The lines the addon writes in the chat by itself: the greeting, and the notes of a buff of an older rank. */
 const CHAT_LINES = { shouldShowGreeting: true, shouldNoteOwnOlderRankBuffs: true, shouldNoteOthersOlderRankBuffs: true } as const;
@@ -62,8 +71,7 @@ export function createDefaultSettings(): AddonSettings {
         isLowStockEnabled: true,
         belowLimits: {},
         isProcEnabled: true,
-        isMissingSealEnabled: true,
-        isMissingTrackingEnabled: true,
+        ...TYPE_SWITCHES,
         styles: {},
         spellStyles: {},
         enabledBuffs: {},
@@ -139,6 +147,17 @@ export const STYLE_DEFAULTS: { [key in ReminderType]: Style } = {
         sound: "none",
         repeat: 0,
         when: "always",
+        glowTime: 0,
+        animation: "circling",
+    },
+    // #C8732A, the earth's ochre: each totem glows only while no totem stands in its slot, from an enemy targeted on
+    missingTotem: {
+        color: [0.78, 0.45, 0.16],
+        glowPercent: 100,
+        isMessageOn: false,
+        sound: "none",
+        repeat: 0,
+        when: "enemyTargeted",
         glowTime: 0,
         animation: "circling",
     },
@@ -235,31 +254,6 @@ export const GLOW_TIME_CHOICES = [0, 1, 2, 3, 5, 10];
 
 /** The choices of from how many missing a buff its group version is asked for. */
 export const GROUP_FROM_CHOICES = [1, 2, 3, 4, 5];
-
-/** The types a spell can be added as, in the order the add button goes through them. */
-export const ADDABLE_TYPES: AddableType[] = [
-    "readyCooldown",
-    "proc",
-    "missingBuff",
-    "weaponBuff",
-    "lowReagent",
-    "lowStock",
-    "missingSeal",
-    "missingTracking",
-];
-
-/** The types in the order the tables list them. */
-export const TYPE_ORDER: ReminderType[] = [
-    "missingBuff",
-    "weaponBuff",
-    "missingSeal",
-    "missingTracking",
-    "lowReagent",
-    "lowStock",
-    "readyCooldown",
-    "proc",
-    "oldRank",
-];
 
 /** A saved value that is one of the choices; undefined for any other. */
 /** How long a message can stay, in seconds; 0 is as long as the button glows. */
@@ -363,3 +357,5 @@ export function repairSettings(values: AddonSettings): void {
         );
     }
 }
+
+export { ADDABLE_TYPES, TYPE_ORDER } from "./type-order.constants";

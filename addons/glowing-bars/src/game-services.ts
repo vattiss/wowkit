@@ -2,6 +2,7 @@
 import type { Addon } from "@wowkit/core";
 import {
     ActionBarsService,
+    TotemsService,
     AurasService,
     BagsService,
     BarFadeService,
@@ -53,6 +54,7 @@ export function makeGame(addon: Addon, addonName: string) {
     const barKeys = addon.register(new BarKeysService(actionBars, buttonRegistry));
     const notice = addon.register(new NoticeService(addonName));
     const tooltips = addon.register(new TooltipService());
+    const totems = addon.register(new TotemsService());
     return {
         clock,
         player,
@@ -74,6 +76,7 @@ export function makeGame(addon: Addon, addonName: string) {
         notice,
         tooltips,
         buttonSearch,
+        totems,
     };
 }
 export type Game = ReturnType<typeof makeGame>;

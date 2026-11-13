@@ -30,6 +30,9 @@ type Orientation = "HORIZONTAL" | "VERTICAL";
 /** Plays a sound file from the Interface folder; answers whether it will play. */
 declare function PlaySoundFile(this: void, file: string): boolean;
 
+/** The totem spells the player knows for a totem slot (1 fire, 2 earth, 3 water, 4 air), as the totem bar offers them. */
+declare function GetMultiCastTotemSpells(this: void, slot: number): LuaMultiReturn<number[]>;
+
 /** FrameXML ColorMixin (CreateColor, NORMAL_FONT_COLOR, ...). */
 interface ColorMixin {
     r: number;

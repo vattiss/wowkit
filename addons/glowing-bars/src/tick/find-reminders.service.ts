@@ -10,6 +10,7 @@ import type { ReagentsService } from "../reagents/reagents.service";
 import type { AddedRemindersService } from "../reminders/added-reminders.service";
 import type { LowStockService } from "../reminders/low-stock.service";
 import type { SealReminderService } from "../reminders/seal-reminder.service";
+import type { TotemReminderService } from "../reminders/totem-reminder.service";
 import type { TrackingReminderService } from "../reminders/tracking-reminder.service";
 import type { PartyBuffsService } from "../reminders/party-buffs.service";
 import type { LowStock, MissingBuffs, PartySuggestion } from "../reminders/reminders.interface";
@@ -57,6 +58,7 @@ export class FindRemindersService {
         private readonly reagents: ReagentsService,
         private readonly addedReminders: AddedRemindersService,
         private readonly sealReminder: SealReminderService,
+        private readonly totemReminder: TotemReminderService,
         private readonly trackingReminder: TrackingReminderService,
         private readonly settings: AddonSettingsService,
         private readonly clock: ClockService,
@@ -83,6 +85,7 @@ export class FindRemindersService {
         const found = this.findBuffReminders();
         this.addWeaponReminders(found);
         found.seals = this.sealReminder.findMissingSeal();
+        found.totems = this.totemReminder.findMissingTotems();
         found.trackings = this.trackingReminder.findMissingTrackings();
         found.outdatedRanks = this.settings.get("isOldRankEnabled") ? this.outdatedRanks.findOutdatedRanks() : none.outdatedRanks;
         // Its own switches: the chat line does not wait for the Old rank reminder

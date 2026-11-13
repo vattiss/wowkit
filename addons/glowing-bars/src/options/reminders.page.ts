@@ -157,6 +157,13 @@ export class RemindersPage implements OptionsPage {
         this.reminderControls.addSwitch(tab, "shouldNoteOthersOlderRankBuffs", "OPT_NOTE_OTHERS_OLDER_RANK", "TIP_NOTE_OTHERS_OLDER_RANK");
         this.weaponSection.addWeaponSection(tab);
         this.glowsSection.addGlowsSection(tab);
+        // The shaman's totems: where they glow
+        const [, classToken] = UnitClass("player");
+        if (classToken === "SHAMAN") {
+            this.reminderControls.addHeader(tab, "HDR_TOTEMS");
+            const [label, tip] = ["OPT_TOTEMS_ONLY_ON_TOTEM_BAR", "TIP_TOTEMS_ONLY_ON_TOTEM_BAR"] as const;
+            this.reminderControls.addSwitch(tab, "shouldGlowTotemsOnlyOnTotemBar", label, tip);
+        }
     }
 
     /** How the messages at the top of the screen come: their words and colors are the table's. */

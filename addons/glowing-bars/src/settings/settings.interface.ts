@@ -3,7 +3,16 @@ import type { GlowAnimation, Rgb } from "@wowkit/wow";
 
 /** The types of reminder. Each has a look (color, glow %, message, sound) the player can change for the type and for a spell. */
 export type ReminderType =
-    "missingBuff" | "weaponBuff" | "missingSeal" | "missingTracking" | "readyCooldown" | "proc" | "oldRank" | "lowReagent" | "lowStock";
+    | "missingBuff"
+    | "weaponBuff"
+    | "missingSeal"
+    | "missingTracking"
+    | "missingTotem"
+    | "readyCooldown"
+    | "proc"
+    | "oldRank"
+    | "lowReagent"
+    | "lowStock";
 
 /** The settings service of this addon: a SettingsService that knows the shape of its settings. */
 export type AddonSettingsService = SettingsService<AddonSettings>;
@@ -145,6 +154,10 @@ export interface AddonSettings {
     isMissingSealEnabled: boolean;
     /** A miner or a herbalist with no tracking on. */
     isMissingTrackingEnabled: boolean;
+    /** A shaman with no totem standing in a slot. */
+    isMissingTotemEnabled: boolean;
+    /** Do the missing totems glow only on the totem bar, not on the action bars? */
+    shouldGlowTotemsOnlyOnTotemBar: boolean;
     /** The player's changes to the look of each type of reminder (the default look of its spells). */
     styles: { [key in ReminderType]?: StyleOverride };
     /** The player's changes to the look of one spell in one type, by the type and the spell's name ("rank:Smite"). */

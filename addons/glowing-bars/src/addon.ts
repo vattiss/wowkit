@@ -2,6 +2,7 @@
 // The order of the lines is also the order the lifecycle hooks run in. The wiring is split in stages: Lua 5.1 lets a
 // function reach at most 60 outer names, and one function naming every service would reach more.
 import { makeGame, type Game } from "./game-services";
+import { makeTable } from "./addon-table";
 import { Addon } from "@wowkit/core";
 import {
     ControlsService,
@@ -12,7 +13,7 @@ import {
     SettingsService,
     WidgetsService,
 } from "@wowkit/ui";
-import { NoticeService, SavedVariablesService, ValueCurvesService } from "@wowkit/wow";
+import { SavedVariablesService, ValueCurvesService } from "@wowkit/wow";
 import { AuraWatchService } from "./character/aura-watch.service";
 import { BlockedActionService } from "./character/blocked-action.service";
 import { BuffMemoryService } from "./character/buff-memory.service";
@@ -35,11 +36,6 @@ import { AnimationSection } from "./options/animation.section";
 import { GlowsSection } from "./options/glows.section";
 import { IdTooltipService } from "./options/id-tooltip.service";
 import { ReminderControlsService } from "./options/reminder-controls.service";
-import { StyleChoicesService } from "./options/style-choices.service";
-import { StyleEditsService } from "./options/style-edits.service";
-import { StyleRowsService } from "./options/style-rows.service";
-import { StyleTableService } from "./options/style-table.service";
-import { StyleWindowService } from "./options/style-window.service";
 import { TableCommand } from "./options/table-command";
 import { ScanReport } from "./options/scan-report";
 import { WelcomeService } from "./options/welcome.service";
@@ -56,6 +52,7 @@ import { LowStockService } from "./reminders/low-stock.service";
 import { OutdatedRanksService } from "./reminders/outdated-ranks.service";
 import { SealReminderService } from "./reminders/seal-reminder.service";
 import { TrackingReminderService } from "./reminders/tracking-reminder.service";
+import { TotemReminderService } from "./reminders/totem-reminder.service";
 import { PartyBuffsService } from "./reminders/party-buffs.service";
 import { WeaponChoiceService } from "./reminders/weapon/weapon-choice.service";
 import { WEAPON_BUFF_BY_SPELL } from "./reminders/weapon/weapon-buffs.constants";
@@ -63,9 +60,8 @@ import { WeaponMemoryService } from "./reminders/weapon/weapon-memory.service";
 import { WeaponReadingService } from "./reminders/weapon/weapon-reading.service";
 import { WeaponReminderService } from "./reminders/weapon/weapon-reminder.service";
 import { ACCOUNT_VARIABLES_NAME, createDefaultSettings, repairSettings } from "./settings/settings.constants";
-import type { AddonSettings } from "./settings/settings.interface";
+import type { AddonSettings, AddonSettingsService } from "./settings/settings.interface";
 import { StyleService } from "./settings/style.service";
-import { EnabledService } from "./settings/enabled.service";
 import { DisplayService } from "./tick/display.service";
 import { FindRemindersService } from "./tick/find-reminders.service";
 import { NoticesService } from "./tick/notices.service";
@@ -97,7 +93,7 @@ function makeTexts(addon: Addon, game: Game) {
     const styles = addon.register(new StyleService(game.spells, settings));
     return { settings, locale, messages, styles };
 }
-type Texts = ReturnType<typeof makeTexts>;
+export type Texts = ReturnType<typeof makeTexts>;
 
 /** What the addon knows about the player's buffs. */
 function makeBuffs(addon: Addon, game: Game, texts: Texts) {
@@ -108,7 +104,7 @@ function makeBuffs(addon: Addon, game: Game, texts: Texts) {
     const state = addon.register(new BuffStateService(game.auras, game.spells, game.player, memory, knowledge, game.cooldownViewer));
     return { idle, classBuffs, state };
 }
-type Buffs = ReturnType<typeof makeBuffs>;
+export type Buffs = ReturnType<typeof makeBuffs>;
 
 /** What the addon reminds about. */
 function makeReminders(addon: Addon, addonName: string, game: Game, texts: Texts, buffs: Buffs) {
@@ -155,11 +151,18 @@ function makeReminders(addon: Addon, addonName: string, game: Game, texts: Texts
     const added = addon.register(
         new AddedRemindersService(addedSpells, spells, actionBars, buffs.state, weaponEnchants, bags, settings, reagents, fedBuffs, player),
     );
+    const ofClass = makeClassReminders(addon, game, buffs, settings, addedSpells);
+    return { buff, reagents, party, weaponChoice, weapon, outdatedRanks, glowCues, addedSpells, added, fedBuffs, limits, ...ofClass };
+}
+export type Reminders = ReturnType<typeof makeReminders>;
+
+/** The reminders of one class each: the paladin's seals, the gatherers' trackings, the shaman's totems. */
+function makeClassReminders(addon: Addon, game: Game, buffs: Buffs, settings: AddonSettingsService, addedSpells: AddedSpellsService) {
     const seal = addon.register(new SealReminderService(game.spells, game.actionBars, buffs.state, game.player, settings, addedSpells));
     const tracking = addon.register(new TrackingReminderService(game.spells, game.actionBars, buffs.state, settings, addedSpells));
-    return { buff, reagents, party, weaponChoice, weapon, outdatedRanks, glowCues, addedSpells, added, fedBuffs, limits, seal, tracking };
+    const totem = addon.register(new TotemReminderService(game.spells, game.actionBars, game.totems, settings, game.clock));
+    return { seal, tracking, totem };
 }
-type Reminders = ReturnType<typeof makeReminders>;
 
 /** Blizzard's Cooldown Manager, running in the background: what the addon reminds about goes on display in it. */
 function makeCooldownManager(addon: Addon, game: Game, texts: Texts, buffs: Buffs, reminders: Reminders) {
@@ -199,6 +202,7 @@ function makeTick(addon: Addon, addonName: string, game: Game, texts: Texts, buf
             reminders.reagents,
             reminders.added,
             reminders.seal,
+            reminders.totem,
             reminders.tracking,
             settings,
             game.clock,
@@ -233,35 +237,6 @@ function makeTick(addon: Addon, addonName: string, game: Game, texts: Texts, buf
     addon.register(new RosterService(refresh, reminders.party));
     addon.register(new BlockedActionService(addonName, game.player, messages, locale));
     return finder;
-}
-
-/** The table of looks (/gb), and its command. */
-function makeTable(addon: Addon, addonName: string, game: Game, texts: Texts, buffs: Buffs, reminders: Reminders) {
-    const { locale, messages, styles } = texts;
-    const rows = addon.register(
-        new StyleRowsService(
-            game.player,
-            game.spells,
-            buffs.classBuffs,
-            reminders.weaponChoice,
-            reminders.reagents,
-            locale,
-            styles,
-            reminders.glowCues,
-            reminders.addedSpells,
-            reminders.seal,
-            reminders.tracking,
-            reminders.fedBuffs,
-        ),
-    );
-    const choices = addon.register(new StyleChoicesService(locale, styles, messages, texts.settings));
-    const windows = addon.register(new StyleWindowService(locale, texts.settings));
-    const switches = addon.register(new EnabledService(game.spells, buffs.classBuffs, reminders.reagents, texts.settings));
-    const tableNotice = addon.register(new NoticeService(`${addonName}-table`));
-    const edits = addon.register(
-        new StyleEditsService(locale, reminders.addedSpells, tableNotice, switches, rows, styles, reminders.limits, reminders.reagents),
-    );
-    return addon.register(new StyleTableService(locale, styles, rows, messages, choices, windows, edits));
 }
 
 /** The Settings panel. */

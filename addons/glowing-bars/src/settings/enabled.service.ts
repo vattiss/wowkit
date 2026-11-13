@@ -13,6 +13,7 @@ const TYPE_SWITCHES = {
     weaponBuff: "isWeaponBuffEnabled",
     missingSeal: "isMissingSealEnabled",
     missingTracking: "isMissingTrackingEnabled",
+    missingTotem: "isMissingTotemEnabled",
     lowReagent: "isLowReagentEnabled",
     readyCooldown: "isReadyCooldownEnabled",
     proc: "isProcEnabled",

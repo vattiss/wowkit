@@ -146,11 +146,14 @@ export class StyleTableService {
         if (headerText === "HDR_TABLE_SPELLS") showHeaderTip(content, top, () => this.locale.getText("TIP_TABLE_SPELLS"));
         let y = top + HEADER_HEIGHT;
         let previousType: StyleRow["reminderType"] | undefined;
+        let previousGroup: TextKey | undefined;
         for (const row of rows) {
             if (headerText === "HDR_TABLE_SPELLS" && row.reminderType !== previousType) {
-                y = this.drawTypeHeading(content, row.reminderType, y);
+                y = this.drawHeading(content, TYPE_TEXTS[row.reminderType], y, false);
                 previousType = row.reminderType;
             }
+            if (row.group !== undefined && row.group !== previousGroup) y = this.drawHeading(content, row.group, y, true);
+            previousGroup = row.group;
             const widgets = this.takeWidgets(content);
             widgets.row = row;
             widgets.frame.ClearAllPoints();
@@ -167,16 +170,6 @@ export class StyleTableService {
             y += ROW_HEIGHT;
         }
         return y + 10;
-    }
-
-    /** The small heading of a type, above its spells; returns where its first row goes. */
-    private drawTypeHeading(content: Frame, reminderType: StyleRow["reminderType"], top: number): number {
-        const heading = this.takeHeader(content);
-        heading.SetFontObject("GameFontNormalSmall");
-        heading.SetPoint("TOPLEFT", content, "TOPLEFT", 6, -(top + 6));
-        heading.SetText(this.locale.getText(TYPE_TEXTS[reminderType]));
-        heading.Show();
-        return top + TYPE_HEADING_HEIGHT;
     }
 
     /** The header and the row that adds a spell by its ID, at the end of the list. */
@@ -199,6 +192,16 @@ export class StyleTableService {
         header.SetText(this.locale.getText("HDR_CUSTOM_SOUNDS"));
         header.Show();
         return this.windows.drawCustomSounds(content, top);
+    }
+
+    /** The small heading of a type above its spells, or the smaller one of a part of it (a totem's element) indented. */
+    private drawHeading(content: Frame, text: TextKey, top: number, isPart: boolean): number {
+        const heading = this.takeHeader(content);
+        heading.SetFontObject(isPart ? "GameFontDisableSmall" : "GameFontNormalSmall");
+        heading.SetPoint("TOPLEFT", content, "TOPLEFT", isPart ? 18 : 6, -(top + (isPart ? 4 : 6)));
+        heading.SetText(this.locale.getText(text));
+        heading.Show();
+        return top + TYPE_HEADING_HEIGHT;
     }
 
     private takeHeader(content: Frame): FontString {

@@ -214,6 +214,10 @@ export interface ClientState {
     castingSpell: string | undefined;
     /** Totem slot (fire 1, earth 2, water 3, air 4) -> the totem standing in it. */
     totems: { [slot: number]: { name: string; start: number; duration: number } | undefined };
+    /** The totem spells the player knows for each slot (1 fire, 2 earth, 3 water, 4 air), as GetMultiCastTotemSpells gives them. */
+    totemSpells: { [slot: number]: number[] | undefined };
+    /** In a fight the client hides the totem slots: GetTotemInfo answers with secrets. */
+    areTotemsHidden: boolean;
     /** How many enemies around fight the player (nameplate1, nameplate2...). */
     nameplates: number;
 }
@@ -296,6 +300,8 @@ export function createClientState(): ClientState {
         pet: undefined,
         castingSpell: undefined,
         totems: {},
+        totemSpells: {},
+        areTotemsHidden: false,
         nameplates: 0,
     };
 }

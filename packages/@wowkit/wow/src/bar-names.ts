@@ -13,6 +13,12 @@ export function listTotemButtonNames(): string[] {
     return names;
 }
 
+/** Is it a button of the totem bar? */
+export function isTotemBarButton(button: Frame): boolean {
+    const name = button.GetName();
+    return name !== undefined && string.find(name, "^MultiCastActionButton")[0] !== undefined;
+}
+
 export const BARS = [
     "Action",
     "MultiBarBottomLeft",
