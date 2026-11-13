@@ -58,6 +58,7 @@ import "./glow-picture.spec";
 import "./choice-list.spec";
 import "./older-rank-buffs.spec";
 import "./blessings-from-others.spec";
+import "./per-caster-matrix.spec";
 import "./ready-cooldown-choices.spec";
 import "./buff-rank-icons.spec";
 import "./reagent-languages.spec";
