@@ -123,6 +123,13 @@ describe("the Below column", () => {
         expect(findWindow(withArrows).width).toBe(findWindow(without).width);
     });
 
+    it("leaves its room to the names in Basic, so the rows still fill the window", () => {
+        const without = findLabel(createOpenTable(), "Recklessness")!;
+        const withArrows = findLabel(createOpenTable(ARROWS), "Recklessness")!;
+        expect(without.parent!.width).toBe(withArrows.parent!.width);
+        expect(without.width - withArrows.width).toBe(56);
+    });
+
     it("is left out in Advanced too", () => {
         const without = createOpenTable({ isTableAdvanced: true });
         const withArrows = createOpenTable({ isTableAdvanced: true, ...ARROWS });

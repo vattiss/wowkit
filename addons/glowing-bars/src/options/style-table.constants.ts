@@ -57,7 +57,29 @@ export const BASIC_COLUMN = {
     actions: { x: 644, width: 72 },
 } satisfies { [name: string]: Column };
 
-/** Where the columns of a view are; without `hasBelow` (no row has a limit) the Below column is left out and the next ones close up. */
+/**
+ * The Basic view without the Below column: its window keeps its one size, so the name takes the room, and the columns
+ * between the name and the Below column move along.
+ */
+function findWiderNameColumns(width: number): { [name in keyof typeof COLUMN]?: Column } & Omit<typeof BASIC_COLUMN, "belowLimits"> {
+    const findMoved = (column: Column): Column => ({ x: column.x + width, width: column.width });
+    const { icon, name, type, color, message, sound, enabled, actions } = BASIC_COLUMN;
+    return {
+        icon,
+        name: { x: name.x, width: name.width + width },
+        type: findMoved(type),
+        color: findMoved(color),
+        message: findMoved(message),
+        sound: findMoved(sound),
+        enabled,
+        actions,
+    };
+}
+
+/**
+ * Where the columns of a view are. Without `hasBelow` (no row has a limit) the Below column is left out: in Advanced the
+ * next ones close up, in Basic the name takes its room.
+ */
 export function findColumns(
     isAdvanced: boolean,
     hasBelow: boolean,
@@ -65,6 +87,7 @@ export function findColumns(
     const columns = isAdvanced ? COLUMN : BASIC_COLUMN;
     if (hasBelow) return columns;
     const width = columns.belowLimits.width;
+    if (!isAdvanced) return findWiderNameColumns(width);
     const closedUp: { [name in keyof typeof COLUMN]?: Column } & Omit<typeof BASIC_COLUMN, "belowLimits"> = {
         ...columns,
         enabled: { x: columns.enabled.x - width, width: columns.enabled.width },

@@ -5,6 +5,8 @@ import { ICON_SIZE, findCenteredX, COLUMN, type Column, type findColumns } from 
 /** The controls of a row that move, or hide, with the view. */
 export interface RowControls {
     frame: Frame;
+    name: FontString;
+    typeText: FontString;
     swatch: Button;
     message: CheckButton;
     sound: Button;
@@ -24,6 +26,8 @@ function applyPosition(control: Button | CheckButton | EditBox, frame: Frame, x:
 
 /** Puts the controls of a filled row in the columns of the view. */
 export function applyRowView(row: RowControls, columns: ReturnType<typeof findColumns>, isAdvanced: boolean): void {
+    applyTextColumn(row.name, row.frame, columns.name);
+    applyTextColumn(row.typeText, row.frame, columns.type);
     applyPosition(row.swatch, row.frame, findCenteredX(columns.color, 22));
     applyPosition(row.message, row.frame, findCenteredX(columns.message, 24));
     applyPosition(row.sound, row.frame, findCenteredX(columns.sound, 126));
@@ -51,10 +55,16 @@ export function createIcon(frame: Frame): Texture {
 
 export function createText(frame: Frame, column: Column, font: string): FontString {
     const text = frame.CreateFontString(undefined, "OVERLAY", font);
-    text.SetPoint("LEFT", frame, "LEFT", column.x, 0);
-    text.SetWidth(column.width - 4);
+    applyTextColumn(text, frame, column);
     text.SetJustifyH("LEFT");
     return text;
+}
+
+/** A text reads from the left of its column, cut short at its right. */
+function applyTextColumn(text: FontString, frame: Frame, column: Column): void {
+    text.ClearAllPoints();
+    text.SetPoint("LEFT", frame, "LEFT", column.x, 0);
+    text.SetWidth(column.width - 4);
 }
 
 /** The color square of a row: a button, its border, and the color. */
