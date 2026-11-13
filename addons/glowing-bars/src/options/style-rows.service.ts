@@ -128,10 +128,12 @@ export class StyleRowsService {
             if (spellId === undefined) return;
             const name = this.styles.getSpellKey(spellId);
             const look = this.readLook(reminderType, spellId, name, extra.isAdded === true);
-            // A spell the player added has a row of its own even when a list has it as another type: it glows on its own too
+            // A spell the player added has a row of its own even when a list has it as another type: it glows on its own too. As
+            // the same type, the list's row is the one (a spell added before it was built in): it has no delete button
             const key = extra.isAdded === true ? `${reminderType}:${look.key}` : suffix !== undefined ? `${name}|${suffix}` : name;
-            if (keys.has(key)) return;
+            if (keys.has(key) || (extra.isAdded === true && keys.has(`${reminderType}:${name}`))) return;
             keys.add(key);
+            if (extra.isAdded !== true) keys.add(`${reminderType}:${name}`);
             rows.push({
                 reminderType,
                 spellId,

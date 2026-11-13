@@ -94,6 +94,27 @@ describe("a proc told by its spell", () => {
         expect(createShaman(0, { enabledSpells: { [tostring(LIGHTNING_BOLT.id)]: false } }).glowsOn(1)).toBe(0);
     });
 
+    it("has one row for Lightning Bolt added by hand as a proc before it was built in, and its own for another type", () => {
+        const listRows = (reminderType: string) => {
+            const world = createWorld(
+                (state) => {
+                    playAs(state, SHAMAN);
+                    learnSpell(state, { ...LIGHTNING_BOLT, castTimeMs: 1500 });
+                    state.bars[1] = LIGHTNING_BOLT.id;
+                },
+                { addedSpells: [{ id: LIGHTNING_BOLT.id, reminderType }] },
+            );
+            world.advance(1);
+            toggleTable();
+            return world.frames
+                .filter((frame) => frame.isShown && frame.fontStrings.some((line) => line.text === LIGHTNING_BOLT.name))
+                .map((frame) => frame.fontStrings[1]?.text)
+                .join(", ");
+        };
+        expect(listRows("proc")).toBe("Proc");
+        expect(listRows("readyCooldown")).toBe("Ready cooldown, Proc");
+    });
+
     it("has a row of its own in the table, under its plain name", () => {
         const world = createWarlock();
         toggleTable();
