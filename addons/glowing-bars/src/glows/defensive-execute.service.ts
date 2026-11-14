@@ -33,6 +33,8 @@ export class DefensiveExecuteService {
     private readonly whenState = createWhenState();
     /** The one spell of the glow: the same list at every look. */
     private readonly spellIds: number[] = [];
+    /** Did this service put its message up? The faded text is one for every service: only its own is taken down. */
+    private isTextShown = false;
 
     constructor(
         private readonly player: PlayerService,
@@ -59,7 +61,7 @@ export class DefensiveExecuteService {
                 : undefined;
         if (spellId === undefined || alpha === undefined) {
             this.glow?.clear();
-            this.notice.clearFadedText();
+            this.clearText();
             return;
         }
         this.updateText(style);
@@ -73,7 +75,7 @@ export class DefensiveExecuteService {
     private updateText(style: Style): void {
         const alpha = style.isMessageOn ? this.curves.getHealthAlpha("target", CURVE_END_PERCENT, "below") : undefined;
         if (alpha === undefined) {
-            this.notice.clearFadedText();
+            this.clearText();
             return;
         }
         const choice = this.styles.getMessageTextChoice("proc", DEFENSIVE_EXECUTE_ROW);
@@ -81,6 +83,13 @@ export class DefensiveExecuteService {
         const { words } = findWords(choice, style.messageText, this.locale.getText("TEXT_PROC"), name);
         const text = this.styles.applyTextColor(style.messageColor ?? style.color, words);
         this.notice.showFadedText(text, alpha, { scale: this.settings.get("messageSize") / 100, top: this.settings.get("messageTop") });
+        this.isTextShown = true;
+    }
+
+    private clearText(): void {
+        if (!this.isTextShown) return;
+        this.notice.clearFadedText();
+        this.isTextShown = false;
     }
 
     /** The Execute to light: learned, on a bar and switched on, in Defensive Stance with a living enemy targeted. */

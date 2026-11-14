@@ -21,6 +21,7 @@ import { BuffStateService } from "./character/buff-state.service";
 import { EquipmentService } from "./character/equipment.service";
 import { IdleService } from "./character/idle.service";
 import { DefensiveExecuteService } from "./glows/defensive-execute.service";
+import { LowHealthDefenseService } from "./glows/low-health-defense.service";
 import { RosterService } from "./character/roster.service";
 import { CooldownTrackerService } from "./glows/cooldown-tracker.service";
 import { AddedSpellsService } from "./glows/added-spells.service";
@@ -204,9 +205,9 @@ function makeTick(addon: Addon, addonName: string, game: Game, texts: Texts, buf
     const tick = addon.register(new TickService(finder, shower, game.player, styles, game.clock));
     const { player, spells, actionBars, glow, notice } = game;
     const curves = new ValueCurvesService();
-    addon.register(
-        new DefensiveExecuteService(player, spells, actionBars, glow, notice, curves, styles, settings, locale, buffs.idle, game.barKeys),
-    );
+    const glowParts = [player, spells, actionBars, glow, notice, curves, styles, settings, locale, buffs.idle, game.barKeys] as const;
+    addon.register(new DefensiveExecuteService(...glowParts));
+    addon.register(new LowHealthDefenseService(...glowParts, reminders.glowCues));
     const refresh = addon.register(new RefreshService(tick, shower, buffs.state, game.clock, game.barRefresh));
     addon.register(new DisplayService(shower, tick));
     addon.register(new EquipmentService(refresh, game.player, game.weaponEnchants, reminders.weapon));

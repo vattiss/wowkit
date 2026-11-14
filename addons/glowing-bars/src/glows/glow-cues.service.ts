@@ -14,7 +14,15 @@ import type {
 } from "@wowkit/wow";
 import type { AddonSettingsService, AddableType } from "../settings/settings.interface";
 import type { AddedSpellsService } from "./added-spells.service";
-import { COOLDOWN_CUES, PROC_CUES, RACIAL_COOLDOWNS, SPELL_PROC_CUES, TARGET_TYPE_CUES, type SpellProcCue } from "./glow-cues.constants";
+import {
+    COOLDOWN_CUES,
+    LOW_HEALTH_CUES,
+    PROC_CUES,
+    RACIAL_COOLDOWNS,
+    SPELL_PROC_CUES,
+    TARGET_TYPE_CUES,
+    type SpellProcCue,
+} from "./glow-cues.constants";
 import { READY_MARGIN, type CooldownTrackerService } from "./cooldown-tracker.service";
 import type { StanceProcsService } from "./stance-procs.service";
 import type { StyleService } from "../settings/style.service";
@@ -109,6 +117,11 @@ export class GlowCuesService {
     findProcs(): number[] {
         if (!this.settings.get("isProcEnabled")) return [];
         return this.listCues(this.listCueIds("proc")).filter((id) => this.isProcUp(id) && this.tracker.getRemaining(id) <= READY_MARGIN);
+    }
+
+    /** The class's last-resort defensives that glow at low health (their own service lights them, not the procs' look). */
+    listLowHealthIds(): number[] {
+        return LOW_HEALTH_CUES[this.player.getClassToken() ?? ""] ?? [];
     }
 
     /** The procs told by their spell, not by the game calling it usable. */

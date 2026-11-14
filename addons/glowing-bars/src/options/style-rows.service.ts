@@ -154,6 +154,10 @@ export class StyleRowsService {
         for (const reminderType of ["readyCooldown", "proc"] as const) {
             for (const id of this.glowCues.listBuiltInIds(reminderType)) addListed(reminderType, id);
         }
+        // A defensive at low health: the game lights it by itself, so no sound or glow time can follow it
+        this.glowCues
+            .listLowHealthIds()
+            .forEach((id) => add("proc", this.addedSpells.getEffectiveId(id), { listId: id, isFadeOnly: true }));
         for (const { reminderType, id, extra } of this.listAddedRows()) add(reminderType, id, extra);
         // A group buff whose ranks take different reagents (Holy Candle, Sacred Candle) has a row for each reagent
         for (const reagent of this.reagents.getReagentsOfClass(this.player.getClassToken())) {

@@ -65,6 +65,14 @@ export const PROC_CUES: { [classToken: string]: number[] | undefined } = {
     WARRIOR: [Warrior.Overpower, Warrior.Revenge, Warrior.Execute, Warrior.VictoryRush],
 };
 
+/**
+ * Last-resort defensives that glow at low health (LowHealthDefenseService): lit all the while they are ready, shown only at
+ * 10% health or below, by the health the game hides. (An idea of sorrow8's fork.)
+ */
+export const LOW_HEALTH_CUES: { [classToken: string]: number[] | undefined } = {
+    PALADIN: [Paladin.TemplarsBulwark],
+};
+
 /** The creature types of the game, by their IDs (UnitCreatureType's second answer): the same in every client language. */
 export const CREATURE_TYPE = { Demon: 3, Undead: 6 };
 
