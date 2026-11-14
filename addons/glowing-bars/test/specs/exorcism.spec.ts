@@ -41,6 +41,17 @@ describe("Exorcism, a paladin's proc on undead and demons", () => {
         expect(createPaladin(undefined).glowsOn(1)).toBe(0);
     });
 
+    it("does not glow on a dead undead, nor on a friendly one", () => {
+        const dead = createPaladin(CREATURE.Undead);
+        dead.state.target!.isDead = true;
+        dead.advance(1);
+        expect(dead.glowsOn(1)).toBe(0);
+        const friend = createPaladin(CREATURE.Undead);
+        friend.state.target!.isEnemy = false;
+        friend.advance(1);
+        expect(friend.glowsOn(1)).toBe(0);
+    });
+
     it("goes by the spell's range when the game hides the target's type", () => {
         expect(createPaladin("hidden").glowsOn(1)).toBe(1);
         expect(createPaladin("hidden", 40).glowsOn(1)).toBe(0);

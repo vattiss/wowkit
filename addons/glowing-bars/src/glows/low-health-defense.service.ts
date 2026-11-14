@@ -91,8 +91,9 @@ export class LowHealthDefenseService {
         this.isTextShown = false;
     }
 
-    /** The defensive to light: the class's, learned, on a bar, switched on and off its cooldown. */
+    /** The defensive to light: the class's, learned, on a bar, switched on and off its cooldown; none while dead (0% health). */
     private findDefensive(): number | undefined {
+        if (this.player.isDead()) return undefined;
         if (!this.settings.get("isProcEnabled") || this.settings.get("isDisabled") || this.idle.shouldStayIdle(false)) return undefined;
         for (const listId of this.glowCues.listLowHealthIds()) {
             if (this.settings.get("enabledSpells")[string.format("%d", listId)] === false) continue;

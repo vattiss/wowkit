@@ -5,13 +5,14 @@ import { findLabel, toggleTable } from "./table.helpers";
 
 const BULWARK: SpellDefinition = { id: 1311015, name: "Templar's Bulwark", rank: 1, icon: 135880, isHelpful: true, cooldownSeconds: 120 };
 
-/** A paladin with Templar's Bulwark on button 1, at this health (percent). */
+/** A paladin in a fight with Templar's Bulwark on button 1, at this health (percent). */
 function createPaladin(health: number, saved?: Record<string, unknown>): World {
     const world = createWorld((state) => {
         playAs(state, PALADIN);
         learnSpell(state, BULWARK);
         state.bars[1] = BULWARK.id;
         state.health = health;
+        state.isInCombat = true;
     }, saved);
     world.advance(1);
     return world;
@@ -36,6 +37,18 @@ describe("Templar's Bulwark, a paladin's defensive at low health", () => {
         world.advance(1);
         expect(world.glowAlphasOn(1)).toEqual([]);
         expect(createPaladin(8, { enabledSpells: { [tostring(BULWARK.id)]: false } }).glowAlphasOn(1)).toEqual([]);
+    });
+
+    it("is not lit out of a fight by default (eating or drinking at low health), nor while the player is dead", () => {
+        const world = createPaladin(8);
+        world.state.isInCombat = false;
+        world.advance(1);
+        expect(world.glowAlphasOn(1)).toEqual([]);
+        world.state.isInCombat = true;
+        world.state.isPlayerDead = true;
+        world.state.health = 0;
+        world.advance(1);
+        expect(world.glowAlphasOn(1)).toEqual([]);
     });
 
     it("is as strong as its row's glow %", () => {

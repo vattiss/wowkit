@@ -159,8 +159,12 @@ export class GlowCuesService {
         return this.spellDetails.readUsability(id).isUsable === true || this.stanceProcs.isOpen(id);
     }
 
-    /** Is the target one the spell hits (Exorcism: undead or demon)? Its type where the game shows it, else the spell's range check. */
+    /**
+     * Is the target one the spell hits (Exorcism: undead or demon)? A living enemy, then its type where the game shows it, else
+     * the spell's range check. A dead one, or a friend of that type, is none.
+     */
     private isTargetOfType(id: number, creatureTypes: number[]): boolean {
+        if (!this.player.hasEnemyTarget()) return false;
         const typeId = this.units.getCreatureTypeId("target");
         if (typeId !== undefined) return creatureTypes.includes(typeId);
         return this.spellDetails.isInRange(id, "target") === true;

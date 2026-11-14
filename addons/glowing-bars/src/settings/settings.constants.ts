@@ -1,6 +1,6 @@
 import { isSoundKey } from "@wowkit/ui";
 import { tryCall, type GlowAnimation } from "@wowkit/wow";
-import { Racial, Warrior } from "@wowkit/wow-data";
+import { Paladin, Racial, Warrior } from "@wowkit/wow-data";
 import { convertOldSettings } from "./settings-migration";
 import type { AddonSettings, ReminderType, AddableType, Style, StyleOverride, When, MessageTextChoice } from "./settings.interface";
 
@@ -91,7 +91,8 @@ export const DEFENSIVE_EXECUTE_ROW = -Warrior.Execute;
 
 export const SPELL_STYLE_DEFAULTS: { [key in ReminderType]?: { [spellId: number]: StyleOverride | undefined } } = {
     // Its row has a type of its own to tell apart from: "Proc" alone would say little
-    proc: { [DEFENSIVE_EXECUTE_ROW]: { messageTextChoice: "name" } },
+    // A last-resort defensive is no use out of a fight, eating or drinking at low health
+    proc: { [DEFENSIVE_EXECUTE_ROW]: { messageTextChoice: "name" }, [Paladin.TemplarsBulwark]: { when: "inCombat" } },
     // Shield Block lasts 7 seconds: out of a fight it is no use
     missingBuff: { [Warrior.ShieldBlock]: { when: "inCombat" } },
     // Cultivation grows a second herb: it is used while gathering, out of a fight

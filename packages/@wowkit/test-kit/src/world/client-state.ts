@@ -145,6 +145,8 @@ export interface ClientState {
     areAurasHidden: boolean;
     /** In combat the game hides the spell cooldowns: no answer. */
     areCooldownsHidden: boolean;
+    /** The player is dead or a ghost. */
+    isPlayerDead: boolean;
     /** In a dungeon the game may keep secret who a unit is: UnitIsUnit answers with a secret value. */
     areUnitsSecret: boolean;
     /** The spells of the stance bar (forms, a paladin's auras), the first stance first. */
@@ -261,6 +263,7 @@ export function createClientState(): ClientState {
         reloads: 0,
         areAurasHidden: false,
         areCooldownsHidden: false,
+        isPlayerDead: false,
         areUnitsSecret: false,
         spellCosts: {},
         isAfk: false,
