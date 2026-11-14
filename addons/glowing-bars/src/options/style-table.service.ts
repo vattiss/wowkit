@@ -113,6 +113,8 @@ export class StyleTableService {
         );
         // The sounds and the help have no table: no column headers over them
         this.windows.setTableShown(tab.types.length > 0);
+        // Only the low stock is of items: the other tabs name their spells alone in the headers
+        this.windows.setItemsShown(tab.types.includes("lowStock"));
         this.applyTableWidth(content);
         this.windows.showTabs(
             shownTabs.map((each) => each.key),

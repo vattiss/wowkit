@@ -167,6 +167,8 @@ export const TEXTS = {
     COL_SPELL_ITEM: "Spell / Item",
     COL_TYPE: "Type",
     COL_SPELL_ITEM_ID: "Spell / Item ID",
+    COL_SPELL: "Spell",
+    COL_SPELL_ID: "Spell ID",
     COL_ENABLED: "Enabled",
     TIP_TYPE: "The type of the reminder. Its row under Defaults sets the look of all its rows, unless you change a row.",
     TIP_ID: "The ID the addon looks for. Change it if the game uses another one.",

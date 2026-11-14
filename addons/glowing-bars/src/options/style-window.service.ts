@@ -55,6 +55,8 @@ export class StyleWindowService {
     private scroll: ScrollFrame | undefined;
     /** Does the tab shown have a table (not the sounds)? Without one the column headers are left out. */
     private isTableShown = true;
+    /** Does the tab shown list items too? Else the name and the ID are a spell's alone. */
+    private isItemsShown = true;
     private customSounds: CustomSoundsSection | undefined;
     private hasBelow = false;
 
@@ -81,6 +83,11 @@ export class StyleWindowService {
     /** This tab lists the spells not learned yet too, or leaves them out (saved for the character). */
     setUnlearnedShown(tab: TableTab, isShown: boolean): void {
         this.settings.change("shownUnlearned", { ...this.settings.get("shownUnlearned"), [tab]: isShown });
+    }
+
+    /** The tab shown lists items too (the low stock), or spells alone: the headers of the name and the ID say so. */
+    setItemsShown(isItemsShown: boolean): void {
+        this.isItemsShown = isItemsShown;
     }
 
     /** The tab shown has a table, or not (the sounds): the column headers go with it. */
@@ -125,8 +132,15 @@ export class StyleWindowService {
             header.SetShown(shown !== undefined);
             hover?.SetShown(shown !== undefined);
             if (shown !== undefined) this.applyHeaderPosition(window, header, hover, shown);
+            this.applyHeaderText(header, column);
         }
         this.viewButton?.SetText(this.locale.getText(this.isAdvanced() ? "BTN_BASIC" : "BTN_ADVANCED"));
+    }
+
+    /** The name and the ID are a spell's or an item's where the tab lists items too, a spell's alone elsewhere. */
+    private applyHeaderText(header: FontString, column: keyof typeof COLUMN): void {
+        if (column === "name") header.SetText(this.locale.getText(this.isItemsShown ? "COL_SPELL_ITEM" : "COL_SPELL"));
+        else if (column === "id") header.SetText(this.locale.getText(this.isItemsShown ? "COL_SPELL_ITEM_ID" : "COL_SPELL_ID"));
     }
 
     private applyHeaderPosition(window: Frame, header: FontString, hover: Frame | undefined, column: Column): void {

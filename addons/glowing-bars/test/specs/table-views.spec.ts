@@ -2,8 +2,9 @@ import { createWorld, describe, expect, it, learnSpell, playAs, WARRIOR, type Fa
 import { recoverCooldown } from "./cooldown.helpers";
 import { RECKLESSNESS, findLabel, setUpWarrior, showTab, toggleTable } from "./table.helpers";
 
-const ADVANCED_ONLY = ["Spell / Item ID", "Glow %", "Repeat", "When", "Glow time", "Animation"];
-const BOTH = ["Spell / Item", "Type", "Color", "Message", "Sound", "Enabled", "Actions"];
+// On the first tab, of spells alone: the name and the ID are a spell's
+const ADVANCED_ONLY = ["Spell ID", "Glow %", "Repeat", "When", "Glow time", "Animation"];
+const BOTH = ["Spell", "Type", "Color", "Message", "Sound", "Enabled", "Actions"];
 
 function createOpenTable(savedSettings: Record<string, unknown> = {}): World {
     const world = createWorld((state) => {
@@ -47,6 +48,16 @@ describe("the views of the table", () => {
     it("shows every column in Advanced", () => {
         const world = createOpenTable({ isTableAdvanced: true });
         for (const text of [...BOTH, ...ADVANCED_ONLY]) expect(isHeaderShown(world, text)).toBe(true);
+    });
+
+    it("names spells and items in the headers on the tab of the low stock alone", () => {
+        const world = createOpenTable({ isTableAdvanced: true });
+        showTab(world, "Consumables");
+        expect(isHeaderShown(world, "Spell / Item")).toBe(true);
+        expect(isHeaderShown(world, "Spell / Item ID")).toBe(true);
+        showTab(world, "Cooldowns");
+        expect(isHeaderShown(world, "Spell")).toBe(true);
+        expect(isHeaderShown(world, "Spell / Item")).toBe(false);
     });
 
     it("is much narrower in Basic", () => {
