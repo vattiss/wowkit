@@ -83,6 +83,8 @@ export class SpellBookService {
         const ranks = this.entries.ranks.get(key) ?? [];
         this.entries.ranks.set(key, ranks);
         if (!ranks.includes(id)) ranks.push(id);
+        // A spell new to the book (not a new rank of one in it) is listed by its name too, as the next build would
+        if (!this.entries.byName.has(key)) this.entries.byName.set(key, id);
     }
 
     /** Rebuilds the index: all at once with `isImmediate`, otherwise a few skill lines per frame. */
