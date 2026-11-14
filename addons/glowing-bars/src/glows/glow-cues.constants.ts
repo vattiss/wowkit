@@ -28,8 +28,8 @@ export const COOLDOWN_CUES: { [classToken: string]: number[] | undefined } = {
  * The racials worth a glow in a fight, of every race: only the ones the player has learned count. Offensive (Blood Fury,
  * Berserking, Elune's Light, Eureka), defensive (Stoneform, Will to Survive, Rapid Regeneration), and the ones that break
  * out of a hold (Will of the Forsaken, Escape Artist, Shatter Curse), War Stomp and Perception. Cultivation, the tauren's
- * second herb, and the Skyborne's Read Leyline and Skysight are for between fights (out of combat by their default look);
- * Walk on Air, for a fall, glows anywhere (Wind Blessed is passive). And the priest's spells of each race that have a
+ * second herb, is for between fights (out of combat by its default look); the Skyborne's Read Leyline, Skysight and Walk
+ * on Air glow in a fight and out of one (Wind Blessed is passive). And the priest's spells of each race that have a
  * cooldown (Desperate Prayer, Elune's Grace, Feedback, Divine Grace...); the ones without one (Touch of Weakness,
  * Shadowguard, Hex of Weakness) are buffs and debuffs, not cooldowns.
  */

@@ -1,6 +1,5 @@
-// The Skyborne's racial cooldowns: Read Leyline (regeneration, Alliance) and Skysight (run speed, Horde) are for between
-// fights, so they glow when ready out of combat by their own default look, and not in a fight. Walk on Air saves a fall,
-// which can come in a fight too: it glows when ready anywhere.
+// The Skyborne's racial cooldowns: Read Leyline (regeneration, Alliance), Skysight (run speed, Horde) and Walk on Air (a
+// fall). Each can be of use in a fight or out of one, so each glows when ready anywhere by its own default look.
 import { createWorld, describe, expect, it, learnSpell, playAs, WARRIOR, type SpellDefinition, type World } from "@wowkit/test-kit";
 import { findLabel, toggleTable } from "./table.helpers";
 
@@ -27,23 +26,15 @@ function createSkyborne(racial: SpellDefinition): World {
 }
 
 describe("the Skyborne's racial cooldowns", () => {
-    for (const racial of [READ_LEYLINE, SKYSIGHT]) {
-        it(`lights ${racial.name} when ready out of combat, and not in a fight`, () => {
+    for (const racial of [READ_LEYLINE, SKYSIGHT, WALK_ON_AIR]) {
+        it(`lights ${racial.name} when ready, out of combat and in a fight`, () => {
             const world = createSkyborne(racial);
             expect(world.glowsOn(1)).toBe(1);
             world.advance(3);
             startFight(world);
-            expect(world.glowsOn(1)).toBe(0);
+            expect(world.glowsOn(1)).toBe(1);
         });
     }
-
-    it("lights Walk on Air when ready, in a fight too", () => {
-        const world = createSkyborne(WALK_ON_AIR);
-        expect(world.glowsOn(1)).toBe(1);
-        world.advance(3);
-        startFight(world);
-        expect(world.glowsOn(1)).toBe(1);
-    });
 
     it("lists the learned one in the table, and not the other faction's", () => {
         const world = createSkyborne(SKYSIGHT);
