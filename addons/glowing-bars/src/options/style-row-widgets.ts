@@ -38,6 +38,8 @@ interface RowWidgets {
     remove: Button;
     /** The type or the spell is on. */
     enabled: CheckButton;
+    /** Over the name: what the row is about, as the mouse comes over it (a reagent's spells); only where a row says it. */
+    nameHover: Frame;
     /** What the row shows now. */
     row: StyleRow | undefined;
 }
@@ -75,6 +77,7 @@ export class StyleRowWidgets {
         this.edits.fillIdBox(widgets.spellIdBox, row);
         this.edits.fillBelowBox(widgets.belowBox, row);
         applyRowView(widgets, this.windows.getColumns(), this.windows.isAdvanced());
+        this.fillNameHover(widgets, row);
         this.choices.fillMessageGear(widgets.messageGear, row, this.windows.isAdvanced());
     }
 
@@ -99,6 +102,7 @@ export class StyleRowWidgets {
             choices: this.choices.createChoiceButtons(frame, () => widgets.row),
             spellIdBox: this.edits.createIdBox(frame, () => widgets.row),
             belowBox: this.edits.createBelowBox(frame, () => widgets.row),
+            nameHover: CreateFrame("Frame", undefined, frame),
             row: undefined,
         };
         this.connectSwatch(widgets);
@@ -109,6 +113,34 @@ export class StyleRowWidgets {
         this.edits.connectRemove(widgets.remove, () => widgets.row);
         this.edits.connectEnabled(widgets.enabled, () => widgets.row);
         return widgets;
+    }
+
+    /**
+     * The name tells more as the mouse comes over it where the row has more to tell (a reagent: the spells it is for). The
+     * other rows have no tooltip on them: their columns' headers explain them.
+     */
+    private fillNameHover(widgets: RowWidgets, row: StyleRow): void {
+        const hover = widgets.nameHover;
+        const tooltip = row.tooltip;
+        if (tooltip === undefined || tooltip === "") {
+            hover.SetScript("OnEnter", undefined as never);
+            hover.SetScript("OnLeave", undefined as never);
+            hover.Hide();
+            return;
+        }
+        const column = this.windows.getColumns().name;
+        hover.ClearAllPoints();
+        hover.SetPoint("LEFT", widgets.frame, "LEFT", column.x, 0);
+        hover.SetSize(column.width, ROW_HEIGHT);
+        hover.EnableMouse(true);
+        hover.SetScript("OnEnter", () => {
+            GameTooltip.SetOwner(hover, "ANCHOR_RIGHT");
+            // The name, and under it in gold what it is about
+            GameTooltip.SetText(`${row.label}\n|cffffd100${tooltip}|r`, 1, 1, 1, 1, true);
+            GameTooltip.Show();
+        });
+        hover.SetScript("OnLeave", () => GameTooltip.Hide());
+        hover.Show();
     }
 
     /** What a glow only the game can light cannot use: all of it needs to know when the glow starts. */

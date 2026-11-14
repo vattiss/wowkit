@@ -184,24 +184,24 @@ describe("the reagents of a priest in the table", () => {
         const world = createWorld((state) => setUpPriest(state, false));
         SlashCmdList["GLOWINGBARS"]!("", undefined as never);
         showUnlearned(world, "Consumables");
-        expect(findLabel(world, "Prayer of Fortitude (Holy Candle)")).toBeDefined();
-        expect(findLabel(world, "Prayer of Fortitude (Sacred Candle)")).toBeDefined();
+        expect(findLabel(world, "Holy Candle")).toBeDefined();
+        expect(findLabel(world, "Sacred Candle")).toBeDefined();
         expect(findLabel(world, "Gift of the Wild")).toBeUndefined();
     });
 
     it("silence the message of a reagent that is switched off", () => {
         const world = createWorld((state) => setUpPriest(state, false), { styles: { lowReagent: { isMessageOn: true } } });
-        switchInTable(world, "Prayer of Fortitude (Holy Candle)", false);
+        switchInTable(world, "Holy Candle", false);
         arriveInTown(world);
         expect(world.notice()).not.toContain("Running low");
     });
 
     it("are stored only where they differ from the default", () => {
         const world = createWorld((state) => setUpPriest(state, false));
-        switchInTable(world, "Prayer of Fortitude (Holy Candle)", false);
+        switchInTable(world, "Holy Candle", false);
         const enabledReagents = world.getSavedSettings()?.enabledReagents as Record<string, boolean | undefined>;
         expect(enabledReagents["17028"]).toBe(false);
-        switchInTable(world, "Prayer of Fortitude (Holy Candle)", true);
+        switchInTable(world, "Holy Candle", true);
         const afterwards = world.getSavedSettings()?.enabledReagents as Record<string, boolean | undefined>;
         expect(afterwards["17028"]).toBeUndefined();
     });

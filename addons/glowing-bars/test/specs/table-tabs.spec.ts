@@ -1,6 +1,18 @@
 // The tabs of the table of looks: each lists its types (Buffs, Cooldowns, Procs, Consumables, Old ranks), and the sounds of
 // the player's own have one too. A tab with nothing on it and nothing to add is left out; the table opens on the tab it was on.
-import { createWorld, describe, expect, it, learnSpell, playAs, PRIEST, SMITE_RANK_1, SMITE_RANK_2, type World } from "@wowkit/test-kit";
+import {
+    createWorld,
+    describe,
+    expect,
+    it,
+    learnSpell,
+    playAs,
+    PALADIN,
+    PRIEST,
+    SMITE_RANK_1,
+    SMITE_RANK_2,
+    type World,
+} from "@wowkit/test-kit";
 import { findLabelOnTab, setUpWarrior, showTab, showUnlearned, toggleTable, useAndRecoverRecklessness } from "./table.helpers";
 
 function openWarrior(saved?: Record<string, unknown>): World {
@@ -148,6 +160,43 @@ describe("the spells not learned yet in the table", () => {
         expect(findSwitch(world)).toBeDefined();
         showTab(world, "Consumables");
         expect(findSwitch(world)).toBeUndefined();
+        toggleTable();
+    });
+});
+
+describe("the row of a reagent in the table", () => {
+    /** A paladin who learned Greater Blessing of Kings (a talent) alone, and knows the names of the other two. */
+    function openPaladin(): World {
+        const world = createWorld((state) => {
+            playAs(state, PALADIN);
+            state.spells[25782] = { id: 25782, name: "Greater Blessing of Might", rank: 1, icon: 135908 };
+            state.spells[25894] = { id: 25894, name: "Greater Blessing of Wisdom", rank: 1, icon: 135912 };
+            learnSpell(state, { id: 25898, name: "Greater Blessing of Kings", rank: 1, icon: 135993, isHelpful: true });
+        });
+        world.advance(1);
+        toggleTable();
+        showTab(world, "Consumables");
+        return world;
+    }
+
+    it("goes by the reagent's name, learned once any spell that takes it is", () => {
+        const world = openPaladin();
+        const label = findLabelOnTab(world, "Symbol of Kings");
+        expect(label).toBeDefined();
+        expect(label!.alpha).toBe(1);
+        expect(findLabelOnTab(world, "Greater Blessing of Might")).toBeUndefined();
+        toggleTable();
+    });
+
+    it("names the spells that take the reagent as the mouse comes over its name", () => {
+        const world = openPaladin();
+        const row = findLabelOnTab(world, "Symbol of Kings")!.parent!;
+        const hover = world.frames.find((frame) => frame.parent === row && frame.scripts.OnEnter !== undefined)!;
+        hover.scripts.OnEnter!(hover);
+        const lines = world.findFrame((frame) => frame.name === "GameTooltip")?.text ?? "";
+        expect(lines).toContain("Greater Blessing of Might");
+        expect(lines).toContain("Greater Blessing of Kings");
+        expect(lines).toContain("Greater Blessing of Wisdom");
         toggleTable();
     });
 });
