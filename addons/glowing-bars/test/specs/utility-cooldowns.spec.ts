@@ -59,6 +59,8 @@ describe("the Hearthstone, a utility cooldown on a bar", () => {
         const onBar = createWithHearthstone(true);
         toggleTable();
         expect(findLabel(onBar, "Hearthstone")).not.toBe(undefined);
+        // An item's use is never learned: it is not faded as a spell not learned yet
+        expect(findLabel(onBar, "Hearthstone")!.alpha).toBe(1);
         toggleTable();
         const inBags = createWithHearthstone(false);
         toggleTable();

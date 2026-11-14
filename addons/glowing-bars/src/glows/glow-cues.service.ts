@@ -123,6 +123,11 @@ export class GlowCuesService {
         return this.readyBefore[cooldownType];
     }
 
+    /** Is the spell the use of an item the player has equipped or on a bar (a trinket, the Hearthstone)? Never learned, it counts. */
+    isItemUse(spellId: number): boolean {
+        return this.tracker.hasItemCooldown(this.addedSpells.getEffectiveId(spellId));
+    }
+
     /** The ready cooldowns the last look found due but on no button now: a page of a bar not shown (a stance, Shift). */
     listPagedAwayCooldowns(cooldownType: CooldownType): number[] {
         return this.pagedAway[cooldownType];

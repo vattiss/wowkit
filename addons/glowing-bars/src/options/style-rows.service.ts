@@ -89,6 +89,14 @@ export class StyleRowsService {
      * How a row shows a spell. A food or drink the player added goes by its item (the spell's name is the same for all of
      * them), and so does a weapon buff put on with an item (Rough Sharpening Stone, not Sharpen Blade).
      */
+    /**
+     * Is the row's spell learned? What goes through an item is never learned (undefined): having it is what counts, a food, a
+     * trinket's or the Hearthstone's use.
+     */
+    private findLearned(spellId: number, isFromItem: boolean): boolean | undefined {
+        return isFromItem || this.glowCues.isItemUse(spellId) ? undefined : this.spells.isLearned(spellId);
+    }
+
     private readLook(
         reminderType: ReminderType,
         spellId: number,
@@ -142,8 +150,7 @@ export class StyleRowsService {
                 spellId,
                 label: suffix !== undefined ? `${look.label} (${suffix})` : look.label,
                 iconId: look.iconId,
-                // What goes through an item is never learned: having it is what counts
-                isLearned: extra.itemId !== undefined || look.isFromItem ? undefined : this.spells.isLearned(spellId),
+                isLearned: this.findLearned(spellId, extra.itemId !== undefined || look.isFromItem),
                 ...extra,
             });
         };
