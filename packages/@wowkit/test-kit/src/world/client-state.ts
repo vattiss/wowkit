@@ -176,6 +176,8 @@ export interface ClientState {
     /** The points spent in each of the three talent trees (a paladin's Holy, Protection, Retribution). */
     talentPoints: number[];
     isResting: boolean;
+    /** On a mount: the reminders keep quiet. */
+    isMounted: boolean;
     /** The sound files the game finds. */
     soundFiles: string[];
     /** The sound files the addon played. */
@@ -286,6 +288,7 @@ export function createClientState(): ClientState {
         hasDaylight: false,
         talentPoints: [0, 0, 0],
         isResting: false,
+        isMounted: false,
         soundFiles: [],
         playedSoundFiles: [],
         enchants: {},

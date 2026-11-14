@@ -68,3 +68,47 @@ describe("a ready cooldown at the login", () => {
         expect(world.glowsOn(1)).toBe(1);
     });
 });
+
+describe("a ready cooldown while the reminders keep quiet", () => {
+    /** Recklessness, Always, used once and back: it glowed. Then a quiet time, which `setQuiet` starts and ends. */
+    function glowThenQuiet(setQuiet: (world: World, isQuiet: boolean) => void, isBackInQuiet: boolean, saved = {}): World {
+        const world = createWorld(
+            (state) => {
+                playAs(state, WARRIOR);
+                learnSpell(state, RECKLESSNESS);
+                state.bars[1] = RECKLESSNESS.id;
+            },
+            { styles: { readyCooldown: { when: "always" } }, ...saved },
+        );
+        world.advance(1);
+        world.state.cooldowns[RECKLESSNESS.id] = { start: 0, duration: 99999 };
+        world.advance(1);
+        if (!isBackInQuiet) world.state.cooldowns[RECKLESSNESS.id] = undefined;
+        world.advance(5);
+        setQuiet(world, true);
+        world.advance(2);
+        if (isBackInQuiet) world.state.cooldowns[RECKLESSNESS.id] = undefined;
+        world.advance(2);
+        setQuiet(world, false);
+        world.advance(1);
+        return world;
+    }
+
+    const mount = (world: World, isQuiet: boolean) => {
+        world.state.isMounted = isQuiet;
+        world.fire("PLAYER_MOUNT_DISPLAY_CHANGED");
+    };
+    const rest = (world: World, isQuiet: boolean) => {
+        world.state.isResting = isQuiet;
+        world.fire("PLAYER_UPDATE_RESTING");
+    };
+
+    it("does not glow again as the quiet ends, off a mount or out of an inn", () => {
+        expect(glowThenQuiet(mount, false).glowsOn(1)).toBe(0);
+        expect(glowThenQuiet(rest, false, { shouldStayQuietInTowns: true }).glowsOn(1)).toBe(0);
+    });
+
+    it("does not glow as the quiet ends for one back during it: its time was then", () => {
+        expect(glowThenQuiet(mount, true).glowsOn(1)).toBe(0);
+    });
+});

@@ -128,7 +128,7 @@ export function installUnits(state: ClientState): void {
             unit === "player" ? state.isInCombat : unit === "target" && state.target?.isAttackingPlayer === true,
         InCombatLockdown: () => state.isInCombat,
         UnitOnTaxi: () => false,
-        IsMounted: () => false,
+        IsMounted: () => state.isMounted,
         IsResting: () => state.isResting,
         IsSwimming: () => false,
         UnitIsAFK: () => state.isAfk,

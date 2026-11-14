@@ -15,7 +15,7 @@ import type { TrackingReminderService } from "../reminders/tracking-reminder.ser
 import type { PartyBuffsService } from "../reminders/party-buffs.service";
 import type { LowStock, MissingBuffs, PartySuggestion } from "../reminders/reminders.interface";
 import type { WeaponReminderService } from "../reminders/weapon/weapon-reminder.service";
-import type { AddonSettingsService } from "../settings/settings.interface";
+import type { AddonSettingsService, CooldownType } from "../settings/settings.interface";
 import type { IdleService } from "../character/idle.service";
 import { OnEvent, OnGameEvent } from "@wowkit/core";
 import type { ActionBarsService, ClockService, PlayerService, SpellsService } from "@wowkit/wow";
@@ -186,6 +186,19 @@ export class FindRemindersService {
         idle.reagentSpells = stock?.reagentSpells ?? this.noReminders.reagentSpells;
         idle.lowReagents = stock?.lowReagents ?? this.noReminders.lowReagents;
         idle.lowStock = stock?.lowStock ?? this.noReminders.lowStock;
+        idle.readyBeforeCooldowns = this.listQuietCooldowns("readyCooldown");
+        idle.readyBeforeUtilityCooldowns = this.listQuietCooldowns("utilityCooldown");
         return idle;
+    }
+
+    /**
+     * While the reminders keep quiet (mounted, on a taxi, dead, in a town when asked) the cooldowns are looked at all the
+     * same, and the ready ones count as glowed: one ready then, or back then, does not glow as the quiet ends, out of its time.
+     */
+    private listQuietCooldowns(cooldownType: CooldownType): number[] {
+        const ready = this.glowCues.findReadyCooldowns(cooldownType);
+        for (const id of this.glowCues.listPagedAwayCooldowns(cooldownType)) ready.push(id);
+        for (const id of this.glowCues.listReadyBefore(cooldownType)) if (!ready.includes(id)) ready.push(id);
+        return ready;
     }
 }

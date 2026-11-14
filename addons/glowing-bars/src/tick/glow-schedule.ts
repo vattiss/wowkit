@@ -36,8 +36,12 @@ export class GlowSchedule {
         if (!this.heldShownFor.has(key)) this.heldShownFor.set(key, now - since);
     }
 
-    /** The ready cooldown was ready before the addon looked (a reload): its time is long over, unless its When begins. */
+    /**
+     * The ready cooldown was ready before the addon looked (a reload), or while the reminders kept quiet (mounted, in a town):
+     * its time is long over, unless its When begins.
+     */
     markShown(key: string, now: number): void {
+        this.seen.add(key);
         if (!this.dueSince.has(key)) this.dueSince.set(key, now - LONG_AGO);
     }
 
