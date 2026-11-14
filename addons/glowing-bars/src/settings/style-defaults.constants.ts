@@ -13,8 +13,14 @@ export const SPELL_STYLE_DEFAULTS: { [key in ReminderType]?: { [spellId: number]
     proc: { [DEFENSIVE_EXECUTE_ROW]: { messageTextChoice: "name" }, [Paladin.TemplarsBulwark]: { when: "inCombat" } },
     // Shield Block lasts 7 seconds: out of a fight it is no use
     missingBuff: { [Warrior.ShieldBlock]: { when: "inCombat" } },
-    // Cultivation grows a second herb: it is used while gathering, out of a fight
-    readyCooldown: { [Racial.Cultivation]: { when: "outOfCombat" } },
+    // Cultivation grows a second herb: it is used while gathering, out of a fight. The Skyborne's Read Leyline (regeneration) and
+    // Skysight (run speed) are for between fights too; Walk on Air saves a fall, which can come in a fight as well
+    readyCooldown: {
+        [Racial.Cultivation]: { when: "outOfCombat" },
+        [Racial.ReadLeyline]: { when: "outOfCombat" },
+        [Racial.Skysight]: { when: "outOfCombat" },
+        [Racial.WalkOnAir]: { when: "always" },
+    },
     // Each element in its colour: the glow itself tells which one went
     totemGone: Object.fromEntries(TOTEM_ELEMENTS.map((element) => [element.rowId, { color: element.color }])),
 };

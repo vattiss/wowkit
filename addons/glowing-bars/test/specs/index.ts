@@ -48,6 +48,7 @@ import "./bounced-buffs.spec";
 import "./totem-gone.spec";
 import "./totem-gone-brute.spec";
 import "./cultivation.spec";
+import "./skyborne.spec";
 import "./soul-link.spec";
 import "./welcome.spec";
 import "./afk-rainbow.spec";

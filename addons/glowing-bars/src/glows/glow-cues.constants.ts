@@ -27,10 +27,11 @@ export const COOLDOWN_CUES: { [classToken: string]: number[] | undefined } = {
 /**
  * The racials worth a glow in a fight, of every race: only the ones the player has learned count. Offensive (Blood Fury,
  * Berserking, Elune's Light, Eureka), defensive (Stoneform, Will to Survive, Rapid Regeneration), and the ones that break
- * out of a hold (Will of the Forsaken, Escape Artist, Shatter Curse), War Stomp and Perception, and Cultivation, the
- * tauren's second herb (out of combat by its default look). And the priest's spells
- * of each race that have a cooldown (Desperate Prayer, Elune's Grace, Feedback, Divine Grace...); the ones without one
- * (Touch of Weakness, Shadowguard, Hex of Weakness) are buffs and debuffs, not cooldowns.
+ * out of a hold (Will of the Forsaken, Escape Artist, Shatter Curse), War Stomp and Perception. Cultivation, the tauren's
+ * second herb, and the Skyborne's Read Leyline and Skysight are for between fights (out of combat by their default look);
+ * Walk on Air, for a fall, glows anywhere (Wind Blessed is passive). And the priest's spells of each race that have a
+ * cooldown (Desperate Prayer, Elune's Grace, Feedback, Divine Grace...); the ones without one (Touch of Weakness,
+ * Shadowguard, Hex of Weakness) are buffs and debuffs, not cooldowns.
  */
 export const RACIAL_COOLDOWNS: number[] = [
     Racial.BloodFury,
@@ -46,6 +47,9 @@ export const RACIAL_COOLDOWNS: number[] = [
     Racial.WarStomp,
     Racial.Cultivation,
     Racial.Perception,
+    Racial.ReadLeyline,
+    Racial.Skysight,
+    Racial.WalkOnAir,
     Priest.DesperatePrayer,
     Priest.DivineGrace,
     Priest.Feedback,

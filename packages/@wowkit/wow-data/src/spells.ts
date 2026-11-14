@@ -452,8 +452,9 @@ export const Racial = {
     EscapeArtist: 20589,
     Berserking: 20554,
     Cannibalize: 20577,
-    LeyLine: 1259705,
-    SkyView: 1259686,
+    ReadLeyline: 1259705,
+    Skysight: 1259686,
+    WalkOnAir: 1259416,
     Eureka: 1259813,
     WillToSurvive: 1259718,
     ElunesLight: 1259799,
@@ -597,6 +598,7 @@ export const SPELL_NAME_HINT: { [spellId: number]: string | string[] | undefined
     [Racial.ElunesLight]: "Elune's Light",
     [Racial.ShatterCurse]: "Shatter Curse",
     [Racial.RapidRegeneration]: "Rapid Regeneration",
+    [Racial.WalkOnAir]: "Walk on Air",
 };
 
 /** Every table above, by name: what the check goes through. A new table is added here too. */
