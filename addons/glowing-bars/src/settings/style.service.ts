@@ -117,6 +117,23 @@ export class StyleService {
     }
 
     /**
+     * Has the change of its type taken over a default of the spell's own: a part the type now sets otherwise, which the
+     * player did not set on the spell itself (a Reset puts the spell's own back there)?
+     */
+    isOwnDefaultTakenOver(reminderType: ReminderType, spellId: number): boolean {
+        const own = this.getSpellDefault(reminderType, spellId);
+        const typeOverride = this.getOverride(reminderType);
+        const spellOverride = this.getOverride(reminderType, spellId);
+        return PARTS.some(
+            (part) =>
+                own[part] !== undefined &&
+                typeOverride[part] !== undefined &&
+                spellOverride[part] === undefined &&
+                !this.isSameValue(own[part], typeOverride[part]),
+        );
+    }
+
+    /**
      * Is the look of this type or spell not its own default? A type the player changed; a spell the player changed, or one
      * whose own default the type's change has taken over.
      */

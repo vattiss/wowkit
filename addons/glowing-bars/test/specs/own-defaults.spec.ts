@@ -90,3 +90,31 @@ describe("a spell with a default of its own, and its type changed", () => {
         toggleTable();
     });
 });
+
+describe("the line under the defaults about the spells their type's change took over", () => {
+    /** The words of the line, or undefined while it is not shown. */
+    const readNotice = (world: World) =>
+        world.frames
+            .filter((frame) => frame.isShown && frame.parent?.isShown === true)
+            .flatMap((frame) => frame.fontStrings)
+            .find((text) => text.isShown !== false && (text.text ?? "").includes("change of its type"))?.text;
+
+    it("names the spell once its type's change takes its own default over, and goes once it is reset", () => {
+        const world = openTable();
+        expect(readNotice(world)).toBeUndefined();
+        world.pickFromMenu(findWhenButton(world, "Missing buff"), "Always");
+        expect(readNotice(world)).toContain("Shield Block follows the change of its type");
+        const row = findRow(world, "Shield Block");
+        row.reset.scripts.OnClick!(row.reset);
+        expect(readNotice(world)).toBeUndefined();
+        toggleTable();
+    });
+
+    it("says nothing for a spell the player set by hand", () => {
+        const world = openTable();
+        world.pickFromMenu(findWhenButton(world, "Shield Block"), "Enemy targeted");
+        world.pickFromMenu(findWhenButton(world, "Missing buff"), "Always");
+        expect(readNotice(world)).toBeUndefined();
+        toggleTable();
+    });
+});

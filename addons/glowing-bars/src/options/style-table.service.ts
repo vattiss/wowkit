@@ -17,6 +17,7 @@ import type { StyleChoicesService } from "./style-choices.service";
 import type { StyleEditsService } from "./style-edits.service";
 import { TYPE_TEXTS, type StyleRow, type StyleRowsService } from "./style-rows.service";
 import { StyleRowWidgets, type RowWidgets } from "./style-row-widgets";
+import { TakenOverNotice } from "./taken-over-notice";
 
 /** The words beside the switch of the spells not learned yet. */
 const UNLEARNED_LABEL_WIDTH = 130;
@@ -36,6 +37,8 @@ export class StyleTableService {
     private unlearnedSwitch: { holder: Frame; box: CheckButton } | undefined;
     /** Makes and fills the widgets of a row. */
     private readonly rowWidgets: StyleRowWidgets;
+    /** The line that names the spells whose own default their type's change took over. */
+    private readonly takenOver: TakenOverNotice;
 
     constructor(
         private readonly locale: AddonLocale,
@@ -47,6 +50,7 @@ export class StyleTableService {
         private readonly edits: StyleEditsService,
     ) {
         this.rowWidgets = new StyleRowWidgets(locale, styles, choices, windows, edits);
+        this.takenOver = new TakenOverNotice(locale);
     }
 
     /** Opens the window, or closes it when it is open. A failure is printed, never thrown. */
@@ -110,6 +114,7 @@ export class StyleTableService {
             tab.key,
         );
         if (tab.key !== "sounds") this.windows.hideCustomSounds();
+        else this.takenOver.hide();
         const y =
             tab.key === "sounds"
                 ? this.drawCustomSounds(content, 0)
@@ -136,6 +141,16 @@ export class StyleTableService {
         const hasUnlearned = spellRows.some((row) => isHideable(row));
         const isUnlearnedShown = this.windows.isUnlearnedShown(tab.key);
         const shownRows = isUnlearnedShown ? spellRows : spellRows.filter((row) => !isHideable(row));
+        // Under the defaults: the spells shown whose own default the change of their type took over
+        const takenOver = shownRows.filter(
+            (row) => row.spellId !== undefined && this.styles.isOwnDefaultTakenOver(row.reminderType, row.spellId),
+        );
+        y = this.takenOver.draw(
+            content,
+            y,
+            this.tableWidth,
+            takenOver.map((row) => row.label),
+        );
         this.showUnlearnedSwitch(content, hasUnlearned ? { tab, top: y, isChecked: isUnlearnedShown } : undefined);
         if (shownRows.length > 0 || hasUnlearned) y = this.drawSection(content, "HDR_TABLE_SPELLS", shownRows, y);
         const addTypes = ADDABLE_TYPES.filter((reminderType) => tab.types.includes(reminderType));

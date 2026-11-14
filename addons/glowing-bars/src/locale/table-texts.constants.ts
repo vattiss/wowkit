@@ -7,6 +7,8 @@ export const TABLE_TEXTS = {
     TAB_TABLE_OLD_RANKS: "Old ranks",
     TAB_TABLE_SOUNDS: "Sounds",
     OPT_SHOW_UNLEARNED: "Show unlearned spells",
+    TEXT_TAKEN_OVER_ONE: "%s follows the change of its type, not its own default. Press Reset on its row to keep its own.",
+    TEXT_TAKEN_OVER_MANY: "%s follow the change of their type, not their own defaults. Press Reset on their rows to keep their own.",
     BTN_BASIC: "Basic",
     WHEN_ALWAYS: "Always",
     WHEN_IN_COMBAT: "In combat",
