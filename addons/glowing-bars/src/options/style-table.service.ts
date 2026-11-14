@@ -30,6 +30,8 @@ import { TableHelp } from "./table-help";
 
 /** The words beside the switch of the spells not learned yet. */
 const UNLEARNED_LABEL_WIDTH = 130;
+/** How often a redraw for newly learned spells looks again whether the player still types in a box, in seconds. */
+const TYPING_RECHECK = 1;
 
 export class StyleTableService {
     private window: Frame | undefined;
@@ -44,6 +46,8 @@ export class StyleTableService {
     private contentLeft = 0;
     /** How tall the rows drawn last are: the scroll bar goes by it. */
     private contentHeight = 0;
+    /** A redraw for newly learned spells waits for the player to leave the box typed in. */
+    private isRedrawWaiting = false;
     /** The row at the end that adds a spell; made with the first rows. */
     private addRow: Frame | undefined;
     /** Shows the spells not learned yet on the tab, or leaves them out; made with the first tab that has some. */
@@ -82,6 +86,21 @@ export class StyleTableService {
     refreshAfterChange(_key: string): void {
         // Any setting: a look, a spell added or fixed, a switch (also one changed on the Settings page)
         if (this.window?.IsShown() === true) this.showRows();
+    }
+
+    /**
+     * Spells were learned (at a trainer, with the table open), or a level or talent gained: the rows show what is learned
+     * now. Not while the player types in a box: the redraw would take the words, so it waits until the box is left.
+     */
+    @OnEvent("spells.refreshed")
+    showLearnedRows(): void {
+        if (this.window?.IsShown() !== true || this.isRedrawWaiting) return;
+        if (GetCurrentKeyBoardFocus() === undefined) return this.showRows();
+        this.isRedrawWaiting = true;
+        C_Timer.After(TYPING_RECHECK, () => {
+            this.isRedrawWaiting = false;
+            this.showLearnedRows();
+        });
     }
 
     private toggleWindow(): void {

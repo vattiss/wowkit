@@ -1,6 +1,7 @@
 // The game's frames (windows, buttons, text). The addon creates them, shows and hides them and sets
 // scripts on them. Only what the addon does is modelled; any other method of a frame does nothing.
 import { defineValues } from "./define";
+import { addFocus } from "./focus";
 
 type Script = (...args: any[]) => void;
 
@@ -259,6 +260,8 @@ function createFakeFrame(init: FrameInit): FakeFrame {
 export interface FrameRegistry {
     all: FakeFrame[];
     create(frameType: string, name?: string, parent?: FakeFrame, template?: string): FakeFrame;
+    /** The edit box the player types in (SetFocus), until it is left (ClearFocus). */
+    focused: FakeFrame | undefined;
     /** Delivers a game event to every frame that registered for it. */
     fire(event: string, ...args: unknown[]): void;
 }
@@ -298,8 +301,9 @@ function addFlipbookCoords(alert: FakeFrame): void {
 
 export function createFrameRegistry(): FrameRegistry {
     const all: FakeFrame[] = [];
-    return {
+    const registry: FrameRegistry = {
         all,
+        focused: undefined,
         create(frameType, name, parent, template) {
             const frame = createFakeFrame({ frameType, name, parent, template });
             if (template === "ActionButtonSpellAlertTemplate") {
@@ -313,6 +317,7 @@ export function createFrameRegistry(): FrameRegistry {
             // Its children, as the game lists them (a frame is a child of the frame it was made in)
             (frame as FakeFrame & { GetChildren(): LuaMultiReturn<FakeFrame[]> }).GetChildren = () =>
                 $multi(...all.filter((other) => other.parent === frame));
+            if (frameType === "EditBox") addFocus(registry, frame);
             all.push(frame);
             if (name !== undefined) defineValues({ [name]: frame });
             return frame;
@@ -323,4 +328,5 @@ export function createFrameRegistry(): FrameRegistry {
             }
         },
     };
+    return registry;
 }

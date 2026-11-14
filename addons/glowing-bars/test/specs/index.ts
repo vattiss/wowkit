@@ -20,6 +20,7 @@ import "./looks.spec";
 import "./table.spec";
 import "./table-tabs.spec";
 import "./table-spells.spec";
+import "./table-learning.spec";
 import "./bars.spec";
 import "./bar-paging.spec";
 import "./dominos-warrior.spec";

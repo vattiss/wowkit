@@ -226,5 +226,8 @@ interface TextureBase {
     SetTexCoord(ulX: number, ulY: number, llX: number, llY: number, urX: number, urY: number, lrX: number, lrY: number): void;
 }
 
+/** The edit box the player types in now, if any (FrameXML's own; the documentation does not list it). */
+declare function GetCurrentKeyBoardFocus(this: void): Frame | undefined;
+
 /** Whether the client locks protected actions now (in combat): the documentation does not list it. */
 declare function InCombatLockdown(): boolean;

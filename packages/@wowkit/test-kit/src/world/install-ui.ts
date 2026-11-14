@@ -85,6 +85,7 @@ export function installUi(frames: FrameRegistry, chat: string[]): void {
     defineGlobals({
         EnumerateFrames: (frame) =>
             frames.all[frame === undefined ? 0 : frames.all.indexOf(frame as unknown as FakeFrame) + 1] as unknown as Frame | undefined,
+        GetCurrentKeyBoardFocus: () => frames.focused as unknown as Frame | undefined,
         print: (...args: unknown[]) => {
             chat.push(args.map((arg) => tostring(arg)).join(" "));
         },
