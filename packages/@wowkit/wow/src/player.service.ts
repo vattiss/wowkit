@@ -3,7 +3,7 @@
 
 import { OnGameEvent } from "@wowkit/core";
 import { Consumable } from "@wowkit/wow-data";
-import { attempt, attemptMulti, tryCall } from "./utils/protected-call.utils";
+import { attempt, attemptMulti, isAnsweredTrue, tryCall } from "./utils/protected-call.utils";
 import { getReadable, isReadable } from "./utils/secret-value.utils";
 import { MAIN_HAND_SLOT, OFF_HAND_SLOT, RANGED_SLOT } from "./wow.constants";
 
@@ -47,20 +47,20 @@ export class PlayerService {
 
     /** Has the player a pet out, alive (a warlock's demon, a hunter's beast)? */
     hasLivingPet(): boolean {
-        return attempt(UnitExists, "pet") === true && attempt(UnitIsDead, "pet") !== true;
+        return isAnsweredTrue(UnitExists, "pet") && !isAnsweredTrue(UnitIsDead, "pet");
     }
 
     isDead(): boolean {
-        return attempt(UnitIsDeadOrGhost, "player") === true;
+        return isAnsweredTrue(UnitIsDeadOrGhost, "player");
     }
 
     isOnTaxi(): boolean {
-        return attempt(UnitOnTaxi, "player") === true;
+        return isAnsweredTrue(UnitOnTaxi, "player");
     }
 
     /** Has the player a target? */
     hasTarget(): boolean {
-        return attempt(UnitExists, "target") === true;
+        return isAnsweredTrue(UnitExists, "target");
     }
 
     /** Is the player's target a living enemy, one the player can attack? A hidden answer counts as no. */
@@ -68,7 +68,7 @@ export class PlayerService {
         return (
             this.hasTarget() &&
             getReadable(attempt(UnitCanAttack, "player", "target")) === true &&
-            attempt(UnitIsDeadOrGhost, "target") !== true
+            !isAnsweredTrue(UnitIsDeadOrGhost, "target")
         );
     }
 

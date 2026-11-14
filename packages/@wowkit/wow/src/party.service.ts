@@ -1,6 +1,6 @@
 // The other members of the player's party or raid.
 
-import { attempt, attemptMulti } from "./utils/protected-call.utils";
+import { attempt, attemptMulti, isAnsweredTrue } from "./utils/protected-call.utils";
 import { getReadable, isReadable } from "./utils/secret-value.utils";
 
 export interface UnitIdentity {
@@ -10,7 +10,7 @@ export interface UnitIdentity {
 
 export class PartyService {
     isInRaid(): boolean {
-        return attempt(UnitExists, "raid1") === true;
+        return isAnsweredTrue(UnitExists, "raid1");
     }
 
     /** The party members (party1..4) that exist. */
@@ -18,7 +18,7 @@ export class PartyService {
         const units: UnitToken[] = [];
         for (let i = 1; i <= 4; i++) {
             const unit: UnitToken = `party${i as 1 | 2 | 3 | 4}`;
-            if (attempt(UnitExists, unit) === true) units.push(unit);
+            if (isAnsweredTrue(UnitExists, unit)) units.push(unit);
         }
         return units;
     }
@@ -28,16 +28,14 @@ export class PartyService {
         const units: UnitToken[] = [];
         for (let i = 1; i <= 40; i++) {
             const unit = `raid${i}` as UnitToken;
-            if (attempt(UnitExists, unit) === true && attempt(UnitIsUnit, unit, "player") !== true) units.push(unit);
+            if (isAnsweredTrue(UnitExists, unit) && !isAnsweredTrue(UnitIsUnit, unit, "player")) units.push(unit);
         }
         return units;
     }
 
     /** Online, alive and visible: within reach of a spell. */
     isReachable(unit: UnitToken): boolean {
-        return (
-            attempt(UnitIsConnected, unit) === true && attempt(UnitIsDeadOrGhost, unit) !== true && attempt(UnitIsVisible, unit) === true
-        );
+        return isAnsweredTrue(UnitIsConnected, unit) && !isAnsweredTrue(UnitIsDeadOrGhost, unit) && isAnsweredTrue(UnitIsVisible, unit);
     }
 
     /** Within casting range of the spell; the party range check when the spell cannot tell. */

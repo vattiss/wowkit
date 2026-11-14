@@ -1,7 +1,7 @@
 // Units other than the player's own state: the target, the pet, party members, nameplates. Who they are, how far, how
 // hurt, what they cast. The client hides much of this in combat (secret values) or for units that are not
 // player-controlled; an answer it hid comes back as undefined.
-import { attempt, attemptMulti, tryCall } from "./utils/protected-call.utils";
+import { attempt, attemptMulti, isAnsweredTrue, tryCall } from "./utils/protected-call.utils";
 import { getReadable, isReadable } from "./utils/secret-value.utils";
 import type { PlayerService } from "./player.service";
 
@@ -21,7 +21,7 @@ export class UnitsService {
     constructor(private readonly player: PlayerService) {}
 
     doesExist(unit: UnitToken): boolean {
-        return attempt(UnitExists, unit) === true;
+        return isAnsweredTrue(UnitExists, unit);
     }
 
     /** Dead; undefined when the client hides it. */
@@ -31,7 +31,7 @@ export class UnitsService {
     }
 
     isDeadOrGhost(unit: UnitToken): boolean {
-        return attempt(UnitIsDeadOrGhost, unit) === true;
+        return isAnsweredTrue(UnitIsDeadOrGhost, unit);
     }
 
     /** How the unit stands to the player: 1 hated ... 4 neutral ... 8 exalted; undefined when the client hides it. */
@@ -57,7 +57,7 @@ export class UnitsService {
     }
 
     isPlayer(unit: UnitToken): boolean {
-        return attempt(UnitIsPlayer, unit) === true;
+        return isAnsweredTrue(UnitIsPlayer, unit);
     }
 
     /** Are the two tokens the same unit? Undefined when the client hides it (compound tokens in combat). */

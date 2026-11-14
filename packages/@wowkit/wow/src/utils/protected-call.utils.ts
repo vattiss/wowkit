@@ -17,6 +17,15 @@ export function attempt<A extends unknown[], R>(fn: (this: void, ...args: A) => 
     return result;
 }
 
+/**
+ * Does the game's function answer true? An error, or an answer the game keeps secret, is no: comparing a secret value
+ * raises an error of its own, which `attempt` does not catch (issue #73).
+ */
+export function isAnsweredTrue<A extends unknown[]>(fn: (this: void, ...args: A) => unknown, ...args: A): boolean {
+    const answer = attempt(fn, ...args);
+    return answer !== undefined && !issecretvalue(answer) && answer === true;
+}
+
 /** `attempt` for functions with several results: ok, then the results (all nil on error). */
 export function attemptMulti<R extends unknown[]>(
     fn: (this: void) => LuaMultiReturn<R>,

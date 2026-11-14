@@ -9,6 +9,9 @@ const MAX_HEALTH = 1000;
 /** Interact distances: 3 duel (10 yards), 2 trade (11 yards), 1 inspect (28 yards). */
 const INTERACT_YARDS: { [index: number]: number | undefined } = { 1: 28, 2: 11, 3: 10 };
 
+/** A secret value of the fake game: issecretvalue knows it (addon code may only compare it with nil). */
+const SECRET_VALUE = { isSecret: true };
+
 export function installUnits(state: ClientState): void {
     /** party1..party4 (raid1..n in a raid) are the members of the test's party, the player is everyone else. */
     function findMember(unit: UnitToken): FakePartyMember | undefined {
@@ -62,7 +65,7 @@ export function installUnits(state: ClientState): void {
         UnitExists: (unit) => doesExist(unit as UnitToken),
         UnitIsConnected: () => true,
         UnitIsVisible: () => true,
-        UnitIsUnit: (unit, other) => unit === other,
+        UnitIsUnit: (unit, other) => (state.areUnitsSecret ? (SECRET_VALUE as unknown as boolean) : unit === other),
         UnitIsPlayer: (unit) => unit === "player" || findMember(unit as UnitToken) !== undefined,
         UnitIsDead: (unit) => (unit === "target" ? state.target?.isDead === true : unit === "pet" ? state.pet?.isDead === true : false),
         UnitIsDeadOrGhost: (unit) =>
@@ -140,8 +143,8 @@ export function installUnits(state: ClientState): void {
             return $multi(name, name, 0, 0, GetTime() * 1000 + 1500, false, "cast", isShielded, 0);
         }) as unknown as typeof UnitCastingInfo,
         UnitChannelInfo: (() => $multi()) as unknown as typeof UnitChannelInfo,
-        // The game's secret values: this fake game never hides one (hidden reads come back empty instead)
-        issecretvalue: () => false,
+        // The game's secret values: this fake game hides only UnitIsUnit's answer (areUnitsSecret); other hidden reads come back empty
+        issecretvalue: (value: unknown) => value === SECRET_VALUE,
         canaccessvalue: () => true,
     });
 }

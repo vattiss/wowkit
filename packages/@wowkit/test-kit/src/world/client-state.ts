@@ -143,6 +143,8 @@ export interface ClientState {
     areAurasHidden: boolean;
     /** In combat the game hides the spell cooldowns: no answer. */
     areCooldownsHidden: boolean;
+    /** In a dungeon the game may keep secret who a unit is: UnitIsUnit answers with a secret value. */
+    areUnitsSecret: boolean;
     /** The spells of the stance bar (forms, a paladin's auras), the first stance first. */
     /** The mana a spell costs now, by spell ID; not given: the game names no cost. */
     spellCosts: { [spellId: number]: number | undefined };
@@ -257,6 +259,7 @@ export function createClientState(): ClientState {
         reloads: 0,
         areAurasHidden: false,
         areCooldownsHidden: false,
+        areUnitsSecret: false,
         spellCosts: {},
         isAfk: false,
         stances: [],

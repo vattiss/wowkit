@@ -62,6 +62,19 @@ describe("a buff on the player at an older rank than the player knows", () => {
         expect(world.chat.filter((line) => line.includes("from another player, is Rank 1. Cast your Rank 2 instead")).length).toBe(1);
     });
 
+    it("says nothing, and breaks nothing, when the game keeps secret who cast it (issue #73, in a dungeon)", () => {
+        const world = createWorld((state) => {
+            playAs(state, DRUID);
+            learnSpell(state, RANK_1);
+            learnSpell(state, RANK_2);
+            state.areUnitsSecret = true;
+        });
+        // A unit the game names, but not who it is: comparing its secret answer would raise an error
+        world.state.auras.push(world.makeAura(RANK_1.name, RANK_1.id, 1800, "focustarget"));
+        world.advance(2);
+        expect(countNotes(world)).toBe(0);
+    });
+
     it("says nothing for the newest rank", () => {
         const world = createWorld((state) => {
             playAs(state, DRUID);
