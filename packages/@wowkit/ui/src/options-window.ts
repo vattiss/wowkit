@@ -3,16 +3,12 @@
 // the game then refuses to lay out the bars in a fight. Nothing here is shared with the game.
 import { DefaultsQuestion, type DefaultsQuestionTexts } from "./defaults-question";
 import { OptionsTab } from "./options-tab";
+import { TabBar } from "./tab-bar";
 import { applyScrollBarTint, connectEscape, createCloseButton, createFrameWithBorder, updateScrollBar } from "./window-frame";
 
 const SIDE = 22;
 /** The scroll bar, on the right of the tabs' rows. */
 const SCROLL_BAR_WIDTH = 24;
-/** A tab is as wide as its words, and no narrower than this. */
-const TAB_MIN_WIDTH = 64;
-const TAB_TEXT_PADDING = 22;
-const TAB_HEIGHT = 24;
-const TAB_GAP = 2;
 const TAB_TOP = 46;
 const SCROLL_TOP = 80;
 const SCROLL_BOTTOM = 48;
@@ -21,7 +17,7 @@ export class OptionsWindow {
     private readonly window: Frame;
     private readonly scroll: ScrollFrame;
     private readonly tabs: OptionsTab[] = [];
-    private readonly tabButtons: Button[] = [];
+    private readonly tabBar: TabBar;
     private current: OptionsTab | undefined;
     private defaultsButton: Button | undefined;
     private readonly question: DefaultsQuestion;
@@ -33,6 +29,7 @@ export class OptionsWindow {
         this.contentWidth = size.width - SIDE * 2 - SCROLL_BAR_WIDTH;
         this.window = this.createFrame(name, title);
         this.window.SetSize(size.width, size.height);
+        this.tabBar = new TabBar(this.window, TAB_TOP, SIDE);
         this.scroll = CreateFrame("ScrollFrame", undefined, this.window, "UIPanelScrollFrameTemplate");
         this.scroll.SetPoint("TOPLEFT", this.window, "TOPLEFT", SIDE, -SCROLL_TOP);
         this.scroll.SetPoint("BOTTOMRIGHT", this.window, "BOTTOMRIGHT", -SIDE - 24, SCROLL_BOTTOM);
@@ -88,15 +85,11 @@ export class OptionsWindow {
     /** `hasDefaults`: false for a tab with nothing to put back (the notes of the versions, the help). */
     addTab(title: string, hasDefaults = true): OptionsTab {
         const tab = new OptionsTab(this.scroll, title, this.contentWidth, this.window, hasDefaults);
-        const button = CreateFrame("Button", undefined, this.window, "UIPanelButtonTemplate");
-        button.SetText(title);
-        button.SetSize(math.max(TAB_MIN_WIDTH, (button.GetTextWidth() ?? 0) + TAB_TEXT_PADDING), TAB_HEIGHT);
-        button.SetScript("OnClick", () => this.selectTab(tab));
+        this.tabBar.addTab(title, () => this.selectTab(tab));
         tab.useHeightListener((height) => {
             if (tab === this.current) updateScrollBar(this.scroll, height);
         });
         this.tabs.push(tab);
-        this.tabButtons.push(button);
         return tab;
     }
 
@@ -119,18 +112,7 @@ export class OptionsWindow {
 
     /** Side by side, without the tabs that have nothing on them for this character. */
     private updateTabButtons(): void {
-        // In the middle: as far from the left edge as the last one is from the right
-        const shown = this.tabButtons.filter((_button, index) => this.tabs[index]!.hasRows());
-        const total = shown.reduce((sum, button) => sum + button.GetWidth() + TAB_GAP, -TAB_GAP);
-        let left = math.max(SIDE, (this.window.GetWidth() - total) / 2);
-        this.tabs.forEach((tab, index) => {
-            const button = this.tabButtons[index]!;
-            button.SetShown(tab.hasRows());
-            if (!tab.hasRows()) return;
-            button.ClearAllPoints();
-            button.SetPoint("TOPLEFT", this.window, "TOPLEFT", left, -TAB_TOP);
-            left += button.GetWidth() + TAB_GAP;
-        });
+        this.tabBar.showTabs((index) => this.tabs[index]!.hasRows());
     }
 
     private selectTab(tab: OptionsTab | undefined): void {
@@ -142,6 +124,6 @@ export class OptionsWindow {
         tab.refresh();
         this.scroll.SetScrollChild(tab.content);
         this.scroll.SetVerticalScroll(0);
-        this.tabs.forEach((other, index) => this.tabButtons[index]!.SetEnabled(other !== tab));
+        this.tabBar.select(this.tabs.indexOf(tab));
     }
 }

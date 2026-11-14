@@ -4,6 +4,7 @@ export * from "./choice-menu";
 export * from "./controls.service";
 export * from "./options-tab";
 export * from "./options-window";
+export * from "./tab-bar";
 export * from "./window-frame";
 export * from "./about.section";
 export * from "./greeting.service";
