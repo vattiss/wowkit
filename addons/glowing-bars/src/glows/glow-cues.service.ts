@@ -12,6 +12,8 @@ import type { StanceProcsService } from "./stance-procs.service";
 import type { StyleService } from "../settings/style.service";
 
 export class GlowCuesService {
+    /** The ready cooldowns found due but on no button now (see listPagedAwayCooldowns). */
+    private readonly pagedAway: number[] = [];
     /** The cooldowns that have been running at some point of this fight (or ready as it started, if the player asked). */
     private usedInCombat = new LuaSet<number>();
     /** The spells of each type, kept until the settings or the spells change: every tick asks for them. */
@@ -32,15 +34,17 @@ export class GlowCuesService {
 
     /**
      * A new fight: what was used in the last one is forgotten, and a cooldown that is running as it starts counts as used
-     * in it (it glows when it is back). Read now, while the client may still show the cooldowns. If the player asked for it,
-     * the ready ones count too, as if they had just come back: they glow right away, a reminder to use them.
+     * in it (it glows when it is back), on a button or on a page of a bar not shown now. Read now, while the client may still
+     * show the cooldowns. If the player asked for it, the ready ones on a button count too, as if they had just come back: they
+     * glow right away, a reminder to use them. Not those of a page not shown: they would glow mid-fight, at its first sight.
      */
     @OnGameEvent("PLAYER_REGEN_DISABLED")
     startFight(): void {
         this.usedInCombat = new LuaSet<number>();
         const isReadyGlowing = this.settings.get("showCooldownsAtFightStart");
-        for (const id of this.listCues(this.listCueIds("readyCooldown"))) {
-            if (isReadyGlowing || this.tracker.getRemaining(id) > READY_MARGIN) this.usedInCombat.add(id);
+        for (const id of this.listCues(this.listCueIds("readyCooldown"), false)) {
+            const isReadyShown = isReadyGlowing && this.actionBars.isOnBars(id);
+            if (isReadyShown || this.tracker.getRemaining(id) > READY_MARGIN) this.usedInCombat.add(id);
         }
     }
 
@@ -49,22 +53,33 @@ export class GlowCuesService {
      * cooldown in this fight; out of combat all of them (whether they show then is the When of their look, in combat only
      * by default, and for how long its glow time).
      * The cooldowns are read out of combat too, so the tracker knows the ones still running when a fight starts and the
-     * client hides them.
+     * client hides them. Those of no button are read as well: a bar that pages (by stance, or a bar addon's by Shift or the
+     * target) may show them later in the fight.
      */
     findReadyCooldowns(): number[] {
+        // The same list each time: a tick makes as few new tables as it can
+        for (let index = this.pagedAway.length; index > 0; index--) this.pagedAway.pop();
         if (!this.settings.get("isReadyCooldownEnabled")) return [];
         const isInCombat = this.player.isInCombat();
         const ready: number[] = [];
-        for (const id of this.listCues(this.listCueIds("readyCooldown"))) {
+        for (const id of this.listCues(this.listCueIds("readyCooldown"), false)) {
             if (this.tracker.getRemaining(id) > READY_MARGIN) {
                 if (isInCombat) this.usedInCombat.add(id);
                 continue;
             }
             // No cooldown in this form (Faerie Fire out of Bear Form): nothing to wait for
             if (!this.tracker.hasCooldownNow(id)) continue;
-            if (!isInCombat || this.usedInCombat.has(id) || this.isGlowingWheneverReady(id)) ready.push(id);
+            if (!isInCombat || this.usedInCombat.has(id) || this.isGlowingWheneverReady(id)) {
+                if (this.actionBars.isOnBars(id)) ready.push(id);
+                else this.pagedAway.push(id);
+            }
         }
         return ready;
+    }
+
+    /** The ready cooldowns the last look found due but on no button now: a page of a bar not shown (a stance, Shift). */
+    listPagedAwayCooldowns(): number[] {
+        return this.pagedAway;
     }
 
     /**
@@ -152,15 +167,16 @@ export class GlowCuesService {
         for (const [reminderType] of this.cueIds) this.cueIds.delete(reminderType);
     }
 
-    /** The cues that are learned, switched on, and on an action button, as the IDs the buttons hold. */
-    private listCues(ids: number[]): number[] {
+    /** The cues that are learned, switched on, and on an action button (unless `isOnBarsOnly` is false), as the IDs the buttons hold. */
+    private listCues(ids: number[], isOnBarsOnly = true): number[] {
         const enabledSpells = this.settings.get("enabledSpells");
         const found: number[] = [];
         for (const id of ids) {
             const effectiveId = this.addedSpells.getEffectiveId(id);
             // A trinket's use spell is never learned: the item it is the use of counts
             const learned = this.spells.resolve(effectiveId) ?? (this.tracker.hasItemCooldown(effectiveId) ? effectiveId : undefined);
-            if (learned === undefined || enabledSpells[String(id)] === false || !this.actionBars.isOnBars(learned)) continue;
+            if (learned === undefined || enabledSpells[String(id)] === false) continue;
+            if (isOnBarsOnly && !this.actionBars.isOnBars(learned)) continue;
             found.push(learned);
         }
         return found;

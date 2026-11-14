@@ -20,6 +20,7 @@ import "./table.spec";
 import "./table-spells.spec";
 import "./bars.spec";
 import "./bar-paging.spec";
+import "./dominos-warrior.spec";
 import "./elvui.spec";
 import "./daylightui.spec";
 import "./public-api.spec";

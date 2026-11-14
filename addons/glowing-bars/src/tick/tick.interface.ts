@@ -37,6 +37,8 @@ export interface Reminders {
     isInTown?: boolean;
     /** Important cooldowns that are ready and on a button: their buttons glow. */
     readyCooldowns: number[];
+    /** The same, due but on no button now (a page of a bar not shown): their glow time waits for them. */
+    pagedAwayCooldowns: number[];
     /** Spells the game says are usable now (and ready): their buttons glow. */
     procs: number[];
 }

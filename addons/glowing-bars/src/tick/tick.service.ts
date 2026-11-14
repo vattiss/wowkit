@@ -88,6 +88,10 @@ export class TickService implements OnFirstLogin, OnLogout, OnReady {
         this.hasFightStarted = now.inCombat && !this.wasInCombat;
         this.wasInCombat = now.inCombat;
         this.schedule.startTick();
+        // A ready cooldown on a page not shown keeps the glow time it has had: it does not start over when it is back
+        for (const id of reminders.pagedAwayCooldowns) {
+            if (this.isAllowedNow("readyCooldown", id)) this.schedule.pause(`readyCooldown:${id}`, this.time);
+        }
         filterReminders(this.showing, this.byWhen, this.isDueNow);
         this.showing.isInTown = this.isInTown;
         return this.showing;

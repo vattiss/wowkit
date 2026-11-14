@@ -88,6 +88,7 @@ export class FindRemindersService {
         // Its own switches: the chat line does not wait for the Old rank reminder
         found.olderRankBuffs = this.buffReminder.findOlderRankBuffs();
         found.readyCooldowns = this.glowCues.findReadyCooldowns();
+        found.pagedAwayCooldowns = this.glowCues.listPagedAwayCooldowns();
         found.procs = this.glowCues.findProcs();
         found.reagentSpells = reagentSpells;
         found.lowReagents = lowReagents;
