@@ -31,6 +31,7 @@ import "./food-buff.spec";
 import "./food-buff-learning.spec";
 import "./gathering.spec";
 import "./shield-block.spec";
+import "./own-defaults.spec";
 import "./cooldown-manager.spec";
 import "./glow-targets.spec";
 import "./given-buffs.spec";
