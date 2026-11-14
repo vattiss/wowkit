@@ -98,11 +98,8 @@ export const TEXTS = {
     OPT_BAR_UTILITY: "Utility Cooldowns",
     OPT_BAR_TRACKED_BUFFS: "Tracked Buffs",
     OPT_BAR_TRACKED_BARS: "Tracked Bars",
-    TIP_BAR:
-        "Buttons on this bar can glow. Turn a bar off to keep it quiet, e.g. if you have the same spells on a cooldown bar next to your character.",
 
     HDR_FADED: "Faded Until They Glow",
-    TIP_FADE: "The buttons of this bar are faded while they don't glow; a glowing one shows in full.",
     OPT_FADED_OPACITY: "Faded opacity",
     TIP_FADED_OPACITY: "How visible the buttons of a faded bar are while they don't glow.",
     OPT_PERCENT: "%d%%",
@@ -134,7 +131,6 @@ export const TEXTS = {
     TIP_WEAPON_PICK: "Automatic picks the best weapon buff you've learned (it changes as you level). Only learned buffs are listed.",
     OPT_AUTOMATIC: "Automatic",
 
-    HDR_REMINDERS: "Reminders",
     HDR_CUSTOM_SOUNDS: "Custom Sounds",
     OPT_CUSTOM_SOUNDS: "Sounds:",
     OPT_CUSTOM_FOLDER: "Folder in AddOns:",
@@ -142,9 +138,6 @@ export const TEXTS = {
     TEXT_CUSTOM_TIP: "Tip: type /reload after adding a folder.",
     TIP_CUSTOM_SOUNDS:
         "Put custom1, custom2 and so on (.ogg or .mp3) in a folder next to this addon, then enter its name and how many there are.",
-    OPT_TABLE: "Colors, sounds and on/off per spell",
-    TIP_TABLE: "Set the color, glow, message and sound of each reminder type and each spell, and turn them on or off. Also /gb.",
-    BTN_OPEN: "Open",
     OPT_ROUND_ANIMATION: "Circling on round buttons (alpha)",
     TIP_ROUND_ANIMATION: "Round buttons can't have a circling glow. Where a row's Animation is Circling, they do this instead.",
     ANIMATION_CIRCLING: "Circling (ants)",
