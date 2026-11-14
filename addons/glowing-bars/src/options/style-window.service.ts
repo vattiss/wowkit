@@ -1,7 +1,7 @@
 // The frame of the table of looks: the classic dialog border, the title, the close button, the column headers and the
 // scroll area. The rows are the table's.
 import { COMMAND } from "./table-command";
-import { applyScrollBarTint, connectEscape, createFrameWithBorder, createCloseButton, TabBar } from "@wowkit/ui";
+import { applyScrollBarTint, connectEscape, createFrameWithBorder, createCloseButton, TabBar, updateScrollBar } from "@wowkit/ui";
 import type { AddonLocale } from "../locale/locale.interface";
 import type { TextKey } from "../locale/texts.constants";
 import type { AddonSettingsService, TableTab } from "../settings/settings.interface";
@@ -70,6 +70,17 @@ export class StyleWindowService {
         return this.settings.get("isTableAdvanced");
     }
 
+    /**
+     * The scroll bar only where the rows are taller than the window (as in the settings window); with none, the list starts
+     * at its top.
+     */
+    updateScrollBarFor(contentHeight: number): void {
+        const scroll = this.scroll;
+        if (scroll === undefined) return;
+        updateScrollBar(scroll, contentHeight);
+        if (contentHeight <= ((scroll.GetHeight() as number | undefined) ?? 0) + 1) scroll.SetVerticalScroll(0);
+    }
+
     /** The tab the table is on: the one picked last. */
     getTab(): TableTab {
         return this.settings.get("tableTab");
@@ -107,9 +118,9 @@ export class StyleWindowService {
     }
 
     /** The folders with sounds of the player's own; returns where the next thing goes. */
-    drawCustomSounds(content: Frame, top: number): number {
+    drawCustomSounds(content: Frame, top: number, left = 0): number {
         this.customSounds = this.customSounds ?? new CustomSoundsSection(this.locale, this.settings);
-        return this.customSounds.drawLines(content, top);
+        return this.customSounds.drawLines(content, top, left);
     }
 
     /** The folders of sounds out of sight: the table shows another tab. */

@@ -17,8 +17,9 @@ export interface FakeFrame {
     /** Drawn in full whatever its parent's opacity (SetIgnoreParentAlpha). */
     isIgnoringParentAlpha: boolean;
     text: string | undefined;
-    /** The frame the addon last anchored this one to (SetPoint). */
+    /** The frame the addon last anchored this one to (SetPoint), and how far right of that point. */
     anchor?: FakeFrame;
+    anchorX?: number;
     /** The width the addon set (36, the size of an action button, until it sets one). */
     width: number;
     /** The height the addon set (36 until it sets one). */
@@ -57,7 +58,7 @@ export interface FakeFrame {
     GetFrameLevel(): number;
     SetWidth(width: number): void;
     SetScale(scale: number): void;
-    SetPoint(point: string, relativeTo?: unknown): void;
+    SetPoint(point: string, relativeTo?: unknown, relativePoint?: unknown, x?: unknown, y?: unknown): void;
     SetParent(parent: unknown): void;
     IsVisible(): boolean;
     HookScript(script: string, handler: Script): void;
@@ -163,8 +164,9 @@ function createFakeFrame(init: FrameInit): FakeFrame {
         SetWidth(width) {
             this.width = width;
         },
-        SetPoint(_point, relativeTo) {
+        SetPoint(_point, relativeTo, _relativePoint, x) {
             if (type(relativeTo) === "table") this.anchor = relativeTo as FakeFrame;
+            this.anchorX = type(x) === "number" ? (x as number) : undefined;
         },
         SetParent(parent) {
             this.parent = type(parent) === "table" ? (parent as FakeFrame) : undefined;

@@ -141,8 +141,8 @@ export const TEXTS = {
     OPT_CUSTOM_FOLDER: "Folder in AddOns:",
     BTN_ADD_FOLDER: "Add folder",
     TEXT_CUSTOM_TIP: "Tip: type /reload after adding a folder.",
-    TIP_CUSTOM_SOUNDS:
-        "Put custom1, custom2 and so on (.ogg or .mp3) in a folder next to this addon, then enter its name and how many there are.",
+    TEXT_CUSTOM_SOUNDS_INFO:
+        "Put your sounds in a folder in AddOns, next to this addon, named custom1, custom2 and so on (.ogg or .mp3). Enter the folder and how many sounds there are: the addon can't look into the folder, so it knows only the number you type.",
     OPT_ROUND_ANIMATION: "Circling on round buttons (alpha)",
     TIP_ROUND_ANIMATION: "Round buttons can't have a circling glow. Where a row's Animation is Circling, they do this instead.",
     ANIMATION_CIRCLING: "Circling (ants)",

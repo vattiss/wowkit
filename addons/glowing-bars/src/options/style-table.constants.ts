@@ -75,7 +75,9 @@ export function findWindowWidth(tableWidth: number): number {
 }
 
 /** The window in the Basic view, the same whether it shows the Below column or not; the settings window is as large. */
-export const BASIC_WINDOW_WIDTH = findWindowWidth(BASIC_COLUMN.actions.x + BASIC_COLUMN.actions.width);
+/** The rows of the Basic view are this wide; a tab with no table (the sounds, the help) is too, in either view. */
+export const BASIC_TABLE_WIDTH = BASIC_COLUMN.actions.x + BASIC_COLUMN.actions.width;
+export const BASIC_WINDOW_WIDTH = findWindowWidth(BASIC_TABLE_WIDTH);
 
 /** Where a control of this width starts to sit in the middle of its column. */
 export function findCenteredX(column: Column, controlWidth: number): number {

@@ -10,8 +10,16 @@ import type { AddonLocale } from "../locale/locale.interface";
 import type { TextKey } from "../locale/texts.constants";
 import type { StyleService } from "../settings/style.service";
 import type { AddableType } from "../settings/settings.interface";
-import { HEADER_HEIGHT, ROW_HEIGHT, STRIPE_ALPHA, STRIPE_COLOR, TABLE_WIDTH, TYPE_HEADING_HEIGHT } from "./style-table.constants";
-import { showHeaderTip } from "./header-tip";
+import {
+    BASIC_TABLE_WIDTH,
+    HEADER_HEIGHT,
+    ROW_HEIGHT,
+    STRIPE_ALPHA,
+    STRIPE_COLOR,
+    TABLE_WIDTH,
+    TYPE_HEADING_HEIGHT,
+} from "./style-table.constants";
+import { hideHeaderTip, showHeaderTip } from "./header-tip";
 import type { StyleWindowService } from "./style-window.service";
 import type { StyleChoicesService } from "./style-choices.service";
 import type { StyleEditsService } from "./style-edits.service";
@@ -32,6 +40,10 @@ export class StyleTableService {
     private usedHeaders = 0;
     /** How wide the rows are now: as wide as the columns of the view. */
     private tableWidth = TABLE_WIDTH;
+    /** How far in a tab with no table starts: the middle of a window wider than it (Advanced), else 0. */
+    private contentLeft = 0;
+    /** How tall the rows drawn last are: the scroll bar goes by it. */
+    private contentHeight = 0;
     /** The row at the end that adds a spell; made with the first rows. */
     private addRow: Frame | undefined;
     /** Shows the spells not learned yet on the tab, or leaves them out; made with the first tab that has some. */
@@ -84,6 +96,8 @@ export class StyleTableService {
         }
         this.showRows();
         this.window.Show();
+        // Measured again on the screen: the scroll area has its height once the window is shown
+        this.windows.updateScrollBarFor(this.contentHeight);
     }
 
     /**
@@ -115,7 +129,7 @@ export class StyleTableService {
         this.windows.setTableShown(tab.types.length > 0);
         // Only the low stock is of items: the other tabs name their spells alone in the headers
         this.windows.setItemsShown(tab.types.includes("lowStock"));
-        this.applyTableWidth(content);
+        this.applyTableWidth(content, tab.types.length > 0);
         this.windows.showTabs(
             shownTabs.map((each) => each.key),
             tab.key,
@@ -125,7 +139,7 @@ export class StyleTableService {
             tab.key === "sounds"
                 ? this.drawCustomSounds(content, 0)
                 : tab.key === "help"
-                  ? this.help.draw(content, 0, this.tableWidth, this.windows.isAdvanced())
+                  ? this.help.draw(content, 0, this.tableWidth, this.windows.isAdvanced(), this.contentLeft)
                   : this.drawTypeTab(
                         content,
                         tab,
@@ -135,6 +149,8 @@ export class StyleTableService {
         for (let i = this.usedHeaders; i < this.headers.length; i++) this.headers[i]!.Hide();
         for (let i = this.usedWidgets; i < this.widgets.length; i++) this.widgets[i]!.frame.Hide();
         content.SetHeight(math.max(10, y));
+        this.contentHeight = y;
+        this.windows.updateScrollBarFor(y);
     }
 
     /**
@@ -205,6 +221,7 @@ export class StyleTableService {
 
     /** What only some tabs show, out of sight: the tab drawn shows its own again (another tab must not keep them). */
     private hideTabParts(): void {
+        if (this.content !== undefined) hideHeaderTip(this.content);
         this.windows.hideCustomSounds();
         this.help.hide();
         this.takenOver.hide();
@@ -213,12 +230,17 @@ export class StyleTableService {
         this.unlearnedSwitch?.holder.Hide();
     }
 
-    /** The window is as wide as the columns of the view. */
-    private applyTableWidth(content: Frame): void {
+    /** The window is as wide as the columns of the view; the rows too, or as the Basic view on a tab with no table. */
+    private applyTableWidth(content: Frame, hasTable: boolean): void {
         const { actions } = this.windows.getColumns();
-        this.tableWidth = actions.x + actions.width;
-        if (this.window !== undefined) this.windows.setWidthToFit(this.window, this.tableWidth);
-        content.SetWidth(this.tableWidth);
+        const viewWidth = actions.x + actions.width;
+        // The window keeps the size of the view on every tab; a tab with no table (the sounds, the help) lays its words out
+        // as wide as the Basic view in it
+        this.tableWidth = hasTable ? viewWidth : BASIC_TABLE_WIDTH;
+        // ... in the middle of it, where the window is wider (Advanced)
+        this.contentLeft = (viewWidth - this.tableWidth) / 2;
+        if (this.window !== undefined) this.windows.setWidthToFit(this.window, viewWidth);
+        content.SetWidth(viewWidth);
     }
 
     /** A header and a row for each entry, from `top` down; returns where the next section starts. */
@@ -281,10 +303,10 @@ export class StyleTableService {
     /** The header and the folders with sounds of the player's own, under the add row. */
     private drawCustomSounds(content: Frame, top: number): number {
         const header = this.takeHeader(content);
-        header.SetPoint("TOPLEFT", content, "TOPLEFT", 0, -top);
+        header.SetPoint("TOPLEFT", content, "TOPLEFT", this.contentLeft, -top);
         header.SetText(this.locale.getText("HDR_CUSTOM_SOUNDS"));
         header.Show();
-        return this.windows.drawCustomSounds(content, top);
+        return this.windows.drawCustomSounds(content, top, this.contentLeft);
     }
 
     private takeHeader(content: Frame): FontString {

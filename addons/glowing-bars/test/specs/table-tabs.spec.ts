@@ -249,13 +249,45 @@ describe("the Help tab of the table", () => {
         toggleTable();
     });
 
-    it("explains every column in Advanced, with the choices the lists offer", () => {
+    it("explains every column in Advanced, each choice on a line of its own with what it does", () => {
         const texts = listShownTexts(openHelp({ isTableAdvanced: true }));
         expect(texts.includes("When")).toBe(true);
-        const help = texts.join(" | ");
-        expect(help).toContain("Always + start");
-        expect(help).toContain("Out of combat + start");
-        expect(help).toContain("Until done");
+        const line = (start: string) => texts.find((text) => text.startsWith(`•  |cffffd100${start}|r: `));
+        for (const when of ["Always", "Always + start", "In combat", "In combat + start", "Out of combat", "Out of combat + start"]) {
+            expect(line(when)).toBeDefined();
+        }
+        for (const when of ["Enemy targeted", "Ally targeted", "Any targeted", "Alert in town"]) expect(line(when)).toBeDefined();
+        expect(line("Out of combat + start")).toContain("as a fight ends");
+        expect(line("Until done")).toBeDefined();
+        expect(line("Circling")).toBeDefined();
+        toggleTable();
+    });
+
+    it("keeps the window of the Advanced view, its words as wide as in the Basic view", () => {
+        const introWidth = (world: World) =>
+            world.frames.flatMap((frame) => frame.fontStrings).find((text) => (text.text ?? "").startsWith("What each column does"))!.width;
+        const world = openHelp({ isTableAdvanced: true });
+        const window = world.findFrame((frame) => frame.name === "GlowingBarsLooks")!;
+        const helpWidth = window.width;
+        const advancedWords = introWidth(world);
+        showTab(world, "Cooldowns");
+        expect(window.width).toBe(helpWidth);
+        toggleTable();
+        const basic = openHelp();
+        expect(introWidth(basic)).toBe(advancedWords);
+        expect(basic.findFrame((frame) => frame.name === "GlowingBarsLooks")!.width < helpWidth).toBe(true);
+        toggleTable();
+    });
+
+    it("lays its words out in the middle of the Advanced window, as in the Basic one", () => {
+        const introLeft = (world: World) =>
+            world.frames.flatMap((frame) => frame.fontStrings).find((text) => (text.text ?? "").startsWith("What each column does"))!
+                .anchorX;
+        const basic = openHelp();
+        expect(introLeft(basic)).toBe(0);
+        toggleTable();
+        const advanced = openHelp({ isTableAdvanced: true });
+        expect((introLeft(advanced) ?? 0) > 100).toBe(true);
         toggleTable();
     });
 

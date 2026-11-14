@@ -1,12 +1,17 @@
-// The Help tab of the table of looks: each column of the view, under the words of its header, what it does and what it can
-// be set to. The choices are read from the lists the columns offer, under the names they show there.
+// The Help tab of the table of looks: each column of the view, under the words of its header, what it does, and each of
+// its choices on a line of its own, under the name the column's list shows.
 import type { AddonLocale } from "../locale/locale.interface";
 import type { TextKey } from "../locale/texts.constants";
 import type { When } from "../settings/settings.interface";
-import { ANIMATION_CHOICES, GLOW_TIME_CHOICES, REPEAT_CHOICES } from "../settings/settings.constants";
-import { ANIMATION_TEXTS } from "./animation.section";
+import { GLOW_TIME_CHOICES, REPEAT_CHOICES } from "../settings/settings.constants";
 import { WHEN_TEXTS, type StyleChoicesService } from "./style-choices.service";
 import { findColumns } from "./style-table.constants";
+
+/** A choice of a column: its name in the list, and what it does. */
+interface HelpChoice {
+    label: string;
+    help: TextKey;
+}
 
 /** The columns explained, in the order of the table: their header's words and the help on them. */
 const HELP_COLUMNS: [column: keyof ReturnType<typeof findColumns>, title: TextKey, help: TextKey][] = [
@@ -27,45 +32,76 @@ const HELP_COLUMNS: [column: keyof ReturnType<typeof findColumns>, title: TextKe
     ["actions", "COL_ACTIONS", "HELP_ACTIONS"],
 ];
 
-/** Every When a row can have, in the order of the lists. */
-const ALL_WHENS: When[] = [
-    "always",
-    "alwaysStart",
-    "inCombat",
-    "inCombatStart",
-    "outOfCombat",
-    "outOfCombatStart",
-    "enemyTargeted",
-    "allyTargeted",
-    "anyTargeted",
-    "townAlert",
+/** Every When a row can have, in the order of the lists, and what each does. */
+const WHEN_HELP: [when: When, help: TextKey][] = [
+    ["always", "HELP_WHEN_ALWAYS"],
+    ["alwaysStart", "HELP_WHEN_ALWAYS_START"],
+    ["inCombat", "HELP_WHEN_IN_COMBAT"],
+    ["inCombatStart", "HELP_WHEN_IN_COMBAT_START"],
+    ["outOfCombat", "HELP_WHEN_OUT_OF_COMBAT"],
+    ["outOfCombatStart", "HELP_WHEN_OUT_OF_COMBAT_START"],
+    ["enemyTargeted", "HELP_WHEN_ENEMY_TARGETED"],
+    ["allyTargeted", "HELP_WHEN_ALLY_TARGETED"],
+    ["anyTargeted", "HELP_WHEN_ANY_TARGETED"],
+    ["townAlert", "HELP_WHEN_TOWN_ALERT"],
 ];
 
-const MESSAGE_CHOICES: TextKey[] = ["TEXT_CHOICE_TYPE_ONLY", "TEXT_CHOICE_TYPE_AND_NAME", "TEXT_CHOICE_NAME", "TEXT_CHOICE_CUSTOM"];
-const TITLE_HEIGHT = 18;
+/** The words of the message: the choice and what it says. */
+const TEXT_HELP: [choice: TextKey, help: TextKey][] = [
+    ["TEXT_CHOICE_TYPE_ONLY", "HELP_TEXT_TYPE_ONLY"],
+    ["TEXT_CHOICE_TYPE_AND_NAME", "HELP_TEXT_TYPE_AND_NAME"],
+    ["TEXT_CHOICE_NAME", "HELP_TEXT_NAME"],
+    ["TEXT_CHOICE_CUSTOM", "HELP_TEXT_CUSTOM"],
+];
+
+/** An animation is a movement and a look: each of them, with what it is. */
+const ANIMATION_HELP: [label: TextKey, help: TextKey][] = [
+    ["HELP_LABEL_CIRCLING", "HELP_ANIMATION_CIRCLING"],
+    ["HELP_LABEL_BREATHING", "HELP_ANIMATION_BREATHING"],
+    ["HELP_LABEL_NONE", "HELP_ANIMATION_NONE"],
+    ["HELP_LABEL_ANTS", "HELP_ANIMATION_ANTS"],
+    ["HELP_LABEL_CLEAN", "HELP_ANIMATION_CLEAN"],
+    ["HELP_LABEL_CLASSIC", "HELP_ANIMATION_CLASSIC"],
+    ["HELP_LABEL_ORIGINAL", "HELP_ANIMATION_ORIGINAL"],
+];
+
+const TITLE_HEIGHT = 22;
+/** The fonts of the help, a size larger than the table's: the intro, a column's name, and what it does. */
+const INTRO_FONT = "GameFontHighlightMedium";
+const TITLE_FONT = "GameFontNormalLarge";
+const BODY_FONT = "GameFontHighlight";
 const BODY_INDENT = 12;
+const BULLET_INDENT = 24;
 const GAP = 10;
+/** The gold of the game's headers: the name of a choice. */
+const CHOICE_COLOR = "|cffffd100";
 
 export class TableHelp {
     private readonly texts: FontString[] = [];
     private usedTexts = 0;
+    /** How far from the content's left edge the help starts: in the middle of a window wider than it. */
+    private left = 0;
 
     constructor(
         private readonly locale: AddonLocale,
         private readonly choices: StyleChoicesService,
     ) {}
 
-    /** The help on the columns of the view, from `top`, this wide; returns where it ends. */
-    draw(content: Frame, top: number, width: number, isAdvanced: boolean): number {
+    /** The help on the columns of the view, from `top`, this wide, `left` in; returns where it ends. */
+    draw(content: Frame, top: number, width: number, isAdvanced: boolean, left = 0): number {
         this.usedTexts = 0;
-        let y = this.showText(content, "GameFontHighlight", this.locale.getText("HELP_INTRO"), 0, top, width) + GAP;
+        this.left = left;
+        let y = this.showText(content, INTRO_FONT, this.locale.getText("HELP_INTRO"), 0, top, width) + GAP;
         const columns = findColumns(isAdvanced);
         for (const [column, title, help] of HELP_COLUMNS) {
             if (columns[column] === undefined) continue;
-            this.showText(content, "GameFontNormal", this.locale.getText(title), 0, y, width);
-            y =
-                this.showText(content, "GameFontHighlightSmall", this.describe(help), BODY_INDENT, y + TITLE_HEIGHT, width - BODY_INDENT) +
-                GAP;
+            this.showText(content, TITLE_FONT, this.locale.getText(title), 0, y, width);
+            y = this.showText(content, BODY_FONT, this.locale.getText(help), BODY_INDENT, y + TITLE_HEIGHT, width - BODY_INDENT);
+            for (const choice of this.listChoices(help)) {
+                const words = `•  ${CHOICE_COLOR}${choice.label}|r: ${this.locale.getText(choice.help)}`;
+                y = this.showText(content, BODY_FONT, words, BULLET_INDENT, y + 2, width - BULLET_INDENT);
+            }
+            y += GAP;
         }
         for (let i = this.usedTexts; i < this.texts.length; i++) this.texts[i]!.Hide();
         return y;
@@ -75,35 +111,49 @@ export class TableHelp {
         for (const text of this.texts) text.Hide();
     }
 
-    /** The help on a column, with its choices where it has a list of them. */
-    private describe(help: TextKey): string {
-        const words = this.locale.getText(help);
-        const list = this.listChoices(help);
-        return list !== undefined ? string.format(words, list) : words;
+    /** The choices of a column, each with what it does; none for a column without a list. */
+    private listChoices(help: TextKey): HelpChoice[] {
+        const getText = (key: TextKey) => this.locale.getText(key);
+        if (help === "HELP_WHEN") return WHEN_HELP.map(([when, whenHelp]) => ({ label: getText(WHEN_TEXTS[when]), help: whenHelp }));
+        if (help === "HELP_MESSAGE_LOOK") return TEXT_HELP.map(([choice, choiceHelp]) => ({ label: getText(choice), help: choiceHelp }));
+        if (help === "HELP_ANIMATION") return ANIMATION_HELP.map(([label, labelHelp]) => ({ label: getText(label), help: labelHelp }));
+        if (help === "HELP_GLOW_TIME")
+            return this.listTimes(GLOW_TIME_CHOICES, (seconds) => this.choices.findGlowTimeText(seconds), "HELP_GLOW");
+        if (help === "HELP_REPEAT") return this.listTimes(REPEAT_CHOICES, (seconds) => this.choices.findRepeatText(seconds), "HELP_REPEAT");
+        if (help === "HELP_ACTIONS") {
+            return [
+                { label: getText("BTN_RESET"), help: "HELP_ACTION_RESET" },
+                { label: getText("HELP_LABEL_REMOVE"), help: "HELP_ACTION_REMOVE" },
+            ];
+        }
+        return [];
     }
 
-    private listChoices(help: TextKey): string | undefined {
-        if (help === "HELP_WHEN") return ALL_WHENS.map((when) => this.locale.getText(WHEN_TEXTS[when])).join(", ");
-        if (help === "HELP_GLOW_TIME") return GLOW_TIME_CHOICES.map((seconds) => this.choices.findGlowTimeText(seconds)).join(", ");
-        if (help === "HELP_REPEAT") return REPEAT_CHOICES.map((seconds) => this.choices.findRepeatText(seconds)).join(", ");
-        if (help === "HELP_ANIMATION")
-            return ANIMATION_CHOICES.map((animation) => this.locale.getText(ANIMATION_TEXTS[animation])).join(", ");
-        if (help === "HELP_MESSAGE_LOOK") return MESSAGE_CHOICES.map((choice) => this.locale.getText(choice)).join(", ");
-        return undefined;
+    /** A list of times: its 0 (Until done, Off) on a line, and the seconds together on another. */
+    private listTimes(
+        choices: number[],
+        findText: (this: void, seconds: number) => string,
+        prefix: "HELP_GLOW" | "HELP_REPEAT",
+    ): HelpChoice[] {
+        const seconds = choices.filter((choice) => choice > 0).map((choice) => findText(choice));
+        return [
+            { label: findText(0), help: prefix === "HELP_GLOW" ? "HELP_GLOW_UNTIL_DONE" : "HELP_REPEAT_OFF" },
+            { label: seconds.join(", "), help: prefix === "HELP_GLOW" ? "HELP_GLOW_SECONDS" : "HELP_REPEAT_SECONDS" },
+        ];
     }
 
     /** A text at (`x`, `top`), wrapped to `width`; returns where the next one goes. */
     private showText(content: Frame, font: string, words: string, x: number, top: number, width: number): number {
         let text = this.texts[this.usedTexts];
         if (text === undefined) {
-            text = content.CreateFontString(undefined, "OVERLAY", "GameFontHighlightSmall");
+            text = content.CreateFontString(undefined, "OVERLAY", BODY_FONT);
             text.SetJustifyH("LEFT");
             this.texts.push(text);
         }
         this.usedTexts += 1;
         text.SetFontObject(font);
         text.ClearAllPoints();
-        text.SetPoint("TOPLEFT", content, "TOPLEFT", x, -top);
+        text.SetPoint("TOPLEFT", content, "TOPLEFT", this.left + x, -top);
         text.SetWidth(width);
         text.SetText(words);
         text.Show();

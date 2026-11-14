@@ -7,6 +7,9 @@ import type { AddonSettingsService } from "../settings/settings.interface";
 import { HEADER_HEIGHT, ROW_HEIGHT, TABLE_WIDTH } from "./style-table.constants";
 
 const FOLDER_LABEL_X = 38;
+/** The words under the header: as wide as the lines of folders, up to three lines of small text. */
+const INFO_WIDTH = 520;
+const INFO_HEIGHT = 36;
 const FOLDER_X = 140;
 const FOLDER_WIDTH = 200;
 const COUNT_LABEL_X = 355;
@@ -24,9 +27,12 @@ interface FolderLine {
 
 export class CustomSoundsSection {
     private readonly lines: FolderLine[] = [];
-    private hover: Frame | undefined;
+    /** What the folders are for, and that the addon knows of their sounds only as many as typed. */
+    private info: FontString | undefined;
     private addFolder: Button | undefined;
     private addFolderTip: FontString | undefined;
+    /** How far from the content's left edge the lines start: in the middle of a window wider than them. */
+    private left = 0;
 
     constructor(
         private readonly locale: AddonLocale,
@@ -34,14 +40,14 @@ export class CustomSoundsSection {
     ) {}
 
     /** Its lines, under the header at `top`; returns where the next thing goes. */
-    drawLines(content: Frame, top: number): number {
-        this.showHover(content, top);
+    drawLines(content: Frame, top: number, left = 0): number {
+        this.left = left;
         const folders = this.settings.get("customSoundFolders");
-        const firstLine = top + HEADER_HEIGHT;
+        const firstLine = this.showInfo(content, top + HEADER_HEIGHT);
         folders.forEach((_folder, index) => {
             const line = this.takeLine(content, index);
             line.frame.ClearAllPoints();
-            line.frame.SetPoint("TOPLEFT", content, "TOPLEFT", 0, -(firstLine + index * ROW_HEIGHT));
+            line.frame.SetPoint("TOPLEFT", content, "TOPLEFT", this.left, -(firstLine + index * ROW_HEIGHT));
             line.frame.Show();
             line.remove.SetShown(folders.length > 1);
             this.fillLine(line);
@@ -50,7 +56,7 @@ export class CustomSoundsSection {
         const afterLines = firstLine + folders.length * ROW_HEIGHT;
         const addFolder = this.addFolder ?? this.createAddFolder(content);
         addFolder.ClearAllPoints();
-        addFolder.SetPoint("TOPLEFT", content, "TOPLEFT", FOLDER_LABEL_X, -afterLines);
+        addFolder.SetPoint("TOPLEFT", content, "TOPLEFT", this.left + FOLDER_LABEL_X, -afterLines);
         addFolder.Show();
         this.addFolderTip?.Show();
         return afterLines + ROW_HEIGHT;
@@ -59,28 +65,24 @@ export class CustomSoundsSection {
     /** All of it out of sight: the table shows another tab. */
     hide(): void {
         for (const line of this.lines) line.frame.Hide();
-        this.hover?.Hide();
+        this.info?.Hide();
         this.addFolder?.Hide();
         this.addFolderTip?.Hide();
     }
 
-    /** Over the header: it says what to do. */
-    private showHover(content: Frame, top: number): void {
-        if (this.hover === undefined) {
-            const hover = CreateFrame("Frame", undefined, content);
-            hover.SetSize(200, HEADER_HEIGHT);
-            hover.EnableMouse(true);
-            hover.SetScript("OnEnter", () => {
-                GameTooltip.SetOwner(hover, "ANCHOR_RIGHT");
-                GameTooltip.SetText(this.locale.getText("TIP_CUSTOM_SOUNDS"), 1, 1, 1, 1, true);
-                GameTooltip.Show();
-            });
-            hover.SetScript("OnLeave", () => GameTooltip.Hide());
-            this.hover = hover;
+    /** Under the header: how the sounds of the player's own are found; returns where the folders start. */
+    private showInfo(content: Frame, top: number): number {
+        if (this.info === undefined) {
+            const info = content.CreateFontString(undefined, "OVERLAY", "GameFontHighlightSmall");
+            info.SetJustifyH("LEFT");
+            info.SetWidth(INFO_WIDTH);
+            info.SetText(this.locale.getText("TEXT_CUSTOM_SOUNDS_INFO"));
+            this.info = info;
         }
-        this.hover.ClearAllPoints();
-        this.hover.SetPoint("TOPLEFT", content, "TOPLEFT", 0, -top);
-        this.hover.Show();
+        this.info.ClearAllPoints();
+        this.info.SetPoint("TOPLEFT", content, "TOPLEFT", this.left + FOLDER_LABEL_X, -top);
+        this.info.Show();
+        return top + ((this.info.GetStringHeight() as number | undefined) ?? INFO_HEIGHT) + 6;
     }
 
     private createAddFolder(content: Frame): Button {

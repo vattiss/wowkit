@@ -65,6 +65,17 @@ describe("the Custom sounds section of the table", () => {
 
     beforeEach(() => openTable(MAIN_FOLDER_SAVED(3)));
 
+    it("says under its header how it works, with no tooltip on the header", () => {
+        const texts = world.frames.filter((frame) => frame.isShown).flatMap((frame) => frame.fontStrings);
+        const info = texts.find((text) => (text.text ?? "").includes("knows only the number you type"));
+        expect(info !== undefined && info.isShown !== false).toBe(true);
+        const header = findLabel(world, "Custom Sounds")!;
+        const hovers = world.frames.filter(
+            (frame) => frame.parent === header.parent && frame.scripts.OnEnter !== undefined && frame.isShown,
+        );
+        expect(hovers.length).toBe(0);
+    });
+
     it("has one line by default, with the folder filled in and no sounds yet", () => {
         openTable({});
         expect(findLabel(world, "Custom Sounds") === undefined).toBe(false);

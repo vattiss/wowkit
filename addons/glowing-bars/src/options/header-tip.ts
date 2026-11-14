@@ -23,4 +23,10 @@ export function showHeaderTip(content: Frame, top: number, getText: (this: void)
     }
     area.ClearAllPoints();
     area.SetPoint("TOPLEFT", content, "TOPLEFT", 0, -top);
+    area.Show();
+}
+
+/** The hover area of `content` out of the way: a tab without its header must not show its tooltip where the header was. */
+export function hideHeaderTip(content: Frame): void {
+    areas.get(content)?.Hide();
 }
