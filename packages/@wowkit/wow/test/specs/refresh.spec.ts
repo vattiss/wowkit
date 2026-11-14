@@ -13,6 +13,15 @@ import { beforeEach, createBasicGame, describe, expect, it, type BasicGame } fro
 class StubBars {
     changes = 0;
     maps = 0;
+    /** The buttons that show another slot than when the bars were mapped (a bar addon paged them), and their remaps. */
+    paged: object[] = [];
+    remaps = 0;
+    listPagedButtons(): object[] {
+        return this.paged;
+    }
+    mapButtonsAgain(): void {
+        this.remaps += 1;
+    }
     noteBarsChanged(): void {
         this.changes += 1;
     }
@@ -68,6 +77,14 @@ describe("the map of the action bars", () => {
         expect(bars.maps).toBe(0);
         game.clock.advance(0.1);
         expect(bars.maps).toBe(1);
+    });
+
+    it("is mapped again soon when a button shows another slot with no event of the game's", () => {
+        game.clock.advance(1);
+        expect(bars.remaps).toBe(0);
+        bars.paged = [{}];
+        game.clock.advance(0.3);
+        expect(bars.remaps > 0).toBe(true);
     });
 
     it("is mapped again after the spells were refreshed (a new rank may be on a bar)", () => {

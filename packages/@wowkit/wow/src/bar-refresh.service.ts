@@ -16,6 +16,8 @@ const BAR_SETTLE = 0.2;
  * maps the bars again.
  */
 const BUTTON_COUNT_INTERVAL_MS = 2000;
+/** How often the buttons are asked which slot they show, for the paging no event tells of. */
+const PAGE_CHECK_INTERVAL_MS = 250;
 
 export class BarRefreshService implements OnFirstLogin {
     private generation = 0;
@@ -42,6 +44,15 @@ export class BarRefreshService implements OnFirstLogin {
         if (count === this.addonButtonCount) return;
         this.addonButtonCount = count;
         this.actionBars.mapBars(true);
+    }
+
+    /** A bar addon paged a bar with no event (Dominos by a modifier key or the target): map those buttons again at once. */
+    @Interval(PAGE_CHECK_INTERVAL_MS)
+    checkForPaging(): void {
+        const paged = this.actionBars.listPagedButtons();
+        if (paged.length === 0) return;
+        this.actionBars.noteBarsChanged();
+        this.actionBars.mapButtonsAgain(paged);
     }
 
     /** The bars changed, or a macro on them was edited (its new text may cast something else): map them again once they settle. */

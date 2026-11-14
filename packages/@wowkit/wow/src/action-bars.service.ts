@@ -9,14 +9,14 @@ import { type EventBus, OnGameEvent, type OnFirstLogin } from "@wowkit/core";
 import type { ButtonRegistryService, ButtonShape } from "./button-registry.service";
 import type { ClockService } from "./clock.service";
 import { findButtonItem, findItemUseSpell, getItemButtonKey, readTextureKey } from "./utils/item-button.utils";
-import { clearMap, pushToList } from "./utils/lua-map.utils";
+import { clearMap, pushToList, removeFromLists } from "./utils/lua-map.utils";
 import { addSpellIconKeys } from "./utils/spell-icon.utils";
 import { buildButtonKey, findMacroOfAction, findSpellMacroOfSlot, isMacroSlot, readMacroSpells } from "./utils/macro-text.utils";
 import { attempt, attemptMulti } from "./utils/protected-call.utils";
 import { getReadableId, isReadable } from "./utils/secret-value.utils";
 import type { SpellsService } from "./spells.service";
-import { BARS, findBarNumber, listAddonButtonNames, listTotemButtonNames } from "./bar-names";
-import { listGamepadButtons } from "./gamepad-buttons";
+import { findBarNumber } from "./bar-names";
+import { listButtonsToMap, readActionSlot } from "./bar-queue";
 
 declare module "@wowkit/core/event-bus" {
     interface AppEvents {
@@ -32,12 +32,6 @@ const MAP_THROTTLE = 2;
 /** An icon on more buttons than this is a generic one, not a particular spell's. */
 const MAX_BUTTONS_PER_ICON = 4;
 
-/**
- * A button to map: an action button (by its slot), a stance (by its index), or a button of the gamepad bars that shows a
- * spell of its own (the paladin's aura, picked from a flyout: no action slot, the spell in its `spellID`).
- */
-type QueueEntry = { button: ActionButton } | { stance: number; button: ActionButton | undefined } | { spellButton: ActionButton };
-
 export class ActionBarsService implements OnFirstLogin {
     private readonly buttonsBySpell = new LuaMap<number, ActionButton[]>();
     private readonly buttonsByName = new LuaMap<string, ActionButton[]>();
@@ -47,6 +41,12 @@ export class ActionBarsService implements OnFirstLogin {
     private readonly macroSpellNames = new LuaMap<string, boolean>();
     /** The action slot each mapped button shows. */
     private readonly slotByButton = new LuaMap<ActionButton, number>();
+    /** The `action` field of each mapped button that has one, as it was then: read again without a call, to see it paged. */
+    private readonly actionByButton = new LuaMap<ActionButton, number>();
+    /** The buttons found paged at the last look: the same list each time. */
+    private readonly paged: ActionButton[] = [];
+    /** Is a map of the bars going on, a few buttons per frame? */
+    private isMapping = false;
     private lastMapAt = 0;
     private mapGeneration = 0;
     /** When the player last changed the bars (a form, a stance, a page, a slot); the map is old until it is mapped again. */
@@ -76,6 +76,41 @@ export class ActionBarsService implements OnFirstLogin {
         this.barsChangedAt = this.clock.getCurrentTime();
     }
 
+    /**
+     * The mapped buttons that show another slot than when they were mapped. A bar addon can page its bars with no event of
+     * the game's: Dominos by a modifier key or by the target. Their `action` field is enough where they have one.
+     */
+    listPagedButtons(): ActionButton[] {
+        for (let index = this.paged.length; index > 0; index--) this.paged.pop();
+        for (const [button, slot] of this.slotByButton) {
+            const action = button.action;
+            const actionAtMap = this.actionByButton.get(button);
+            const isPaged =
+                actionAtMap !== undefined && type(action) === "number" ? action !== actionAtMap : this.getActionSlot(button) !== slot;
+            if (isPaged) this.paged.push(button);
+        }
+        return this.paged;
+    }
+
+    /**
+     * Maps these buttons again, the others staying as they are: a page changed only them. A macro on one of them (its names
+     * may be another button's too), or a map going on, maps every button again.
+     */
+    mapButtonsAgain(buttons: ActionButton[]): void {
+        const hasMacro = buttons.some((button) => isMacroSlot(this.slotByButton.get(button)) || isMacroSlot(this.getActionSlot(button)));
+        if (this.isMapping || hasMacro) {
+            this.mapBars(true);
+            return;
+        }
+        for (const button of buttons) {
+            for (const map of [this.buttonsBySpell, this.buttonsByName, this.buttonsByNameKey, this.buttonsByIcon])
+                removeFromLists(map as unknown as LuaMap<AnyNotNil, ActionButton[]>, button);
+            for (const map of [this.slotByButton, this.actionByButton, this.handSlotOfButton, this.readMacroButtons]) map.delete(button);
+            this.addButton(button);
+        }
+        this.bus.emit("bars.mapped");
+    }
+
     getSecondsSinceBarsChanged(): number {
         return this.clock.getCurrentTime() - this.barsChangedAt;
     }
@@ -89,13 +124,21 @@ export class ActionBarsService implements OnFirstLogin {
     /** Maps every action button, a few per frame. `isForced` ignores the throttle. */
     mapBars(isForced: boolean): void {
         if (!isForced && this.lastMapAt > 0 && this.clock.getCurrentTime() - this.lastMapAt < MAP_THROTTLE) return;
-        const maps = [this.buttonsBySpell, this.buttonsByName, this.buttonsByNameKey, this.buttonsByIcon, this.slotByButton];
+        const maps = [
+            this.buttonsBySpell,
+            this.buttonsByName,
+            this.buttonsByNameKey,
+            this.buttonsByIcon,
+            this.slotByButton,
+            this.actionByButton,
+        ];
         for (const map of [...maps, this.macroSpellNames, this.handSlotOfButton, this.readMacroButtons])
             clearMap(map as unknown as LuaMap<AnyNotNil, unknown>);
         this.hasUnknownMacroUse = false;
         this.lastMapAt = this.clock.getCurrentTime();
+        this.isMapping = true;
 
-        const queue = this.listButtonsToMap();
+        const queue = listButtonsToMap(this.registry);
 
         this.mapGeneration += 1;
         const generation = this.mapGeneration;
@@ -114,7 +157,10 @@ export class ActionBarsService implements OnFirstLogin {
                 }
             }
             if (next < queue.length) C_Timer.After(0, mapNextButtons);
-            else this.bus.emit("bars.mapped");
+            else {
+                this.isMapping = false;
+                this.bus.emit("bars.mapped");
+            }
         };
         mapNextButtons();
     }
@@ -297,47 +343,13 @@ export class ActionBarsService implements OnFirstLogin {
         const macroSpell = this.addButtonMacro(button, slot, kind, id);
         if (macroSpell !== undefined) [kind, id] = ["spell", macroSpell];
         if (slot !== undefined) this.slotByButton.set(button, slot);
+        if (type(button.action) === "number") this.actionByButton.set(button, button.action!);
         const itemId = findButtonItem(this, button);
         if (itemId !== undefined) pushToList(this.buttonsBySpell, getItemButtonKey(itemId), button);
         if (slot !== undefined && attempt(C_ActionBar.HasAction, slot) === true) this.addIcons(button, slot);
         if (kind === "spell" && id !== undefined) {
             this.addSpell(getReadableId(this.spells.getSpellInfo(getReadableId(id))?.spellID) ?? getReadableId(id), button);
         }
-    }
-
-    /**
-     * Every button to map: the bars' (Blizzard's, the totem bar, Bartender4's, Dominos's, EllesmereUI's, ElvUI's, DaylightUI's,
-     * the ones other addons registered, the gamepad bars), then the stances.
-     */
-    private listButtonsToMap(): QueueEntry[] {
-        const queue: QueueEntry[] = [];
-        const add = (name: string) => {
-            const button = this.getGlobal<ActionButton>(name);
-            if (button) queue.push({ button });
-        };
-        for (const bar of BARS) for (let i = 1; i <= 12; i++) add(`${bar}Button${i}`);
-        // The shaman's totem bar: its buttons are action buttons too
-        for (const name of listTotemButtonNames()) add(name);
-        for (const name of listAddonButtonNames()) add(name);
-        for (const button of listGamepadButtons()) {
-            queue.push(this.getActionSlot(button) === undefined ? { spellButton: button } : { button });
-        }
-        const forms = attempt(GetNumShapeshiftForms) ?? 0;
-        // The stance bar: Blizzard's, and Bartender4's, Dominos's and ElvUI's, whose buttons stand for the same forms (a
-        // paladin's auras too)
-        for (let i = 1; i <= forms; i++) {
-            for (const name of [`StanceButton${i}`, `BT4StanceButton${i}`, `DominosStanceButton${i}`, `ElvUI_StanceBarButton${i}`])
-                queue.push({ stance: i, button: this.getGlobal<ActionButton>(name) });
-        }
-        queue.push(...this.listRegisteredToMap(forms));
-        return queue;
-    }
-
-    /** The buttons other addons registered: the action buttons, and the stance buttons of the stances there are. */
-    private listRegisteredToMap(forms: number): QueueEntry[] {
-        const queue: QueueEntry[] = this.registry.listActionButtons().map((button) => ({ button }));
-        for (const [button, stance] of this.registry.listStanceButtons()) if (stance <= forms) queue.push({ stance, button });
-        return queue;
     }
 
     private readonly getGlobal = <T>(name: string): T | undefined => (_G as unknown as { [name: string]: T | undefined })[name];
@@ -347,19 +359,9 @@ export class ActionBarsService implements OnFirstLogin {
         return isReadable(value) && value === expected;
     }
 
-    /**
-     * The slot the button shows now. A Blizzard action button keeps the paged slot in GetPagedID /
-     * `action` (a druid form or warrior stance pages the main bar, e.g. bear form to 97-108 on Forever), while
-     * its "action" attribute is the base slot 1-12, so the attribute comes last.
-     */
+    /** The slot the button shows now (see readActionSlot). */
     getActionSlot(button: ActionButton): number | undefined {
-        const getValidSlot = (slot: unknown) => (slot !== undefined && slot !== 0 ? (slot as number) : undefined);
-        return (
-            getValidSlot(button.GetPagedID ? attempt(() => button.GetPagedID!()) : undefined) ??
-            getValidSlot(button.CalculateAction ? attempt(() => button.CalculateAction!()) : undefined) ??
-            getValidSlot(button.action) ??
-            getValidSlot(tonumber(attempt(() => button.GetAttribute("action"))))
-        );
+        return readActionSlot(button);
     }
 
     /** What an action slot holds: "spell" with a spell ID, "macro" with a macro, or nothing known. */
