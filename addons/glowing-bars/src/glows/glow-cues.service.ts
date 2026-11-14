@@ -29,9 +29,19 @@ import { READY_MARGIN, type CooldownTrackerService } from "./cooldown-tracker.se
 import type { StanceProcsService } from "./stance-procs.service";
 import type { StyleService } from "../settings/style.service";
 
+/** The list emptied, the same table: a tick makes as few new tables as it can. */
+function clearList(list: number[]): number[] {
+    for (let index = list.length; index > 0; index--) list.pop();
+    return list;
+}
+
 export class GlowCuesService {
     /** The ready cooldowns of each type found due but on no button now (see listPagedAwayCooldowns). */
     private readonly pagedAway: { [cooldownType in CooldownType]: number[] } = { readyCooldown: [], utilityCooldown: [] };
+    /** The cooldowns seen running since the login: only one of them glows as it is ready, a ready one was so before. */
+    private readonly seenRunning = new LuaSet<number>();
+    /** The ready cooldowns of each type never seen running since the login (see listReadyBefore). */
+    private readonly readyBefore: { [cooldownType in CooldownType]: number[] } = { readyCooldown: [], utilityCooldown: [] };
     /** The cooldowns that have been running at some point of this fight (or ready as it started, if the player asked). */
     private usedInCombat = new LuaSet<number>();
     /** The spells of each type, kept until the settings or the spells change: every tick asks for them. */
@@ -79,16 +89,14 @@ export class GlowCuesService {
      */
     findReadyCooldowns(cooldownType: CooldownType): number[] {
         // The same list each time: a tick makes as few new tables as it can
-        const pagedAway = this.pagedAway[cooldownType];
-        for (let index = pagedAway.length; index > 0; index--) pagedAway.pop();
+        const pagedAway = clearList(this.pagedAway[cooldownType]);
+        const readyBefore = clearList(this.readyBefore[cooldownType]);
         if (!this.settings.get(cooldownType === "readyCooldown" ? "isReadyCooldownEnabled" : "isUtilityCooldownEnabled")) return [];
         const isInCombat = this.player.isInCombat();
         const ready: number[] = [];
         for (const id of this.listCues(this.listCueIds(cooldownType), false)) {
-            if (this.tracker.getRemaining(id) > READY_MARGIN) {
-                if (isInCombat) this.usedInCombat.add(id);
-                continue;
-            }
+            if (this.checkRunning(id, isInCombat)) continue;
+            if (!this.seenRunning.has(id)) readyBefore.push(id);
             // No cooldown in this form (Faerie Fire out of Bear Form): nothing to wait for
             if (!this.tracker.hasCooldownNow(id)) continue;
             if (!isInCombat || this.usedInCombat.has(id) || this.isGlowingWheneverReady(cooldownType, id)) {
@@ -97,6 +105,22 @@ export class GlowCuesService {
             }
         }
         return ready;
+    }
+
+    /** Is the cooldown running? One running is noted: used in this fight, and seen running since the login. */
+    private checkRunning(spellId: number, isInCombat: boolean): boolean {
+        if (this.tracker.getRemaining(spellId) <= READY_MARGIN) return false;
+        if (isInCombat) this.usedInCombat.add(spellId);
+        this.seenRunning.add(spellId);
+        return true;
+    }
+
+    /**
+     * The ready cooldowns of the last look never seen running since the login: ready before it (a reload), they did not
+     * just come back, and do not glow for it.
+     */
+    listReadyBefore(cooldownType: CooldownType): number[] {
+        return this.readyBefore[cooldownType];
     }
 
     /** The ready cooldowns the last look found due but on no button now: a page of a bar not shown (a stance, Shift). */

@@ -7,6 +7,9 @@
 // there when it is seen again.
 import type { Style } from "../settings/settings.interface";
 
+/** Seconds back a reminder that was due before the addon looked counts from: any glow time is over. */
+const LONG_AGO = 100000;
+
 export class GlowSchedule {
     /** When each reminder ("buff:21562") became due; one that is no longer due is forgotten, and starts over when back. */
     private dueSince = new LuaMap<string, number>();
@@ -31,6 +34,11 @@ export class GlowSchedule {
         if (since === undefined) return;
         this.seen.add(key);
         if (!this.heldShownFor.has(key)) this.heldShownFor.set(key, now - since);
+    }
+
+    /** The ready cooldown was ready before the addon looked (a reload): its time is long over, unless its When begins. */
+    markShown(key: string, now: number): void {
+        if (!this.dueSince.has(key)) this.dueSince.set(key, now - LONG_AGO);
     }
 
     /**

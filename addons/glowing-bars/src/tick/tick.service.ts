@@ -34,6 +34,7 @@ export class TickService implements OnFirstLogin, OnLogout, OnReady {
     /** The When of the last tick, and the ones that began since: a ready cooldown starts over as its When begins. */
     private readonly wasWhenState = createWhenState();
     private readonly whenStarts = createNoStarts();
+    private hasLooked = false;
     private time = 0;
     private isInTown = false;
     private hasArrivedInTown = false;
@@ -86,8 +87,13 @@ export class TickService implements OnFirstLogin, OnLogout, OnReady {
         this.isInTown = this.player.isResting();
         this.hasArrivedInTown = this.isInTown && !this.wasInTown;
         this.wasInTown = this.isInTown;
+        // The first look only takes in how things are: a reload in a fight or with a target begins no time
+        if (!this.hasLooked) readWhenStarts(now, this.wasWhenState, this.whenStarts);
+        this.hasLooked = true;
         readWhenStarts(now, this.wasWhenState, this.whenStarts);
         this.schedule.startTick();
+        for (const id of reminders.readyBeforeCooldowns) this.schedule.markShown(`readyCooldown:${id}`, this.time);
+        for (const id of reminders.readyBeforeUtilityCooldowns) this.schedule.markShown(`utilityCooldown:${id}`, this.time);
         this.trackCooldowns("readyCooldown", reminders.readyCooldowns, reminders.pagedAwayCooldowns);
         this.trackCooldowns("utilityCooldown", reminders.utilityCooldowns, reminders.pagedAwayUtilityCooldowns);
         filterReminders(this.showing, this.byWhen, this.isDueNow);

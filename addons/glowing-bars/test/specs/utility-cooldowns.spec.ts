@@ -1,6 +1,7 @@
 // The utility cooldowns besides the racials: the shaman's Astral Recall, and the Hearthstone, an item that counts only on a
 // bar. Each glows anywhere, once as it is ready.
 import { createWorld, describe, expect, it, learnSpell, playAs, SHAMAN, WARRIOR, type SpellDefinition, type World } from "@wowkit/test-kit";
+import { recoverCooldown } from "./cooldown.helpers";
 import { findLabel, toggleTable } from "./table.helpers";
 
 const ASTRAL_RECALL: SpellDefinition = { id: 556, name: "Astral Recall", rank: 1, icon: 136010, cooldownSeconds: 900 };
@@ -23,6 +24,9 @@ function createWithHearthstone(isOnBar: boolean): World {
         if (isOnBar) state.barItems[1] = HEARTHSTONE_ITEM;
     });
     world.advance(1);
+    // Its cooldown is the item's: it runs, then comes back
+    world.state.itemCooldowns[HEARTHSTONE_ITEM] = { start: GetTime(), duration: 2 };
+    world.advance(3.5);
     return world;
 }
 
@@ -34,6 +38,7 @@ describe("Astral Recall, a shaman's utility cooldown", () => {
             state.bars[1] = ASTRAL_RECALL.id;
         });
         world.advance(1);
+        recoverCooldown(world, ASTRAL_RECALL.id);
         expect(world.glowsOn(1)).toBe(1);
         world.advance(3);
         startFight(world);
@@ -45,8 +50,8 @@ describe("the Hearthstone, a utility cooldown on a bar", () => {
     it("glows once when ready, and not while on its cooldown", () => {
         expect(createWithHearthstone(true).glowsOn(1)).toBe(1);
         const world = createWithHearthstone(true);
-        world.state.cooldowns[HEARTHSTONE.id] = { start: GetTime(), duration: 3600 };
-        world.advance(4);
+        world.state.itemCooldowns[HEARTHSTONE_ITEM] = { start: GetTime(), duration: 3600 };
+        world.advance(1);
         expect(world.glowsOn(1)).toBe(0);
     });
 
@@ -90,6 +95,7 @@ describe("the looks set for a utility cooldown while it was a ready cooldown", (
         const added = saved.addedSpells as { id: number; reminderType: string }[];
         expect(added.map((spell) => `${spell.id}:${spell.reminderType}`).join(",")).toBe(`${ASTRAL_RECALL.id}:utilityCooldown`);
         // Astral Recall glows once, in one type only
+        recoverCooldown(world, ASTRAL_RECALL.id);
         expect(world.glowsOn(2)).toBe(1);
     });
 

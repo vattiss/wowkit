@@ -2,6 +2,7 @@
 // and as it ends, for a cooldown ready the whole time, one back during the fight, and one used in it. A ready cooldown glows
 // once, as it is ready while its When holds; a "+ start" choice also as its time begins (a fight's start, or its end).
 import { createWorld, describe, expect, it, learnSpell, playAs, targetEnemy, WARRIOR, type SpellDefinition } from "@wowkit/test-kit";
+import { recoverCooldown } from "./cooldown.helpers";
 
 const RECKLESSNESS: SpellDefinition = { id: 1719, name: "Recklessness", rank: 1, icon: 132109, cooldownSeconds: 1800 };
 // Alert in town is offered only to low reagents and low stock; Enemy targeted is tried with an enemy targeted
@@ -57,6 +58,7 @@ describe("a ready cooldown by every When and glow time", () => {
         for (const c of listCases()) {
             const world = createWarrior(c);
             world.advance(1);
+            recoverCooldown(world, RECKLESSNESS.id);
             const peace = world.glowsOn(2);
             world.advance(5);
             world.state.isInCombat = true;

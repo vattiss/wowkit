@@ -70,6 +70,7 @@ import "./blessings-from-others.spec";
 import "./per-caster-matrix.spec";
 import "./ready-cooldown-choices.spec";
 import "./ready-cooldown-when-brute.spec";
+import "./ready-at-login.spec";
 import "./buff-rank-icons.spec";
 import "./reagent-languages.spec";
 import "./low-stock-table.spec";

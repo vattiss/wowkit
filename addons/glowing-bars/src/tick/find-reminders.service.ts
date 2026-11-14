@@ -94,6 +94,8 @@ export class FindRemindersService {
         found.pagedAwayCooldowns = this.glowCues.listPagedAwayCooldowns("readyCooldown");
         found.utilityCooldowns = this.glowCues.findReadyCooldowns("utilityCooldown");
         found.pagedAwayUtilityCooldowns = this.glowCues.listPagedAwayCooldowns("utilityCooldown");
+        found.readyBeforeCooldowns = this.glowCues.listReadyBefore("readyCooldown");
+        found.readyBeforeUtilityCooldowns = this.glowCues.listReadyBefore("utilityCooldown");
         found.procs = this.glowCues.findProcs();
         found.reagentSpells = reagentSpells;
         found.lowReagents = lowReagents;

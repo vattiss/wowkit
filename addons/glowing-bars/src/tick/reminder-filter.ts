@@ -25,6 +25,8 @@ export function createEmptyReminders(): Reminders {
         pagedAwayCooldowns: [],
         utilityCooldowns: [],
         pagedAwayUtilityCooldowns: [],
+        readyBeforeCooldowns: [],
+        readyBeforeUtilityCooldowns: [],
         reagentSpells: [],
         lowReagents: [],
         lowStock: [],
@@ -80,6 +82,8 @@ export function filterReminders(target: Reminders, reminders: Reminders, isShown
     // Kept as they are: the tick holds their glow time (TickService), they show nothing
     target.pagedAwayCooldowns = reminders.pagedAwayCooldowns;
     target.pagedAwayUtilityCooldowns = reminders.pagedAwayUtilityCooldowns;
+    target.readyBeforeCooldowns = reminders.readyBeforeCooldowns;
+    target.readyBeforeUtilityCooldowns = reminders.readyBeforeUtilityCooldowns;
     copyShown(target.procs, reminders.procs, "proc", getOwnId, isShown);
     return target;
 }

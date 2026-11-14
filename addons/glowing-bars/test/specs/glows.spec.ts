@@ -11,6 +11,7 @@ import {
     type SpellDefinition,
     type World,
 } from "@wowkit/test-kit";
+import { recoverCooldown } from "./cooldown.helpers";
 
 const OVERPOWER: SpellDefinition = { id: 7384, name: "Overpower", rank: 1, icon: 132223, maxRange: 5, isHarmful: true };
 const REVENGE: SpellDefinition = { id: 6572, name: "Revenge", rank: 1, icon: 132353, maxRange: 5, isHarmful: true };
@@ -201,6 +202,8 @@ describe("a warrior with Overpower and Recklessness on the bars", () => {
     it("lights Recklessness out of combat when the player chose it to show always", () => {
         world = createWorld(setUpWarrior, { styles: { readyCooldown: { when: "always" } } });
         world.advance(0.5);
+        expect(world.glowsOn(2)).toBe(0);
+        recoverCooldown(world, RECKLESSNESS.id);
         expect(world.glowsOn(2)).toBe(1);
     });
 

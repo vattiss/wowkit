@@ -2,6 +2,7 @@
 // ready; its type's When (Utility cooldown) moves it as it moves every utility cooldown, and what the player sets on its row
 // wins over that. The Ready cooldown type's When leaves it alone.
 import { createWorld, describe, expect, it, learnSpell, playAs, WARRIOR, type SpellDefinition, type World } from "@wowkit/test-kit";
+import { recoverCooldown } from "./cooldown.helpers";
 
 const CULTIVATION: SpellDefinition = { id: 20552, name: "Cultivation", rank: 1, icon: 136099, cooldownSeconds: 900 };
 const WHENS = ["always", "inCombat", "inCombatStart", "outOfCombat"] as const;
@@ -13,6 +14,7 @@ function createTauren(saved?: Record<string, unknown>): World {
         state.bars[1] = CULTIVATION.id;
     }, saved);
     world.advance(1);
+    recoverCooldown(world, CULTIVATION.id);
     return world;
 }
 

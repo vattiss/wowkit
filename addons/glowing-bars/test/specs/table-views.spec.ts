@@ -1,4 +1,5 @@
 import { createWorld, describe, expect, it, learnSpell, playAs, WARRIOR, type FakeFrame, type World } from "@wowkit/test-kit";
+import { recoverCooldown } from "./cooldown.helpers";
 import { RECKLESSNESS, findLabel, setUpWarrior, toggleTable } from "./table.helpers";
 
 const ADVANCED_ONLY = ["Spell / Item ID", "Glow %", "Repeat", "When", "Glow time", "Animation"];
@@ -108,6 +109,7 @@ describe("the views of the table", () => {
         expect(isHeaderShown(world, "When")).toBe(false);
         world.state.isInCombat = false;
         world.advance(1);
+        recoverCooldown(world, 1719);
         expect(world.glowsOn(2)).toBe(1);
     });
 });

@@ -132,8 +132,9 @@ describe("a ready cooldown's When, by brute force", () => {
                 const truth: Truth = {
                     isInCombat: false,
                     hasTarget: false,
+                    // Ready at the login: it was so before, and glows only as a time of its When begins
                     isReady: true,
-                    readyAt: GetTime(),
+                    readyAt: -100,
                     fightStartAt: -100,
                     fightEndAt: -100,
                     enemyOnAt: -100,

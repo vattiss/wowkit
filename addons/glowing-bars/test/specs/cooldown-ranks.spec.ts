@@ -14,6 +14,7 @@ import {
     type SpellDefinition,
     type World,
 } from "@wowkit/test-kit";
+import { recoverCooldown } from "./cooldown.helpers";
 import { findAddRowOf, toggleTable } from "./table.helpers";
 
 describe("a priest with a higher rank of Fade on the bars", () => {
@@ -157,6 +158,7 @@ describe("a cooldown only the tooltip names, as Faerie Fire's in Bear Form", () 
             addedSpells: [{ id: FAERIE_FIRE.id, reminderType: "readyCooldown" }],
         });
         world.advance(1);
+        recoverCooldown(world, FAERIE_FIRE.id);
         expect(world.glowsOn(1)).toBe(1);
         world.state.tooltipCooldowns[FAERIE_FIRE.id] = undefined;
         world.fire("UPDATE_SHAPESHIFT_FORM");

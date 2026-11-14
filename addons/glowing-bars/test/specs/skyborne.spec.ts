@@ -2,6 +2,7 @@
 // fall). Each can be of use in a fight or out of one, so each glows when ready anywhere by its own default look: once, not
 // again as a fight starts.
 import { createWorld, describe, expect, it, learnSpell, playAs, WARRIOR, type SpellDefinition, type World } from "@wowkit/test-kit";
+import { recoverCooldown } from "./cooldown.helpers";
 import { findLabel, toggleTable } from "./table.helpers";
 
 const READ_LEYLINE: SpellDefinition = { id: 1259705, name: "Read Leyline", rank: 1, icon: 136116, cooldownSeconds: 120 };
@@ -23,6 +24,7 @@ function createSkyborne(racial: SpellDefinition, saved?: Record<string, unknown>
         state.bars[1] = racial.id;
     }, saved);
     world.advance(1);
+    recoverCooldown(world, racial.id);
     return world;
 }
 
