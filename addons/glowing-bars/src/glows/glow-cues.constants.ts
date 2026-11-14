@@ -65,12 +65,23 @@ export const PROC_CUES: { [classToken: string]: number[] | undefined } = {
     WARRIOR: [Warrior.Overpower, Warrior.Revenge, Warrior.Execute, Warrior.VictoryRush],
 };
 
+/** A proc told by its spell, and the buffs that tell it. */
+export interface SpellProcCue {
+    id: number;
+    sign: "free" | "instant";
+    /** The proc's buffs: their icons in the Cooldown Manager tell first. */
+    auras: number[];
+    /** Buffs that make every spell so (Clearcasting: any spell free): while one is up, the sign tells nothing of the proc. */
+    notWhile?: number[];
+}
+
 /**
  * Procs told by their spell: the game hides them in a fight, as buffs. Their icons in the Cooldown Manager tell (`auras`),
  * else their spell, by turning free or instant. Without the talent the spell never does, so no other check is needed.
  */
-export const SPELL_PROC_CUES: { [classToken: string]: { id: number; sign: "free" | "instant"; auras: number[] }[] | undefined } = {
-    MAGE: [{ id: Mage.ArcaneMissiles, sign: "free", auras: [Mage.MissileBarrage, Mage.Clearcasting] }],
+export const SPELL_PROC_CUES: { [classToken: string]: SpellProcCue[] | undefined } = {
+    // Missile Barrage's proc. Clearcasting makes Arcane Missiles free too, as every other spell: that is not its proc
+    MAGE: [{ id: Mage.ArcaneMissiles, sign: "free", auras: [Mage.MissileBarrage], notWhile: [Mage.Clearcasting] }],
     WARLOCK: [{ id: Warlock.ShadowBolt, sign: "instant", auras: [Warlock.ShadowTrance] }],
     // Instant with 5 stacks of Maelstrom Weapon only. No buff to ask: its icon shows at any number of stacks
     SHAMAN: [{ id: Shaman.LightningBolt, sign: "instant", auras: [] }],

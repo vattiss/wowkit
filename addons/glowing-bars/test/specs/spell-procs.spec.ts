@@ -3,6 +3,8 @@ import { findLabel, toggleTable } from "./table.helpers";
 
 const WARLOCK = { name: "Warlock", token: "WARLOCK", id: 9 };
 const MISSILES: SpellDefinition = { id: 5143, name: "Arcane Missiles", rank: 1, icon: 136096, maxRange: 30, isHarmful: true };
+const CLEARCASTING: SpellDefinition = { id: 12536, name: "Clearcasting", rank: 1, icon: 136170, isHelpful: true };
+const MISSILE_BARRAGE: SpellDefinition = { id: 400588, name: "Missile Barrage", rank: 1, icon: 236221, isHelpful: true };
 const SHADOW_BOLT: SpellDefinition = {
     id: 686,
     name: "Shadow Bolt",
@@ -52,6 +54,34 @@ describe("a proc told by its spell", () => {
         const world = createMage(85);
         expect(world.glowsOn(1)).toBe(0);
         world.state.spellCosts[MISSILES.id] = 0;
+        world.advance(1);
+        expect(world.glowsOn(1)).toBe(1);
+    });
+
+    it("lights no Arcane Missiles made free by Clearcasting, which makes every spell free", () => {
+        const world = createMage(0);
+        world.state.spells[CLEARCASTING.id] = CLEARCASTING;
+        world.state.auras.push(world.makeAura(CLEARCASTING.name, CLEARCASTING.id, 15));
+        world.fire("UNIT_AURA", "player");
+        world.advance(1);
+        expect(world.glowsOn(1)).toBe(0);
+        // Gone: free now is Missile Barrage's proc
+        world.state.auras = [];
+        world.fire("UNIT_AURA", "player");
+        world.advance(1);
+        expect(world.glowsOn(1)).toBe(1);
+    });
+
+    it("lights Arcane Missiles for Missile Barrage's icon, Clearcasting up or not", () => {
+        const world = createWorld((state) => {
+            playAs(state, MAGE);
+            learnSpell(state, MISSILES);
+            state.bars[1] = MISSILES.id;
+            state.spells[CLEARCASTING.id] = CLEARCASTING;
+            state.spells[MISSILE_BARRAGE.id] = MISSILE_BARRAGE;
+            state.auras.push({ name: CLEARCASTING.name, spellId: CLEARCASTING.id, expirationTime: 0 });
+            state.trackedBuffs.push({ spellId: MISSILE_BARRAGE.id, isActive: true });
+        });
         world.advance(1);
         expect(world.glowsOn(1)).toBe(1);
     });

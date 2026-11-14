@@ -25,12 +25,14 @@ const problems: string[] = [];
 let serviceCount = 0;
 for (const addon of listAddons()) {
     const wiringFile = `${addon}/src/addon.ts`;
-    const wiring = readFileSync(`${ROOT}${wiringFile}`, "utf8");
+    // addon.ts and the stages it keeps in files of their own (addon-manager.ts)
+    const parts = readdirSync(`${ROOT}${addon}/src`).filter((name) => /^addon(-[\w-]+)?\.ts$/.test(name));
+    const wiring = parts.map((name) => readFileSync(`${ROOT}${addon}/src/${name}`, "utf8")).join("\n");
     for (const file of [`${addon}/src`].flatMap(listFiles).filter((path) => SERVICE_FILE.test(path))) {
         for (const match of readFileSync(`${ROOT}${file}`, "utf8").matchAll(/^export class (\w+)/gm)) {
             serviceCount++;
             if (!wiring.includes(`new ${match[1]}(`) && !wiring.includes(`new ${match[1]}<`))
-                problems.push(`${match[1]} (${file}) is never made in ${wiringFile}`);
+                problems.push(`${match[1]} (${file}) is never made in ${wiringFile} or its stage files (addon-*.ts)`);
         }
     }
 }

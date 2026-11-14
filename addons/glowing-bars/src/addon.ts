@@ -2,6 +2,7 @@
 // The order of the lines is also the order the lifecycle hooks run in. The wiring is split in stages: Lua 5.1 lets a
 // function reach at most 60 outer names, and one function naming every service would reach more.
 import { makeGame, type Game } from "./game-services";
+import { makeCooldownManager } from "./addon-manager";
 import { Addon } from "@wowkit/core";
 import {
     ControlsService,
@@ -17,7 +18,6 @@ import { AuraWatchService } from "./character/aura-watch.service";
 import { BlockedActionService } from "./character/blocked-action.service";
 import { BuffMemoryService } from "./character/buff-memory.service";
 import { BuffStateService } from "./character/buff-state.service";
-import { CooldownManagerService } from "./character/cooldown-manager.service";
 import { EquipmentService } from "./character/equipment.service";
 import { IdleService } from "./character/idle.service";
 import { DefensiveExecuteService } from "./glows/defensive-execute.service";
@@ -97,7 +97,7 @@ function makeTexts(addon: Addon, game: Game) {
     const styles = addon.register(new StyleService(game.spells, settings));
     return { settings, locale, messages, styles };
 }
-type Texts = ReturnType<typeof makeTexts>;
+export type Texts = ReturnType<typeof makeTexts>;
 
 /** What the addon knows about the player's buffs. */
 function makeBuffs(addon: Addon, game: Game, texts: Texts) {
@@ -108,7 +108,7 @@ function makeBuffs(addon: Addon, game: Game, texts: Texts) {
     const state = addon.register(new BuffStateService(game.auras, game.spells, game.player, memory, knowledge, game.cooldownViewer));
     return { idle, classBuffs, state };
 }
-type Buffs = ReturnType<typeof makeBuffs>;
+export type Buffs = ReturnType<typeof makeBuffs>;
 
 /** What the addon reminds about. */
 function makeReminders(addon: Addon, addonName: string, game: Game, texts: Texts, buffs: Buffs) {
@@ -144,6 +144,7 @@ function makeReminders(addon: Addon, addonName: string, game: Game, texts: Texts
             stanceProcs,
             game.cooldownViewer,
             texts.styles,
+            game.auras,
         ),
     );
     const fedBuffs = addon.register(
@@ -159,27 +160,7 @@ function makeReminders(addon: Addon, addonName: string, game: Game, texts: Texts
     const tracking = addon.register(new TrackingReminderService(game.spells, game.actionBars, buffs.state, settings, addedSpells));
     return { buff, reagents, party, weaponChoice, weapon, outdatedRanks, glowCues, addedSpells, added, fedBuffs, limits, seal, tracking };
 }
-type Reminders = ReturnType<typeof makeReminders>;
-
-/** Blizzard's Cooldown Manager, running in the background: what the addon reminds about goes on display in it. */
-function makeCooldownManager(addon: Addon, game: Game, texts: Texts, buffs: Buffs, reminders: Reminders) {
-    addon.register(
-        new CooldownManagerService(
-            game.cooldownViewer,
-            game.player,
-            texts.settings,
-            game.spells,
-            game.clock,
-            buffs.classBuffs,
-            reminders.addedSpells,
-            reminders.seal,
-            reminders.tracking,
-            reminders.glowCues,
-            game.glow,
-            game.buttonRegistry,
-        ),
-    );
-}
+export type Reminders = ReturnType<typeof makeReminders>;
 
 /** The tick: find what is due, show it, look again sooner when something changed; and what happens to the player. */
 function makeTick(addon: Addon, addonName: string, game: Game, texts: Texts, buffs: Buffs, reminders: Reminders) {

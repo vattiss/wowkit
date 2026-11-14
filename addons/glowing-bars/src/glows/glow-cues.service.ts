@@ -3,10 +3,17 @@
 // it glows then is its glow time (a few seconds by default: one that waits for the right moment should not glow all the
 // while).
 import { OnEvent, OnGameEvent } from "@wowkit/core";
-import type { ActionBarsService, PlayerService, SpellDetailsService, SpellsService, CooldownViewerService } from "@wowkit/wow";
+import type {
+    ActionBarsService,
+    AurasService,
+    PlayerService,
+    SpellDetailsService,
+    SpellsService,
+    CooldownViewerService,
+} from "@wowkit/wow";
 import type { AddonSettingsService, AddableType } from "../settings/settings.interface";
 import type { AddedSpellsService } from "./added-spells.service";
-import { COOLDOWN_CUES, PROC_CUES, RACIAL_COOLDOWNS, SPELL_PROC_CUES } from "./glow-cues.constants";
+import { COOLDOWN_CUES, PROC_CUES, RACIAL_COOLDOWNS, SPELL_PROC_CUES, type SpellProcCue } from "./glow-cues.constants";
 import { READY_MARGIN, type CooldownTrackerService } from "./cooldown-tracker.service";
 import type { StanceProcsService } from "./stance-procs.service";
 import type { StyleService } from "../settings/style.service";
@@ -30,6 +37,7 @@ export class GlowCuesService {
         private readonly stanceProcs: StanceProcsService,
         private readonly cooldownViewer: CooldownViewerService,
         private readonly styles: StyleService,
+        private readonly auras: AurasService,
     ) {}
 
     /**
@@ -109,7 +117,7 @@ export class GlowCuesService {
     /** The buffs of the procs told by their spell, for the Cooldown Manager to track. */
     listProcAuras(): number[] {
         const ids: number[] = [];
-        for (const proc of this.listSpellProcs()) ids.push(...proc.auras);
+        for (const proc of this.listSpellProcs()) ids.push(...proc.auras, ...(proc.notWhile ?? []));
         return ids;
     }
 
@@ -130,12 +138,24 @@ export class GlowCuesService {
     private isProcUp(id: number): boolean {
         const name = this.spells.getSpellLabel(id);
         const spellProc = this.listSpellProcs().find((proc) => this.spells.getSpellLabel(proc.id) === name);
-        if (spellProc !== undefined)
-            return (
-                this.readProcIcons(spellProc.auras) ??
-                (spellProc.sign === "free" ? this.spellDetails.isFreeNow(id) : this.spellDetails.isInstantNow(id))
-            );
+        if (spellProc !== undefined) return this.readProcIcons(spellProc.auras) ?? this.isSignShowing(id, spellProc);
         return this.spellDetails.readUsability(id).isUsable === true || this.stanceProcs.isOpen(id);
+    }
+
+    /** Is the spell free or instant now, by its proc, not by a buff that makes every spell so (Clearcasting)? */
+    private isSignShowing(id: number, spellProc: SpellProcCue): boolean {
+        const isShowing = spellProc.sign === "free" ? this.spellDetails.isFreeNow(id) : this.spellDetails.isInstantNow(id);
+        return isShowing && !(spellProc.notWhile ?? []).some((buff) => this.isBuffUp(buff));
+    }
+
+    /**
+     * Is the buff on the player: by the aura, or by its icon in the Cooldown Manager (the game hides the aura in a fight).
+     * Either one saying up is enough: an icon follows only its entry's exact IDs, so its "out" cannot overrule the aura.
+     */
+    private isBuffUp(buffId: number): boolean {
+        if (this.auras.readPlayerAura(buffId)?.isFound === true) return true;
+        const name = this.spells.getSpellName(buffId);
+        return name !== undefined && this.cooldownViewer.isBuffActive(name) === true;
     }
 
     /**
