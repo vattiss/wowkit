@@ -18,6 +18,7 @@ import type { StyleEditsService } from "./style-edits.service";
 import { TYPE_TEXTS, type StyleRow, type StyleRowsService } from "./style-rows.service";
 import { StyleRowWidgets, type RowWidgets } from "./style-row-widgets";
 import { TakenOverNotice } from "./taken-over-notice";
+import { TableHelp } from "./table-help";
 
 /** The words beside the switch of the spells not learned yet. */
 const UNLEARNED_LABEL_WIDTH = 130;
@@ -39,6 +40,8 @@ export class StyleTableService {
     private readonly rowWidgets: StyleRowWidgets;
     /** The line that names the spells whose own default their type's change took over. */
     private readonly takenOver: TakenOverNotice;
+    /** The help on the columns, on its own tab. */
+    private readonly help: TableHelp;
 
     constructor(
         private readonly locale: AddonLocale,
@@ -51,6 +54,7 @@ export class StyleTableService {
     ) {
         this.rowWidgets = new StyleRowWidgets(locale, styles, choices, windows, edits);
         this.takenOver = new TakenOverNotice(locale);
+        this.help = new TableHelp(locale, choices);
     }
 
     /** Opens the window, or closes it when it is open. A failure is printed, never thrown. */
@@ -84,8 +88,8 @@ export class StyleTableService {
 
     /**
      * Lays out the tab shown: a header, its types, a header, their spells, and the row that adds one; on the sounds' tab,
-     * the folders of sounds. Only the tabs this character has rows on, or can add to, are offered; the one picked last is
-     * shown, else the first.
+     * the folders of sounds; on the help's, the columns explained. Only the tabs this character has rows on, or can add
+     * to, are offered; the one picked last is shown, else the first.
      */
     private showRows(): void {
         const content = this.content;
@@ -97,7 +101,7 @@ export class StyleTableService {
         // A tab with no rows of this character's is offered all the same where a spell can be added to it
         const shownTabs = TABLE_TABS.filter(
             (tab) =>
-                tab.key === "sounds" ||
+                tab.types.length === 0 ||
                 typeRows.some((row) => tab.types.includes(row.reminderType)) ||
                 tab.types.some((reminderType) => ADDABLE_TYPES.includes(reminderType as AddableType)),
         );
@@ -107,23 +111,25 @@ export class StyleTableService {
         this.windows.setBelowShown(
             typeRows.some((row) => isInTab(row) && (row.reminderType === "lowReagent" || row.reminderType === "lowStock")),
         );
-        this.windows.setTableShown(tab.key !== "sounds");
+        // The sounds and the help have no table: no column headers over them
+        this.windows.setTableShown(tab.types.length > 0);
         this.applyTableWidth(content);
         this.windows.showTabs(
             shownTabs.map((each) => each.key),
             tab.key,
         );
-        if (tab.key !== "sounds") this.windows.hideCustomSounds();
-        else this.takenOver.hide();
+        this.hideTabParts();
         const y =
             tab.key === "sounds"
                 ? this.drawCustomSounds(content, 0)
-                : this.drawTypeTab(
-                      content,
-                      tab,
-                      typeRows.filter((row) => isInTab(row)),
-                      spellRows.filter((row) => isInTab(row)),
-                  );
+                : tab.key === "help"
+                  ? this.help.draw(content, 0, this.tableWidth, this.windows.isAdvanced())
+                  : this.drawTypeTab(
+                        content,
+                        tab,
+                        typeRows.filter((row) => isInTab(row)),
+                        spellRows.filter((row) => isInTab(row)),
+                    );
         for (let i = this.usedHeaders; i < this.headers.length; i++) this.headers[i]!.Hide();
         for (let i = this.usedWidgets; i < this.widgets.length; i++) this.widgets[i]!.frame.Hide();
         content.SetHeight(math.max(10, y));
@@ -193,6 +199,15 @@ export class StyleTableService {
         label.SetText(this.locale.getText("OPT_SHOW_UNLEARNED"));
         this.unlearnedSwitch = { holder, box };
         return this.unlearnedSwitch;
+    }
+
+    /** What only some tabs show, out of sight: the tab drawn shows its own again (another tab must not keep them). */
+    private hideTabParts(): void {
+        this.windows.hideCustomSounds();
+        this.help.hide();
+        this.takenOver.hide();
+        this.addRow?.Hide();
+        this.unlearnedSwitch?.holder.Hide();
     }
 
     /** The window is as wide as the columns of the view. */

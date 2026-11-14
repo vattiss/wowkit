@@ -1,8 +1,10 @@
 // English only: every player-facing string of the addon.
+import { HELP_TEXTS } from "./help-texts.constants";
 import { TABLE_TEXTS } from "./table-texts.constants";
 
 export const TEXTS = {
     ...TABLE_TEXTS,
+    ...HELP_TEXTS,
     TITLE: "Glowing Bars",
     INIT: "Loaded. Type /gb to customize your reminders.",
 

@@ -225,3 +225,52 @@ describe("the rows of a reagent in the table", () => {
         toggleTable();
     });
 });
+
+describe("the Help tab of the table", () => {
+    /** The words on the screen, of every text shown. */
+    const listShownTexts = (world: World) =>
+        world.frames
+            .filter((frame) => frame.isShown && frame.parent?.isShown === true)
+            .flatMap((frame) => frame.fontStrings)
+            .filter((text) => text.isShown !== false)
+            .map((text) => text.text ?? "");
+
+    function openHelp(saved?: Record<string, unknown>): World {
+        const world = openWarrior(saved);
+        showTab(world, "Help");
+        return world;
+    }
+
+    it("explains the columns of the Basic view alone in Basic", () => {
+        const texts = listShownTexts(openHelp());
+        for (const title of ["Spell / Item", "Type", "Color", "Message", "Sound", "Enabled", "Actions"])
+            expect(texts.includes(title)).toBe(true);
+        expect(texts.includes("When")).toBe(false);
+        toggleTable();
+    });
+
+    it("explains every column in Advanced, with the choices the lists offer", () => {
+        const texts = listShownTexts(openHelp({ isTableAdvanced: true }));
+        expect(texts.includes("When")).toBe(true);
+        const help = texts.join(" | ");
+        expect(help).toContain("Always + start");
+        expect(help).toContain("Out of combat + start");
+        expect(help).toContain("Until done");
+        toggleTable();
+    });
+
+    it("leaves nothing of the other tabs on the screen, nor the column headers", () => {
+        const world = openWarrior();
+        showTab(world, "Procs");
+        // The add row itself: the tip under it
+        const isAddRowShown = () => listShownTexts(world).some((text) => text.includes("needs an Item ID"));
+        expect(isAddRowShown()).toBe(true);
+        for (const tab of ["Sounds", "Help"]) {
+            showTab(world, tab);
+            expect(isAddRowShown()).toBe(false);
+            expect(listShownTexts(world).includes("Show unlearned spells")).toBe(false);
+            expect(listShownTexts(world).includes("Color")).toBe(tab === "Help");
+        }
+        toggleTable();
+    });
+});

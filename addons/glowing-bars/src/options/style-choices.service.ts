@@ -24,7 +24,7 @@ export interface ChoiceButtons {
 }
 
 /** The words of each When. */
-const WHEN_TEXTS: { [when in When]: TextKey } = {
+export const WHEN_TEXTS: { [when in When]: TextKey } = {
     always: "WHEN_ALWAYS",
     alwaysStart: "WHEN_ALWAYS_START",
     inCombat: "WHEN_IN_COMBAT",
@@ -135,11 +135,13 @@ export class StyleChoicesService {
         });
     }
 
-    private findRepeatText(seconds: number): string {
+    /** The words of a repeat: Off, or every so many seconds. */
+    findRepeatText(seconds: number): string {
         return seconds === 0 ? this.locale.getText("REPEAT_OFF") : string.format(this.locale.getText("REPEAT_SECONDS"), seconds);
     }
 
-    private findGlowTimeText(seconds: number): string {
+    /** The words of a glow time: Until done, or so many seconds. */
+    findGlowTimeText(seconds: number): string {
         return seconds === 0 ? this.locale.getText("GLOW_UNTIL_DONE") : string.format(this.locale.getText("REPEAT_SECONDS"), seconds);
     }
 
