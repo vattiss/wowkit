@@ -53,6 +53,8 @@ export function installUi(frames: FrameRegistry, chat: string[]): void {
     defineValues({
         CreateFrame: (frameType: string, name?: string, parent?: FakeFrame, template?: string) =>
             frames.create(frameType, name, parent, template),
+        // The game's text for a cast refused because a stronger buff of its kind is up (UI_ERROR_MESSAGE)
+        SPELL_FAILED_AURA_BOUNCED: "A more powerful spell is already active",
         // The game's root frames
         UIParent: frames.create("Frame", "UIParent"),
         RaidWarningFrame: frames.create("Frame", "RaidWarningFrame"),

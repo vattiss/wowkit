@@ -9,6 +9,7 @@ import type { AddonSettingsService } from "../settings/settings.interface";
 import type { ClassBuff } from "./class-buff.interface";
 import type { ClassBuffsService } from "./class-buffs.service";
 import type { BuffCheck, MissingBuffs } from "./reminders.interface";
+import type { BouncedBuffsService } from "../character/bounced-buffs.service";
 
 /** The two answers of a buff's check, made once (nobody changes them). */
 const NOT_WANTED: BuffCheck = { isWanted: false };
@@ -38,6 +39,7 @@ export class BuffReminderService {
         private readonly actionBars: ActionBarsService,
         private readonly classBuffs: ClassBuffsService,
         private readonly settings: AddonSettingsService,
+        private readonly bounced: BouncedBuffsService,
     ) {}
 
     /** The buffs on the player at an older rank than the player knows (BuffStateService). */
@@ -58,9 +60,13 @@ export class BuffReminderService {
         return this.hasCategoryMember(classBuff) || this.auras.hasAura(id, classBuff.lead) ? NOT_WANTED : WANTED;
     }
 
-    /** Is the player where the buff is asked for: in water for one only asked while swimming, with a living pet for Soul Link? */
+    /**
+     * Is the player where the buff is asked for: in water for one only asked while swimming, with a living pet for Soul Link,
+     * and not while a stronger buff of its kind keeps it out (the game refused it)?
+     */
     private isSituationMet(classBuff: ClassBuff): boolean {
         if (classBuff.isSwimmingOnly === true && !this.player.isSwimming()) return false;
+        if (this.bounced.isBounced(classBuff.id)) return false;
         return classBuff.isPetOnly !== true || this.player.hasLivingPet();
     }
 

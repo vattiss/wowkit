@@ -44,6 +44,7 @@ import "./defensive-execute.spec";
 import "./spell-procs.spec";
 import "./exorcism.spec";
 import "./low-health-defense.spec";
+import "./bounced-buffs.spec";
 import "./cultivation.spec";
 import "./soul-link.spec";
 import "./welcome.spec";

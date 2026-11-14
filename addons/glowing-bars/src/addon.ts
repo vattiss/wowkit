@@ -18,6 +18,7 @@ import { AuraWatchService } from "./character/aura-watch.service";
 import { BlockedActionService } from "./character/blocked-action.service";
 import { BuffMemoryService } from "./character/buff-memory.service";
 import { BuffStateService } from "./character/buff-state.service";
+import { BouncedBuffsService } from "./character/bounced-buffs.service";
 import { EquipmentService } from "./character/equipment.service";
 import { IdleService } from "./character/idle.service";
 import { DefensiveExecuteService } from "./glows/defensive-execute.service";
@@ -106,7 +107,8 @@ function makeBuffs(addon: Addon, game: Game, texts: Texts) {
     const knowledge = addon.register(new BuffKnowledgeService(classBuffs, game.spells));
     const memory = addon.register(new BuffMemoryService(game.spells, game.clock, knowledge));
     const state = addon.register(new BuffStateService(game.auras, game.spells, game.player, memory, knowledge, game.cooldownViewer));
-    return { idle, classBuffs, state };
+    const bounced = addon.register(new BouncedBuffsService(game.auras, game.spells, game.player));
+    return { idle, classBuffs, state, bounced };
 }
 export type Buffs = ReturnType<typeof makeBuffs>;
 
@@ -114,7 +116,7 @@ export type Buffs = ReturnType<typeof makeBuffs>;
 function makeReminders(addon: Addon, addonName: string, game: Game, texts: Texts, buffs: Buffs) {
     const { settings } = texts;
     const buff = addon.register(
-        new BuffReminderService(buffs.state, game.spells, game.player, game.actionBars, buffs.classBuffs, settings),
+        new BuffReminderService(buffs.state, game.spells, game.player, game.actionBars, buffs.classBuffs, settings, buffs.bounced),
     );
     const limits = addon.register(new BelowLimitsService(settings));
     const reagents = addon.register(new ReagentsService(game.bags, game.spells, limits));
