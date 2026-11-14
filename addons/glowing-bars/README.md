@@ -65,7 +65,7 @@ stock can also be Alert in town, the low reagents' default: the glow anywhere, t
 buffs blue, weapon buffs orange, ready and utility cooldowns white, procs red, old ranks and low reagents yellow (and a quieter glow
 than the others), low stock a quieter red. By default only the old ranks, the reagents and the low stock show a message; the buff messages (including the ones that name a
 buff on no bar and the party members who miss one) are there to switch on. They are set in a table, and every spell of your class can have a look of its own in the same table.
-It opens with `/gb` (or `/gb table`, or the Open Table button of the settings), in a Basic view with the main columns (the Advanced button at the top shows them all), and shows only the types your character has spells of. The Below column appears only when a row has a limit to set. Its Enabled column
+It opens with `/gb` (or `/gb table`, or the Open Table button of the settings), in a Basic view with the main columns (the Advanced button at the top shows them all), and shows only the types your character has spells of. Its tabs split it: Buffs (missing buffs, weapon buffs, seals, trackings, totems gone), Cooldowns (ready and utility cooldowns), Procs, Consumables (low reagents and low stock), Old ranks, and Sounds; it opens on the tab it was on, and the add row offers the types of its tab. The Below column is filled in only where a row has a limit to set (the Consumables tab); elsewhere it stays empty, so the columns keep their places from tab to tab. Its Enabled column
 switches a whole type or a single spell on and off. There you can also fix the spell ID of a spell of the lists, and add
 spells of your own by their ID, as any type but an old rank (those are found for every spell), a seal of Forever too; a type the game says is
 wrong for the spell is refused or put right. To find a spell's ID, switch on the spell IDs in the tooltips on the General
@@ -73,7 +73,7 @@ tab of the settings: every spell tooltip then shows its ID, and an elixir's, pot
 settings, the looks are kept per character.
 
 **Custom sounds**: make a folder in `Interface\AddOns`, next to the addon's folder (the name `GlowingBars_Sounds` is filled in for you), and put your files in it,
-named `custom1`, `custom2` and so on, as `.ogg` or `.mp3`. In the Custom sounds section of the table, enter how many there are: they are in the Sound list
+named `custom1`, `custom2` and so on, as `.ogg` or `.mp3`. On the Sounds tab of the table, enter how many there are: they are in the Sound list
 as Sounds 1, Sounds 2 and so on. `Add folder` adds more folders in `AddOns`, whose sounds go by the folder's name (`Horns` is `Horns 1`, `GlowingBars_My_Sounds` is `My Sounds 1`). A short sound works best.
 
 Settings (per character), in a window of the addon's own (`/gb settings`; *Options > AddOns > Glowing Bars* only has a

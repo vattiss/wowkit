@@ -1,5 +1,5 @@
 import { createWorld, describe, expect, it, playAs, PRIEST, type FakeFrame, type World } from "@wowkit/test-kit";
-import { toggleTable } from "./table.helpers";
+import { toggleTable, findAddRowOf } from "./table.helpers";
 
 describe("a second food of one name, added in the table", () => {
     const FIRST = 1248377;
@@ -20,12 +20,8 @@ describe("a second food of one name, added in the table", () => {
     }
 
     function addById(world: World, spellId: number): void {
-        const box = world.frames.find(
-            (frame) =>
-                frame.frameType === "EditBox" &&
-                !world.frames.some((other) => other.parent === frame.parent && other.frameType === "CheckButton"),
-        )!;
-        const buttons = world.frames.filter((frame) => frame.parent === box.parent && frame.template === "UIPanelButtonTemplate");
+        const { box, reminderType, add } = findAddRowOf(world, "Buffs");
+        const buttons = [reminderType, add];
         world.pickFromMenu(buttons[0]!, "Missing buff");
         box.text = `${spellId}`;
         buttons[1]!.scripts.OnClick!(buttons[1]!);
@@ -49,16 +45,15 @@ describe("a second food of one name, added in the table", () => {
 
     it("is refused as anything but a buff", () => {
         const world = createWorldWithFirst();
-        const box = world.frames.find(
-            (frame) =>
-                frame.frameType === "EditBox" &&
-                !world.frames.some((other) => other.parent === frame.parent && other.frameType === "CheckButton"),
-        )!;
-        const buttons = world.frames.filter((frame) => frame.parent === box.parent && frame.template === "UIPanelButtonTemplate");
-        for (const reminderType of ["Ready cooldown", "Low reagent", "Proc"]) {
-            world.pickFromMenu(buttons[0]!, reminderType);
+        for (const [reminderType, tab] of [
+            ["Ready cooldown", "Cooldowns"],
+            ["Low reagent", "Consumables"],
+            ["Proc", "Procs"],
+        ]) {
+            const { box, reminderType: typeButton, add } = findAddRowOf(world, tab!);
+            world.pickFromMenu(typeButton, reminderType!);
             box.text = `${SECOND}`;
-            buttons[1]!.scripts.OnClick!(buttons[1]!);
+            add.scripts.OnClick!(add);
             expect(world.notice()).toContain("Nutritious Food is a food or drink, add it as Missing buff.");
         }
         expect(world.getSavedSettings()?.addedSpells).toEqual([{ id: FIRST, reminderType: "missingBuff" }]);

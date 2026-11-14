@@ -17,6 +17,7 @@ import "./glows.spec";
 import "./cooldown-ranks.spec";
 import "./looks.spec";
 import "./table.spec";
+import "./table-tabs.spec";
 import "./table-spells.spec";
 import "./bars.spec";
 import "./bar-paging.spec";

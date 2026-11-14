@@ -79,6 +79,9 @@ export type AddableType =
     | "proc"
     | "lowStock";
 
+/** The tabs of the table of looks (TABLE_TABS). */
+export type TableTab = "buffs" | "cooldowns" | "procs" | "consumables" | "oldRanks" | "sounds";
+
 /** The types of a cooldown that glows as it is ready: the ones of a fight, and the ones of between fights (a herb, a fall). */
 export type CooldownType = "readyCooldown" | "utilityCooldown";
 
@@ -200,6 +203,8 @@ export interface AddonSettings {
     showTooltipIds: boolean;
     /** The table shows every column (Advanced), not only the ones everybody needs (Basic). */
     isTableAdvanced: boolean;
+    /** The tab the table of looks opens on: the one it was on. */
+    tableTab: TableTab;
     /** The folders in AddOns with sound files of the player's own (custom1, custom2...), and how many each has. */
     customSoundFolders: CustomSoundFolder[];
     /** The action bars (1 to 8) that glow; only set (false) where the player switched one off. */

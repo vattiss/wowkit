@@ -1,5 +1,5 @@
 import { createWorld, describe, expect, it, learnSpell, playAs, MAGE, SHAMAN, type SpellDefinition, type World } from "@wowkit/test-kit";
-import { findLabel, toggleTable } from "./table.helpers";
+import { findLabel, toggleTable, showTab } from "./table.helpers";
 
 const WARLOCK = { name: "Warlock", token: "WARLOCK", id: 9 };
 const MISSILES: SpellDefinition = { id: 5143, name: "Arcane Missiles", rank: 1, icon: 136096, maxRange: 30, isHarmful: true };
@@ -136,10 +136,16 @@ describe("a proc told by its spell", () => {
             );
             world.advance(1);
             toggleTable();
-            return world.frames
-                .filter((frame) => frame.isShown && frame.fontStrings.some((line) => line.text === LIGHTNING_BOLT.name))
-                .map((frame) => frame.fontStrings[1]?.text)
-                .join(", ");
+            // Its rows on each tab: a ready cooldown on Cooldowns, a proc on Procs
+            const types: string[] = [];
+            for (const tab of ["Cooldowns", "Procs"]) {
+                showTab(world, tab);
+                for (const frame of world.frames) {
+                    if (frame.isShown && frame.fontStrings.some((line) => line.text === LIGHTNING_BOLT.name))
+                        types.push(frame.fontStrings[1]?.text ?? "");
+                }
+            }
+            return types.join(", ");
         };
         expect(listRows("proc")).toBe("Proc");
         expect(listRows("readyCooldown")).toBe("Ready cooldown, Proc");

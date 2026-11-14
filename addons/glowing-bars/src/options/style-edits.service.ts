@@ -22,6 +22,12 @@ const NOT_LEARNED_ALPHA = 0.5;
 const ERROR_COLOR: Rgb = [1, 0.25, 0.2];
 
 export class StyleEditsService {
+    /** The types the add row offers (the tab's), and the one picked. */
+    private addTypes: AddableType[] = ADDABLE_TYPES;
+    private chosenType: AddableType = ADDABLE_TYPES[0]!;
+    /** The add row's type button says the type picked. */
+    private showChosenType: (this: void) => void = () => undefined;
+
     constructor(
         private readonly locale: AddonLocale,
         private readonly addedSpells: AddedSpellsService,
@@ -152,6 +158,13 @@ export class StyleEditsService {
         return row.reminderType === except.reminderType && row.listId === except.listId && row.spellId === except.spellId;
     }
 
+    /** The add row offers these types (the ones of the tab shown, in the order of ADDABLE_TYPES); the first is picked anew. */
+    useAddTypes(types: AddableType[]): void {
+        this.addTypes = ADDABLE_TYPES.filter((reminderType) => types.includes(reminderType));
+        if (!this.addTypes.includes(this.chosenType)) this.chosenType = this.addTypes[0] ?? ADDABLE_TYPES[0]!;
+        this.showChosenType();
+    }
+
     /** How much room the add row takes, with the tip under it. */
     getAddRowHeight(): number {
         return ROW_HEIGHT + ADD_TIP_HEIGHT;
@@ -168,29 +181,28 @@ export class StyleEditsService {
         tip.SetJustifyH("LEFT");
         tip.SetText(this.locale.getText("TIP_ADD"));
         const box = this.createNumberBox(frame, COLUMN.name.x, 90, 7);
-        let chosenType = ADDABLE_TYPES[0]!;
         const typeButton = CreateFrame("Button", undefined, frame, "UIPanelButtonTemplate");
         typeButton.SetSize(136, 24);
         typeButton.SetPoint("LEFT", frame, "LEFT", COLUMN.name.x + 110, 0);
-        const showType = () => typeButton.SetText(this.locale.getText(TYPE_TEXTS[chosenType]));
+        this.showChosenType = () => typeButton.SetText(this.locale.getText(TYPE_TEXTS[this.chosenType]));
         connectChoiceMenu(typeButton, () =>
-            ADDABLE_TYPES.map((reminderType) => ({
+            this.addTypes.map((reminderType) => ({
                 label: this.locale.getText(TYPE_TEXTS[reminderType]),
-                isChosen: () => reminderType === chosenType,
+                isChosen: () => reminderType === this.chosenType,
                 choose: () => {
-                    chosenType = reminderType;
-                    showType();
+                    this.chosenType = reminderType;
+                    this.showChosenType();
                 },
             })),
         );
-        showType();
+        this.showChosenType();
         const addButton = CreateFrame("Button", undefined, frame, "UIPanelButtonTemplate");
         addButton.SetSize(80, 24);
         addButton.SetPoint("LEFT", frame, "LEFT", COLUMN.name.x + 262, 0);
         addButton.SetText(this.locale.getText("BTN_ADD"));
         addButton.SetScript("OnClick", () => {
             const spellId = tonumber(box.GetText());
-            if (spellId !== undefined && this.addSpell(spellId, chosenType)) box.SetText("");
+            if (spellId !== undefined && this.addSpell(spellId, this.chosenType)) box.SetText("");
             box.ClearFocus();
         });
         return frame;

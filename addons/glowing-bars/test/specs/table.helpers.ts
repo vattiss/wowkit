@@ -35,11 +35,43 @@ export interface Row {
     reset: FakeFrame;
 }
 
-/** The text with this label: the text widgets are not frames of their own, they belong to the frame that made them. */
+/** Is the frame on the screen: shown, and every frame it is in too? A row of another tab is hidden, and keeps its old words. */
+function isOnScreen(frame: FakeFrame | undefined): boolean {
+    for (let each = frame; each !== undefined; each = each.parent) if (!each.isShown) return false;
+    return true;
+}
+
+/** The tabs of the table, in their order. */
+const TABS = ["Buffs", "Cooldowns", "Procs", "Consumables", "Old ranks", "Sounds"];
+
+/**
+ * The text with this label in the open table: on the tab shown, else on the first other tab that has it, which is then
+ * shown. Undefined when no tab has it.
+ */
 export function findLabel(world: World, label: string): FakeFrame | undefined {
+    const found = findShownLabel(world, label);
+    if (found !== undefined) return found;
+    for (const tab of TABS) {
+        const button = world.frames.find((frame) => frame.frameType === "Button" && frame.text === tab && isOnScreen(frame));
+        if (button === undefined) continue;
+        button.scripts.OnClick!(button);
+        const onTab = findShownLabel(world, label);
+        if (onTab !== undefined) return onTab;
+    }
+    return undefined;
+}
+
+/** The text with this label on the tab shown, without looking at the other tabs. */
+export function findLabelOnTab(world: World, label: string): FakeFrame | undefined {
+    return findShownLabel(world, label);
+}
+
+/** The text with this label on the screen: the text widgets are not frames of their own, they belong to the frame that made them. */
+function findShownLabel(world: World, label: string): FakeFrame | undefined {
     // The rows first: a type's small heading in the list of spells says the same as its row
     const isRow = (frame: FakeFrame) => world.frames.some((other) => other.parent === frame && other.frameType === "CheckButton");
-    for (const frame of [...world.frames.filter((frame) => isRow(frame)), ...world.frames]) {
+    const shown = world.frames.filter((frame) => isOnScreen(frame));
+    for (const frame of [...shown.filter((frame) => isRow(frame)), ...shown]) {
         const found = frame.fontStrings.find((text) => text.text === label);
         if (found !== undefined) return found;
     }
@@ -59,6 +91,13 @@ export function findRow(world: World, label: string): Row {
         sound: buttons[0]!,
         reset: buttons[1]!,
     };
+}
+
+/** Shows the open table's tab with these words (Buffs, Cooldowns, Procs, Consumables, Old ranks, Sounds). */
+export function showTab(world: World, label: string): void {
+    const tab = world.frames.find((frame) => frame.frameType === "Button" && frame.text === label && isOnScreen(frame));
+    if (tab === undefined) throw new Error(`no tab ${label}`);
+    tab.scripts.OnClick!(tab);
 }
 
 export function toggleTable(): void {
@@ -86,7 +125,9 @@ export function switchInTable(world: World, label: string, isOn: boolean): void 
 }
 
 /** The widgets of the row at the end of the table that adds a spell. */
-export function findAddRowOf(world: World): { box: FakeFrame; reminderType: FakeFrame; add: FakeFrame } {
+/** The row that adds a spell, on this tab of the open table (shown first): Cooldowns unless said. */
+export function findAddRowOf(world: World, tab = "Cooldowns"): { box: FakeFrame; reminderType: FakeFrame; add: FakeFrame } {
+    showTab(world, tab);
     const box = world.frames.find(
         (frame) =>
             frame.frameType === "EditBox" &&

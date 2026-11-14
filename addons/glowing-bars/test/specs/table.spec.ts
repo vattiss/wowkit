@@ -13,7 +13,16 @@ import {
     SMITE_RANK_1,
     SMITE_RANK_2,
 } from "@wowkit/test-kit";
-import { useAndRecoverRecklessness, setUpWarrior, findLabel, findRow, toggleTable, readSaved } from "./table.helpers";
+import {
+    useAndRecoverRecklessness,
+    setUpWarrior,
+    findLabel,
+    findLabelOnTab,
+    findRow,
+    showTab,
+    toggleTable,
+    readSaved,
+} from "./table.helpers";
 describe("the table of looks", () => {
     let world!: World;
 
@@ -22,14 +31,18 @@ describe("the table of looks", () => {
         world.advance(1);
         useAndRecoverRecklessness(world);
         toggleTable();
+        showTab(world, "Cooldowns");
     });
 
-    it("opens with /gb, a row for each type and for each spell of the class", () => {
+    it("opens with /gb, a row for each type and for each spell of the class, each on its tab", () => {
         const window = world.findFrame((frame) => frame.name === "GlowingBarsLooks");
         expect(window?.isShown).toBe(true);
-        for (const label of ["Missing buff", "Ready cooldown", "Proc", "Recklessness"]) {
-            expect(findLabel(world, label)).toBeDefined();
-        }
+        for (const label of ["Ready cooldown", "Recklessness"]) expect(findLabel(world, label)).toBeDefined();
+        expect(findLabelOnTab(world, "Missing buff")).toBeUndefined();
+        showTab(world, "Buffs");
+        expect(findLabel(world, "Missing buff")).toBeDefined();
+        showTab(world, "Procs");
+        expect(findLabel(world, "Proc")).toBeDefined();
     });
 
     it("shows no type the character has no spell of: a warrior has no weapon buff and no reagent", () => {

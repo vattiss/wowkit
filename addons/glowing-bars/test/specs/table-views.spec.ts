@@ -1,6 +1,6 @@
 import { createWorld, describe, expect, it, learnSpell, playAs, WARRIOR, type FakeFrame, type World } from "@wowkit/test-kit";
 import { recoverCooldown } from "./cooldown.helpers";
-import { RECKLESSNESS, findLabel, setUpWarrior, toggleTable } from "./table.helpers";
+import { RECKLESSNESS, findLabel, setUpWarrior, showTab, toggleTable } from "./table.helpers";
 
 const ADVANCED_ONLY = ["Spell / Item ID", "Glow %", "Repeat", "When", "Glow time", "Animation"];
 const BOTH = ["Spell / Item", "Type", "Color", "Message", "Sound", "Enabled", "Actions"];
@@ -119,25 +119,36 @@ describe("the Below column", () => {
 
     it("is left out while no row has a limit, and the Basic window keeps its one size, the settings window's", () => {
         const without = createOpenTable();
+        showTab(without, "Consumables");
         const withArrows = createOpenTable(ARROWS);
+        showTab(withArrows, "Cooldowns");
+        expect(isHeaderShown(withArrows, "Below")).toBe(false);
+        showTab(withArrows, "Consumables");
         expect(isHeaderShown(without, "Below")).toBe(false);
         expect(isHeaderShown(withArrows, "Below")).toBe(true);
         expect(findWindow(withArrows).width).toBe(findWindow(without).width);
     });
 
-    it("leaves its room to the names in Basic, so the rows still fill the window", () => {
-        const without = findLabel(createOpenTable(), "Recklessness")!;
-        const withArrows = findLabel(createOpenTable(ARROWS), "Recklessness")!;
-        expect(without.parent!.width).toBe(withArrows.parent!.width);
-        expect(without.width - withArrows.width).toBe(56);
+    it("keeps its place, empty, on a tab with no limit: the names are as wide on every tab", () => {
+        // The arrows' tab fills the column, the tab of Recklessness leaves it empty
+        const world = createOpenTable(ARROWS);
+        const without = findLabel(world, "Recklessness")!;
+        const rowWidth = without.parent!.width;
+        const nameWidth = without.width;
+        // The item has no name in this game: its row goes by its ID
+        const withArrows = findLabel(world, "2512")!;
+        expect(withArrows.parent!.width).toBe(rowWidth);
+        expect(withArrows.width).toBe(nameWidth);
     });
 
-    it("is left out in Advanced too", () => {
+    it("has no header on a tab with no limit in Advanced too, and the window keeps its size", () => {
         const without = createOpenTable({ isTableAdvanced: true });
+        showTab(without, "Consumables");
         const withArrows = createOpenTable({ isTableAdvanced: true, ...ARROWS });
+        showTab(withArrows, "Consumables");
         expect(isHeaderShown(without, "Below")).toBe(false);
         expect(isHeaderShown(withArrows, "Below")).toBe(true);
-        expect(findWindow(withArrows).width - findWindow(without).width).toBe(56);
+        expect(findWindow(withArrows).width).toBe(findWindow(without).width);
     });
 
     it("goes when the last row with a limit is removed", () => {
@@ -153,6 +164,7 @@ describe("the Below column", () => {
 describe("the list of spells of the table", () => {
     it("has a small heading above each type it has, and none for the others", () => {
         const world = createOpenTable();
+        showTab(world, "Cooldowns");
         const content = world.frames.find((frame) => frame.fontStrings.some((text) => text.text === "Spells (Override the Defaults)"))!;
         const shown = content.fontStrings.filter((text) => text.isShown !== false).map((text) => text.text);
         expect(shown.includes("Ready cooldown")).toBe(true);
@@ -161,6 +173,7 @@ describe("the list of spells of the table", () => {
 
     it("has them under the header of the spells, in the order of the types", () => {
         const world = createOpenTable();
+        showTab(world, "Cooldowns");
         const content = world.frames.find((frame) => frame.fontStrings.some((text) => text.text === "Spells (Override the Defaults)"))!;
         const texts = content.fontStrings.map((text) => text.text);
         expect(texts.indexOf("Spells (Override the Defaults)") < texts.indexOf("Ready cooldown")).toBe(true);

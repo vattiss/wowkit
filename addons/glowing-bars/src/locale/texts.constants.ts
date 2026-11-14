@@ -1,5 +1,8 @@
 // English only: every player-facing string of the addon.
+import { TABLE_TEXTS } from "./table-texts.constants";
+
 export const TEXTS = {
+    ...TABLE_TEXTS,
     TITLE: "Glowing Bars",
     INIT: "Loaded. Type /gb to customize your reminders.",
 
@@ -258,31 +261,6 @@ export const TEXTS = {
     TIP_ACTIONS:
         "Reset: undoes your changes on this row. X: removes a spell or item you added. Each one only shows on the rows where it can be used.",
     BTN_ADVANCED: "Advanced",
-    BTN_BASIC: "Basic",
-    WHEN_ALWAYS: "Always",
-    WHEN_IN_COMBAT: "In combat",
-    WHEN_OUT_OF_COMBAT: "Out of combat",
-    WHEN_ENEMY_TARGETED: "Enemy targeted",
-    WHEN_ALLY_TARGETED: "Ally targeted",
-    WHEN_ANY_TARGETED: "Any targeted",
-    WHEN_TOWN_ALERT: "Alert in town",
-    WHEN_IN_COMBAT_START: "In combat + start",
-    WHEN_IN_COMBAT_START_SHORT: "Combat + start",
-    WHEN_ALWAYS_START: "Always + start",
-    WHEN_OUT_OF_COMBAT_START: "Out of combat + start",
-    WHEN_OUT_OF_COMBAT_START_SHORT: "OOC + start",
-    NO_COLOR_PICKER: "No color picker available on this client.",
-    TYPE_MISSING_BUFF: "Missing buff",
-    TYPE_WEAPON_BUFF: "Weapon buff",
-    TYPE_MISSING_SEAL: "Missing seal",
-    TYPE_MISSING_TRACKING: "Missing tracking",
-    TYPE_TOTEM_GONE: "Totem gone",
-    TYPE_READY_COOLDOWN: "Ready cooldown",
-    TYPE_UTILITY_COOLDOWN: "Utility cooldown",
-    TYPE_PROC: "Proc",
-    TYPE_OLD_RANK: "Old rank",
-    TYPE_LOW_REAGENT: "Low reagent",
-    TYPE_LOW_STOCK: "Low stock",
     TEXT_BUFF: "Missing buff",
     TEXT_WEAPON: "Weapon buff",
     TEXT_SEAL: "Missing seal",

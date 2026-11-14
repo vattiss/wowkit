@@ -1,6 +1,6 @@
 import { createWorld, describe, expect, it, playAs, PRIEST, type FakeFrame, type World } from "@wowkit/test-kit";
 import { ARROW, createArcher } from "./low-stock.helpers";
-import { findLabel, toggleTable } from "./table.helpers";
+import { findLabel, toggleTable, findAddRowOf } from "./table.helpers";
 
 describe("the Below column and the low stock in the table", () => {
     function findBoxes(world: World, label: string): FakeFrame[] {
@@ -27,12 +27,8 @@ describe("the Below column and the low stock in the table", () => {
         const world = createWorld((state) => playAs(state, PRIEST));
         world.advance(1);
         toggleTable();
-        const box = world.frames.find(
-            (frame) =>
-                frame.frameType === "EditBox" &&
-                !world.frames.some((other) => other.parent === frame.parent && other.frameType === "CheckButton"),
-        )!;
-        const buttons = world.frames.filter((frame) => frame.parent === box.parent && frame.template === "UIPanelButtonTemplate");
+        const { box, reminderType, add } = findAddRowOf(world, "Consumables");
+        const buttons = [reminderType, add];
         world.pickFromMenu(buttons[0]!, "Low stock");
         expect(buttons[0]!.text).toBe("Low stock");
         box.text = `${ARROW}`;

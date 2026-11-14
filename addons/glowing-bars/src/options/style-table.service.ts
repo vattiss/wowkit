@@ -3,60 +3,20 @@
 // whether a message says so, the sound and how often it repeats; a click or an entry changes it. Opened by /gb and by
 // the button on the Settings page. Like the Settings page, this folder may call the game.
 import { OnEvent } from "@wowkit/core";
-import { findSoundLabel, type MessagesService } from "@wowkit/ui";
-import { CUSTOM_SOUND_FOLDER } from "../settings/settings.constants";
+import type { MessagesService } from "@wowkit/ui";
+import { ADDABLE_TYPES } from "../settings/settings.constants";
+import { TABLE_TABS, type TableTabInfo } from "./table-tabs.constants";
 import type { AddonLocale } from "../locale/locale.interface";
 import type { TextKey } from "../locale/texts.constants";
-import type { StyleOverride } from "../settings/settings.interface";
 import type { StyleService } from "../settings/style.service";
-import {
-    BRONZE_TEXT,
-    COLUMN,
-    findCenteredX,
-    HEADER_HEIGHT,
-    OVERRIDDEN_COLOR,
-    ROW_HEIGHT,
-    STRIPE_ALPHA,
-    STRIPE_COLOR,
-    TABLE_WIDTH,
-    TYPE_HEADING_HEIGHT,
-} from "./style-table.constants";
+import type { AddableType } from "../settings/settings.interface";
+import { HEADER_HEIGHT, ROW_HEIGHT, STRIPE_ALPHA, STRIPE_COLOR, TABLE_WIDTH, TYPE_HEADING_HEIGHT } from "./style-table.constants";
 import { showHeaderTip } from "./header-tip";
-import { setFadeOnly } from "./fade-only-controls";
-import { applyRowView, createIcon, createStripe, createText, createSwatch } from "./style-row-layout";
 import type { StyleWindowService } from "./style-window.service";
-import type { ChoiceButtons, StyleChoicesService } from "./style-choices.service";
+import type { StyleChoicesService } from "./style-choices.service";
 import type { StyleEditsService } from "./style-edits.service";
 import { TYPE_TEXTS, type StyleRow, type StyleRowsService } from "./style-rows.service";
-
-/** The widgets of one row; the table has as many as its longest list and reuses them. */
-interface RowWidgets {
-    frame: Frame;
-    /** The background of every second row, lighter, so the rows tell apart. */
-    stripe: Texture;
-    icon: Texture;
-    name: FontString;
-    typeText: FontString;
-    swatch: Button;
-    swatchColor: Texture;
-    glowPercent: EditBox;
-    /** The ID of a cooldown or proc: it can be fixed. */
-    spellIdBox: EditBox;
-    message: CheckButton;
-    /** Opens the small window of the message's words and color (Advanced view). */
-    messageGear: Button;
-    sound: Button;
-    /** The other buttons that open a list of choices: how often it repeats, when it may show, for how long, how it moves. */
-    choices: ChoiceButtons;
-    belowBox: EditBox;
-    reset: Button;
-    /** Takes out a spell the player added. */
-    remove: Button;
-    /** The type or the spell is on. */
-    enabled: CheckButton;
-    /** What the row shows now. */
-    row: StyleRow | undefined;
-}
+import { StyleRowWidgets, type RowWidgets } from "./style-row-widgets";
 
 export class StyleTableService {
     private window: Frame | undefined;
@@ -69,6 +29,8 @@ export class StyleTableService {
     private tableWidth = TABLE_WIDTH;
     /** The row at the end that adds a spell; made with the first rows. */
     private addRow: Frame | undefined;
+    /** Makes and fills the widgets of a row. */
+    private readonly rowWidgets: StyleRowWidgets;
 
     constructor(
         private readonly locale: AddonLocale,
@@ -78,7 +40,9 @@ export class StyleTableService {
         private readonly choices: StyleChoicesService,
         private readonly windows: StyleWindowService,
         private readonly edits: StyleEditsService,
-    ) {}
+    ) {
+        this.rowWidgets = new StyleRowWidgets(locale, styles, choices, windows, edits);
+    }
 
     /** Opens the window, or closes it when it is open. A failure is printed, never thrown. */
     /** Opens or closes the table; in a fight it only closes, as EllesmereUI does with its windows. */
@@ -109,7 +73,11 @@ export class StyleTableService {
         this.window.Show();
     }
 
-    /** Lays out the two lists: a header, the types, a header, the spells. */
+    /**
+     * Lays out the tab shown: a header, its types, a header, their spells, and the row that adds one; on the sounds' tab,
+     * the folders of sounds. Only the tabs this character has rows on, or can add to, are offered; the one picked last is
+     * shown, else the first.
+     */
     private showRows(): void {
         const content = this.content;
         if (content === undefined) return;
@@ -117,15 +85,54 @@ export class StyleTableService {
         this.usedHeaders = 0;
         const spellRows = this.rows.listSpellRows();
         const typeRows = this.rows.listTypeRows(spellRows);
-        this.windows.setBelowShown(typeRows.some((row) => row.reminderType === "lowReagent" || row.reminderType === "lowStock"));
+        // A tab with no rows of this character's is offered all the same where a spell can be added to it
+        const shownTabs = TABLE_TABS.filter(
+            (tab) =>
+                tab.key === "sounds" ||
+                typeRows.some((row) => tab.types.includes(row.reminderType)) ||
+                tab.types.some((reminderType) => ADDABLE_TYPES.includes(reminderType as AddableType)),
+        );
+        const tab = shownTabs.find((each) => each.key === this.windows.getTab()) ?? shownTabs[0]!;
+        const isInTab = (row: StyleRow) => tab.types.includes(row.reminderType);
+        // The Below column only while a row of the tab has a limit
+        this.windows.setBelowShown(
+            typeRows.some((row) => isInTab(row) && (row.reminderType === "lowReagent" || row.reminderType === "lowStock")),
+        );
+        this.windows.setTableShown(tab.key !== "sounds");
         this.applyTableWidth(content);
-        let y = this.drawSection(content, "HDR_TABLE_DEFAULTS", typeRows, 0);
-        y = this.drawSection(content, "HDR_TABLE_SPELLS", spellRows, y);
-        y = this.drawAddRow(content, y);
-        y = this.drawCustomSounds(content, y);
+        this.windows.showTabs(
+            shownTabs.map((each) => each.key),
+            tab.key,
+        );
+        if (tab.key !== "sounds") this.windows.hideCustomSounds();
+        const y =
+            tab.key === "sounds"
+                ? this.drawCustomSounds(content, 0)
+                : this.drawTypeTab(
+                      content,
+                      tab,
+                      typeRows.filter((row) => isInTab(row)),
+                      spellRows.filter((row) => isInTab(row)),
+                  );
         for (let i = this.usedHeaders; i < this.headers.length; i++) this.headers[i]!.Hide();
         for (let i = this.usedWidgets; i < this.widgets.length; i++) this.widgets[i]!.frame.Hide();
         content.SetHeight(math.max(10, y));
+    }
+
+    /**
+     * A tab of types: their rows, their spells' rows, and the row that adds a spell of these types (if any can be added). A
+     * list with no rows has no header either: a tab this character has nothing on yet shows only the add row.
+     */
+    private drawTypeTab(content: Frame, tab: TableTabInfo, typeRows: StyleRow[], spellRows: StyleRow[]): number {
+        let y = typeRows.length > 0 ? this.drawSection(content, "HDR_TABLE_DEFAULTS", typeRows, 0) : 0;
+        if (spellRows.length > 0) y = this.drawSection(content, "HDR_TABLE_SPELLS", spellRows, y);
+        const addTypes = ADDABLE_TYPES.filter((reminderType) => tab.types.includes(reminderType));
+        if (addTypes.length === 0) {
+            this.addRow?.Hide();
+            return y;
+        }
+        this.edits.useAddTypes(addTypes);
+        return this.drawAddRow(content, y);
     }
 
     /** The window is as wide as the columns of the view. */
@@ -157,7 +164,7 @@ export class StyleTableService {
             widgets.frame.SetPoint("TOPLEFT", content, "TOPLEFT", 0, -y);
             widgets.frame.SetWidth(this.tableWidth);
             widgets.frame.Show();
-            this.fill(widgets, row);
+            this.rowWidgets.fill(widgets, row);
             widgets.stripe.SetColorTexture(
                 STRIPE_COLOR[0],
                 STRIPE_COLOR[1],
@@ -216,135 +223,10 @@ export class StyleTableService {
     private takeWidgets(content: Frame): RowWidgets {
         let widgets = this.widgets[this.usedWidgets];
         if (widgets === undefined) {
-            widgets = this.createWidgets(content);
+            widgets = this.rowWidgets.createWidgets(content);
             this.widgets.push(widgets);
         }
         this.usedWidgets += 1;
         return widgets;
-    }
-
-    /** What a row shows: the look of its type or spell, and whether it is the player's own. */
-    private fill(widgets: RowWidgets, row: StyleRow): void {
-        const style = this.styles.getStyle(row.reminderType, row.spellId);
-        const isOverridden = this.styles.isOverridden(row.reminderType, row.spellId);
-        widgets.icon.SetShown(row.iconId !== undefined);
-        // The client takes an icon's file ID as well as a path; the typing knows only the path
-        if (row.iconId !== undefined) widgets.icon.SetTexture(row.iconId as unknown as string);
-        widgets.name.SetText(row.label);
-        const [r, g, b] = isOverridden && row.spellId !== undefined ? OVERRIDDEN_COLOR : [1, 1, 1];
-        widgets.name.SetTextColor(r, g, b);
-        widgets.typeText.SetTextColor(BRONZE_TEXT[0], BRONZE_TEXT[1], BRONZE_TEXT[2]);
-        widgets.typeText.SetText(row.spellId !== undefined ? this.locale.getText(TYPE_TEXTS[row.reminderType]) : "");
-        widgets.swatchColor.SetColorTexture(style.color[0], style.color[1], style.color[2], 1);
-        widgets.glowPercent.SetText(string.format("%d", style.glowPercent));
-        widgets.message.SetChecked(style.isMessageOn);
-        widgets.sound.SetText(findSoundLabel(style.sound, CUSTOM_SOUND_FOLDER));
-        this.choices.fillChoices(widgets.choices, row);
-        setFadeOnly(this.listFadeOnlyControls(widgets), row.isFadeOnly === true, this.locale.getText("TIP_FADE_ONLY"));
-        widgets.reset.SetShown(isOverridden);
-        widgets.remove.SetShown(row.isAdded === true);
-        this.edits.fillEnabled(widgets.enabled, widgets.frame, row, [widgets.icon, widgets.name]);
-        this.edits.fillIdBox(widgets.spellIdBox, row);
-        this.edits.fillBelowBox(widgets.belowBox, row);
-        applyRowView(widgets, this.windows.getColumns(), this.windows.isAdvanced());
-        this.choices.fillMessageGear(widgets.messageGear, row, this.windows.isAdvanced());
-    }
-
-    private createWidgets(content: Frame): RowWidgets {
-        const frame = CreateFrame("Frame", undefined, content);
-        frame.SetSize(TABLE_WIDTH, ROW_HEIGHT);
-        // The ID box asks for the row it shows when it is used, by then the object below is there
-        const widgets: RowWidgets = {
-            frame,
-            stripe: createStripe(frame),
-            icon: createIcon(frame),
-            name: createText(frame, COLUMN.name, "GameFontHighlight"),
-            typeText: createText(frame, COLUMN.type, "GameFontNormalSmall"),
-            ...createSwatch(frame),
-            glowPercent: this.createGlowPercentBox(frame),
-            message: CreateFrame("CheckButton", undefined, frame, "UICheckButtonTemplate"),
-            messageGear: this.choices.createMessageGear(frame, () => widgets.row),
-            sound: CreateFrame("Button", undefined, frame, "UIPanelButtonTemplate"),
-            reset: CreateFrame("Button", undefined, frame, "UIPanelButtonTemplate"),
-            remove: CreateFrame("Button", undefined, frame, "UIPanelButtonTemplate"),
-            enabled: CreateFrame("CheckButton", undefined, frame, "UICheckButtonTemplate"),
-            choices: this.choices.createChoiceButtons(frame, () => widgets.row),
-            spellIdBox: this.edits.createIdBox(frame, () => widgets.row),
-            belowBox: this.edits.createBelowBox(frame, () => widgets.row),
-            row: undefined,
-        };
-        this.connectSwatch(widgets);
-        this.connectGlowPercent(widgets);
-        this.connectMessage(widgets);
-        this.connectSound(widgets);
-        this.connectReset(widgets);
-        this.edits.connectRemove(widgets.remove, () => widgets.row);
-        this.edits.connectEnabled(widgets.enabled, () => widgets.row);
-        return widgets;
-    }
-
-    /** What a glow only the game can light cannot use: all of it needs to know when the glow starts. */
-    private listFadeOnlyControls(widgets: RowWidgets): Button[] {
-        return [widgets.sound, widgets.choices.repeat, widgets.choices.glowTime];
-    }
-
-    private createGlowPercentBox(frame: Frame): EditBox {
-        const box = CreateFrame("EditBox", undefined, frame, "InputBoxTemplate");
-        box.SetSize(36, 20);
-        box.SetPoint("LEFT", frame, "LEFT", findCenteredX(COLUMN.glowPercent, 36) + 3, 0);
-        box.SetAutoFocus(false);
-        box.SetNumeric(true);
-        box.SetMaxLetters(3);
-        return box;
-    }
-
-    private connectSwatch(widgets: RowWidgets): void {
-        widgets.swatch.SetScript("OnClick", () => {
-            if (widgets.row !== undefined) this.choices.chooseColor(widgets.row);
-        });
-    }
-
-    private connectGlowPercent(widgets: RowWidgets): void {
-        const apply = () => {
-            const row = widgets.row;
-            const percent = tonumber(widgets.glowPercent.GetText());
-            if (row !== undefined && percent !== undefined) {
-                const glowPercent = math.max(1, math.min(100, math.floor(percent + 0.5)));
-                this.styles.changeStyle(row.reminderType, row.spellId, { glowPercent });
-            }
-            widgets.glowPercent.ClearFocus();
-        };
-        widgets.glowPercent.SetScript("OnEnterPressed", apply);
-        widgets.glowPercent.SetScript("OnEditFocusLost", apply);
-        widgets.glowPercent.SetScript("OnEscapePressed", () => {
-            if (widgets.row !== undefined) this.fill(widgets, widgets.row);
-            widgets.glowPercent.ClearFocus();
-        });
-    }
-
-    private connectMessage(widgets: RowWidgets): void {
-        widgets.message.SetSize(24, 24);
-        widgets.message.SetScript("OnClick", () => this.change(widgets, { isMessageOn: widgets.message.GetChecked() }));
-    }
-
-    private connectSound(widgets: RowWidgets): void {
-        widgets.sound.SetSize(126, 24);
-        this.choices.connectSoundMenu(widgets.sound, () => widgets.row);
-    }
-
-    private connectReset(widgets: RowWidgets): void {
-        widgets.reset.SetSize(46, 22);
-        widgets.reset.SetText(this.locale.getText("BTN_RESET"));
-        widgets.reset.SetScript("OnClick", () => {
-            const row = widgets.row;
-            if (row === undefined) return;
-            if (row.spellId === undefined) this.styles.resetType(row.reminderType);
-            else this.styles.resetSpell(row.reminderType, row.spellId);
-        });
-    }
-
-    private change(widgets: RowWidgets, change: StyleOverride): void {
-        const row = widgets.row;
-        if (row !== undefined) this.styles.changeStyle(row.reminderType, row.spellId, change);
     }
 }

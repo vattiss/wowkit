@@ -26,6 +26,7 @@ export class CustomSoundsSection {
     private readonly lines: FolderLine[] = [];
     private hover: Frame | undefined;
     private addFolder: Button | undefined;
+    private addFolderTip: FontString | undefined;
 
     constructor(
         private readonly locale: AddonLocale,
@@ -50,7 +51,17 @@ export class CustomSoundsSection {
         const addFolder = this.addFolder ?? this.createAddFolder(content);
         addFolder.ClearAllPoints();
         addFolder.SetPoint("TOPLEFT", content, "TOPLEFT", FOLDER_LABEL_X, -afterLines);
+        addFolder.Show();
+        this.addFolderTip?.Show();
         return afterLines + ROW_HEIGHT;
+    }
+
+    /** All of it out of sight: the table shows another tab. */
+    hide(): void {
+        for (const line of this.lines) line.frame.Hide();
+        this.hover?.Hide();
+        this.addFolder?.Hide();
+        this.addFolderTip?.Hide();
     }
 
     /** Over the header: it says what to do. */
@@ -69,6 +80,7 @@ export class CustomSoundsSection {
         }
         this.hover.ClearAllPoints();
         this.hover.SetPoint("TOPLEFT", content, "TOPLEFT", 0, -top);
+        this.hover.Show();
     }
 
     private createAddFolder(content: Frame): Button {
@@ -85,6 +97,7 @@ export class CustomSoundsSection {
         tip.SetPoint("LEFT", button, "RIGHT", 10, 0);
         tip.SetText(this.locale.getText("TEXT_CUSTOM_TIP"));
         this.addFolder = button;
+        this.addFolderTip = tip;
         return button;
     }
 

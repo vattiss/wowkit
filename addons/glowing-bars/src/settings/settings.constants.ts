@@ -1,7 +1,16 @@
 import { isSoundKey } from "@wowkit/ui";
 import { tryCall, type GlowAnimation } from "@wowkit/wow";
 import { convertOldSettings } from "./settings-migration";
-import type { AddonSettings, ReminderType, AddableType, CooldownType, StyleOverride, When, MessageTextChoice } from "./settings.interface";
+import type {
+    AddonSettings,
+    ReminderType,
+    AddableType,
+    CooldownType,
+    StyleOverride,
+    TableTab,
+    When,
+    MessageTextChoice,
+} from "./settings.interface";
 
 /** The global the TOC saves per character (## SavedVariablesPerCharacter). */
 export const SAVED_VARIABLES_NAME = "GlowingBarsCharDB";
@@ -21,6 +30,10 @@ const HIDDEN_WINDOWS = { trackedBuffsIcons: "hide", trackedBarsIcons: "hide", es
 
 /** The lines the addon writes in the chat by itself: the greeting, and the notes of a buff of an older rank. */
 const CHAT_LINES = { shouldShowGreeting: true, shouldNoteOwnOlderRankBuffs: true, shouldNoteOthersOlderRankBuffs: true } as const;
+
+/** The table of looks opens in its Basic view, on its first tab. */
+const TABLE_TAB_KEYS: TableTab[] = ["buffs", "cooldowns", "procs", "consumables", "oldRanks", "sounds"];
+const TABLE_VIEW = { isTableAdvanced: false, tableTab: "buffs" } as const;
 
 /** The cooldowns and procs that glow as they are ready: all on; the looks of the utility cooldowns not moved yet. */
 const COOLDOWN_SWITCHES = {
@@ -83,7 +96,7 @@ export function createDefaultSettings(): AddonSettings {
         fadedBars: {},
         fadedOpacity: 50,
         showTooltipIds: false,
-        isTableAdvanced: false,
+        ...TABLE_VIEW,
         customSoundFolders: [{ folder: CUSTOM_SOUND_FOLDER, count: 0 }],
         idOverrides: {},
         addedSpells: [],
@@ -256,6 +269,7 @@ export function repairSettings(values: AddonSettings): void {
     // A style no longer known (or circling on a round button) is the default again
     const defaults = createDefaultSettings();
     if (!["breathing", "none"].includes(values.roundAnimation)) values.roundAnimation = defaults.roundAnimation;
+    if (!TABLE_TAB_KEYS.includes(values.tableTab)) values.tableTab = defaults.tableTab;
     if (!FADED_OPACITY_CHOICES.includes(values.fadedOpacity)) values.fadedOpacity = defaults.fadedOpacity;
     // An added spell that is not a number and a type is dropped
     values.addedSpells = (values.addedSpells ?? []).filter(

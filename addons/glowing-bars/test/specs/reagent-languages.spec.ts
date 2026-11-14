@@ -11,7 +11,7 @@ import {
     PRIEST,
     type World,
 } from "@wowkit/test-kit";
-import { toggleTable } from "./table.helpers";
+import { toggleTable, findAddRowOf } from "./table.helpers";
 
 const globals = _G as unknown as { SPELL_REAGENTS?: string };
 const RITUAL = { id: 29893, name: "Ritual of Souls", rank: 1, icon: 136194, isHelpful: true };
@@ -56,12 +56,8 @@ describe("a reagent on a client in another language", () => {
         globals.SPELL_REAGENTS = "Reagenzien: ";
         const world = createWarlock();
         toggleTable();
-        const box = world.frames.find(
-            (frame) =>
-                frame.frameType === "EditBox" &&
-                !world.frames.some((other) => other.parent === frame.parent && other.frameType === "CheckButton"),
-        )!;
-        const buttons = world.frames.filter((frame) => frame.parent === box.parent && frame.template === "UIPanelButtonTemplate");
+        const { box, reminderType, add } = findAddRowOf(world, "Consumables");
+        const buttons = [reminderType, add];
         world.pickFromMenu(buttons[0]!, "Low reagent");
         box.text = `${RITUAL.id}`;
         buttons[1]!.scripts.OnClick!(buttons[1]!);

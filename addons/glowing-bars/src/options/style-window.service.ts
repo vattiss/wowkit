@@ -1,10 +1,11 @@
 // The frame of the table of looks: the classic dialog border, the title, the close button, the column headers and the
 // scroll area. The rows are the table's.
 import { COMMAND } from "./table-command";
-import { applyScrollBarTint, connectEscape, createFrameWithBorder, createCloseButton } from "@wowkit/ui";
+import { applyScrollBarTint, connectEscape, createFrameWithBorder, createCloseButton, TabBar } from "@wowkit/ui";
 import type { AddonLocale } from "../locale/locale.interface";
 import type { TextKey } from "../locale/texts.constants";
-import type { AddonSettingsService } from "../settings/settings.interface";
+import type { AddonSettingsService, TableTab } from "../settings/settings.interface";
+import { TABLE_TABS } from "./table-tabs.constants";
 import { CustomSoundsSection } from "./custom-sounds-section";
 import {
     COLUMN,
@@ -20,6 +21,12 @@ import {
 
 /** What the window leaves free of the screen's width when it has to shrink. */
 const SCREEN_MARGIN = 40;
+/** The tabs under the title, the column headers under them, and the rows under those. */
+const TABS_TOP = 42;
+const HEADERS_TOP = 78;
+const ROWS_TOP = 96;
+/** The least room the tabs leave at the window's sides. */
+const TABS_SIDE = 22;
 
 /** The headers that explain their column as the mouse comes over them. */
 const HEADER_TIPS: { [name in keyof typeof COLUMN]?: TextKey } = {
@@ -44,6 +51,10 @@ export class StyleWindowService {
     /** The column headers, and what each one's column is called. */
     private readonly headers: { header: FontString; hover?: Frame; column: keyof typeof COLUMN }[] = [];
     private viewButton: Button | undefined;
+    private tabBar: TabBar | undefined;
+    private scroll: ScrollFrame | undefined;
+    /** Does the tab shown have a table (not the sounds)? Without one the column headers are left out. */
+    private isTableShown = true;
     private customSounds: CustomSoundsSection | undefined;
     private hasBelow = false;
 
@@ -57,7 +68,23 @@ export class StyleWindowService {
         return this.settings.get("isTableAdvanced");
     }
 
-    /** Does any row have a limit? Without one the Below column is left out. */
+    /** The tab the table is on: the one picked last. */
+    getTab(): TableTab {
+        return this.settings.get("tableTab");
+    }
+
+    /** The tab shown has a table, or not (the sounds): the column headers go with it. */
+    setTableShown(isTableShown: boolean): void {
+        this.isTableShown = isTableShown;
+    }
+
+    /** The tabs this character has rows on, side by side, the one shown pressed. */
+    showTabs(shown: TableTab[], current: TableTab): void {
+        this.tabBar?.showTabs((index) => shown.includes(TABLE_TABS[index]!.key));
+        this.tabBar?.select(TABLE_TABS.findIndex((tab) => tab.key === current));
+    }
+
+    /** Does any row of the tab have a limit? Without one the Below column has no header (it keeps its place). */
     setBelowShown(hasBelow: boolean): void {
         this.hasBelow = hasBelow;
     }
@@ -68,16 +95,23 @@ export class StyleWindowService {
         return this.customSounds.drawLines(content, top);
     }
 
+    /** The folders of sounds out of sight: the table shows another tab. */
+    hideCustomSounds(): void {
+        this.customSounds?.hide();
+    }
+
     /** Where the columns are now. */
     getColumns(): ReturnType<typeof findColumns> {
-        return findColumns(this.isAdvanced(), this.hasBelow);
+        return findColumns(this.isAdvanced());
     }
 
     /** The headers and the button say which view it is. */
     showView(window: Frame): void {
         const columns = this.getColumns();
         for (const { header, hover, column } of this.headers) {
-            const shown = columns[column];
+            // The Below column stays, empty and with no header, where no row of the tab has a limit
+            const isHeaderShown = this.isTableShown && (column !== "belowLimits" || this.hasBelow);
+            const shown = isHeaderShown ? columns[column] : undefined;
             header.SetShown(shown !== undefined);
             hover?.SetShown(shown !== undefined);
             if (shown !== undefined) this.applyHeaderPosition(window, header, hover, shown);
@@ -87,9 +121,9 @@ export class StyleWindowService {
 
     private applyHeaderPosition(window: Frame, header: FontString, hover: Frame | undefined, column: Column): void {
         header.ClearAllPoints();
-        header.SetPoint("TOPLEFT", window, "TOPLEFT", TABLE_LEFT + column.x, -42);
+        header.SetPoint("TOPLEFT", window, "TOPLEFT", TABLE_LEFT + column.x, -HEADERS_TOP);
         hover?.ClearAllPoints();
-        hover?.SetPoint("TOPLEFT", window, "TOPLEFT", TABLE_LEFT + column.x, -38);
+        hover?.SetPoint("TOPLEFT", window, "TOPLEFT", TABLE_LEFT + column.x, -(HEADERS_TOP - 4));
     }
 
     /**
@@ -121,17 +155,32 @@ export class StyleWindowService {
         createCloseButton(window);
         this.createViewButton(window);
         this.createSettingsButton(window);
+        this.addTabs(window);
         this.addColumnHeaders(window);
         const scroll = CreateFrame("ScrollFrame", undefined, window, "UIPanelScrollFrameTemplate");
-        scroll.SetPoint("TOPLEFT", window, "TOPLEFT", TABLE_LEFT, -60);
+        scroll.SetPoint("TOPLEFT", window, "TOPLEFT", TABLE_LEFT, -ROWS_TOP);
         scroll.SetPoint("BOTTOMRIGHT", window, "BOTTOMRIGHT", -34, 16);
         applyScrollBarTint(scroll);
+        this.scroll = scroll;
         const content = CreateFrame("Frame", undefined, scroll);
         content.SetSize(TABLE_WIDTH, 10);
         scroll.SetScrollChild(content);
         // A new frame is shown; the table opens when it is asked for
         window.Hide();
         return { window, content };
+    }
+
+    /** A tab for each group of types, and the sounds; a click shows it (and the table opens on it next time). */
+    private addTabs(window: Frame): void {
+        const tabBar = new TabBar(window, TABS_TOP, TABS_SIDE);
+        for (const tab of TABLE_TABS) {
+            tabBar.addTab(this.locale.getText(tab.text), () => {
+                this.settings.change("tableTab", tab.key);
+                // Another tab starts at its top
+                this.scroll?.SetVerticalScroll(0);
+            });
+        }
+        this.tabBar = tabBar;
     }
 
     /** To the settings window, through the addon's slash command, which is what knows it; the table closes for it. */
@@ -177,7 +226,7 @@ export class StyleWindowService {
         for (const [name, text, isCentered] of columns) {
             const column = COLUMN[name];
             const header = window.CreateFontString(undefined, "OVERLAY", "GameFontNormalSmall");
-            header.SetPoint("TOPLEFT", window, "TOPLEFT", TABLE_LEFT + column.x, -42);
+            header.SetPoint("TOPLEFT", window, "TOPLEFT", TABLE_LEFT + column.x, -HEADERS_TOP);
             header.SetWidth(column.width);
             header.SetJustifyH(isCentered ? "CENTER" : "LEFT");
             header.SetText(this.locale.getText(text));
@@ -190,7 +239,7 @@ export class StyleWindowService {
     /** A header that explains its column as the mouse comes over it (the round buttons, for the animations). */
     private addHeaderTooltip(window: Frame, column: Column, tip: TextKey): Frame {
         const hover = CreateFrame("Frame", undefined, window);
-        hover.SetPoint("TOPLEFT", window, "TOPLEFT", TABLE_LEFT + column.x, -38);
+        hover.SetPoint("TOPLEFT", window, "TOPLEFT", TABLE_LEFT + column.x, -(HEADERS_TOP - 4));
         hover.SetSize(column.width, 18);
         hover.EnableMouse(true);
         hover.SetScript("OnEnter", () => {

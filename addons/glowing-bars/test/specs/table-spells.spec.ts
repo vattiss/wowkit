@@ -29,7 +29,7 @@ describe("the spells of the table, fixed and added by the player", () => {
     const SHIELD_BASH: SpellDefinition = { id: 72, name: "Shield Bash", rank: 1, icon: 132357, cooldownSeconds: 12, isHarmful: true };
     let world!: World;
 
-    const findAddRow = () => findAddRowOf(world);
+    const findAddRow = (tab?: string) => findAddRowOf(world, tab);
 
     function findIdBox(label: string): FakeFrame {
         const row = findLabel(world, label)!.parent;
@@ -62,19 +62,16 @@ describe("the spells of the table, fixed and added by the player", () => {
         expect(box.text).toBe("1719");
     });
 
-    it("lists the types, and shows the one picked", () => {
-        const { reminderType: kind } = findAddRow();
-        expect(world.openMenu(kind).map((choice) => choice.label)).toEqual([
-            "Ready cooldown",
-            "Utility cooldown",
-            "Proc",
-            "Missing buff",
-            "Weapon buff",
-            "Low reagent",
-            "Low stock",
-            "Missing seal",
-            "Missing tracking",
-        ]);
+    it("lists the types of its tab, and shows the one picked", () => {
+        const listTypes = (tab: string) =>
+            world
+                .openMenu(findAddRow(tab).reminderType)
+                .map((choice) => choice.label)
+                .join(", ");
+        expect(listTypes("Cooldowns")).toBe("Ready cooldown, Utility cooldown");
+        expect(listTypes("Procs")).toBe("Proc");
+        expect(listTypes("Buffs")).toBe("Missing buff, Weapon buff, Missing seal, Missing tracking");
+        const { reminderType: kind } = findAddRow("Buffs");
         world.pickFromMenu(kind, "Missing tracking");
         expect(kind.text).toBe("Missing tracking");
         const chosen = world.openMenu(kind).filter((choice) => choice.isChosen());
@@ -122,7 +119,7 @@ describe("the spells of the table, fixed and added by the player", () => {
     });
 
     it("adds a spell as a proc once Proc is picked", () => {
-        const { box, reminderType, add } = findAddRow();
+        const { box, reminderType, add } = findAddRow("Procs");
         world.pickFromMenu(reminderType, "Proc");
         box.text = "72";
         add.scripts.OnClick!(add);
@@ -170,7 +167,7 @@ describe("the spells of the table, fixed and added by the player", () => {
     });
 
     it("does not add a spell with a cooldown and no reagent as a low reagent, and says so", () => {
-        const { box, reminderType, add } = findAddRow();
+        const { box, reminderType, add } = findAddRow("Consumables");
         world.pickFromMenu(reminderType, "Low reagent");
         box.text = "72";
         add.scripts.OnClick!(add);
@@ -195,19 +192,12 @@ describe("the spells of other types a player adds", () => {
     const RITUAL: SpellDefinition = { id: 29893, name: "Ritual of Souls", rank: 1, icon: 136194, isHelpful: true };
     let world!: World;
 
-    /** Adds a spell in the table as this type. */
+    /** Adds a spell in the table as this type, on the tab of the type. */
     function addAs(spellId: number, type: string): void {
-        const box = world.frames.find(
-            (frame) =>
-                frame.frameType === "EditBox" &&
-                !world.frames.some((other) => other.parent === frame.parent && other.frameType === "CheckButton"),
-        )!;
-        const [reminderType, add] = world.frames.filter(
-            (frame) => frame.parent === box.parent && frame.template === "UIPanelButtonTemplate",
-        );
-        world.pickFromMenu(reminderType!, type);
+        const { box, reminderType, add } = findAddRowOf(world, type === "Low reagent" ? "Consumables" : "Buffs");
+        world.pickFromMenu(reminderType, type);
         box.text = string.format("%d", spellId);
-        add!.scripts.OnClick!(add!);
+        add.scripts.OnClick!(add);
         world.advance(0.5);
     }
 

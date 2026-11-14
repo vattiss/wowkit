@@ -11,7 +11,7 @@ import {
     type FakeFrame,
     type World,
 } from "@wowkit/test-kit";
-import { findLabel, findRow, readSaved, setUpWarrior, toggleTable } from "./table.helpers";
+import { findLabel, findRow, readSaved, setUpWarrior, toggleTable, showTab } from "./table.helpers";
 
 const MAIN_FOLDER = "GlowingBars_Sounds";
 const HORNS_FOLDER = "Horns";
@@ -24,10 +24,12 @@ describe("the Custom sounds section of the table", () => {
         world = createWorld(setUpWarrior, saved);
         world.advance(1);
         toggleTable();
+        showTab(world, "Sounds");
     }
 
-    /** The boxes of the folders, in the order of the list. */
+    /** The boxes of the folders, in the order of the list, on the Sounds tab (shown first). */
     function listFolderBoxes(): FakeFrame[] {
+        showTab(world, "Sounds");
         return world.frames.filter(
             (frame) => frame.frameType === "EditBox" && frame.isShown && frame.parent?.isShown === true && frame.width === 200,
         );
