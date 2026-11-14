@@ -2,10 +2,11 @@
 // its choices on a line of its own, under the name the column's list shows.
 import type { AddonLocale } from "../locale/locale.interface";
 import type { TextKey } from "../locale/texts.constants";
-import type { When } from "../settings/settings.interface";
+import type { ReminderType, When } from "../settings/settings.interface";
 import { GLOW_TIME_CHOICES, REPEAT_CHOICES } from "../settings/settings.constants";
 import { WHEN_TEXTS, type StyleChoicesService } from "./style-choices.service";
 import { findColumns } from "./style-table.constants";
+import { TYPE_TEXTS } from "./style-rows.service";
 
 /** A choice of a column: its name in the list, and what it does. */
 interface HelpChoice {
@@ -17,6 +18,8 @@ interface HelpChoice {
 const WHERE_HELP: [label: TextKey, help: TextKey][] = [
     ["HELP_WHERE_BUFFS", "HELP_WHERE_BUFFS_HOW"],
     ["HELP_WHERE_WEAPON", "HELP_WHERE_WEAPON_HOW"],
+    ["HELP_WHERE_SEAL", "HELP_WHERE_SEAL_HOW"],
+    ["HELP_WHERE_TRACKING", "HELP_WHERE_TRACKING_HOW"],
     ["HELP_WHERE_TRINKETS", "HELP_WHERE_TRINKETS_HOW"],
     ["HELP_WHERE_TRAVEL", "HELP_WHERE_TRAVEL_HOW"],
     ["HELP_WHERE_PROC", "HELP_WHERE_PROC_HOW"],
@@ -41,6 +44,21 @@ const HELP_COLUMNS: [column: keyof ReturnType<typeof findColumns>, title: TextKe
     ["belowLimits", "COL_BELOW", "HELP_BELOW"],
     ["enabled", "COL_ENABLED", "HELP_ENABLED"],
     ["actions", "COL_ACTIONS", "HELP_ACTIONS"],
+];
+
+/** Every type of reminder, in the order of the tabs, and what makes it glow. */
+const TYPE_HELP: [reminderType: ReminderType, help: TextKey][] = [
+    ["missingBuff", "HELP_TYPE_MISSING_BUFF"],
+    ["weaponBuff", "HELP_TYPE_WEAPON_BUFF"],
+    ["missingSeal", "HELP_TYPE_MISSING_SEAL"],
+    ["missingTracking", "HELP_TYPE_MISSING_TRACKING"],
+    ["totemGone", "HELP_TYPE_TOTEM_GONE"],
+    ["readyCooldown", "HELP_TYPE_READY_COOLDOWN"],
+    ["utilityCooldown", "HELP_TYPE_UTILITY_COOLDOWN"],
+    ["proc", "HELP_TYPE_PROC"],
+    ["lowReagent", "HELP_TYPE_LOW_REAGENT"],
+    ["lowStock", "HELP_TYPE_LOW_STOCK"],
+    ["oldRank", "HELP_TYPE_OLD_RANK"],
 ];
 
 /** Every When a row can have, in the order of the lists, and what each does. */
@@ -144,6 +162,8 @@ export class TableHelp {
     /** The choices of a column, each with what it does; none for a column without a list. */
     private listChoices(help: TextKey): HelpChoice[] {
         const getText = (key: TextKey) => this.locale.getText(key);
+        if (help === "HELP_TYPE")
+            return TYPE_HELP.map(([reminderType, typeHelp]) => ({ label: getText(TYPE_TEXTS[reminderType]), help: typeHelp }));
         if (help === "HELP_WHEN") return WHEN_HELP.map(([when, whenHelp]) => ({ label: getText(WHEN_TEXTS[when]), help: whenHelp }));
         if (help === "HELP_MESSAGE_LOOK") return TEXT_HELP.map(([choice, choiceHelp]) => ({ label: getText(choice), help: choiceHelp }));
         if (help === "HELP_ANIMATION") return ANIMATION_HELP.map(([label, labelHelp]) => ({ label: getText(label), help: labelHelp }));

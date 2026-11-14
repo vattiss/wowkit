@@ -247,11 +247,13 @@ describe("the Help tab of the table", () => {
         const stones = texts.find((text) => text.includes("Sharpening stones"));
         expect(stones).toContain("Buffs tab, Weapon buff");
         expect(texts.find((text) => text.includes("Trinkets"))).toContain("Cooldowns tab, Ready cooldown");
+        expect(texts.find((text) => text.includes("paladin seal"))).toContain("Buffs tab, Missing seal");
         toggleTable();
     });
 
-    it("explains the columns of the Basic view alone in Basic", () => {
+    it("explains the columns of the Basic view alone in Basic, and under Type what makes each type glow", () => {
         const texts = listShownTexts(openHelp());
+        expect(texts.find((text) => text.includes("Totem gone|r:"))).toContain("a totem you dropped");
         for (const title of ["Spell / Item", "Type", "Color", "Message", "Sound", "Enabled", "Actions"])
             expect(texts.includes(title)).toBe(true);
         expect(texts.includes("When")).toBe(false);
