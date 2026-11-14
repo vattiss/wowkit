@@ -151,7 +151,7 @@ export class StyleRowsService {
         };
         for (const classBuff of this.classBuffs.getClassBuffs()) addListed("missingBuff", classBuff.id);
         for (const entry of this.weaponChoice.getWeaponChoices()) addListed("weaponBuff", entry.id);
-        for (const id of this.sealReminder.listSeals()) addListed("missingSeal", id);
+        for (const id of this.sealReminder.listTableSeals()) addListed("missingSeal", id);
         for (const id of this.trackingReminder.listTrackings()) addListed("missingTracking", id);
         for (const reminderType of ["readyCooldown", "proc"] as const) {
             for (const id of this.glowCues.listBuiltInIds(reminderType)) addListed(reminderType, id);

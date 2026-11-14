@@ -50,6 +50,11 @@ export class SealReminderService {
         private readonly addedSpells: AddedSpellsService,
     ) {}
 
+    /** Every seal of a paladin, learned or not, for the table: one not learned yet shows faded, as the class buffs do. */
+    listTableSeals(): number[] {
+        return this.player.getClassToken() === "PALADIN" ? SEALS : [];
+    }
+
     /** The seals the player has learned (their wow-data IDs). */
     listSeals(): number[] {
         return SEALS.filter((id) => this.spells.resolve(id) !== undefined);

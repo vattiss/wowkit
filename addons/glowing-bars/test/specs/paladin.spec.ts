@@ -8,10 +8,11 @@ import {
     createWorld,
     type World,
     BLESSING_OF_KINGS,
+    WARRIOR,
     PALADIN,
     type SpellDefinition,
 } from "@wowkit/test-kit";
-import { switchInTable } from "./table.helpers";
+import { findLabel, switchInTable, toggleTable } from "./table.helpers";
 
 const RIGHTEOUSNESS: SpellDefinition = { id: 20154, name: "Seal of Righteousness", rank: 1, icon: 132325, isHelpful: true };
 const CRUSADER: SpellDefinition = { id: 21082, name: "Seal of the Crusader", rank: 1, icon: 135924, isHelpful: true };
@@ -238,5 +239,32 @@ describe("a paladin who cancels the aura out of combat, with a target", () => {
         world.fire("UNIT_AURA", "player");
         world.advance(1);
         expect(world.glowsOn(1)).toBe(1);
+    });
+});
+
+describe("the seals in the table", () => {
+    it("lists every seal of a paladin, the ones not learned yet faded, as the class buffs", () => {
+        // The client knows the name of a seal not learned yet
+        const world = createWorld((state) => {
+            playAs(state, PALADIN);
+            learnSpell(state, RIGHTEOUSNESS);
+            state.spells[CRUSADER.id] = CRUSADER;
+        });
+        world.advance(1);
+        toggleTable();
+        expect(findLabel(world, "Seal of Righteousness")!.alpha).toBe(1);
+        expect(findLabel(world, "Seal of the Crusader")!.alpha).toBe(0.5);
+        toggleTable();
+    });
+
+    it("lists no seal for another class", () => {
+        const world = createWorld((state) => {
+            playAs(state, WARRIOR);
+            state.spells[CRUSADER.id] = CRUSADER;
+        });
+        world.advance(1);
+        toggleTable();
+        expect(findLabel(world, "Seal of the Crusader")).toBe(undefined);
+        toggleTable();
     });
 });
