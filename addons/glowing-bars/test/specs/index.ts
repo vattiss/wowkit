@@ -42,6 +42,7 @@ import "./macro-shown.spec";
 import "./options-window.spec";
 import "./defensive-execute.spec";
 import "./spell-procs.spec";
+import "./exorcism.spec";
 import "./cultivation.spec";
 import "./soul-link.spec";
 import "./welcome.spec";

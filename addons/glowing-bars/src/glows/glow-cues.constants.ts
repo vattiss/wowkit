@@ -60,10 +60,21 @@ export const RACIAL_COOLDOWNS: number[] = [
 /** Procs: the spell glows while the game says it is usable (and not on cooldown). The player can switch each off. */
 export const PROC_CUES: { [classToken: string]: number[] | undefined } = {
     HUNTER: [Hunter.Counterattack, Hunter.MongooseBite],
-    PALADIN: [Paladin.HammerOfWrath],
+    PALADIN: [Paladin.HammerOfWrath, Paladin.Exorcism],
     ROGUE: [Rogue.Riposte],
     WARRIOR: [Warrior.Overpower, Warrior.Revenge, Warrior.Execute, Warrior.VictoryRush],
 };
+
+/** The creature types of the game, by their IDs (UnitCreatureType's second answer): the same in every client language. */
+export const CREATURE_TYPE = { Demon: 3, Undead: 6 };
+
+/**
+ * Procs that also need a target of a kind: the creature types they hit. Where the game hides the target's type, the spell's
+ * range check stands in: it says no for a target the spell cannot hit. (An idea of sorrow8's fork.)
+ */
+export const TARGET_TYPE_CUES: [spellId: number, creatureTypes: number[]][] = [
+    [Paladin.Exorcism, [CREATURE_TYPE.Demon, CREATURE_TYPE.Undead]],
+];
 
 /** A proc told by its spell, and the buffs that tell it. */
 export interface SpellProcCue {

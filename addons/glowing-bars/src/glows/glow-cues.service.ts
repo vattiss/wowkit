@@ -10,10 +10,11 @@ import type {
     SpellDetailsService,
     SpellsService,
     CooldownViewerService,
+    UnitsService,
 } from "@wowkit/wow";
 import type { AddonSettingsService, AddableType } from "../settings/settings.interface";
 import type { AddedSpellsService } from "./added-spells.service";
-import { COOLDOWN_CUES, PROC_CUES, RACIAL_COOLDOWNS, SPELL_PROC_CUES, type SpellProcCue } from "./glow-cues.constants";
+import { COOLDOWN_CUES, PROC_CUES, RACIAL_COOLDOWNS, SPELL_PROC_CUES, TARGET_TYPE_CUES, type SpellProcCue } from "./glow-cues.constants";
 import { READY_MARGIN, type CooldownTrackerService } from "./cooldown-tracker.service";
 import type { StanceProcsService } from "./stance-procs.service";
 import type { StyleService } from "../settings/style.service";
@@ -38,6 +39,7 @@ export class GlowCuesService {
         private readonly cooldownViewer: CooldownViewerService,
         private readonly styles: StyleService,
         private readonly auras: AurasService,
+        private readonly units: UnitsService,
     ) {}
 
     /**
@@ -137,9 +139,18 @@ export class GlowCuesService {
 
     private isProcUp(id: number): boolean {
         const name = this.spells.getSpellLabel(id);
+        const creatureTypes = TARGET_TYPE_CUES.find(([listId]) => this.spells.getSpellLabel(listId) === name)?.[1];
+        if (creatureTypes !== undefined && !this.isTargetOfType(id, creatureTypes)) return false;
         const spellProc = this.listSpellProcs().find((proc) => this.spells.getSpellLabel(proc.id) === name);
         if (spellProc !== undefined) return this.readProcIcons(spellProc.auras) ?? this.isSignShowing(id, spellProc);
         return this.spellDetails.readUsability(id).isUsable === true || this.stanceProcs.isOpen(id);
+    }
+
+    /** Is the target one the spell hits (Exorcism: undead or demon)? Its type where the game shows it, else the spell's range check. */
+    private isTargetOfType(id: number, creatureTypes: number[]): boolean {
+        const typeId = this.units.getCreatureTypeId("target");
+        if (typeId !== undefined) return creatureTypes.includes(typeId);
+        return this.spellDetails.isInRange(id, "target") === true;
     }
 
     /** Is the spell free or instant now, by its proc, not by a buff that makes every spell so (Clearcasting)? */

@@ -52,6 +52,8 @@ export interface FakeTarget {
     yards: number;
     /** "Undead", "Mechanical"...; hidden when not given (as the client does for NPCs). */
     creatureType?: string;
+    /** The creature type's ID, the same in every client language (3 demon, 6 undead); none: the game names none, or hides it. */
+    creatureTypeId?: number;
     classification?: string;
     /** Its debuffs; the player's own have sourceUnit "player". */
     debuffs: FakeAura[];

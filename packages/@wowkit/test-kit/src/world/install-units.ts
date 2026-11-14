@@ -79,8 +79,8 @@ export function installUnits(state: ClientState): void {
         UnitGUID: (unit) => (unit === "target" && state.target ? `Creature-0-0-0-0-1-${state.target.name}` : undefined),
         UnitClassification: (unit) => (unit === "target" ? (state.target?.classification ?? "normal") : "normal"),
         UnitCreatureType: (unit) => {
-            const creature = unit === "target" ? state.target?.creatureType : undefined;
-            return $multi(creature as string, 0);
+            const target = unit === "target" ? state.target : undefined;
+            return $multi(target?.creatureType as string, target?.creatureTypeId ?? 0);
         },
         UnitThreatSituation: (_unit, mob) => {
             if (mob !== undefined && isNameplate(mob)) return 0;

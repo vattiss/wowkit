@@ -89,12 +89,15 @@ export class UnitsService {
         return type(classification) === "string" ? classification : undefined;
     }
 
-    /** The creature type in lower case ("undead", "mechanical"); undefined when the client hides it. */
-    getCreatureType(unit: UnitToken): string | undefined {
+    /**
+     * The unit's creature type, by its ID: the same in every client language (3 demon, 6 undead...); undefined when the client
+     * hides it, or names none.
+     */
+    getCreatureTypeId(unit: UnitToken): number | undefined {
         if (!this.doesExist(unit)) return undefined;
-        const [didSucceed, name] = attemptMulti(() => UnitCreatureType(unit));
-        if (!didSucceed || !isReadable(name) || type(name) !== "string" || name === "") return undefined;
-        return string.lower(name!);
+        const [didSucceed, , id] = attemptMulti(() => UnitCreatureType(unit));
+        if (!didSucceed || !isReadable(id) || type(id) !== "number" || id === 0) return undefined;
+        return id;
     }
 
     /** The threat state of the player on the unit (2 or 3: the player has aggro); undefined when hidden or not on the table. */

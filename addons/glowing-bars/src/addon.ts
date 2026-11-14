@@ -144,6 +144,7 @@ function makeReminders(addon: Addon, addonName: string, game: Game, texts: Texts
             game.cooldownViewer,
             texts.styles,
             game.auras,
+            game.units,
         ),
     );
     const fedBuffs = addon.register(

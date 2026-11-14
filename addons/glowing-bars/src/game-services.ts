@@ -23,6 +23,7 @@ import {
     SpellRefreshService,
     SpellsService,
     TooltipService,
+    UnitsService,
     WeaponEnchantsService,
 } from "@wowkit/wow";
 import { registerPublicApi } from "./api/public-api";
@@ -31,6 +32,7 @@ import { SAVED_VARIABLES_NAME } from "./settings/settings.constants";
 export function makeGame(addon: Addon, addonName: string) {
     const clock = addon.register(new ClockService());
     const player = addon.register(new PlayerService());
+    const units = addon.register(new UnitsService(player));
     const party = addon.register(new PartyService());
     const bags = addon.register(new BagsService());
     const savedVariables = addon.register(new SavedVariablesService(SAVED_VARIABLES_NAME));
@@ -56,6 +58,7 @@ export function makeGame(addon: Addon, addonName: string) {
     return {
         clock,
         player,
+        units,
         party,
         bags,
         savedVariables,
