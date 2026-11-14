@@ -169,7 +169,7 @@ export const TEXTS = {
     TIP_GLOW_PERCENT: "How strong the glow is, 1 to 100. Type a number.",
     TIP_MESSAGE: "Shows a short message at the top of the screen.",
     TIP_WHEN:
-        "When the reminder may show. A ready cooldown glows once, as it is ready; with + start, also as a fight starts (Out of combat + start: as it ends). With Alert in town, the message and sound come only in towns.",
+        "When the reminder may show. A ready cooldown glows once, as it is ready; with + start, also as that time begins (Out of combat + start: as a fight ends). With Alert in town, the message and sound come only in towns.",
     TIP_BELOW:
         "Reminds you when you have fewer than this. The number on a row under Defaults is used for every row of that type, unless you set a different number on the row.",
     TIP_ENABLED:
