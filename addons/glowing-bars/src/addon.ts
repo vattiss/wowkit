@@ -155,9 +155,10 @@ function makeReminders(addon: Addon, addonName: string, game: Game, texts: Texts
     );
     texts.styles.useOwnLooks((spellId) => fedBuffs.isFedSpell(spellId));
     texts.styles.useWeaponBuffLooks((spellId) => WEAPON_BUFF_BY_SPELL.get(spellId)?.id ?? spellId);
-    const { spells, actionBars, weaponEnchants, bags, player } = game;
+    const { spells, actionBars, weaponEnchants: enchants, bags, player } = game;
+    const { state, bounced } = buffs;
     const added = addon.register(
-        new AddedRemindersService(addedSpells, spells, actionBars, buffs.state, weaponEnchants, bags, settings, reagents, fedBuffs, player),
+        new AddedRemindersService(addedSpells, spells, actionBars, state, enchants, bags, settings, reagents, fedBuffs, player, bounced),
     );
     const seal = addon.register(new SealReminderService(game.spells, game.actionBars, buffs.state, game.player, settings, addedSpells));
     const tracking = addon.register(new TrackingReminderService(game.spells, game.actionBars, buffs.state, settings, addedSpells));

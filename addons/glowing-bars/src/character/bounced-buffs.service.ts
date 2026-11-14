@@ -3,7 +3,10 @@
 // the player at that moment are noted, and the reminder of the refused one stays quiet until one of them is gone: then it
 // may glow again, and a new refusal notes it again. While the game hides the auras (a fight), it stays as it was.
 import { OnEvent } from "@wowkit/core";
-import { buildNameKey, type AurasService, type PlayerService, type SpellsService } from "@wowkit/wow";
+import { buildNameKey, hasKnownExpiry, type AurasService, type PlayerService, type SpellsService } from "@wowkit/wow";
+
+/** A buff with less than this left when the refusal comes is not noted: a proc or a countdown running out lifts nothing. */
+const SHORT_BUFF_SECONDS = 60;
 
 export class BouncedBuffsService {
     /** Refused buff (name key) -> the buffs on the player when it was refused (name keys): one of them is the stronger one. */
@@ -18,7 +21,7 @@ export class BouncedBuffsService {
     @OnEvent("player.cast-bounced")
     noteBounce(spellId: number): void {
         const key = this.findBuffKey(spellId);
-        const onPlayer = this.readBuffKeys();
+        const onPlayer = this.readBuffKeys(true);
         if (key === undefined || onPlayer === undefined) return;
         const kept: string[] = [];
         for (const buffKey of onPlayer) kept.push(buffKey);
@@ -30,7 +33,7 @@ export class BouncedBuffsService {
         const key = this.findBuffKey(spellId);
         const kept = key !== undefined ? this.bounced.get(key) : undefined;
         if (key === undefined || kept === undefined) return false;
-        const onPlayer = this.readBuffKeys();
+        const onPlayer = this.readBuffKeys(false);
         // Hidden in a fight: as it was
         if (onPlayer === undefined) return true;
         if (kept.every((buffKey) => onPlayer.has(buffKey))) return true;
@@ -44,13 +47,18 @@ export class BouncedBuffsService {
         return name !== undefined && name !== "" ? buildNameKey(name) : undefined;
     }
 
-    /** The buffs on the player by name key; undefined while the game hides any of them, or all (an empty list in a fight). */
-    private readBuffKeys(): LuaSet<string> | undefined {
+    /**
+     * The buffs on the player by name key (`isLongOnly`: those with a minute or more left, or no end); undefined while the game
+     * hides any of them, or all (an empty list in a fight).
+     */
+    private readBuffKeys(isLongOnly: boolean): LuaSet<string> | undefined {
         const scan = this.auras.scanAuras("player");
         if (scan.isUnreadable || scan.auras.some((aura) => aura.isHidden || aura.name === undefined)) return undefined;
         if (scan.auras.length === 0 && this.player.isInCombat()) return undefined;
         const keys = new LuaSet<string>();
-        for (const aura of scan.auras) keys.add(buildNameKey(aura.name!));
+        for (const aura of scan.auras) {
+            if (!isLongOnly || !hasKnownExpiry(aura.remain) || aura.remain >= SHORT_BUFF_SECONDS) keys.add(buildNameKey(aura.name!));
+        }
         return keys;
     }
 }

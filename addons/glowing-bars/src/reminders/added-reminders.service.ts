@@ -19,6 +19,7 @@ import type { ReagentsService } from "../reagents/reagents.service";
 import type { AddonSettingsService, AddableType } from "../settings/settings.interface";
 import type { FedBuffsService } from "./fed-buffs.service";
 import { BUFF_GIVEN_BY_ITEM, BUFF_GIVEN_BY_SPELL } from "./given-buffs.constants";
+import type { BouncedBuffsService } from "../character/bounced-buffs.service";
 
 export class AddedRemindersService {
     constructor(
@@ -32,6 +33,7 @@ export class AddedRemindersService {
         private readonly reagents: ReagentsService,
         private readonly fedBuffs: FedBuffsService,
         private readonly player: PlayerService,
+        private readonly bounced: BouncedBuffsService,
     ) {}
 
     /** The added buffs that are on a button and not on the player (in combat a cast one counts until the fight ends). */
@@ -42,7 +44,7 @@ export class AddedRemindersService {
         return ids.filter((id) =>
             this.fedBuffs.isFedSpell(id)
                 ? missingFed.includes(id)
-                : !this.buffState.hasAura(this.findGivenBuff(id)) && this.spells.isCastable(id) !== false,
+                : !this.buffState.hasAura(this.findGivenBuff(id)) && this.spells.isCastable(id) !== false && !this.bounced.isBounced(id),
         );
     }
 

@@ -3,6 +3,7 @@
 import { type EventBus, OnGameEvent, OnUnitEvent } from "@wowkit/core";
 import type { PlayerService } from "./player.service";
 import type { SpellsService } from "./spells.service";
+import { attemptMulti } from "./utils/protected-call.utils";
 import { getReadable, getReadableId } from "./utils/secret-value.utils";
 
 export interface PlayerSpellCast {
@@ -16,7 +17,10 @@ declare module "@wowkit/core/event-bus" {
     interface AppEvents {
         /** The player finished casting a spell. */
         "player.spell-cast": [cast: PlayerSpellCast];
-        /** A buff the player cast was refused: "A more powerful spell is already active" (a stronger one of its kind is up). */
+        /**
+         * A buff the player cast on themselves was refused: "A more powerful spell is already active" (a stronger one of its kind
+         * is up). One cast on someone else is not told: it says nothing of the player's own buffs.
+         */
         "player.cast-bounced": [spellId: number];
     }
 }
@@ -29,6 +33,8 @@ export class SpellCastService {
     /** The player's last failed cast, and when the game last said a cast was refused for a stronger buff: they meet. */
     private lastFailed: { spellId: number; at: number } | undefined;
     private bouncedAt: number | undefined;
+    /** The casts sent on someone else than the player (by cast ID), until they succeed or fail. */
+    private readonly castOnOthers = new LuaSet<string>();
 
     constructor(
         private readonly player: PlayerService,
@@ -41,10 +47,24 @@ export class SpellCastService {
         this.lastCastName = this.player.getCastingSpellName() ?? this.lastCastName;
     }
 
+    /** The target the cast was sent at: none (a cast on oneself) or the player's own name is the player. */
+    @OnUnitEvent("UNIT_SPELLCAST_SENT")
+    noteCastSent(_unit: UnitToken, target: string, castGuid: string): void {
+        const guid = getReadable(castGuid);
+        const name = getReadable(target);
+        if (guid === undefined || name === undefined || name === "") return;
+        const [, playerName] = attemptMulti(() => UnitName("player"));
+        const isPlayer = getReadable(playerName) === string.match(name, "^[^-]+")[0];
+        if (!isPlayer) this.castOnOthers.add(guid);
+    }
+
     @OnUnitEvent("UNIT_SPELLCAST_FAILED")
-    noteCastFailed(_unit: UnitToken, _castGuid: string, spellId: number | undefined): void {
+    noteCastFailed(_unit: UnitToken, castGuid: string, spellId: number | undefined): void {
+        const guid = getReadable(castGuid);
+        const isOnOthers = guid !== undefined && this.castOnOthers.has(guid);
+        if (guid !== undefined) this.castOnOthers.delete(guid);
         const id = getReadableId(spellId);
-        this.lastFailed = id !== undefined ? { spellId: id, at: GetTime() } : undefined;
+        this.lastFailed = id !== undefined && !isOnOthers ? { spellId: id, at: GetTime() } : undefined;
         this.matchBounce();
     }
 
@@ -66,7 +86,9 @@ export class SpellCastService {
     }
 
     @OnUnitEvent("UNIT_SPELLCAST_SUCCEEDED")
-    noteCastSucceeded(_unit: UnitToken, _castGuid: string, spellId: number | undefined): void {
+    noteCastSucceeded(_unit: UnitToken, castGuid: string, spellId: number | undefined): void {
+        const guid = getReadable(castGuid);
+        if (guid !== undefined) this.castOnOthers.delete(guid);
         const spellName = this.lastCastName;
         this.lastCastName = undefined;
         const isHidden = spellId === undefined || issecretvalue(spellId);
