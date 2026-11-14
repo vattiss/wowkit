@@ -3,7 +3,7 @@
 //   node scripts/generate-wow-data.ts [--game 1.60.1.70425] [file]
 // The saved file is WTF/Account/<ACCOUNT>/SavedVariables/WowkitCheck.lua next to the game's Interface folder
 // (WOW_ADDONS_DIR); give its path to read another one. Run /wowkit check and /reload in the game first.
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import luaparse from "luaparse";
 import { MANUAL_TYPES_DIR } from "./lib/paths.ts";
 
@@ -42,16 +42,16 @@ function readValue(node: luaparse.Expression): LuaValue {
     }
 }
 
+/** The newest saved file of the accounts: the one the last /wowkit check wrote, whichever account it ran on. */
 function findSavedFile(): string | undefined {
     const addons = process.env.WOW_ADDONS_DIR;
     if (!addons) return undefined;
     const accounts = `${addons}/../../WTF/Account`;
     if (!existsSync(accounts)) return undefined;
-    for (const account of readdirSync(accounts)) {
-        const file = `${accounts}/${account}/SavedVariables/WowkitCheck.lua`;
-        if (existsSync(file)) return file;
-    }
-    return undefined;
+    return readdirSync(accounts)
+        .map((account) => `${accounts}/${account}/SavedVariables/WowkitCheck.lua`)
+        .filter((file) => existsSync(file))
+        .sort((a, b) => statSync(b).mtimeMs - statSync(a).mtimeMs)[0];
 }
 
 /** "Name|2" -> the name and the rank; a name alone has no rank. */
@@ -114,7 +114,8 @@ function writeIdsFile(savedFile: string, game: string): void {
 
 const args = process.argv.slice(2);
 const gameIndex = args.indexOf("--game");
-const fileArg = args.find((arg, index) => !arg.startsWith("--") && index !== gameIndex + 1);
+// The value after --game is not the file; with no --game, any argument can be
+const fileArg = args.find((arg, index) => !arg.startsWith("--") && (gameIndex < 0 || index !== gameIndex + 1));
 const savedFile = fileArg ?? findSavedFile();
 if (savedFile === undefined || !existsSync(savedFile)) {
     console.error("Cannot find WowkitCheck.lua. Give its path, or set WOW_ADDONS_DIR; run /wowkit check and /reload in the game first.");
