@@ -227,9 +227,10 @@ export const TEXTS = {
     OPT_AFK_RAINBOW: "Rainbow when AFK",
     TIP_AFK_RAINBOW: "While you are AFK, your action buttons light up in rainbow colors, on every bar at once. Default: off.",
     TIP_FADE_ONLY: "The game hides the target's health, so the addon can't tell when this glow starts: it can't play a sound or time it.",
-    TIP_ADD:
-        "Tip: Low stock needs an Item ID, every other type a Spell ID (for an item, its Use spell ID). IDs show in tooltips, if turned on in Settings / General.",
-    HDR_TABLE_ADD: "Add Spell/Item by ID",
+    TIP_ADD_SPELL: "Enter a Spell ID (for an item, its Use spell ID). IDs show in tooltips, if turned on in Settings / General.",
+    TIP_ADD_ITEM: "Enter an Item ID. IDs show in tooltips, if turned on in Settings / General.",
+    HDR_TABLE_ADD_SPELL: "Add Spell by ID",
+    HDR_TABLE_ADD_ITEM: "Add Item by ID",
     OPT_TOOLTIP_IDS: "Show spell and item IDs in tooltips",
     TIP_TOOLTIP_IDS: "Shows spell and item IDs in tooltips, for adding them in the table.",
     TOOLTIP_SPELL_ID: "Spell ID: %d",

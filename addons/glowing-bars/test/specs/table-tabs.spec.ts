@@ -60,7 +60,7 @@ describe("the tabs of the table", () => {
         // Only the add row then: no header over an empty list
         showTab(world, "Consumables");
         expect(findLabelOnTab(world, "Defaults")).toBeUndefined();
-        expect(findLabelOnTab(world, "Add Spell/Item by ID")).toBeDefined();
+        expect(findLabelOnTab(world, "Add Spell by ID")).toBeDefined();
         toggleTable();
         const priest = createWorld((state) => {
             playAs(state, PRIEST);
@@ -263,7 +263,7 @@ describe("the Help tab of the table", () => {
         const world = openWarrior();
         showTab(world, "Procs");
         // The add row itself: the tip under it
-        const isAddRowShown = () => listShownTexts(world).some((text) => text.includes("needs an Item ID"));
+        const isAddRowShown = () => listShownTexts(world).some((text) => text.includes("Enter a Spell ID"));
         expect(isAddRowShown()).toBe(true);
         for (const tab of ["Sounds", "Help"]) {
             showTab(world, tab);

@@ -78,13 +78,21 @@ describe("the spells of the table, fixed and added by the player", () => {
         expect(chosen.map((choice) => choice.label)).toEqual(["Missing tracking"]);
     });
 
-    it("says what to enter under the add row, not on its box", () => {
-        const { box } = findAddRow();
-        expect(box.scripts.OnEnter).toBeUndefined();
-        const texts = box.parent!.fontStrings.map((text) => text.text ?? "");
-        expect(
-            texts.some((text) => string.find(text, "Low stock needs an Item ID, every other type a Spell ID", 1, true)[0] !== undefined),
-        ).toBe(true);
+    it("says what to enter under the add row, not on its box: the ID the type picked takes", () => {
+        const readTip = (tab: string, type?: string) => {
+            const { box, reminderType } = findAddRow(tab);
+            if (type !== undefined) world.pickFromMenu(reminderType, type);
+            expect(box.scripts.OnEnter).toBeUndefined();
+            return box.parent!.fontStrings.map((text) => text.text ?? "").join(" | ");
+        };
+        expect(readTip("Cooldowns")).toContain("Enter a Spell ID");
+        expect(readTip("Consumables", "Low stock")).toContain("Enter an Item ID");
+        expect(readTip("Consumables", "Low reagent")).toContain("Enter a Spell ID");
+        world.pickFromMenu(findAddRow("Consumables").reminderType, "Low stock");
+        expect(findLabel(world, "Add Item by ID")).toBeDefined();
+        world.pickFromMenu(findAddRow("Consumables").reminderType, "Low reagent");
+        expect(findLabel(world, "Add Spell by ID")).toBeDefined();
+        expect(findLabel(world, "Add Item by ID")).toBeUndefined();
     });
 
     it("takes a fixed ID for a cooldown of the list", () => {

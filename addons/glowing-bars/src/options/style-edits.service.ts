@@ -27,6 +27,8 @@ export class StyleEditsService {
     private chosenType: AddableType = ADDABLE_TYPES[0]!;
     /** The add row's type button says the type picked. */
     private showChosenType: (this: void) => void = () => undefined;
+    /** The header over the add row, drawn this time: it says which ID the type picked takes. */
+    private addHeader: FontString | undefined;
 
     constructor(
         private readonly locale: AddonLocale,
@@ -162,6 +164,15 @@ export class StyleEditsService {
         this.showChosenType();
     }
 
+    /**
+     * The header over the add row this time, which says the ID the type picked takes; none before the table is drawn again
+     * (its headers are used anew, the old one may head another list by then).
+     */
+    useAddHeader(header: FontString | undefined): void {
+        this.addHeader = header;
+        if (header !== undefined) this.showChosenType();
+    }
+
     /** How much room the add row takes, with the tip under it. */
     getAddRowHeight(): number {
         return ROW_HEIGHT + ADD_TIP_HEIGHT;
@@ -176,12 +187,18 @@ export class StyleEditsService {
         tip.SetPoint("TOPLEFT", frame, "TOPLEFT", COLUMN.name.x, -ROW_HEIGHT);
         tip.SetWidth(ADD_TIP_WIDTH);
         tip.SetJustifyH("LEFT");
-        tip.SetText(this.locale.getText("TIP_ADD"));
+
         const box = this.createNumberBox(frame, COLUMN.name.x, 90, 7);
         const typeButton = CreateFrame("Button", undefined, frame, "UIPanelButtonTemplate");
         typeButton.SetSize(136, 24);
         typeButton.SetPoint("LEFT", frame, "LEFT", COLUMN.name.x + 110, 0);
-        this.showChosenType = () => typeButton.SetText(this.locale.getText(TYPE_TEXTS[this.chosenType]));
+        // The tip says which ID the type picked takes: an item's for the low stock, a spell's for the others
+        this.showChosenType = () => {
+            const isItem = this.chosenType === "lowStock";
+            typeButton.SetText(this.locale.getText(TYPE_TEXTS[this.chosenType]));
+            tip.SetText(this.locale.getText(isItem ? "TIP_ADD_ITEM" : "TIP_ADD_SPELL"));
+            this.addHeader?.SetText(this.locale.getText(isItem ? "HDR_TABLE_ADD_ITEM" : "HDR_TABLE_ADD_SPELL"));
+        };
         connectChoiceMenu(typeButton, () =>
             this.addTypes.map((reminderType) => ({
                 label: this.locale.getText(TYPE_TEXTS[reminderType]),

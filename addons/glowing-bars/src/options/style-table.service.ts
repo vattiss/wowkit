@@ -207,6 +207,7 @@ export class StyleTableService {
         this.help.hide();
         this.takenOver.hide();
         this.addRow?.Hide();
+        this.edits.useAddHeader(undefined);
         this.unlearnedSwitch?.holder.Hide();
     }
 
@@ -265,9 +266,10 @@ export class StyleTableService {
     private drawAddRow(content: Frame, top: number): number {
         const header = this.takeHeader(content);
         header.SetPoint("TOPLEFT", content, "TOPLEFT", 0, -top);
-        header.SetText(this.locale.getText("HDR_TABLE_ADD"));
         header.Show();
         this.addRow = this.addRow ?? this.edits.createAddRow(content);
+        // Its words follow the type picked: a spell's ID, or an item's
+        this.edits.useAddHeader(header);
         this.addRow.ClearAllPoints();
         this.addRow.SetPoint("TOPLEFT", content, "TOPLEFT", 0, -(top + HEADER_HEIGHT));
         this.addRow.Show();
