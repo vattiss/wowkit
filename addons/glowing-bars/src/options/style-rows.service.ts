@@ -8,7 +8,6 @@ import type { GlowCuesService } from "../glows/glow-cues.service";
 import type { AddonLocale } from "../locale/locale.interface";
 import type { TextKey } from "../locale/texts.constants";
 import type { ReagentsService } from "../reagents/reagents.service";
-import type { Reagent } from "../reagents/reagent.interface";
 import type { ClassBuffsService } from "../reminders/class-buffs.service";
 import type { FedBuffsService } from "../reminders/fed-buffs.service";
 import type { SealReminderService } from "../reminders/seal-reminder.service";
@@ -38,8 +37,6 @@ export interface StyleRow {
     sharesIdOf?: number;
     /** A glow only the game itself can light: what would have to know when it starts is faded on the row. */
     isFadeOnly?: boolean;
-    /** What the row is about, shown as the mouse is over its name (the spells a reagent is for). */
-    tooltip?: string;
 }
 
 /** The words that name each type of reminder. */
@@ -100,26 +97,6 @@ export class StyleRowsService {
         return isFromItem || this.glowCues.isItemUse(spellId) ? undefined : this.spells.isLearned(spellId);
     }
 
-    /**
-     * The row of a reagent: its name and icon, learned once any spell that takes it is, and those spells named as the mouse
-     * is over it. Its switch, its limit and its look are the reagent's: they go for all of those spells.
-     */
-    private describeReagent(reagent: Reagent, listId: number, name: string): Partial<StyleRow> {
-        const spellNames: string[] = [];
-        for (const id of reagent.spells) {
-            const label = this.spells.getSpellLabel(id);
-            if (label !== undefined && !spellNames.includes(label)) spellNames.push(label);
-        }
-        const iconId = readItemLook(reagent.itemId).iconId;
-        return {
-            listId,
-            label: name,
-            isLearned: reagent.spells.some((id) => this.spells.isLearned(id)),
-            tooltip: spellNames.join("\n"),
-            ...(iconId !== undefined ? { iconId } : {}),
-        };
-    }
-
     private readLook(
         reminderType: ReminderType,
         spellId: number,
@@ -136,13 +113,36 @@ export class StyleRowsService {
         };
     }
 
+    /** The group buffs of the class's reagents, one for each spell ("Symbol of Kings (Greater Blessing of Might)"). */
+    private listReagentRows(): { listId: number; label: string; reagentName: string }[] {
+        const rows: { listId: number; label: string; reagentName: string }[] = [];
+        for (const reagent of this.reagents.getReagentsOfClass(this.player.getClassToken())) {
+            const reagentName = this.reagents.getReagentName(reagent);
+            for (const listId of this.reagents.listRowIds(reagent)) {
+                rows.push({
+                    listId,
+                    label: `${reagentName} (${this.spells.getSpellLabel(listId) ?? string.format("%d", listId)})`,
+                    reagentName,
+                });
+            }
+        }
+        return rows;
+    }
+
+    /** A low reagent the player added is named as the lists' are: its reagent, as its tooltip says, and the spell. */
+    private describeAddedReagentSpell(reminderType: AddableType, spellId: number): Partial<StyleRow> {
+        const reagentName = reminderType === "lowReagent" ? this.reagents.findTooltipReagent(spellId) : undefined;
+        const spellName = this.spells.getSpellLabel(spellId);
+        return reagentName !== undefined && spellName !== undefined ? { label: `${reagentName} (${spellName})` } : {};
+    }
+
     /** What the player added; an item of the low stock goes by what its buttons are found by, and under its own name. */
     private listAddedRows(): { reminderType: AddableType; id: number; extra: Partial<StyleRow> }[] {
         const added: { reminderType: AddableType; id: number; extra: Partial<StyleRow> }[] = [];
         for (const reminderType of ADDABLE_TYPES) {
             for (const id of this.addedSpells.listAdded(reminderType)) {
                 if (reminderType !== "lowStock") {
-                    added.push({ reminderType, id, extra: { isAdded: true } });
+                    added.push({ reminderType, id, extra: { isAdded: true, ...this.describeAddedReagentSpell(reminderType, id) } });
                     continue;
                 }
                 const { name, iconId } = readItemLook(id);
@@ -192,12 +192,9 @@ export class StyleRowsService {
             .listLowHealthIds()
             .forEach((id) => add("proc", this.addedSpells.getEffectiveId(id), { listId: id, isFadeOnly: true }));
         for (const { reminderType, id, extra } of this.listAddedRows()) add(reminderType, id, extra);
-        // A row for each reagent, under its name: all the group buffs that take it go by it (Holy Candle, Sacred Candle)
-        for (const reagent of this.reagents.getReagentsOfClass(this.player.getClassToken())) {
-            const listId = reagent.spells[0];
-            const name = this.reagents.getReagentName(reagent);
-            if (listId !== undefined)
-                add("lowReagent", this.addedSpells.getEffectiveId(listId), this.describeReagent(reagent, listId, name), name);
+        // A row for each group buff of a reagent, its ranks together: each has its own look, switch and limit
+        for (const { listId, label, reagentName } of this.listReagentRows()) {
+            add("lowReagent", this.addedSpells.getEffectiveId(listId), { listId, label }, reagentName);
         }
         // The spells that have ranks (a spell with one rank has no "Rank" in its subtext), on a bar or not. The ranks are read
         // off the bars, by the IDs there: a rank row's ID is not one to fix

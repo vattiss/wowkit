@@ -9,7 +9,7 @@ import { ADDABLE_TYPES } from "../settings/settings.constants";
 import { ADD_TIP_HEIGHT, ADD_TIP_WIDTH, COLUMN, ROW_HEIGHT, TABLE_WIDTH, findCenteredX } from "./style-table.constants";
 import { TYPE_TEXTS, type StyleRow, type StyleRowsService } from "./style-rows.service";
 import type { StyleService } from "../settings/style.service";
-import type { ReagentsService } from "../reagents/reagents.service";
+import { findReagentRowEntry } from "../reagents/reagents.service";
 import type { BelowLimitsService } from "../reminders/below-limits.service";
 import type { AddableType } from "../settings/settings.interface";
 
@@ -37,7 +37,6 @@ export class StyleEditsService {
         private readonly rows: StyleRowsService,
         private readonly styles: StyleService,
         private readonly limits: BelowLimitsService,
-        private readonly reagents: ReagentsService,
     ) {}
 
     /** The Enabled box of a row: it switches the type (on a type's row) or the spell; its tooltip says which. */
@@ -132,13 +131,11 @@ export class StyleEditsService {
             box.SetText(string.format("%d", this.limits.getLimit(row.reminderType, this.findLimitEntry(row))));
     }
 
-    /** What the limit of a row is kept under: the item, or the spell the player added; a type's row has none. */
+    /** What the limit of a row is kept under: the item, or the reagent spell (its list ID, or its own if added); a type's row has none. */
     private findLimitEntry(row: StyleRow): string | undefined {
         if (row.spellId === undefined) return undefined;
         if (row.itemId !== undefined) return string.format("%d", row.itemId);
-        if (row.isAdded === true) return `spell${string.format("%d", row.spellId)}`;
-        const reagent = this.reagents.findReagentOfSpell(row.spellId);
-        return reagent !== undefined ? string.format("%d", reagent.itemId) : undefined;
+        return findReagentRowEntry(row.isAdded === true ? row.spellId : (row.listId ?? row.spellId));
     }
 
     /** A spell of the lists can be given another ID, and an added spell; a rank is the ID on the bar. */

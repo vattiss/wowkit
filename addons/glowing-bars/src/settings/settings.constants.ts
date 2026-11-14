@@ -45,6 +45,7 @@ const COOLDOWN_SWITCHES = {
     isUtilityCooldownEnabled: true,
     isProcEnabled: true,
     areUtilityLooksMoved: false,
+    areReagentRowsSplit: false,
 } as const;
 
 /** The shaman's totems: whether a totem gone glows, and the last dropped in each slot (none yet). */

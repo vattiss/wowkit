@@ -136,9 +136,9 @@ export class FindRemindersService {
      */
     private findReagentSpells(): number[] {
         if (!this.settings.get("isLowReagentEnabled")) return [];
-        const enabledReagents = this.settings.get("enabledReagents");
+        const enabledSpells = this.settings.get("enabledSpells");
         const listed = this.reagents
-            .findSpellsWithLowReagent((reagent) => enabledReagents[String(reagent.itemId)] !== false)
+            .findSpellsWithLowReagent((listId) => enabledSpells[string.format("%d", listId)] !== false)
             .filter((id) => this.actionBars.isOnBars(id));
         return [...listed, ...this.addedReminders.findReagentSpells()];
     }
@@ -146,8 +146,8 @@ export class FindRemindersService {
     /** The reagents running low that are switched on: those of the list, then those of the spells the player added. */
     private findLowReagents(): LowReagent[] {
         if (!this.settings.get("isLowReagentEnabled")) return [];
-        const enabledReagents = this.settings.get("enabledReagents");
-        const listed: LowReagent[] = this.reagents.findLowReagents((reagent) => enabledReagents[String(reagent.itemId)] !== false);
+        const enabledSpells = this.settings.get("enabledSpells");
+        const listed: LowReagent[] = this.reagents.findLowReagents((listId) => enabledSpells[string.format("%d", listId)] !== false);
         const added = this.addedReminders.findLowReagents().filter((stock) => !listed.some((other) => other.name === stock.name));
         return [...listed, ...added];
     }

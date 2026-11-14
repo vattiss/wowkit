@@ -13,6 +13,7 @@ import "./rogue.spec";
 import "./rogue-macros.spec";
 import "./ranks.spec";
 import "./town.spec";
+import "./reagent-rows.spec";
 import "./glows.spec";
 import "./cooldown-ranks.spec";
 import "./looks.spec";

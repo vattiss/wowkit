@@ -13,7 +13,15 @@ import {
     SMITE_RANK_2,
     type World,
 } from "@wowkit/test-kit";
-import { findLabelOnTab, setUpWarrior, showTab, showUnlearned, toggleTable, useAndRecoverRecklessness } from "./table.helpers";
+import {
+    findLabelOnTab,
+    setUpWarrior,
+    showTab,
+    showUnlearned,
+    toggleTable,
+    useAndRecoverRecklessness,
+    switchInTable,
+} from "./table.helpers";
 
 function openWarrior(saved?: Record<string, unknown>): World {
     const world = createWorld(setUpWarrior, saved);
@@ -164,14 +172,23 @@ describe("the spells not learned yet in the table", () => {
     });
 });
 
-describe("the row of a reagent in the table", () => {
-    /** A paladin who learned Greater Blessing of Kings (a talent) alone, and knows the names of the other two. */
+describe("the rows of a reagent in the table", () => {
+    const KINGS = { id: 25898, name: "Greater Blessing of Kings", rank: 1, icon: 135993, isHelpful: true };
+    const WISDOM = { id: 25894, name: "Greater Blessing of Wisdom", rank: 1, icon: 135912, isHelpful: true };
+    const SYMBOL_OF_KINGS = 21177;
+
+    /** A paladin with Greater Blessing of Kings and of Wisdom on buttons 1 and 2, five Symbols of Kings, the table open. */
     function openPaladin(): World {
         const world = createWorld((state) => {
             playAs(state, PALADIN);
             state.spells[25782] = { id: 25782, name: "Greater Blessing of Might", rank: 1, icon: 135908 };
-            state.spells[25894] = { id: 25894, name: "Greater Blessing of Wisdom", rank: 1, icon: 135912 };
-            learnSpell(state, { id: 25898, name: "Greater Blessing of Kings", rank: 1, icon: 135993, isHelpful: true });
+            for (const spell of [KINGS, WISDOM]) {
+                learnSpell(state, spell);
+                state.reagentTexts[spell.id] = "Symbol of Kings";
+            }
+            state.bars[1] = KINGS.id;
+            state.bars[2] = WISDOM.id;
+            state.bags[SYMBOL_OF_KINGS] = 5;
         });
         world.advance(1);
         toggleTable();
@@ -179,24 +196,32 @@ describe("the row of a reagent in the table", () => {
         return world;
     }
 
-    it("goes by the reagent's name, learned once any spell that takes it is", () => {
+    it("has one for each spell that takes it, the reagent first", () => {
         const world = openPaladin();
-        const label = findLabelOnTab(world, "Symbol of Kings");
-        expect(label).toBeDefined();
-        expect(label!.alpha).toBe(1);
-        expect(findLabelOnTab(world, "Greater Blessing of Might")).toBeUndefined();
+        expect(findLabelOnTab(world, "Symbol of Kings (Greater Blessing of Kings)")!.alpha).toBe(1);
+        expect(findLabelOnTab(world, "Symbol of Kings (Greater Blessing of Wisdom)")).toBeDefined();
+        // Not learned: left out, like any spell of the lists not learned yet
+        expect(findLabelOnTab(world, "Symbol of Kings (Greater Blessing of Might)")).toBeUndefined();
+        showUnlearned(world, "Consumables");
+        expect(findLabelOnTab(world, "Symbol of Kings (Greater Blessing of Might)")!.alpha).toBe(0.5);
         toggleTable();
     });
 
-    it("names the spells that take the reagent as the mouse comes over its name", () => {
+    it("keeps a limit and a switch of each row's own: the other spells of the reagent go on glowing", () => {
         const world = openPaladin();
-        const row = findLabelOnTab(world, "Symbol of Kings")!.parent!;
-        const hover = world.frames.find((frame) => frame.parent === row && frame.scripts.OnEnter !== undefined)!;
-        hover.scripts.OnEnter!(hover);
-        const lines = world.findFrame((frame) => frame.name === "GameTooltip")?.text ?? "";
-        expect(lines).toContain("Greater Blessing of Might");
-        expect(lines).toContain("Greater Blessing of Kings");
-        expect(lines).toContain("Greater Blessing of Wisdom");
+        world.advance(1);
+        expect(world.glowsOn(1)).toBe(1);
+        expect(world.glowsOn(2)).toBe(1);
+        const kingsRow = findLabelOnTab(world, "Symbol of Kings (Greater Blessing of Kings)")!.parent;
+        const below = world.frames.filter((frame) => frame.parent === kingsRow && frame.frameType === "EditBox" && frame.text === "10")[0]!;
+        below.text = "3";
+        below.scripts.OnEditFocusLost!(below);
+        world.advance(1);
+        expect(world.glowsOn(1)).toBe(0);
+        expect(world.glowsOn(2)).toBe(1);
+        switchInTable(world, "Symbol of Kings (Greater Blessing of Wisdom)", false);
+        world.advance(1);
+        expect(world.glowsOn(2)).toBe(0);
         toggleTable();
     });
 });

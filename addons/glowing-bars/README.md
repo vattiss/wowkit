@@ -28,7 +28,9 @@ Your Rotation.
     classes you buffed there.
 - **Reagents**: the group buff on your action bar (Prayer of Fortitude, Gift of the Wild...) glows, quietly, while its
   reagent runs low (below 10 by default, set in the Below column of the table); in a town or an inn a message on the
-  screen names the reagents. Its When can also keep the glow to a town, or bring the message anywhere.
+  screen names the reagents. Its When can also keep the glow to a town, or bring the message anywhere. Each group buff
+  has a row of its own in the table, named after its reagent (`Symbol of Kings (Greater Blessing of Kings)`), with its own
+  look, switch and limit; a spell you add as `Low reagent` (by its Spell ID) is named the same way.
 - **Low stock**: add any item by its Item ID (arrows, drinks, candles) as `Low stock` in the table. Below 20 (set in the Below column,
   for all items or for each one) a message on the screen says how many are left, and if the item is on a bar, its button glows too, even at none.
 - **Ready cooldowns**: in a fight, an important cooldown of your class (Recklessness, Rapid Fire, Adrenaline Rush,

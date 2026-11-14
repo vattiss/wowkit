@@ -184,26 +184,27 @@ describe("the reagents of a priest in the table", () => {
         const world = createWorld((state) => setUpPriest(state, false));
         SlashCmdList["GLOWINGBARS"]!("", undefined as never);
         showUnlearned(world, "Consumables");
-        expect(findLabel(world, "Holy Candle")).toBeDefined();
-        expect(findLabel(world, "Sacred Candle")).toBeDefined();
+        expect(findLabel(world, "Holy Candle (Prayer of Fortitude)")).toBeDefined();
+        expect(findLabel(world, "Sacred Candle (Prayer of Fortitude)")).toBeDefined();
         expect(findLabel(world, "Gift of the Wild")).toBeUndefined();
     });
 
     it("silence the message of a reagent that is switched off", () => {
         const world = createWorld((state) => setUpPriest(state, false), { styles: { lowReagent: { isMessageOn: true } } });
-        switchInTable(world, "Holy Candle", false);
+        switchInTable(world, "Holy Candle (Prayer of Fortitude)", false);
         arriveInTown(world);
         expect(world.notice()).not.toContain("Running low");
     });
 
     it("are stored only where they differ from the default", () => {
         const world = createWorld((state) => setUpPriest(state, false));
-        switchInTable(world, "Holy Candle", false);
-        const enabledReagents = world.getSavedSettings()?.enabledReagents as Record<string, boolean | undefined>;
-        expect(enabledReagents["17028"]).toBe(false);
-        switchInTable(world, "Holy Candle", true);
-        const afterwards = world.getSavedSettings()?.enabledReagents as Record<string, boolean | undefined>;
-        expect(afterwards["17028"]).toBeUndefined();
+        switchInTable(world, "Holy Candle (Prayer of Fortitude)", false);
+        // Kept for the spell's row, by its ID in the list
+        const enabledSpells = world.getSavedSettings()?.enabledSpells as Record<string, boolean | undefined>;
+        expect(enabledSpells[`${PRAYER_OF_FORTITUDE.id}`]).toBe(false);
+        switchInTable(world, "Holy Candle (Prayer of Fortitude)", true);
+        const afterwards = world.getSavedSettings()?.enabledSpells as Record<string, boolean | undefined>;
+        expect(afterwards[`${PRAYER_OF_FORTITUDE.id}`]).toBeUndefined();
     });
 });
 

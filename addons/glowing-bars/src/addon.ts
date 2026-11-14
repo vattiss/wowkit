@@ -67,6 +67,7 @@ import { WeaponReminderService } from "./reminders/weapon/weapon-reminder.servic
 import { ACCOUNT_VARIABLES_NAME, createDefaultSettings, repairSettings } from "./settings/settings.constants";
 import type { AddonSettings } from "./settings/settings.interface";
 import { StyleService } from "./settings/style.service";
+import { ReagentRowsService } from "./reagents/reagent-rows.service";
 import { UtilityLooksService } from "./glows/utility-looks.service";
 import { EnabledService } from "./settings/enabled.service";
 import { DisplayService } from "./tick/display.service";
@@ -245,10 +246,11 @@ function makeTable(addon: Addon, addonName: string, game: Game, texts: Texts, bu
     );
     const choices = addon.register(new StyleChoicesService(locale, styles, messages, texts.settings));
     const windows = addon.register(new StyleWindowService(locale, texts.settings));
-    const switches = addon.register(new EnabledService(game.spells, buffs.classBuffs, reminders.reagents, texts.settings));
+    const switches = addon.register(new EnabledService(game.spells, buffs.classBuffs, texts.settings));
+    addon.register(new ReagentRowsService(texts.settings, styles, reminders.reagents));
     const tableNotice = addon.register(new NoticeService(`${addonName}-table`));
     const edits = addon.register(
-        new StyleEditsService(locale, reminders.addedSpells, tableNotice, switches, rows, styles, reminders.limits, reminders.reagents),
+        new StyleEditsService(locale, reminders.addedSpells, tableNotice, switches, rows, styles, reminders.limits),
     );
     return addon.register(new StyleTableService(locale, styles, rows, messages, choices, windows, edits));
 }

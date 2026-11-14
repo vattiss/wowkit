@@ -235,6 +235,8 @@ describe("the spells of other types a player adds", () => {
         world.state.isResting = true;
         addAs(RITUAL.id, "Low reagent");
         expect(world.glowsOn(3)).toBe(1);
+        // Named as the rows of the lists: the reagent its tooltip names, then the spell
+        expect(findLabel(world, "Soul Shard (Ritual of Souls)")).toBeDefined();
         world.state.bags[6265] = 20;
         world.fire("BAG_UPDATE_DELAYED");
         world.advance(0.5);

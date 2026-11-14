@@ -170,6 +170,8 @@ export interface AddonSettings {
     isUtilityCooldownEnabled: boolean;
     /** Have the looks the player set for them as ready cooldowns moved to their own type (UtilityLooksService)? */
     areUtilityLooksMoved: boolean;
+    /** Have the switch, limit and look of each reagent's row moved to the rows of its spells (ReagentRowsService)? */
+    areReagentRowsSplit: boolean;
     /** A group buff's reagent runs low with fewer than this in the bags. */
     reagentBelow: number;
     /** The same of the items the player watches, and whether they are watched. */

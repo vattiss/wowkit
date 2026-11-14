@@ -15,7 +15,7 @@ import {
 } from "@wowkit/wow";
 import type { BuffStateService } from "../character/buff-state.service";
 import type { AddedSpellsService } from "../glows/added-spells.service";
-import type { ReagentsService } from "../reagents/reagents.service";
+import { findReagentRowEntry, type ReagentsService } from "../reagents/reagents.service";
 import type { AddonSettingsService, AddableType } from "../settings/settings.interface";
 import type { FedBuffsService } from "./fed-buffs.service";
 import { BUFF_GIVEN_BY_ITEM, BUFF_GIVEN_BY_SPELL } from "./given-buffs.constants";
@@ -87,7 +87,7 @@ export class AddedRemindersService {
     findReagentSpells(): number[] {
         return this.listOnBars("lowReagent").filter((id) => {
             const reagent = this.reagents.findTooltipReagent(id);
-            return reagent !== undefined && this.reagents.isLow(this.bags.getItemCountByName(reagent), `spell${string.format("%d", id)}`);
+            return reagent !== undefined && this.reagents.isLow(this.bags.getItemCountByName(reagent), findReagentRowEntry(id));
         });
     }
 
@@ -100,7 +100,7 @@ export class AddedRemindersService {
             const name = this.reagents.findTooltipReagent(id);
             if (spellId === undefined || name === undefined || enabledSpells[string.format("%d", id)] === false) continue;
             const count = this.bags.getItemCountByName(name);
-            const isLow = this.reagents.isLow(count, `spell${string.format("%d", id)}`);
+            const isLow = this.reagents.isLow(count, findReagentRowEntry(id));
             if (isLow && !low.some((other) => other.name === name)) low.push({ spellId, name, count });
         }
         return low;

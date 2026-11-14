@@ -57,8 +57,9 @@ describe("the settings saved by 1.9.1", () => {
         expect(settings.isOldRankEnabled).toBe(false);
         expect(settings.partyGroupFrom).toBe(3);
         expect(settings.enabledBuffs).toEqual({ Fortitude: false });
-        expect(settings.enabledReagents).toEqual({ "17028": false });
-        expect(settings.enabledSpells).toEqual({ "1719": false });
+        // The Holy Candle switched off, then split to the row of its spell (Prayer of Fortitude 1) at the login
+        expect(settings.enabledReagents).toEqual({});
+        expect(settings.enabledSpells).toEqual({ "1719": false, "21562": false });
         expect(settings.fadedBars).toEqual({ "3": true });
     });
 
@@ -89,7 +90,8 @@ describe("the settings saved by 1.9.1", () => {
     it("warn at the same count: or fewer is one more below", () => {
         expect(settings.reagentBelow).toBe(10);
         expect(settings.stockBelow).toBe(51);
-        expect(settings.belowLimits).toEqual({ "lowStock:2512": 101, "lowReagent:17028": 8, "lowReagent:spell21562": 4 });
+        // The Holy Candle's limit goes to the row of its spell at the login, which keeps the one it had
+        expect(settings.belowLimits).toEqual({ "lowStock:2512": 101, "lowReagent:spell21562": 4 });
     });
 
     it("turn the settings of all glows and cooldowns into looks", () => {

@@ -7,6 +7,11 @@ import type { BelowLimitsService } from "../reminders/below-limits.service";
 import type { Reagent, ReagentStock } from "./reagent.interface";
 import { REAGENTS } from "./reagents.constants";
 
+/** What the limit of a reagent spell's row is kept under: its list ID, or the ID of a spell the player added. */
+export function findReagentRowEntry(spellId: number): string {
+    return `spell${string.format("%d", spellId)}`;
+}
+
 export class ReagentsService {
     private readonly reagentBySpell = new LuaMap<number, Reagent>();
     /** spell ID -> its tooltip names the reagent (tooltips are read once per spell). */
@@ -41,59 +46,55 @@ export class ReagentsService {
         return first ?? string.match(plain, "^%s*(.-)%s*$")[0];
     }
 
-    /** The reagent a group buff of the list uses; undefined for another spell. */
-    findReagentOfSpell(spellId: number): Reagent | undefined {
-        return REAGENTS.find((reagent) => reagent.spells.includes(spellId));
-    }
-
     /** The reagents the group buffs of a class use ("PRIEST"), in list order. */
     getReagentsOfClass(classToken: string | undefined): Reagent[] {
         return REAGENTS.filter((reagent) => reagent.classToken === classToken);
     }
 
     /**
-     * Reagents of spells the player knows, with fewer than the player's limit in the bags. `isWanted` leaves out the reagents
-     * the player does not want to hear about. A rank the player has outgrown does not count (Prayer of Fortitude 1, with
+     * The row of a group buff of the list: the first ID of its name among the reagent's spells (its ranks share a row). Its
+     * switch and its limit go by it.
+     */
+    findListId(reagent: Reagent, spellId: number): number {
+        const name = this.spells.getSpellName(spellId);
+        return reagent.spells.find((id) => id === spellId || (name !== undefined && this.spells.getSpellName(id) === name)) ?? spellId;
+    }
+
+    /** The rows of a reagent's spells (their list IDs), each once, in list order. */
+    listRowIds(reagent: Reagent): number[] {
+        const ids: number[] = [];
+        for (const spellId of reagent.spells) {
+            const listId = this.findListId(reagent, spellId);
+            if (!ids.includes(listId)) ids.push(listId);
+        }
+        return ids;
+    }
+
+    /**
+     * Reagents of spells the player knows, running low by the limit of such a spell's row, each once. `isWanted` leaves out
+     * the rows (list IDs) the player switched off. A rank the player has outgrown does not count (Prayer of Fortitude 1, with
      * rank 2 learned: no Holy Candle needed).
      */
-    findLowReagents(isWanted: (reagent: Reagent) => boolean = () => true): ReagentStock[] {
+    findLowReagents(isWanted: (listId: number) => boolean = () => true): ReagentStock[] {
         const low: ReagentStock[] = [];
         for (let index = 0; index < REAGENTS.length; index++) {
             const reagent = REAGENTS[index]!;
-            const usedBy = isWanted(reagent) ? this.findSpellUsing(reagent, index) : undefined;
-            if (usedBy === undefined) continue;
             const count = this.getReagentCount(reagent);
-            if (this.isLow(count, string.format("%d", reagent.itemId)))
-                low.push({ reagent, spellId: usedBy, name: this.getReagentName(reagent), count });
+            const usedBy = reagent.spells.find((spellId) => this.isLowFor(reagent, index, spellId, count, isWanted));
+            if (usedBy !== undefined) low.push({ reagent, spellId: usedBy, name: this.getReagentName(reagent), count });
         }
         return low;
     }
 
-    /** The first spell the player knows that uses the reagent, and has not outgrown. */
-    private findSpellUsing(reagent: Reagent, index: number): number | undefined {
-        for (const spellId of reagent.spells) {
-            if (this.spells.isLearned(spellId) && this.findReagentFor(spellId) !== undefined && !this.isOutranked(spellId, index))
-                return spellId;
-        }
-        return undefined;
-    }
-
-    /** Does the player know a higher rank of the spell, one with a later reagent of the list (its ranks are in order)? */
-    private isOutranked(spellId: number, index: number): boolean {
-        const name = this.spells.getSpellName(spellId);
-        if (name === undefined) return false;
-        return REAGENTS.slice(index + 1).some((later) =>
-            later.spells.some((id) => this.spells.isLearned(id) && this.spells.getSpellName(id) === name),
-        );
-    }
-
-    /** The learned group buffs, as the IDs the buttons hold, whose reagent is running low. */
-    findSpellsWithLowReagent(isWanted: (reagent: Reagent) => boolean = () => true): number[] {
+    /** The learned group buffs, as the IDs the buttons hold, whose reagent runs low by the limit of their own row. */
+    findSpellsWithLowReagent(isWanted: (listId: number) => boolean = () => true): number[] {
         const spellIds: number[] = [];
-        for (const stock of this.findLowReagents(isWanted)) {
-            for (const spellId of stock.reagent.spells) {
+        for (let index = 0; index < REAGENTS.length; index++) {
+            const reagent = REAGENTS[index]!;
+            const count = this.getReagentCount(reagent);
+            for (const spellId of reagent.spells) {
                 const learned = this.spells.resolve(spellId);
-                if (learned !== undefined && this.findReagentFor(spellId) !== undefined && !spellIds.includes(learned))
+                if (learned !== undefined && !spellIds.includes(learned) && this.isLowFor(reagent, index, spellId, count, isWanted))
                     spellIds.push(learned);
             }
         }
@@ -103,6 +104,25 @@ export class ReagentsService {
     /** This many of a reagent in the bags is running low: fewer than the limit of its row (`entry`), else the reminderType's. */
     isLow(count: number, entry?: string): boolean {
         return count < this.limits.getLimit("lowReagent", entry);
+    }
+
+    /**
+     * Does this spell want its reagent and run low of it: learned, costing it on this client, not outgrown, its row switched
+     * on, and fewer in the bags than the limit of its row?
+     */
+    private isLowFor(reagent: Reagent, index: number, spellId: number, count: number, isWanted: (listId: number) => boolean): boolean {
+        if (!this.spells.isLearned(spellId) || this.findReagentFor(spellId) === undefined || this.isOutranked(spellId, index)) return false;
+        const listId = this.findListId(reagent, spellId);
+        return isWanted(listId) && this.isLow(count, findReagentRowEntry(listId));
+    }
+
+    /** Does the player know a higher rank of the spell, one with a later reagent of the list (its ranks are in order)? */
+    private isOutranked(spellId: number, index: number): boolean {
+        const name = this.spells.getSpellName(spellId);
+        if (name === undefined) return false;
+        return REAGENTS.slice(index + 1).some((later) =>
+            later.spells.some((id) => this.spells.isLearned(id) && this.spells.getSpellName(id) === name),
+        );
     }
 
     /** The name of the item (the client's, else the English one). */
