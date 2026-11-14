@@ -73,6 +73,16 @@ export class StyleWindowService {
         return this.settings.get("tableTab");
     }
 
+    /** Does this tab list the spells not learned yet too? */
+    isUnlearnedShown(tab: TableTab): boolean {
+        return this.settings.get("shownUnlearned")[tab] === true;
+    }
+
+    /** This tab lists the spells not learned yet too, or leaves them out (saved for the character). */
+    setUnlearnedShown(tab: TableTab, isShown: boolean): void {
+        this.settings.change("shownUnlearned", { ...this.settings.get("shownUnlearned"), [tab]: isShown });
+    }
+
     /** The tab shown has a table, or not (the sounds): the column headers go with it. */
     setTableShown(isTableShown: boolean): void {
         this.isTableShown = isTableShown;

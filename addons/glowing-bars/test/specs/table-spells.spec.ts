@@ -15,7 +15,7 @@ import {
     SMITE_RANK_1,
     SMITE_RANK_2,
 } from "@wowkit/test-kit";
-import { RECKLESSNESS, findAddRowOf, findLabel, toggleTable } from "./table.helpers";
+import { RECKLESSNESS, findAddRowOf, findLabel, toggleTable, showUnlearned } from "./table.helpers";
 
 describe("the spells of the table, fixed and added by the player", () => {
     const RECKLESSNESS_ELSEWHERE: SpellDefinition = {
@@ -276,6 +276,7 @@ describe("a buff of the list whose ID the player fixed", () => {
         world.advance(1);
         expect(world.glowsOn(3)).toBe(0);
         SlashCmdList["GLOWINGBARS"]!("", undefined as never);
+        showUnlearned(world, "Buffs");
         // The buff of the list (588); the learned spell of the same name has a row of its own, as an old rank may
         const boxes = world.frames.filter((frame) => frame.frameType === "EditBox" && frame.isShown && frame.text === "588");
         expect(boxes.length).toBe(1);

@@ -12,7 +12,7 @@ import {
     PALADIN,
     type SpellDefinition,
 } from "@wowkit/test-kit";
-import { findLabel, switchInTable, toggleTable } from "./table.helpers";
+import { findLabel, switchInTable, toggleTable, showUnlearned } from "./table.helpers";
 
 const RIGHTEOUSNESS: SpellDefinition = { id: 20154, name: "Seal of Righteousness", rank: 1, icon: 132325, isHelpful: true };
 const CRUSADER: SpellDefinition = { id: 21082, name: "Seal of the Crusader", rank: 1, icon: 135924, isHelpful: true };
@@ -252,6 +252,7 @@ describe("the seals in the table", () => {
         });
         world.advance(1);
         toggleTable();
+        showUnlearned(world, "Buffs");
         expect(findLabel(world, "Seal of Righteousness")!.alpha).toBe(1);
         expect(findLabel(world, "Seal of the Crusader")!.alpha).toBe(0.5);
         toggleTable();

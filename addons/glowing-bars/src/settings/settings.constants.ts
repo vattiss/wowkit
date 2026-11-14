@@ -31,9 +31,13 @@ const HIDDEN_WINDOWS = { trackedBuffsIcons: "hide", trackedBarsIcons: "hide", es
 /** The lines the addon writes in the chat by itself: the greeting, and the notes of a buff of an older rank. */
 const CHAT_LINES = { shouldShowGreeting: true, shouldNoteOwnOlderRankBuffs: true, shouldNoteOthersOlderRankBuffs: true } as const;
 
-/** The table of looks opens in its Basic view, on its first tab. */
+/** The tabs of the table of looks, which a saved tab has to be one of. */
 const TABLE_TAB_KEYS: TableTab[] = ["buffs", "cooldowns", "procs", "consumables", "oldRanks", "sounds"];
-const TABLE_VIEW = { isTableAdvanced: false, tableTab: "buffs" } as const;
+
+/** The table of looks opens in its Basic view, on its first tab, the spells not learned yet left out (a new table each time). */
+function createTableView(): Pick<AddonSettings, "isTableAdvanced" | "tableTab" | "shownUnlearned"> {
+    return { isTableAdvanced: false, tableTab: "buffs", shownUnlearned: {} };
+}
 
 /** The cooldowns and procs that glow as they are ready: all on; the looks of the utility cooldowns not moved yet. */
 const COOLDOWN_SWITCHES = {
@@ -96,7 +100,7 @@ export function createDefaultSettings(): AddonSettings {
         fadedBars: {},
         fadedOpacity: 50,
         showTooltipIds: false,
-        ...TABLE_VIEW,
+        ...createTableView(),
         customSoundFolders: [{ folder: CUSTOM_SOUND_FOLDER, count: 0 }],
         idOverrides: {},
         addedSpells: [],

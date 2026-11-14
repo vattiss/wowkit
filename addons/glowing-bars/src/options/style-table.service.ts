@@ -18,6 +18,9 @@ import type { StyleEditsService } from "./style-edits.service";
 import { TYPE_TEXTS, type StyleRow, type StyleRowsService } from "./style-rows.service";
 import { StyleRowWidgets, type RowWidgets } from "./style-row-widgets";
 
+/** The words beside the switch of the spells not learned yet. */
+const UNLEARNED_LABEL_WIDTH = 130;
+
 export class StyleTableService {
     private window: Frame | undefined;
     private content: Frame | undefined;
@@ -29,6 +32,8 @@ export class StyleTableService {
     private tableWidth = TABLE_WIDTH;
     /** The row at the end that adds a spell; made with the first rows. */
     private addRow: Frame | undefined;
+    /** Shows the spells not learned yet on the tab, or leaves them out; made with the first tab that has some. */
+    private unlearnedSwitch: { holder: Frame; box: CheckButton } | undefined;
     /** Makes and fills the widgets of a row. */
     private readonly rowWidgets: StyleRowWidgets;
 
@@ -125,7 +130,14 @@ export class StyleTableService {
      */
     private drawTypeTab(content: Frame, tab: TableTabInfo, typeRows: StyleRow[], spellRows: StyleRow[]): number {
         let y = typeRows.length > 0 ? this.drawSection(content, "HDR_TABLE_DEFAULTS", typeRows, 0) : 0;
-        if (spellRows.length > 0) y = this.drawSection(content, "HDR_TABLE_SPELLS", spellRows, y);
+        // The spells of the lists not learned yet only when the tab is asked to list them, the switch only where there are
+        // some; a spell the player added is always listed
+        const isHideable = (row: StyleRow) => row.isLearned === false && row.isAdded !== true;
+        const hasUnlearned = spellRows.some((row) => isHideable(row));
+        const isUnlearnedShown = this.windows.isUnlearnedShown(tab.key);
+        const shownRows = isUnlearnedShown ? spellRows : spellRows.filter((row) => !isHideable(row));
+        this.showUnlearnedSwitch(content, hasUnlearned ? { tab, top: y, isChecked: isUnlearnedShown } : undefined);
+        if (shownRows.length > 0 || hasUnlearned) y = this.drawSection(content, "HDR_TABLE_SPELLS", shownRows, y);
         const addTypes = ADDABLE_TYPES.filter((reminderType) => tab.types.includes(reminderType));
         if (addTypes.length === 0) {
             this.addRow?.Hide();
@@ -133,6 +145,39 @@ export class StyleTableService {
         }
         this.edits.useAddTypes(addTypes);
         return this.drawAddRow(content, y);
+    }
+
+    /**
+     * The switch of the spells not learned yet, at the right of the spells' header (at `top`), for this tab; hidden when
+     * `place` is undefined (the tab has none).
+     */
+    private showUnlearnedSwitch(content: Frame, place: { tab: TableTabInfo; top: number; isChecked: boolean } | undefined): void {
+        if (place === undefined) {
+            this.unlearnedSwitch?.holder.Hide();
+            return;
+        }
+        const { holder, box } = this.unlearnedSwitch ?? this.createUnlearnedSwitch(content);
+        holder.ClearAllPoints();
+        holder.SetPoint("TOPRIGHT", content, "TOPRIGHT", 0, -place.top);
+        box.SetChecked(place.isChecked);
+        box.SetScript("OnClick", () => this.windows.setUnlearnedShown(place.tab.key, box.GetChecked()));
+        holder.Show();
+    }
+
+    /** The switch and its words, in a frame of their own: the rows are the only frames of the list with check boxes. */
+    private createUnlearnedSwitch(content: Frame): { holder: Frame; box: CheckButton } {
+        const holder = CreateFrame("Frame", undefined, content);
+        holder.SetSize(UNLEARNED_LABEL_WIDTH + 30, 24);
+        const box = CreateFrame("CheckButton", undefined, holder, "UICheckButtonTemplate");
+        box.SetSize(24, 24);
+        box.SetPoint("LEFT", holder, "LEFT", 0, 0);
+        const label = box.CreateFontString(undefined, "OVERLAY", "GameFontHighlightSmall");
+        label.SetPoint("LEFT", box, "RIGHT", 2, 0);
+        label.SetWidth(UNLEARNED_LABEL_WIDTH);
+        label.SetJustifyH("LEFT");
+        label.SetText(this.locale.getText("OPT_SHOW_UNLEARNED"));
+        this.unlearnedSwitch = { holder, box };
+        return this.unlearnedSwitch;
     }
 
     /** The window is as wide as the columns of the view. */

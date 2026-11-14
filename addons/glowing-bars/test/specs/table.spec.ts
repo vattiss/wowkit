@@ -22,6 +22,7 @@ import {
     showTab,
     toggleTable,
     readSaved,
+    showUnlearned,
 } from "./table.helpers";
 describe("the table of looks", () => {
     let world!: World;
@@ -76,6 +77,7 @@ describe("the table of looks", () => {
         });
         world.advance(1);
         toggleTable();
+        showUnlearned(world, "Procs");
         expect(findLabel(world, "Recklessness")!.alpha).toBe(1);
         // Only its name and icon: the rest of the row reads as any other
         expect(findLabel(world, "Overpower")!.alpha).toBe(0.5);

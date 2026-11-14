@@ -6,6 +6,7 @@ export const TABLE_TEXTS = {
     TAB_TABLE_CONSUMABLES: "Consumables",
     TAB_TABLE_OLD_RANKS: "Old ranks",
     TAB_TABLE_SOUNDS: "Sounds",
+    OPT_SHOW_UNLEARNED: "Show unlearned spells",
     BTN_BASIC: "Basic",
     WHEN_ALWAYS: "Always",
     WHEN_IN_COMBAT: "In combat",

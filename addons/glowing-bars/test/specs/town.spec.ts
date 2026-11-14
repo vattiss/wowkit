@@ -15,7 +15,7 @@ import {
     type ClientState,
     type World,
 } from "@wowkit/test-kit";
-import { findLabel, switchInTable } from "./table.helpers";
+import { findLabel, switchInTable, showUnlearned } from "./table.helpers";
 
 /** A priest who knows Prayer of Fortitude, which costs a Holy Candle, and has none in the bags. */
 function setUpPriest(state: ClientState, isResting: boolean): void {
@@ -183,6 +183,7 @@ describe("the reagents of a priest in the table", () => {
     it("have a row for the group buff of the class, and none for the group buffs of another class", () => {
         const world = createWorld((state) => setUpPriest(state, false));
         SlashCmdList["GLOWINGBARS"]!("", undefined as never);
+        showUnlearned(world, "Consumables");
         expect(findLabel(world, "Prayer of Fortitude (Holy Candle)")).toBeDefined();
         expect(findLabel(world, "Prayer of Fortitude (Sacred Candle)")).toBeDefined();
         expect(findLabel(world, "Gift of the Wild")).toBeUndefined();

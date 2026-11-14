@@ -1,7 +1,7 @@
 // The tabs of the table of looks: each lists its types (Buffs, Cooldowns, Procs, Consumables, Old ranks), and the sounds of
 // the player's own have one too. A tab with nothing on it and nothing to add is left out; the table opens on the tab it was on.
 import { createWorld, describe, expect, it, learnSpell, playAs, PRIEST, SMITE_RANK_1, SMITE_RANK_2, type World } from "@wowkit/test-kit";
-import { findLabelOnTab, setUpWarrior, showTab, toggleTable, useAndRecoverRecklessness } from "./table.helpers";
+import { findLabelOnTab, setUpWarrior, showTab, showUnlearned, toggleTable, useAndRecoverRecklessness } from "./table.helpers";
 
 function openWarrior(saved?: Record<string, unknown>): World {
     const world = createWorld(setUpWarrior, saved);
@@ -92,6 +92,62 @@ describe("the tabs of the table", () => {
         expect(onScreen()).toBe(0);
         showTab(world, "Sounds");
         expect(onScreen()).toBe(2);
+        toggleTable();
+    });
+});
+
+describe("the spells not learned yet in the table", () => {
+    /** A warrior who knows the name of Overpower (a proc) and of Battle Shout (a buff of the class), and learned neither. */
+    function openWarriorKnowingNames(): World {
+        const world = createWorld((state) => {
+            setUpWarrior(state);
+            state.spells[7384] = { id: 7384, name: "Overpower", rank: 1, icon: 132223 };
+            state.spells[6673] = { id: 6673, name: "Battle Shout", rank: 1, icon: 132333 };
+        });
+        world.advance(1);
+        toggleTable();
+        return world;
+    }
+
+    const findSwitch = (world: World) =>
+        world.frames.find(
+            (frame) =>
+                frame.frameType === "CheckButton" &&
+                frame.isShown &&
+                frame.parent?.isShown === true &&
+                frame.fontStrings.some((text) => text.text === "Show unlearned spells"),
+        );
+
+    it("are left out by default, and listed faded once the tab's switch is on", () => {
+        const world = openWarriorKnowingNames();
+        showTab(world, "Procs");
+        expect(findLabelOnTab(world, "Overpower")).toBeUndefined();
+        showUnlearned(world, "Procs");
+        expect(findLabelOnTab(world, "Overpower")!.alpha).toBe(0.5);
+        toggleTable();
+    });
+
+    it("are switched on for one tab at a time, kept for the next opening", () => {
+        const world = openWarriorKnowingNames();
+        showUnlearned(world, "Procs");
+        showTab(world, "Buffs");
+        expect(findLabelOnTab(world, "Battle Shout")).toBeUndefined();
+        toggleTable();
+        toggleTable();
+        showTab(world, "Procs");
+        expect(findLabelOnTab(world, "Overpower")).toBeDefined();
+        const shown = world.getSavedSettings()?.shownUnlearned as Record<string, boolean | undefined>;
+        expect(shown.procs).toBe(true);
+        expect(shown.buffs).toBe(undefined);
+        toggleTable();
+    });
+
+    it("have no switch on a tab with none", () => {
+        const world = openWarriorKnowingNames();
+        showTab(world, "Procs");
+        expect(findSwitch(world)).toBeDefined();
+        showTab(world, "Consumables");
+        expect(findSwitch(world)).toBeUndefined();
         toggleTable();
     });
 });

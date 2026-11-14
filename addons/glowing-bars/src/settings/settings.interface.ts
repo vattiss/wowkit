@@ -205,6 +205,8 @@ export interface AddonSettings {
     isTableAdvanced: boolean;
     /** The tab the table of looks opens on: the one it was on. */
     tableTab: TableTab;
+    /** The tabs of the table that list the spells not learned yet too (Show unlearned spells); by default none does. */
+    shownUnlearned: { [tab in TableTab]?: boolean };
     /** The folders in AddOns with sound files of the player's own (custom1, custom2...), and how many each has. */
     customSoundFolders: CustomSoundFolder[];
     /** The action bars (1 to 8) that glow; only set (false) where the player switched one off. */

@@ -114,6 +114,20 @@ export function readSaved(world: World, section: "styles" | "spellStyles"): Reco
 }
 
 /** Switches a type or a spell on or off in the Enabled column of the table, the way a click does (the table is opened). */
+/** Lists the spells not learned yet on this tab of the open table too (its Show unlearned spells switch, ticked). */
+export function showUnlearned(world: World, tab: string): void {
+    showTab(world, tab);
+    const box = world.frames.find(
+        (frame) =>
+            frame.frameType === "CheckButton" &&
+            isOnScreen(frame) &&
+            frame.fontStrings.some((text) => text.text === "Show unlearned spells"),
+    );
+    if (box === undefined) throw new Error(`no Show unlearned spells on ${tab}`);
+    box.isChecked = true;
+    box.scripts.OnClick!(box);
+}
+
 export function switchInTable(world: World, label: string, isOn: boolean): void {
     const window = world.findFrame((frame) => frame.name === "GlowingBarsLooks");
     if (window?.isShown !== true) toggleTable();
