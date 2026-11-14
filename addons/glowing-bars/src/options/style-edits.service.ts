@@ -5,6 +5,7 @@ import type { NoticeService, Rgb } from "@wowkit/wow";
 import type { AddedSpellsService } from "../glows/added-spells.service";
 import type { EnabledService } from "../settings/enabled.service";
 import type { AddonLocale } from "../locale/locale.interface";
+import type { TextKey } from "../locale/texts.constants";
 import { ADDABLE_TYPES } from "../settings/settings.constants";
 import { ADD_TIP_HEIGHT, ADD_TIP_WIDTH, COLUMN, ROW_HEIGHT, TABLE_WIDTH, findCenteredX } from "./style-table.constants";
 import { TYPE_TEXTS, type StyleRow, type StyleRowsService } from "./style-rows.service";
@@ -20,6 +21,19 @@ const NOT_LEARNED_ALPHA = 0.5;
 
 /** What was typed is wrong: nothing was done, or something else than was asked. */
 const ERROR_COLOR: Rgb = [1, 0.25, 0.2];
+
+/** What each type takes, said under the add row as it is picked: what belongs there, and which ID to enter. */
+const ADD_TIPS: { [reminderType in AddableType]: TextKey } = {
+    readyCooldown: "TIP_ADD_READY_COOLDOWN",
+    utilityCooldown: "TIP_ADD_UTILITY_COOLDOWN",
+    proc: "TIP_ADD_PROC",
+    missingBuff: "TIP_ADD_MISSING_BUFF",
+    weaponBuff: "TIP_ADD_WEAPON_BUFF",
+    lowReagent: "TIP_ADD_LOW_REAGENT",
+    lowStock: "TIP_ADD_LOW_STOCK",
+    missingSeal: "TIP_ADD_MISSING_SEAL",
+    missingTracking: "TIP_ADD_MISSING_TRACKING",
+};
 
 export class StyleEditsService {
     /** The types the add row offers (the tab's), and the one picked. */
@@ -196,7 +210,7 @@ export class StyleEditsService {
         this.showChosenType = () => {
             const isItem = this.chosenType === "lowStock";
             typeButton.SetText(this.locale.getText(TYPE_TEXTS[this.chosenType]));
-            tip.SetText(this.locale.getText(isItem ? "TIP_ADD_ITEM" : "TIP_ADD_SPELL"));
+            tip.SetText(`${this.locale.getText(ADD_TIPS[this.chosenType])} ${this.locale.getText("TIP_ADD_IDS")}`);
             this.addHeader?.SetText(this.locale.getText(isItem ? "HDR_TABLE_ADD_ITEM" : "HDR_TABLE_ADD_SPELL"));
         };
         connectChoiceMenu(typeButton, () =>

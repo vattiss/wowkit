@@ -13,6 +13,17 @@ interface HelpChoice {
     help: TextKey;
 }
 
+/** What goes where, in the order of the tabs: a kind of thing, and the tab, the type and the ID it is added by. */
+const WHERE_HELP: [label: TextKey, help: TextKey][] = [
+    ["HELP_WHERE_BUFFS", "HELP_WHERE_BUFFS_HOW"],
+    ["HELP_WHERE_WEAPON", "HELP_WHERE_WEAPON_HOW"],
+    ["HELP_WHERE_TRINKETS", "HELP_WHERE_TRINKETS_HOW"],
+    ["HELP_WHERE_TRAVEL", "HELP_WHERE_TRAVEL_HOW"],
+    ["HELP_WHERE_PROC", "HELP_WHERE_PROC_HOW"],
+    ["HELP_WHERE_REAGENT", "HELP_WHERE_REAGENT_HOW"],
+    ["HELP_WHERE_STOCK", "HELP_WHERE_STOCK_HOW"],
+];
+
 /** The columns explained, in the order of the table: their header's words and the help on them. */
 const HELP_COLUMNS: [column: keyof ReturnType<typeof findColumns>, title: TextKey, help: TextKey][] = [
     ["name", "COL_SPELL_ITEM", "HELP_SPELL_ITEM"],
@@ -91,7 +102,8 @@ export class TableHelp {
     draw(content: Frame, top: number, width: number, isAdvanced: boolean, left = 0): number {
         this.usedTexts = 0;
         this.left = left;
-        let y = this.showText(content, INTRO_FONT, this.locale.getText("HELP_INTRO"), 0, top, width) + GAP;
+        let y = this.showWhereToAdd(content, top, width) + GAP * 2;
+        y = this.showText(content, INTRO_FONT, this.locale.getText("HELP_INTRO"), 0, y, width) + GAP;
         const columns = findColumns(isAdvanced);
         for (const [column, title, help] of HELP_COLUMNS) {
             if (columns[column] === undefined) continue;
@@ -105,6 +117,24 @@ export class TableHelp {
         }
         for (let i = this.usedTexts; i < this.texts.length; i++) this.texts[i]!.Hide();
         return y;
+    }
+
+    /** First: what to add under which type, so nothing goes under one that cannot work for it; returns where it ends. */
+    private showWhereToAdd(content: Frame, top: number, width: number): number {
+        this.showText(content, TITLE_FONT, this.locale.getText("HELP_WHERE_TITLE"), 0, top, width);
+        let y = this.showText(
+            content,
+            BODY_FONT,
+            this.locale.getText("HELP_WHERE_INTRO"),
+            BODY_INDENT,
+            top + TITLE_HEIGHT,
+            width - BODY_INDENT,
+        );
+        for (const [label, help] of WHERE_HELP) {
+            const words = `•  ${CHOICE_COLOR}${this.locale.getText(label)}|r: ${this.locale.getText(help)}`;
+            y = this.showText(content, BODY_FONT, words, BULLET_INDENT, y + 2, width - BULLET_INDENT);
+        }
+        return this.showText(content, BODY_FONT, this.locale.getText("HELP_WHERE_IDS"), BODY_INDENT, y + 4, width - BODY_INDENT);
     }
 
     hide(): void {

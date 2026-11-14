@@ -12,7 +12,7 @@ export const BRONZE_TEXT: Rgb = [0.78, 0.62, 0.42];
 export const HEADER_HEIGHT = 24;
 /** The line under the add row that says what to enter, up to two lines of small text. */
 export const ADD_TIP_HEIGHT = 28;
-export const ADD_TIP_WIDTH = 400;
+export const ADD_TIP_WIDTH = 620;
 /** The small heading of a type in the list of spells. */
 export const TYPE_HEADING_HEIGHT = 20;
 /** A column of the table: where it starts, from the left of a row, and how wide it is. */

@@ -1,6 +1,24 @@
 // English only: the Help tab of the table of looks: a few words on each column, and on each of its choices.
 export const HELP_TEXTS = {
     TAB_TABLE_HELP: "Help",
+    HELP_WHERE_TITLE: "What to add where",
+    HELP_WHERE_INTRO:
+        "Your class's spells and racials are listed already. For anything else, open the tab, pick the type in its add row, and enter the ID:",
+    HELP_WHERE_BUFFS: "Food, drink, elixirs, flasks, scrolls, or a buff of yours the lists lack",
+    HELP_WHERE_BUFFS_HOW: "Buffs tab, Missing buff, by the Use spell ID (a spell's own ID).",
+    HELP_WHERE_WEAPON: "Sharpening stones, weightstones, oils, poisons",
+    HELP_WHERE_WEAPON_HOW: "Buffs tab, Weapon buff, by the Use spell ID. Not Missing buff: they go on your weapon, not on you.",
+    HELP_WHERE_TRINKETS: "Trinkets, or a cooldown of yours the lists lack",
+    HELP_WHERE_TRINKETS_HOW: "Cooldowns tab, Ready cooldown, by the trinket's Use spell ID (a spell's own ID).",
+    HELP_WHERE_TRAVEL: "A hearthstone, or another cooldown of between fights",
+    HELP_WHERE_TRAVEL_HOW: "Cooldowns tab, Utility cooldown, by the Use spell ID (a spell's own ID).",
+    HELP_WHERE_PROC: "A spell the game makes usable for a while",
+    HELP_WHERE_PROC_HOW: "Procs tab, Proc, by its Spell ID.",
+    HELP_WHERE_REAGENT: "A spell that uses a reagent",
+    HELP_WHERE_REAGENT_HOW: "Consumables tab, Low reagent, by its Spell ID.",
+    HELP_WHERE_STOCK: "Arrows, ammo, or any item to keep count of",
+    HELP_WHERE_STOCK_HOW: "Consumables tab, Low stock, by its Item ID.",
+    HELP_WHERE_IDS: "IDs show in tooltips once turned on in Settings / General; an item's tooltip then shows the ID of its Use spell too.",
     HELP_INTRO:
         "What each column does. A type's row under Defaults sets the look of all its spells; a spell's own row changes it for that spell alone.",
     HELP_SPELL_ITEM: "The type, or a spell or item of it. A gold name means you changed that row.",

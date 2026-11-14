@@ -241,6 +241,15 @@ describe("the Help tab of the table", () => {
         return world;
     }
 
+    it("says first what to add on which tab, under which type: a sharpening stone as a weapon buff of the Buffs tab", () => {
+        const texts = listShownTexts(openHelp());
+        expect(texts.includes("What to add where")).toBe(true);
+        const stones = texts.find((text) => text.includes("Sharpening stones"));
+        expect(stones).toContain("Buffs tab, Weapon buff");
+        expect(texts.find((text) => text.includes("Trinkets"))).toContain("Cooldowns tab, Ready cooldown");
+        toggleTable();
+    });
+
     it("explains the columns of the Basic view alone in Basic", () => {
         const texts = listShownTexts(openHelp());
         for (const title of ["Spell / Item", "Type", "Color", "Message", "Sound", "Enabled", "Actions"])
@@ -295,7 +304,7 @@ describe("the Help tab of the table", () => {
         const world = openWarrior();
         showTab(world, "Procs");
         // The add row itself: the tip under it
-        const isAddRowShown = () => listShownTexts(world).some((text) => text.includes("Enter a Spell ID"));
+        const isAddRowShown = () => listShownTexts(world).some((text) => text.includes("Overpower after a dodge"));
         expect(isAddRowShown()).toBe(true);
         for (const tab of ["Sounds", "Help"]) {
             showTab(world, tab);

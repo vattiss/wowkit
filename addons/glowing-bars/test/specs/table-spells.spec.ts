@@ -85,9 +85,9 @@ describe("the spells of the table, fixed and added by the player", () => {
             expect(box.scripts.OnEnter).toBeUndefined();
             return box.parent!.fontStrings.map((text) => text.text ?? "").join(" | ");
         };
-        expect(readTip("Cooldowns")).toContain("Enter a Spell ID");
-        expect(readTip("Consumables", "Low stock")).toContain("Enter an Item ID");
-        expect(readTip("Consumables", "Low reagent")).toContain("Enter a Spell ID");
+        expect(readTip("Cooldowns")).toContain("a spell, or a trinket. Enter its Spell ID");
+        expect(readTip("Consumables", "Low stock")).toContain("Enter its Item ID");
+        expect(readTip("Buffs", "Weapon buff")).toContain("sharpening stone");
         world.pickFromMenu(findAddRow("Consumables").reminderType, "Low stock");
         expect(findLabel(world, "Add Item by ID")).toBeDefined();
         world.pickFromMenu(findAddRow("Consumables").reminderType, "Low reagent");
