@@ -138,13 +138,12 @@ function convertToLooks(values: SavedTable): void {
 }
 
 /**
- * The glow of the ready cooldowns at the start of a fight became on by default: it is switched on once for every character,
- * as nearly all had it off only by the old default. A player who switches it off again keeps it off.
+ * The glow of the ready cooldowns as a fight starts was one switch for all of them; it is now a When of each look (In combat
+ * + start), off by default. Everyone goes to the default: a cooldown glows in a fight once it comes back.
  */
-function applyFightStartGlowOnce(values: SavedTable): void {
-    if (values.hasFightStartGlowSwitchedOn === true) return;
-    values.showCooldownsAtFightStart = true;
-    values.hasFightStartGlowSwitchedOn = true;
+function forgetFightStartSwitch(values: SavedTable): void {
+    values.showCooldownsAtFightStart = undefined;
+    values.hasFightStartGlowSwitchedOn = undefined;
 }
 
 /** Brings settings saved under the old names to the new ones; the saved values were already laid over the defaults. */
@@ -164,5 +163,5 @@ export function convertOldSettings(settings: AddonSettings): void {
     convertSwitchedOff(values, "barOff", "barsThatGlow");
     convertAddedSpells(values);
     convertToLooks(values);
-    applyFightStartGlowOnce(values);
+    forgetFightStartSwitch(values);
 }

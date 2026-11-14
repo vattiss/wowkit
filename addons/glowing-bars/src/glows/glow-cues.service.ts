@@ -43,15 +43,14 @@ export class GlowCuesService {
     /**
      * A new fight: what was used in the last one is forgotten, and a cooldown that is running as it starts counts as used
      * in it (it glows when it is back), on a button or on a page of a bar not shown now. Read now, while the client may still
-     * show the cooldowns. If the player asked for it, the ready ones on a button count too, as if they had just come back: they
-     * glow right away, a reminder to use them. Not those of a page not shown: they would glow mid-fight, at its first sight.
+     * show the cooldowns. The ready ones whose When is In combat + start count too, on a button, as if they had just come back:
+     * they glow right away, a reminder to use them. Not those of a page not shown: they would glow mid-fight, at its first sight.
      */
     @OnGameEvent("PLAYER_REGEN_DISABLED")
     startFight(): void {
         this.usedInCombat = new LuaSet<number>();
-        const isReadyGlowing = this.settings.get("showCooldownsAtFightStart");
         for (const id of this.listCues(this.listCueIds("readyCooldown"), false)) {
-            const isReadyShown = isReadyGlowing && this.actionBars.isOnBars(id);
+            const isReadyShown = this.styles.getStyle("readyCooldown", id).when === "inCombatStart" && this.actionBars.isOnBars(id);
             if (isReadyShown || this.tracker.getRemaining(id) > READY_MARGIN) this.usedInCombat.add(id);
         }
     }
@@ -95,7 +94,8 @@ export class GlowCuesService {
      * fight too: the rule of what was used in the fight is the one of In combat.
      */
     private isGlowingWheneverReady(spellId: number): boolean {
-        return this.styles.getStyle("readyCooldown", spellId).when !== "inCombat";
+        const when = this.styles.getStyle("readyCooldown", spellId).when;
+        return when !== "inCombat" && when !== "inCombatStart";
     }
 
     /** Is the spell on its own cooldown (the global cooldown ignored)? A buff on cooldown cannot be cast again yet. */

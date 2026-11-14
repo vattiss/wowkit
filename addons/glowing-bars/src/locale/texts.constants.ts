@@ -134,10 +134,6 @@ export const TEXTS = {
     TIP_WEAPON_PICK: "Automatic picks the best weapon buff you've learned (it changes as you level). Only learned buffs are listed.",
     OPT_AUTOMATIC: "Automatic",
 
-    HDR_COOLDOWNS: "Ready Cooldowns",
-    OPT_COOLDOWNS_FIGHT_START: "Glow ready cooldowns when a fight starts",
-    TIP_COOLDOWNS_FIGHT_START: "When a fight starts, ready cooldowns set to In combat glow too, as a reminder to use them.",
-
     HDR_REMINDERS: "Reminders",
     HDR_CUSTOM_SOUNDS: "Custom Sounds",
     OPT_CUSTOM_SOUNDS: "Sounds:",
@@ -179,7 +175,8 @@ export const TEXTS = {
     TIP_COLOR: "The color of the glow and the message. Click to choose another.",
     TIP_GLOW_PERCENT: "How strong the glow is, 1 to 100. Type a number.",
     TIP_MESSAGE: "Shows a short message at the top of the screen.",
-    TIP_WHEN: "When the reminder may show. With Alert in town, the glow shows anywhere, but the message and sound only in towns.",
+    TIP_WHEN:
+        "When the reminder may show. With In combat + start, a ready cooldown also glows as a fight starts. With Alert in town, the glow shows anywhere, but the message and sound only in towns.",
     TIP_BELOW:
         "Reminds you when you have fewer than this. The number on a row under Defaults is used for every row of that type, unless you set a different number on the row.",
     TIP_ENABLED:
@@ -274,6 +271,8 @@ export const TEXTS = {
     WHEN_OUT_OF_COMBAT: "Out of combat",
     WHEN_ENEMY_TARGETED: "Enemy targeted",
     WHEN_TOWN_ALERT: "Alert in town",
+    WHEN_IN_COMBAT_START: "In combat + start",
+    WHEN_IN_COMBAT_START_SHORT: "Combat + start",
     NO_COLOR_PICKER: "No color picker available on this client.",
     TYPE_MISSING_BUFF: "Missing buff",
     TYPE_WEAPON_BUFF: "Weapon buff",

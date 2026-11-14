@@ -165,8 +165,9 @@ describe("a warrior with Overpower and Recklessness on the bars", () => {
         expect(world.glowsOn(2)).toBe(1);
     });
 
-    it("lights the ready Recklessness as the fight starts when the player asked for it, for the glow time", () => {
-        world.setOption("showCooldownsAtFightStart", true);
+    it("lights the ready Recklessness as the fight starts when its When is In combat + start, for the glow time", () => {
+        world = createWorld(setUpWarrior, { styles: { readyCooldown: { when: "inCombatStart" } } });
+        world.advance(0.5);
         world.state.isInCombat = true;
         world.fire("PLAYER_REGEN_DISABLED");
         world.advance(0.5);
@@ -175,15 +176,7 @@ describe("a warrior with Overpower and Recklessness on the bars", () => {
         expect(world.glowsOn(2)).toBe(0);
     });
 
-    it("lights the ready Recklessness as the fight starts by default, and not once the player switched that off", () => {
-        world.state.isInCombat = true;
-        world.fire("PLAYER_REGEN_DISABLED");
-        world.advance(0.5);
-        expect(world.glowsOn(2)).toBe(1);
-        world.state.isInCombat = false;
-        world.fire("PLAYER_REGEN_ENABLED");
-        world.advance(4);
-        world.setOption("showCooldownsAtFightStart", false);
+    it("does not light the ready Recklessness as the fight starts by default: it is news only once it comes back", () => {
         world.state.isInCombat = true;
         world.fire("PLAYER_REGEN_DISABLED");
         world.advance(0.5);
@@ -191,7 +184,6 @@ describe("a warrior with Overpower and Recklessness on the bars", () => {
     });
 
     it("forgets the cooldowns of the last fight when a new one starts", () => {
-        world.setOption("showCooldownsAtFightStart", false);
         world.state.isInCombat = true;
         world.state.cooldowns[RECKLESSNESS.id] = { start: 0, duration: 99999 };
         world.advance(0.5);
@@ -215,8 +207,6 @@ describe("a warrior with Overpower and Recklessness on the bars", () => {
     it("keeps Recklessness set to Always glowing through the start of a fight, without the glow at the start", () => {
         world = createWorld(setUpWarrior, {
             styles: { readyCooldown: { when: "always", glowTime: 0 } },
-            showCooldownsAtFightStart: false,
-            hasFightStartGlowSwitchedOn: true,
         });
         world.advance(0.5);
         expect(world.glowsOn(2)).toBe(1);
@@ -226,13 +216,15 @@ describe("a warrior with Overpower and Recklessness on the bars", () => {
         expect(world.glowsOn(2)).toBe(1);
     });
 
-    it("switches the glow at the start of a fight on once for a character from before, and leaves it off once unticked", () => {
-        const before = createWorld(setUpWarrior, { showCooldownsAtFightStart: false });
-        before.advance(0.5);
-        expect(before.getSavedSettings()?.showCooldownsAtFightStart).toBe(true);
-        const unticked = createWorld(setUpWarrior, { showCooldownsAtFightStart: false, hasFightStartGlowSwitchedOn: true });
-        unticked.advance(0.5);
-        expect(unticked.getSavedSettings()?.showCooldownsAtFightStart).toBe(false);
+    it("forgets the old switch of the glow at the start of a fight: whoever had it on goes to the default, In combat", () => {
+        world = createWorld(setUpWarrior, { showCooldownsAtFightStart: true, hasFightStartGlowSwitchedOn: true });
+        world.advance(0.5);
+        expect(world.getSavedSettings()?.showCooldownsAtFightStart).toBe(undefined);
+        expect(world.getSavedSettings()?.hasFightStartGlowSwitchedOn).toBe(undefined);
+        world.state.isInCombat = true;
+        world.fire("PLAYER_REGEN_DISABLED");
+        world.advance(0.5);
+        expect(world.glowsOn(2)).toBe(0);
     });
 
     it("puts the glow out while Recklessness is on cooldown", () => {

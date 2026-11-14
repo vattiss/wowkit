@@ -56,7 +56,6 @@ export function createDefaultSettings(): AddonSettings {
         isOldRankEnabled: true,
         isLowReagentEnabled: true,
         isReadyCooldownEnabled: true,
-        showCooldownsAtFightStart: true,
         reagentBelow: 10,
         stockBelow: 20,
         isLowStockEnabled: true,
@@ -196,8 +195,12 @@ export const STYLE_DEFAULTS: { [key in ReminderType]: Style } = {
     },
 };
 
-/** When a reminder of the reminderType may show: by combat or a target; the low reagents and the low stock also with their alert in a town. */
+/**
+ * When a reminder of the reminderType may show: by combat or a target; a ready cooldown also as a fight starts, the low
+ * reagents and the low stock also with their alert in a town.
+ */
 export function listWhenChoices(reminderType: ReminderType): When[] {
+    if (reminderType === "readyCooldown") return ["always", "inCombat", "inCombatStart", "outOfCombat", "enemyTargeted"];
     const choices: When[] = ["always", "inCombat", "outOfCombat", "enemyTargeted"];
     return reminderType === "lowReagent" || reminderType === "lowStock" ? [...choices, "townAlert"] : choices;
 }

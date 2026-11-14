@@ -168,7 +168,7 @@ describe("a ready cooldown that shows always, with the fight start reminder on",
                 setUpWarrior(state);
                 state.isInCombat = false;
             },
-            { styles: { readyCooldown: { when: "always" } }, showCooldownsAtFightStart: true },
+            { styles: { readyCooldown: { when: "always" } } },
         );
         world.advance(5);
         expect(world.glowsOn(2)).toBe(0);

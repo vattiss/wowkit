@@ -8,7 +8,6 @@ import type { ControlsService, OptionsPage, WidgetsService, OptionsTab, OptionsT
 import type { BarsSection } from "./bars.section";
 import type { CooldownManagerSection } from "./cooldown-manager.section";
 import type { AnimationSection } from "./animation.section";
-import type { GlowsSection } from "./glows.section";
 import type { StyleTableService } from "./style-table.service";
 import type { WelcomeService } from "./welcome.service";
 import type { WhatsNewService } from "./whats-new.service";
@@ -41,7 +40,6 @@ export class RemindersPage implements OptionsPage {
         private readonly reminderControls: ReminderControlsService,
         private readonly weaponSection: WeaponSection,
         private readonly cooldownManagerSection: CooldownManagerSection,
-        private readonly glowsSection: GlowsSection,
         private readonly widgets: WidgetsService,
         private readonly table: StyleTableService,
         private readonly barsSection: BarsSection,
@@ -156,7 +154,6 @@ export class RemindersPage implements OptionsPage {
         this.reminderControls.addSwitch(tab, "shouldNoteOwnOlderRankBuffs", "OPT_NOTE_OWN_OLDER_RANK", "TIP_NOTE_OWN_OLDER_RANK");
         this.reminderControls.addSwitch(tab, "shouldNoteOthersOlderRankBuffs", "OPT_NOTE_OTHERS_OLDER_RANK", "TIP_NOTE_OTHERS_OLDER_RANK");
         this.weaponSection.addWeaponSection(tab);
-        this.glowsSection.addGlowsSection(tab);
     }
 
     /** How the messages at the top of the screen come: their words and colors are the table's. */

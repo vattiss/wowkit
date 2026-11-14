@@ -27,6 +27,7 @@ export interface ChoiceButtons {
 const WHEN_TEXTS: { [when in When]: TextKey } = {
     always: "WHEN_ALWAYS",
     inCombat: "WHEN_IN_COMBAT",
+    inCombatStart: "WHEN_IN_COMBAT_START",
     outOfCombat: "WHEN_OUT_OF_COMBAT",
     enemyTargeted: "WHEN_ENEMY_TARGETED",
     townAlert: "WHEN_TOWN_ALERT",
@@ -81,7 +82,8 @@ export class StyleChoicesService {
     fillChoices(buttons: ChoiceButtons, row: StyleRow): void {
         const style = this.styles.getStyle(row.reminderType, row.spellId);
         buttons.repeat.SetText(this.findRepeatText(style.repeat));
-        buttons.when.SetText(this.locale.getText(WHEN_TEXTS[style.when]));
+        // A long name in the list; the button shows a short one
+        buttons.when.SetText(this.locale.getText(style.when === "inCombatStart" ? "WHEN_IN_COMBAT_START_SHORT" : WHEN_TEXTS[style.when]));
         buttons.glowTime.SetText(this.findGlowTimeText(style.glowTime));
         buttons.animation.SetText(this.locale.getText(ANIMATION_TEXTS[style.animation]));
     }

@@ -3,7 +3,7 @@
 import { createWorld, describe, expect, it, learnSpell, playAs, WARRIOR, type SpellDefinition, type World } from "@wowkit/test-kit";
 
 const CULTIVATION: SpellDefinition = { id: 20552, name: "Cultivation", rank: 1, icon: 136099, cooldownSeconds: 900 };
-const WHENS = ["always", "inCombat", "outOfCombat"] as const;
+const WHENS = ["always", "inCombat", "inCombatStart", "outOfCombat"] as const;
 
 function createTauren(saved?: Record<string, unknown>): World {
     const world = createWorld((state) => {
@@ -49,9 +49,10 @@ describe("Cultivation, a racial used out of combat", () => {
                 const peace = world.glowsOn(1);
                 startFight(world);
                 const fight = world.glowsOn(1);
-                // Its own row, else its default: Out of combat. In a fight a ready one glows as it starts (on by default)
+                // Its own row, else its default: Out of combat. In a fight a ready one glows as it starts only with In combat + start
                 const when = rowWhen !== "default" ? rowWhen : "outOfCombat";
-                const want = `${when !== "inCombat" ? 1 : 0}${when !== "outOfCombat" ? 1 : 0}`;
+                const isInCombatOnly = when === "inCombat" || when === "inCombatStart";
+                const want = `${isInCombatOnly ? 0 : 1}${when !== "outOfCombat" && when !== "inCombat" ? 1 : 0}`;
                 const got = `${peace}${fight}`;
                 if (got !== want) wrong.push(`type ${typeWhen}, row ${rowWhen}: ${got}, want ${want}`);
             }

@@ -145,7 +145,7 @@ function runSequence(seed: number): string | undefined {
     for (let step = 0; step < STEPS; step++) {
         runTime(fight, SETTLE);
         const wrong = findWrongButtons(fight);
-        const tags = `${isDelayed ? ", paged late" : ""}${glowTime > 0 ? ", glow 3 s" : ""}${isFightStartOn ? ", fight start on" : ""}`;
+        const tags = `${isDelayed ? ", paged late" : ""}${glowTime > 0 ? ", glow 3 s" : ""}${isFightStartOn ? ", combat + start" : ""}`;
         if (wrong.length > 0) return `seed ${seed}${tags}: ${steps.join(", ")} -> ${wrong.join("; ")}`;
         steps.push(runStep(fight, pick, isDelayed));
     }

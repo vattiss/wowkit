@@ -10,9 +10,10 @@ export type AddonSettingsService = SettingsService<AddonSettings>;
 
 /**
  * When a reminder may show: always, only in combat or only out of it, only with a living enemy targeted; or (the low
- * reagents and the low stock) glowing anywhere, with its message and sound only in a town or an inn.
+ * reagents and the low stock) glowing anywhere, with its message and sound only in a town or an inn. A ready cooldown also
+ * has In combat + start ("inCombatStart"): In combat, and as a fight starts too, when it is ready then.
  */
-export type When = "always" | "inCombat" | "outOfCombat" | "enemyTargeted" | "townAlert";
+export type When = "always" | "inCombat" | "inCombatStart" | "outOfCombat" | "enemyTargeted" | "townAlert";
 
 /** What a message says: the type of reminder, the type and the spell or item, the spell or item, or the player's own words. */
 export type MessageTextChoice = "typeOnly" | "typeAndName" | "name" | "custom";
@@ -128,10 +129,6 @@ export interface AddonSettings {
     isLowReagentEnabled: boolean;
     /** Important cooldowns that are ready. */
     isReadyCooldownEnabled: boolean;
-    /** As a fight starts, every ready cooldown glows too (a reminder to use it), for its glow time. */
-    showCooldownsAtFightStart: boolean;
-    /** Was the glow at the start of a fight switched on, once, for a character from before it was on by default? */
-    hasFightStartGlowSwitchedOn?: boolean;
     /** A group buff's reagent runs low with fewer than this in the bags. */
     reagentBelow: number;
     /** The same of the items the player watches, and whether they are watched. */

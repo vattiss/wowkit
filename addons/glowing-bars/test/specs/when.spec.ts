@@ -16,7 +16,7 @@ import {
     type SpellDefinition,
     type World,
 } from "@wowkit/test-kit";
-import { findLabel, readSaved, toggleTable } from "./table.helpers";
+import { findLabel, readSaved, setUpWarrior, toggleTable } from "./table.helpers";
 import { createArcher } from "./low-stock.helpers";
 
 const RIGHTEOUSNESS: SpellDefinition = { id: 20154, name: "Seal of Righteousness", rank: 1, icon: 132325, isHelpful: true };
@@ -127,6 +127,26 @@ describe("the When button of the table", () => {
         expect(world.openMenu(button).map((choice) => choice.label)).toEqual(["Always", "In combat", "Out of combat", "Enemy targeted"]);
         world.pickFromMenu(button, "Enemy targeted");
         expect(button.text).toBe("Enemy targeted");
+    });
+
+    it("has In combat + start for a ready cooldown alone: its full name in the list, a short one on the button", () => {
+        const world = createWorld((state) => {
+            setUpWarrior(state);
+            state.isInCombat = false;
+        });
+        world.advance(1);
+        toggleTable();
+        const button = findWhenButton(world, "Ready cooldown");
+        expect(button.text).toBe("In combat");
+        expect(world.openMenu(button).map((choice) => choice.label)).toEqual([
+            "Always",
+            "In combat",
+            "In combat + start",
+            "Out of combat",
+            "Enemy targeted",
+        ]);
+        world.pickFromMenu(button, "In combat + start");
+        expect(button.text).toBe("Combat + start");
     });
 
     it("has every choice for the low reagents, as for the low stock, Alert in town by default", () => {

@@ -22,7 +22,6 @@ type FeatureKey =
     | "isOldRankEnabled"
     | "isLowReagentEnabled"
     | "isReadyCooldownEnabled"
-    | "showCooldownsAtFightStart"
     | "isProcEnabled";
 
 export class ReminderControlsService {

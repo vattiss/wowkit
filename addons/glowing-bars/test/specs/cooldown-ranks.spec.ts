@@ -28,9 +28,8 @@ describe("a priest with a higher rank of Fade on the bars", () => {
                 learnSpell(state, FADE_TOP);
                 state.bars[1] = FADE_TOP.id;
             },
-            { styles: { readyCooldown: { glowTime: 0 } } },
+            { styles: { readyCooldown: { glowTime: 0, when: "inCombatStart" } } },
         );
-        world.setOption("showCooldownsAtFightStart", true);
         world.state.isInCombat = true;
         world.state.areCooldownsHidden = true;
         world.fire("PLAYER_REGEN_DISABLED");
@@ -70,9 +69,11 @@ describe("a trinket added as a cooldown by its use spell", () => {
                 // The game counts an equipped item too
                 state.bags[TALISMAN] = 1;
             },
-            { styles: { readyCooldown: { glowTime: 0 } }, addedSpells: [{ id: EPHEMERAL_POWER.id, reminderType: "readyCooldown" }] },
+            {
+                styles: { readyCooldown: { glowTime: 0, when: "inCombatStart" } },
+                addedSpells: [{ id: EPHEMERAL_POWER.id, reminderType: "readyCooldown" }],
+            },
         );
-        world.setOption("showCooldownsAtFightStart", true);
         world.state.isInCombat = true;
         world.fire("PLAYER_REGEN_DISABLED");
         world.advance(0.5);
@@ -135,10 +136,9 @@ describe("a cooldown only the tooltip names, as Faerie Fire's in Bear Form", () 
 
     it("puts the glow out for that long once it is cast", () => {
         const world = createWorld(setUpBear, {
-            styles: { readyCooldown: { glowTime: 0 } },
+            styles: { readyCooldown: { glowTime: 0, when: "inCombatStart" } },
             addedSpells: [{ id: FAERIE_FIRE.id, reminderType: "readyCooldown" }],
         });
-        world.setOption("showCooldownsAtFightStart", true);
         world.state.isInCombat = true;
         world.state.areCooldownsHidden = true;
         world.fire("PLAYER_REGEN_DISABLED");

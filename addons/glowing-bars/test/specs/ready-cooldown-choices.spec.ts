@@ -1,27 +1,25 @@
-// Every When, glow time and fight-start choice a ready cooldown can have, against what each promises: in peace, as a fight
+// Every When and glow time a ready cooldown can have (In combat + start among the Whens), against what each promises: in peace, as a fight
 // starts, and later in it, for a cooldown ready the whole time, one back during the fight, and one used in it.
 import { createWorld, describe, expect, it, learnSpell, playAs, targetEnemy, WARRIOR, type SpellDefinition } from "@wowkit/test-kit";
 
 const RECKLESSNESS: SpellDefinition = { id: 1719, name: "Recklessness", rank: 1, icon: 132109, cooldownSeconds: 1800 };
 // Alert in town is offered only to low reagents and low stock; Enemy targeted is tried with an enemy targeted
-const WHENS = ["always", "inCombat", "outOfCombat", "enemyTargeted"] as const;
+const WHENS = ["always", "inCombat", "inCombatStart", "outOfCombat", "enemyTargeted"] as const;
 type When = (typeof WHENS)[number];
 
 /** May the glow show out of combat, and in a fight? (Enemy targeted: one always is.) */
-const isAllowedInPeace = (when: When) => when !== "inCombat";
+const isAllowedInPeace = (when: When) => when !== "inCombat" && when !== "inCombatStart";
 const isAllowedInFight = (when: When) => when !== "outOfCombat";
 
 interface Case {
     when: When;
     /** 3 seconds, or 0: until done. */
     glowTime: number;
-    isFightStartOn: boolean;
 }
 
 function listCases(): Case[] {
     const cases: Case[] = [];
-    for (const when of WHENS)
-        for (const glowTime of [3, 0]) for (const isFightStartOn of [false, true]) cases.push({ when, glowTime, isFightStartOn });
+    for (const when of WHENS) for (const glowTime of [3, 0]) cases.push({ when, glowTime });
     return cases;
 }
 
@@ -33,19 +31,15 @@ function createWarrior(c: Case) {
             state.bars[2] = RECKLESSNESS.id;
             targetEnemy(state);
         },
-        {
-            styles: { readyCooldown: { when: c.when, glowTime: c.glowTime } },
-            showCooldownsAtFightStart: c.isFightStartOn,
-            hasFightStartGlowSwitchedOn: true,
-        },
+        { styles: { readyCooldown: { when: c.when, glowTime: c.glowTime } } },
     );
 }
 
 function describeCase(c: Case): string {
-    return `${c.when}/${c.glowTime === 0 ? "until done" : "3 s"}/start ${c.isFightStartOn ? "on" : "off"}`;
+    return `${c.when}/${c.glowTime === 0 ? "until done" : "3 s"}`;
 }
 
-describe("a ready cooldown by every When, glow time and fight-start choice", () => {
+describe("a ready cooldown by every When and glow time", () => {
     it("ready the whole time: in peace, as the fight starts, and later in it", () => {
         const wrong: string[] = [];
         for (const c of listCases()) {
@@ -59,7 +53,8 @@ describe("a ready cooldown by every When, glow time and fight-start choice", () 
             world.advance(6);
             const late = world.glowsOn(2);
             // Before the fight it glows where it may, within its glow time; in the fight, once it may and is a candidate
-            const isCandidate = c.when !== "inCombat" || c.isFightStartOn;
+            // In combat glows only once it comes back; In combat + start as the fight starts too
+            const isCandidate = c.when !== "inCombat";
             const wantPeace = isAllowedInPeace(c.when) ? 1 : 0;
             const wantStart = isAllowedInFight(c.when) && isCandidate ? 1 : 0;
             const wantLate = c.glowTime === 0 ? wantStart : 0;

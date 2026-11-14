@@ -32,7 +32,6 @@ import { TEXTS } from "./locale/texts.constants";
 import { BarsSection } from "./options/bars.section";
 import { CooldownManagerSection } from "./options/cooldown-manager.section";
 import { AnimationSection } from "./options/animation.section";
-import { GlowsSection } from "./options/glows.section";
 import { IdTooltipService } from "./options/id-tooltip.service";
 import { ReminderControlsService } from "./options/reminder-controls.service";
 import { StyleChoicesService } from "./options/style-choices.service";
@@ -265,7 +264,6 @@ function makeOptions(
     const weaponSection = addon.register(
         new WeaponSection(locale, game.spells, reminders.weaponChoice, settings, controls, reminderControls),
     );
-    const glowsSection = addon.register(new GlowsSection(reminderControls, reminders.glowCues));
     const managerSection = addon.register(
         new CooldownManagerSection(locale, settings, controls, reminderControls, game.cooldownViewer, widgets, game.player, messages),
     );
@@ -287,7 +285,6 @@ function makeOptions(
             reminderControls,
             weaponSection,
             managerSection,
-            glowsSection,
             widgets,
             table,
             barsSection,

@@ -6,13 +6,15 @@ import type { When } from "../settings/settings.interface";
 export type WhenState = { [when in When]: boolean };
 
 export function createWhenState(): WhenState {
-    return { always: true, inCombat: false, outOfCombat: true, enemyTargeted: false, townAlert: true };
+    return { always: true, inCombat: false, inCombatStart: false, outOfCombat: true, enemyTargeted: false, townAlert: true };
 }
 
 /** For each When, does it hold now? Read into `state`, the same table at every tick. */
 export function readWhenState(player: PlayerService, state: WhenState): WhenState {
     const isInCombat = player.isInCombat();
     state.inCombat = isInCombat;
+    // In combat + start holds as In combat: the start of a fight is the glow cues' to add
+    state.inCombatStart = isInCombat;
     state.outOfCombat = !isInCombat;
     state.enemyTargeted = player.hasEnemyTarget();
     return state;

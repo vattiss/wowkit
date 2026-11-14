@@ -73,7 +73,7 @@ export interface Fight {
     unsureInFight: Set<number>;
     /** The glow time of the ready cooldowns: 0 is until done. */
     glowTime: number;
-    /** Do the ready cooldowns on a button glow as a fight starts (the choice on the Reminders tab)? */
+    /** Is the When of the ready cooldowns In combat + start: those ready on a button glow as a fight starts too? */
     isFightStartOn: boolean;
     /** Spell ID -> how long it has been due while a button showed it (only the seen time counts against the glow time). */
     shownFor: Map<number, number>;
@@ -96,9 +96,7 @@ export function createFight(startLeft: number[], glowTime: number, isFightStartO
         {
             isMissingBuffEnabled: false,
             isProcEnabled: false,
-            showCooldownsAtFightStart: isFightStartOn,
-            hasFightStartGlowSwitchedOn: true,
-            styles: { readyCooldown: { glowTime } },
+            styles: { readyCooldown: { glowTime, when: isFightStartOn ? "inCombatStart" : "inCombat" } },
         },
     );
     const fight: Fight = {
