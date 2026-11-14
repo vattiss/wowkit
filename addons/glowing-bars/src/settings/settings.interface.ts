@@ -18,11 +18,24 @@ export type ReminderType =
 export type AddonSettingsService = SettingsService<AddonSettings>;
 
 /**
- * When a reminder may show: always, only in combat or only out of it, only with a living enemy targeted; or (the low
- * reagents and the low stock) glowing anywhere, with its message and sound only in a town or an inn. A ready cooldown also
- * has In combat + start ("inCombatStart"): In combat, and as a fight starts too, when it is ready then.
+ * When a reminder may show: always, only in combat or only out of it, only with a living enemy or anyone targeted or in a
+ * fight, only with a living ally targeted; or (the low reagents and the low stock) glowing anywhere, with its message and
+ * sound only in a town or an inn. A ready cooldown glows once, as it is ready while its When holds; its "+ start" choices
+ * also as their time begins, when it is ready then: In combat + start ("inCombatStart") and Always + start ("alwaysStart")
+ * as a fight starts, Out of combat + start ("outOfCombatStart") as it ends. The targeted ones have their start without a
+ * choice: a target of their kind (or, for Enemy and Any targeted, a fight).
  */
-export type When = "always" | "inCombat" | "inCombatStart" | "outOfCombat" | "enemyTargeted" | "townAlert";
+export type When =
+    | "always"
+    | "alwaysStart"
+    | "inCombat"
+    | "inCombatStart"
+    | "outOfCombat"
+    | "outOfCombatStart"
+    | "enemyTargeted"
+    | "allyTargeted"
+    | "anyTargeted"
+    | "townAlert";
 
 /** What a message says: the type of reminder, the type and the spell or item, the spell or item, or the player's own words. */
 export type MessageTextChoice = "typeOnly" | "typeAndName" | "name" | "custom";

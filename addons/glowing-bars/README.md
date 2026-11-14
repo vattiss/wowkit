@@ -34,7 +34,7 @@ Your Rotation.
 - **Ready cooldowns**: in a fight, an important cooldown of your class (Recklessness, Rapid Fire, Adrenaline Rush,
   Innervate...) or of your race (Blood Fury, Stoneform, Desperate Prayer...) glows when it is ready again after you used
   it, or after it was running as the fight began: for 3 seconds by default (its Glow time in the table: 1, 2, 5, 10 seconds, or until you press it). If you like, the ready
-  ones glow as a fight starts too, a reminder to use them. Out of
+  ones glow as a fight starts too (In combat + start), a reminder to use them. Out of
   combat they glow only if you set their When to Always or Out of combat. The list is a default you can switch off spell by spell. When the client hides a
   cooldown in combat, the addon remembers the one it saw or started with a cast.
 - **Procs**: Overpower and Revenge glow in any stance; the others glow while the game says they can be used: Overpower, Revenge, Execute, Victory Rush, Riposte,
@@ -54,7 +54,10 @@ Every type of reminder has the same four settings: the **color** of its glow and
 (1, 2, 3, 5 or 10 seconds; until done, the default, keeps them until you cast the buff or press the cooldown; the ready
 cooldowns 3 seconds). And each can **repeat** every 5, 10, 30 or 60 seconds: the glow, the message and the sound come
 again, for the glow time (off by default). And **when** it shows: Always, In combat, Out of combat, or only with a
-living Enemy targeted (a shaman's shield glowing as you target a mob before the pull, say). The low reagents and the low
+living Enemy targeted (a shaman's shield glowing as you target a mob before the pull, say), Ally targeted (you count) or
+Any targeted. In a fight Enemy targeted and Any targeted hold without a target too, so a lost target does not turn them off. A ready cooldown glows once, as it is ready while its When holds, and not again later for the same readiness;
+its + start choices (Always + start, In combat + start, Out of combat + start) also as their time begins: a fight's start,
+or for Out of combat its end. The targeted ones light it again with each new target. The low reagents and the low
 stock can also be Alert in town, the low reagents' default: the glow anywhere, the message and the sound only in a town or an inn. Everything else shows always by default, but the ready cooldowns and the seals only in combat. The defaults: missing
 buffs blue, weapon buffs orange, ready cooldowns white, procs red, old ranks and low reagents yellow (and a quieter glow
 than the others), low stock a quieter red. By default only the old ranks, the reagents and the low stock show a message; the buff messages (including the ones that name a

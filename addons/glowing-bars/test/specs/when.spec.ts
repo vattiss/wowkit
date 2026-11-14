@@ -5,7 +5,6 @@ import {
     it,
     learnSpell,
     playAs,
-    targetEnemy,
     FORTITUDE,
     HOLY_CANDLE,
     PRAYER_OF_FORTITUDE,
@@ -20,7 +19,7 @@ import { findLabel, readSaved, setUpWarrior, toggleTable } from "./table.helpers
 import { createArcher } from "./low-stock.helpers";
 
 const RIGHTEOUSNESS: SpellDefinition = { id: 20154, name: "Seal of Righteousness", rank: 1, icon: 132325, isHelpful: true };
-const WHEN_LABELS = ["Always", "In combat", "Out of combat", "Enemy targeted", "Alert in town"];
+const WHEN_LABELS = ["Always", "In combat", "Out of combat", "Enemy targeted", "Ally targeted", "Any targeted", "Alert in town"];
 
 /** A priest missing Fortitude, which sits on button 1. */
 function setUpPriest(state: ClientState): void {
@@ -74,36 +73,6 @@ describe("a missing buff that shows only out of combat", () => {
     });
 });
 
-describe("a missing buff that shows only with an enemy targeted", () => {
-    const settings = { styles: { missingBuff: { when: "enemyTargeted" } } };
-
-    it("does not glow with no target, not even in combat", () => {
-        expect(startPriest(settings, (state) => (state.isInCombat = true)).glowsOn(1)).toBe(0);
-    });
-
-    it("glows as soon as the player targets an enemy, out of combat too", () => {
-        const world = startPriest(settings);
-        targetEnemy(world.state);
-        world.fire("PLAYER_TARGET_CHANGED");
-        world.advance(0.1);
-        expect(world.glowsOn(1)).toBe(1);
-    });
-
-    it("does not glow on a dead enemy, nor on a friend", () => {
-        expect(startPriest(settings, (state) => targetEnemy(state, { isDead: true })).glowsOn(1)).toBe(0);
-        expect(startPriest(settings, (state) => targetEnemy(state, { isEnemy: false })).glowsOn(1)).toBe(0);
-    });
-
-    it("goes out when the target is cleared", () => {
-        const world = startPriest(settings, (state) => targetEnemy(state));
-        expect(world.glowsOn(1)).toBe(1);
-        world.state.target = undefined;
-        world.fire("PLAYER_TARGET_CHANGED");
-        world.advance(0.1);
-        expect(world.glowsOn(1)).toBe(0);
-    });
-});
-
 describe("a spell with a When of its own", () => {
     it("goes by its own, while the type keeps the default", () => {
         const world = startPriest();
@@ -120,16 +89,23 @@ describe("a spell with a When of its own", () => {
 });
 
 describe("the When button of the table", () => {
-    it("lists the four choices, and shows the one picked", () => {
+    it("lists the choices, and shows the one picked", () => {
         const world = startPriest();
         toggleTable();
         const button = findWhenButton(world, "Missing buff");
-        expect(world.openMenu(button).map((choice) => choice.label)).toEqual(["Always", "In combat", "Out of combat", "Enemy targeted"]);
+        expect(world.openMenu(button).map((choice) => choice.label)).toEqual([
+            "Always",
+            "In combat",
+            "Out of combat",
+            "Enemy targeted",
+            "Ally targeted",
+            "Any targeted",
+        ]);
         world.pickFromMenu(button, "Enemy targeted");
         expect(button.text).toBe("Enemy targeted");
     });
 
-    it("has In combat + start for a ready cooldown alone: its full name in the list, a short one on the button", () => {
+    it("has the + start choices for a ready cooldown alone: their full names in the list, short ones on the button", () => {
         const world = createWorld((state) => {
             setUpWarrior(state);
             state.isInCombat = false;
@@ -140,13 +116,21 @@ describe("the When button of the table", () => {
         expect(button.text).toBe("In combat");
         expect(world.openMenu(button).map((choice) => choice.label)).toEqual([
             "Always",
+            "Always + start",
             "In combat",
             "In combat + start",
             "Out of combat",
+            "Out of combat + start",
             "Enemy targeted",
+            "Ally targeted",
+            "Any targeted",
         ]);
         world.pickFromMenu(button, "In combat + start");
         expect(button.text).toBe("Combat + start");
+        world.pickFromMenu(button, "Out of combat + start");
+        expect(button.text).toBe("OOC + start");
+        world.pickFromMenu(button, "Always + start");
+        expect(button.text).toBe("Always + start");
     });
 
     it("has every choice for the low reagents, as for the low stock, Alert in town by default", () => {
@@ -159,6 +143,8 @@ describe("the When button of the table", () => {
             "In combat",
             "Out of combat",
             "Enemy targeted",
+            "Ally targeted",
+            "Any targeted",
             "Alert in town",
         ]);
         expect(button.text).toBe("Alert in town");
@@ -228,6 +214,8 @@ describe("a low stock", () => {
             "In combat",
             "Out of combat",
             "Enemy targeted",
+            "Ally targeted",
+            "Any targeted",
             "Alert in town",
         ]);
     });

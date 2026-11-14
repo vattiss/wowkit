@@ -9,6 +9,7 @@ import {
     HOLY_CANDLE,
     PRAYER_OF_FORTITUDE,
     PRIEST,
+    targetEnemy,
     WARRIOR,
     type ClientState,
     type FakeFrame,
@@ -161,19 +162,55 @@ describe("the Glow time column of the table", () => {
     });
 });
 
-describe("a ready cooldown that shows always, with the fight start reminder on", () => {
-    it("glows again as a fight starts, though its glow time ran out before it", () => {
+describe("a ready cooldown that glowed before a fight", () => {
+    /** Recklessness ready out of combat, by this When; its glow time runs out before the fight starts. */
+    function startFightAfterGlow(when: string): World {
         const world = createWorld(
             (state) => {
                 setUpWarrior(state);
                 state.isInCombat = false;
+                targetEnemy(state);
             },
-            { styles: { readyCooldown: { when: "always" } } },
+            { styles: { readyCooldown: { when } } },
         );
         world.advance(5);
         expect(world.glowsOn(2)).toBe(0);
         world.state.isInCombat = true;
         world.fire("PLAYER_REGEN_DISABLED");
+        world.advance(0.5);
+        return world;
+    }
+
+    it("glows again as the fight starts with Always + start", () => {
+        expect(startFightAfterGlow("alwaysStart").glowsOn(2)).toBe(1);
+    });
+
+    it("does not glow again with Always or Enemy targeted: it glowed once already", () => {
+        expect(startFightAfterGlow("always").glowsOn(2)).toBe(0);
+        expect(startFightAfterGlow("enemyTargeted").glowsOn(2)).toBe(0);
+    });
+
+    it("glows again with Ally targeted as an ally is targeted, and not again as the fight starts", () => {
+        const world = startFightAfterGlow("allyTargeted");
+        expect(world.glowsOn(2)).toBe(0);
+        targetEnemy(world.state, { isEnemy: false });
+        world.fire("PLAYER_TARGET_CHANGED");
+        world.advance(0.5);
+        expect(world.glowsOn(2)).toBe(1);
+    });
+
+    it("glows again with Enemy targeted as an enemy is targeted again after the fight, and not without one", () => {
+        const world = startFightAfterGlow("enemyTargeted");
+        world.state.isInCombat = false;
+        world.fire("PLAYER_REGEN_ENABLED");
+        world.advance(1);
+        const target = world.state.target;
+        world.state.target = undefined;
+        world.fire("PLAYER_TARGET_CHANGED");
+        world.advance(5);
+        expect(world.glowsOn(2)).toBe(0);
+        world.state.target = target;
+        world.fire("PLAYER_TARGET_CHANGED");
         world.advance(0.5);
         expect(world.glowsOn(2)).toBe(1);
     });

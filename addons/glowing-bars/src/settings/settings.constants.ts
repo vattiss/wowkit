@@ -91,13 +91,18 @@ export function createDefaultSettings(): AddonSettings {
 
 export { DEFENSIVE_EXECUTE_ROW, SPELL_STYLE_DEFAULTS, STYLE_DEFAULTS } from "./style-defaults.constants";
 
+/** The Whens a ready cooldown has before the targeted ones: each with its "+ start" choice. */
+const READY_WHENS: When[] = ["always", "alwaysStart", "inCombat", "inCombatStart", "outOfCombat", "outOfCombatStart"];
+
 /**
- * When a reminder of the reminderType may show: by combat or a target; a ready cooldown also as a fight starts, the low
- * reagents and the low stock also with their alert in a town.
+ * When a reminder of the reminderType may show: by combat or a target; a ready cooldown also with its "+ start" choices,
+ * the low reagents and the low stock also with their alert in a town.
  */
 export function listWhenChoices(reminderType: ReminderType): When[] {
-    if (reminderType === "readyCooldown") return ["always", "inCombat", "inCombatStart", "outOfCombat", "enemyTargeted"];
-    const choices: When[] = ["always", "inCombat", "outOfCombat", "enemyTargeted"];
+    if (reminderType === "readyCooldown") {
+        return [...READY_WHENS, "enemyTargeted", "allyTargeted", "anyTargeted"];
+    }
+    const choices: When[] = ["always", "inCombat", "outOfCombat", "enemyTargeted", "allyTargeted", "anyTargeted"];
     return reminderType === "lowReagent" || reminderType === "lowStock" ? [...choices, "townAlert"] : choices;
 }
 

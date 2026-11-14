@@ -1,5 +1,6 @@
 // The Skyborne's racial cooldowns: Read Leyline (regeneration, Alliance), Skysight (run speed, Horde) and Walk on Air (a
-// fall). Each can be of use in a fight or out of one, so each glows when ready anywhere by its own default look.
+// fall). Each can be of use in a fight or out of one, so each glows when ready anywhere by its own default look: once, not
+// again as a fight starts.
 import { createWorld, describe, expect, it, learnSpell, playAs, WARRIOR, type SpellDefinition, type World } from "@wowkit/test-kit";
 import { findLabel, toggleTable } from "./table.helpers";
 
@@ -27,11 +28,17 @@ function createSkyborne(racial: SpellDefinition): World {
 
 describe("the Skyborne's racial cooldowns", () => {
     for (const racial of [READ_LEYLINE, SKYSIGHT, WALK_ON_AIR]) {
-        it(`lights ${racial.name} when ready, out of combat and in a fight`, () => {
+        it(`lights ${racial.name} once when ready, in a fight too, and not again as one starts`, () => {
             const world = createSkyborne(racial);
             expect(world.glowsOn(1)).toBe(1);
             world.advance(3);
             startFight(world);
+            expect(world.glowsOn(1)).toBe(0);
+            // Used in the fight and ready again in it: it glows
+            world.state.cooldowns[racial.id] = { start: 0, duration: 99999 };
+            world.advance(1);
+            world.state.cooldowns[racial.id] = undefined;
+            world.advance(0.5);
             expect(world.glowsOn(1)).toBe(1);
         });
     }

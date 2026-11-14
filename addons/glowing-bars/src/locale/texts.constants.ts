@@ -169,7 +169,7 @@ export const TEXTS = {
     TIP_GLOW_PERCENT: "How strong the glow is, 1 to 100. Type a number.",
     TIP_MESSAGE: "Shows a short message at the top of the screen.",
     TIP_WHEN:
-        "When the reminder may show. With In combat + start, a ready cooldown also glows as a fight starts. With Alert in town, the glow shows anywhere, but the message and sound only in towns.",
+        "When the reminder may show. A ready cooldown glows once, as it is ready; with + start, also as a fight starts (Out of combat + start: as it ends). With Alert in town, the message and sound come only in towns.",
     TIP_BELOW:
         "Reminds you when you have fewer than this. The number on a row under Defaults is used for every row of that type, unless you set a different number on the row.",
     TIP_ENABLED:
@@ -263,9 +263,14 @@ export const TEXTS = {
     WHEN_IN_COMBAT: "In combat",
     WHEN_OUT_OF_COMBAT: "Out of combat",
     WHEN_ENEMY_TARGETED: "Enemy targeted",
+    WHEN_ALLY_TARGETED: "Ally targeted",
+    WHEN_ANY_TARGETED: "Any targeted",
     WHEN_TOWN_ALERT: "Alert in town",
     WHEN_IN_COMBAT_START: "In combat + start",
     WHEN_IN_COMBAT_START_SHORT: "Combat + start",
+    WHEN_ALWAYS_START: "Always + start",
+    WHEN_OUT_OF_COMBAT_START: "Out of combat + start",
+    WHEN_OUT_OF_COMBAT_START_SHORT: "OOC + start",
     NO_COLOR_PICKER: "No color picker available on this client.",
     TYPE_MISSING_BUFF: "Missing buff",
     TYPE_WEAPON_BUFF: "Weapon buff",

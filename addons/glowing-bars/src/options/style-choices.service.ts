@@ -26,11 +26,21 @@ export interface ChoiceButtons {
 /** The words of each When. */
 const WHEN_TEXTS: { [when in When]: TextKey } = {
     always: "WHEN_ALWAYS",
+    alwaysStart: "WHEN_ALWAYS_START",
     inCombat: "WHEN_IN_COMBAT",
     inCombatStart: "WHEN_IN_COMBAT_START",
     outOfCombat: "WHEN_OUT_OF_COMBAT",
+    outOfCombatStart: "WHEN_OUT_OF_COMBAT_START",
     enemyTargeted: "WHEN_ENEMY_TARGETED",
+    allyTargeted: "WHEN_ALLY_TARGETED",
+    anyTargeted: "WHEN_ANY_TARGETED",
     townAlert: "WHEN_TOWN_ALERT",
+};
+
+/** The short names the When button shows, where the list's name is too long for it. */
+const WHEN_SHORT_TEXTS: { [when in When]?: TextKey } = {
+    inCombatStart: "WHEN_IN_COMBAT_START_SHORT",
+    outOfCombatStart: "WHEN_OUT_OF_COMBAT_START_SHORT",
 };
 
 /** The gear of the message of a row, the game's own art; dim until the player changed something in it. */
@@ -83,7 +93,7 @@ export class StyleChoicesService {
         const style = this.styles.getStyle(row.reminderType, row.spellId);
         buttons.repeat.SetText(this.findRepeatText(style.repeat));
         // A long name in the list; the button shows a short one
-        buttons.when.SetText(this.locale.getText(style.when === "inCombatStart" ? "WHEN_IN_COMBAT_START_SHORT" : WHEN_TEXTS[style.when]));
+        buttons.when.SetText(this.locale.getText(WHEN_SHORT_TEXTS[style.when] ?? WHEN_TEXTS[style.when]));
         buttons.glowTime.SetText(this.findGlowTimeText(style.glowTime));
         buttons.animation.SetText(this.locale.getText(ANIMATION_TEXTS[style.animation]));
     }

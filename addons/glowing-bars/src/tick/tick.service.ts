@@ -1,6 +1,6 @@
 // One tick: look at the game, then show what is due. Runs every 0.5 seconds in combat and every second out of it, and
 // sooner when something happens (RefreshService asks for it). Between the two, each reminder found shows only when its look
-// says it may (the When column of the table): always, in combat, out of combat, with a living enemy targeted, or (the low
+// says it may (the When column of the table): always, in combat, out of combat, with a living enemy, ally or anyone targeted, or (the low
 // reagents and stock) in a town or an inn; and then for its glow time, again with its repeat (GlowSchedule). What is due
 // is the finders' to say; when it shows is the player's, for each type and spell.
 // A tick makes as few new tables as it can (each one is memory the game has to clear later): the filtered reminders go into
@@ -12,7 +12,7 @@ import type { StyleService } from "../settings/style.service";
 import type { FindRemindersService } from "./find-reminders.service";
 import type { ShowRemindersService } from "./show-reminders.service";
 import type { Reminders } from "./tick.interface";
-import { createWhenState, readWhenState } from "./when-state";
+import { createNoStarts, createWhenState, readWhenStarts, readWhenState } from "./when-state";
 import { createEmptyReminders, filterReminders } from "./reminder-filter";
 import { GlowSchedule } from "./glow-schedule";
 
@@ -27,15 +27,15 @@ export class TickService implements OnFirstLogin, OnLogout, OnReady {
     private readonly schedule = new GlowSchedule();
     /** Was the player in a town at the last tick: arriving, an Alert in town starts over. */
     private wasInTown = false;
-    /** Was the player in combat at the last tick: as a fight starts, a ready cooldown starts over. */
-    private wasInCombat = false;
     private lastTickAt = 0;
-    /** What the filter of this tick asks: the When that holds, the time, the town and the start of a fight. */
+    /** What the filter of this tick asks: the When that holds, the time and the town. */
     private readonly whenState = createWhenState();
+    /** The When of the last tick, and the ones that began since: a ready cooldown starts over as its When begins. */
+    private readonly wasWhenState = createWhenState();
+    private readonly whenStarts = createNoStarts();
     private time = 0;
     private isInTown = false;
     private hasArrivedInTown = false;
-    private hasFightStarted = false;
     /** The reminders the When lets through, then the ones that show now: the same lists at every tick. */
     private readonly byWhen = createEmptyReminders();
     private readonly showing = createEmptyReminders();
@@ -85,12 +85,16 @@ export class TickService implements OnFirstLogin, OnLogout, OnReady {
         this.isInTown = this.player.isResting();
         this.hasArrivedInTown = this.isInTown && !this.wasInTown;
         this.wasInTown = this.isInTown;
-        this.hasFightStarted = now.inCombat && !this.wasInCombat;
-        this.wasInCombat = now.inCombat;
+        readWhenStarts(now, this.wasWhenState, this.whenStarts);
         this.schedule.startTick();
         // A ready cooldown on a page not shown keeps the glow time it has had: it does not start over when it is back
         for (const id of reminders.pagedAwayCooldowns) {
             if (this.isAllowedNow("readyCooldown", id)) this.schedule.pause(`readyCooldown:${id}`, this.time);
+            else this.schedule.track(`readyCooldown:${id}`, this.time);
+        }
+        // One whose When does not hold now counts its time all the same: it does not glow later, out of its time
+        for (const id of reminders.readyCooldowns) {
+            if (!this.isAllowedNow("readyCooldown", id)) this.schedule.track(`readyCooldown:${id}`, this.time);
         }
         filterReminders(this.showing, this.byWhen, this.isDueNow);
         this.showing.isInTown = this.isInTown;
@@ -104,7 +108,7 @@ export class TickService implements OnFirstLogin, OnLogout, OnReady {
     private readonly isDueNow: IsShown = (reminderType, id) => {
         const style = this.styles.getStyle(reminderType, id);
         const isStartingOver =
-            (style.when === "townAlert" && this.hasArrivedInTown) || (reminderType === "readyCooldown" && this.hasFightStarted);
+            (style.when === "townAlert" && this.hasArrivedInTown) || (reminderType === "readyCooldown" && this.whenStarts[style.when]);
         return this.schedule.isShowing(`${reminderType}:${id}`, style, this.time, this.isInTown, isStartingOver);
     };
 }

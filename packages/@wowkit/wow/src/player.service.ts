@@ -72,6 +72,20 @@ export class PlayerService {
         );
     }
 
+    /** Is the player's target a living ally, one the player can help (the player too)? A hidden answer counts as no. */
+    hasAllyTarget(): boolean {
+        return (
+            this.hasTarget() &&
+            getReadable(attempt(UnitCanAssist, "player", "target")) === true &&
+            !isAnsweredTrue(UnitIsDeadOrGhost, "target")
+        );
+    }
+
+    /** Has the player a living target, an enemy, an ally or neither? */
+    hasLivingTarget(): boolean {
+        return this.hasTarget() && !isAnsweredTrue(UnitIsDeadOrGhost, "target");
+    }
+
     isMounted(): boolean {
         return attempt(IsMounted) === true;
     }

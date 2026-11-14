@@ -78,6 +78,8 @@ export function installUnits(state: ClientState): void {
                     : findMember(unit)?.isDead === true,
         UnitReaction: (_unit, other) => (other === "target" && state.target?.isEnemy === true ? 2 : 5),
         UnitCanAttack: (_unit, other) => (other === "target" && state.target?.isEnemy === true) || isNameplate(other),
+        UnitCanAssist: (_unit, other) =>
+            other === "player" || (other === "target" && state.target !== undefined && state.target.isEnemy !== true),
         UnitGUID: (unit) => (unit === "target" && state.target ? `Creature-0-0-0-0-1-${state.target.name}` : undefined),
         UnitClassification: (unit) => (unit === "target" ? (state.target?.classification ?? "normal") : "normal"),
         UnitCreatureType: (unit) => {
