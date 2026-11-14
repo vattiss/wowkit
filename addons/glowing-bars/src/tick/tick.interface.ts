@@ -19,6 +19,8 @@ export interface Reminders {
     seals: number[];
     /** A miner or a herbalist with no tracking on: the gathering trackings to put on. */
     trackings: number[];
+    /** A shaman's totems that are gone: the last dropped in each element whose totem went. */
+    totemsGone: number[];
     /** Missing buffs the player has learned but put on no action bar. */
     buffsNotOnBars: number[];
     /** Party members missing one of the player's buffs. */

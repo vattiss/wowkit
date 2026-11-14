@@ -45,6 +45,8 @@ import "./spell-procs.spec";
 import "./exorcism.spec";
 import "./low-health-defense.spec";
 import "./bounced-buffs.spec";
+import "./totem-gone.spec";
+import "./totem-gone-brute.spec";
 import "./cultivation.spec";
 import "./soul-link.spec";
 import "./welcome.spec";

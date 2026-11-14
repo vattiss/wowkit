@@ -241,6 +241,11 @@ interface CooldownViewerItem extends Frame {
     isOnActualCooldown?: boolean;
 }
 
+/** Blizzard's totem frame (TotemFrame): a pool of buttons, one for each totem standing, each with its slot. */
+interface TotemFrameWidget extends Frame {
+    totemPool?: { EnumerateActive(): LuaIterable<LuaMultiReturn<[{ slot?: number; IsShown(): boolean }, boolean]>> };
+}
+
 /** Blizzard's read-only layouts of Edit Mode. */
 declare const EditModePresetLayoutManager: { GetCopyOfPresetLayouts(): EditModeLayoutInfo[] };
 

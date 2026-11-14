@@ -23,6 +23,7 @@ import {
     SpellRefreshService,
     SpellsService,
     TooltipService,
+    TotemsService,
     UnitsService,
     WeaponEnchantsService,
 } from "@wowkit/wow";
@@ -55,6 +56,7 @@ export function makeGame(addon: Addon, addonName: string) {
     const barKeys = addon.register(new BarKeysService(actionBars, buttonRegistry));
     const notice = addon.register(new NoticeService(addonName));
     const tooltips = addon.register(new TooltipService());
+    const totems = addon.register(new TotemsService());
     return {
         clock,
         player,
@@ -76,6 +78,7 @@ export function makeGame(addon: Addon, addonName: string) {
         buttonRegistry,
         notice,
         tooltips,
+        totems,
         buttonSearch,
     };
 }

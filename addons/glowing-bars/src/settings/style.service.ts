@@ -22,13 +22,15 @@ const PARTS: (keyof Style)[] = [
 ];
 
 /** The types whose message names what it is about by default: what to buy, or which button to change. */
-const NAMED_TYPES: ReminderType[] = ["lowStock", "lowReagent", "oldRank"];
+const NAMED_TYPES: ReminderType[] = ["lowStock", "lowReagent", "oldRank", "totemGone"];
 
 export class StyleService {
     /** Is this a spell whose look goes by its ID, not its name (see useOwnLooks)? */
     private hasOwnLook: (this: void, spellId: number) => boolean = () => false;
     /** The spell of the table's row of a weapon buff, for one of its ranks (see useWeaponBuffLooks). */
     private findWeaponBuffRow: (this: void, spellId: number) => number = (spellId) => spellId;
+    /** The table's row of a totem's element (see useTotemLooks). */
+    private findTotemRow: (this: void, spellId: number) => number = (spellId) => spellId;
 
     constructor(
         private readonly spells: SpellsService,
@@ -45,8 +47,14 @@ export class StyleService {
         this.findWeaponBuffRow = findWeaponBuffRow;
     }
 
+    /** A totem's look is the one of its element's row: it holds whichever totem of that element the player drops. */
+    useTotemLooks(findTotemRow: (this: void, spellId: number) => number): void {
+        this.findTotemRow = findTotemRow;
+    }
+
     /** The look of a type of reminder, or of one spell of it: the spell's own, else the type's, else the default. */
-    getStyle(reminderType: ReminderType, spellId?: number): Style {
+    getStyle(reminderType: ReminderType, rowSpellId?: number): Style {
+        const spellId = reminderType === "totemGone" && rowSpellId !== undefined ? this.findTotemRow(rowSpellId) : rowSpellId;
         const layers: StyleOverride[] = [
             spellId !== undefined ? this.getOverride(reminderType, spellId) : {},
             this.getSpellDefault(reminderType, spellId),
@@ -164,7 +172,12 @@ export class StyleService {
 
     /** The key of a spell's look: its type and its name ("rank:Smite"). */
     private getStyleKey(reminderType: ReminderType, spellId: number): string {
-        const id = reminderType === "weaponBuff" ? this.findWeaponBuffRow(spellId) : spellId;
+        const id =
+            reminderType === "weaponBuff"
+                ? this.findWeaponBuffRow(spellId)
+                : reminderType === "totemGone"
+                  ? this.findTotemRow(spellId)
+                  : spellId;
         return `${reminderType}:${this.hasOwnLook(id) ? string.format("%d", id) : this.getSpellKey(id)}`;
     }
 

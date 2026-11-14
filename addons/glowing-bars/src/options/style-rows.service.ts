@@ -12,6 +12,7 @@ import type { ClassBuffsService } from "../reminders/class-buffs.service";
 import type { FedBuffsService } from "../reminders/fed-buffs.service";
 import type { SealReminderService } from "../reminders/seal-reminder.service";
 import type { TrackingReminderService } from "../reminders/tracking-reminder.service";
+import { TOTEM_ELEMENTS, type TotemElement } from "../reminders/totems.constants";
 import type { WeaponChoiceService } from "../reminders/weapon/weapon-choice.service";
 import { ADDABLE_TYPES, TYPE_ORDER, DEFENSIVE_EXECUTE_ROW } from "../settings/settings.constants";
 import type { ReminderType, AddableType } from "../settings/settings.interface";
@@ -44,6 +45,7 @@ export const TYPE_TEXTS: { [reminderType in ReminderType]: TextKey } = {
     weaponBuff: "TYPE_WEAPON_BUFF",
     missingSeal: "TYPE_MISSING_SEAL",
     missingTracking: "TYPE_MISSING_TRACKING",
+    totemGone: "TYPE_TOTEM_GONE",
     readyCooldown: "TYPE_READY_COOLDOWN",
     proc: "TYPE_PROC",
     oldRank: "TYPE_OLD_RANK",
@@ -166,7 +168,7 @@ export class StyleRowsService {
         // The spells that have ranks (a spell with one rank has no "Rank" in its subtext), on a bar or not. The ranks are read
         // off the bars, by the IDs there: a rank row's ID is not one to fix
         for (const id of this.spells.listSpellBookIds()) if (this.spells.getSpellRank(id) !== undefined) add("oldRank", id);
-        if (this.player.getClassToken() === "WARRIOR") rows.push(this.createDefensiveExecuteRow());
+        this.addClassRows(rows);
         rows.sort((a, b) => this.compareRows(a, b));
         return rows;
     }
@@ -185,9 +187,28 @@ export class StyleRowsService {
         };
     }
 
+    /** The rows of no spell a class has: a warrior's Execute in Defensive Stance, a shaman's elements of the totems gone. */
+    private addClassRows(rows: StyleRow[]): void {
+        const classToken = this.player.getClassToken();
+        if (classToken === "WARRIOR") rows.push(this.createDefensiveExecuteRow());
+        if (classToken === "SHAMAN") for (const element of TOTEM_ELEMENTS) rows.push(this.createTotemRow(element));
+    }
+
+    /** An element's row of the totems that are gone: its look holds whichever totem of it the player drops. */
+    private createTotemRow(element: TotemElement): StyleRow {
+        return {
+            reminderType: "totemGone",
+            spellId: element.rowId,
+            label: this.locale.getText(element.text),
+            iconId: this.spells.getSpellInfo(element.iconSpell)?.iconID,
+        };
+    }
+
     private compareRows(a: StyleRow, b: StyleRow): number {
         const byType = TYPE_ORDER.indexOf(a.reminderType) - TYPE_ORDER.indexOf(b.reminderType);
         if (byType !== 0) return byType;
+        // The elements in the order of their slots: fire, earth, water, air
+        if (a.reminderType === "totemGone") return -(a.spellId ?? 0) - -(b.spellId ?? 0);
         return a.label < b.label ? -1 : a.label > b.label ? 1 : 0;
     }
 }

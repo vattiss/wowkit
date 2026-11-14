@@ -1,6 +1,6 @@
 // The action bars (which spell is on which slot) and the auras on the player and the party.
 import { findPartyMember, type ClientState, type FakeAura } from "./client-state";
-import { defineGlobals, defineNamespace } from "./define";
+import { defineGlobals, defineNamespace, defineValues } from "./define";
 import type { FakeFrame, FrameRegistry } from "./frames";
 
 const MAIN_BAR_BUTTONS = 12;
@@ -58,6 +58,7 @@ function installAddonBars(state: ClientState, frames: FrameRegistry): void {
 }
 
 export function installActionBars(state: ClientState, frames: FrameRegistry): void {
+    installTotemFrame(state);
     defineNamespace<typeof C_ActionBar>("C_ActionBar", {
         GetActionText: (slot) => state.barMacros[slot]?.name,
         HasAction: (slot) => state.bars[slot] !== undefined || state.barItems[slot] !== undefined || state.barMacros[slot] !== undefined,
@@ -79,10 +80,14 @@ export function installActionBars(state: ClientState, frames: FrameRegistry): vo
             return $multi("spell", spellId, undefined, spellId);
         },
         GetTotemInfo: (slot) => {
+            // A secret answer, which addon code cannot test: the guarded call fails
+            if (state.areTotemsHidden) error("secret totem slot");
             const totem = state.totems[slot];
-            if (!totem) return $multi(false, "", 0, 0, 0, 0, 0);
+            // A slot keeps saying it has a totem once it had one: no name, no duration
+            if (!totem) return $multi(state.areEmptyTotemSlotsKept, "", 0, 0, 0, 0, 0);
             return $multi(true, totem.name, totem.start, totem.duration, 0, 0, 0);
         },
+        GetMultiCastTotemSpells: (slot: number) => $multi(...(state.totemSpells[slot] ?? [])),
         strtrim: (text: string) => string.match(text, "^%s*(.-)%s*$")[0] ?? "",
         GetMacroSpell: (macro) => state.barMacros[macro as number]?.spellId,
         GetMacroInfo: (macro) => {
@@ -184,6 +189,32 @@ export function installAuras(state: ClientState): void {
         GetAuraDataBySpellName: (unit, spellName, filter) => {
             const aura = listAurasOf(unit, (filter as string | undefined) ?? "HELPFUL").find((candidate) => candidate.name === spellName);
             return aura ? toAuraData(aura, filter !== "HARMFUL" && filter !== "HARMFUL|PLAYER") : undefined;
+        },
+    });
+}
+
+/** Blizzard's totem frame: a button for each totem standing, with its slot; its code sees the slots in a fight too. Taken away (hasTotemFrame), its pool fails. */
+function installTotemFrame(state: ClientState): void {
+    defineValues({
+        TotemFrame: {
+            totemPool: {
+                EnumerateActive() {
+                    if (!state.hasTotemFrame) error("no totem frame");
+                    // A button for each slot that says it has a totem; hidden while its slot is empty
+                    const buttons: { slot: number; IsShown: () => boolean }[] = [];
+                    for (let slot = 1; slot <= 4; slot++) {
+                        const isStanding = state.totems[slot] !== undefined;
+                        if (isStanding || state.areEmptyTotemSlotsKept) buttons.push({ slot, IsShown: () => isStanding });
+                    }
+                    let index = 0;
+                    return () => {
+                        const button = buttons[index];
+                        index += 1;
+                        if (button === undefined) return undefined;
+                        return $multi(button, true);
+                    };
+                },
+            },
         },
     });
 }

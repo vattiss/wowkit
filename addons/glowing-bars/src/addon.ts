@@ -3,6 +3,7 @@
 // function reach at most 60 outer names, and one function naming every service would reach more.
 import { makeGame, type Game } from "./game-services";
 import { makeCooldownManager } from "./addon-manager";
+import { makeTotemGone } from "./addon-totems";
 import { Addon } from "@wowkit/core";
 import {
     ControlsService,
@@ -79,7 +80,7 @@ export function startAddon(addonName: string): void {
     const game = makeGame(addon, addonName);
     const texts = makeTexts(addon, game);
     const buffs = makeBuffs(addon, game, texts);
-    const reminders = makeReminders(addon, addonName, game, texts, buffs);
+    const reminders = { ...makeReminders(addon, addonName, game, texts, buffs), totemGone: makeTotemGone(addon, game, texts) };
     makeCooldownManager(addon, game, texts, buffs, reminders);
     const finder = makeTick(addon, addonName, game, texts, buffs, reminders);
     makeOptions(addon, addonName, game, texts, buffs, reminders, finder);
@@ -164,7 +165,7 @@ function makeReminders(addon: Addon, addonName: string, game: Game, texts: Texts
     const tracking = addon.register(new TrackingReminderService(game.spells, game.actionBars, buffs.state, settings, addedSpells));
     return { buff, reagents, party, weaponChoice, weapon, outdatedRanks, glowCues, addedSpells, added, fedBuffs, limits, seal, tracking };
 }
-export type Reminders = ReturnType<typeof makeReminders>;
+export type Reminders = ReturnType<typeof makeReminders> & { totemGone: ReturnType<typeof makeTotemGone> };
 
 /** The tick: find what is due, show it, look again sooner when something changed; and what happens to the player. */
 function makeTick(addon: Addon, addonName: string, game: Game, texts: Texts, buffs: Buffs, reminders: Reminders) {
@@ -185,6 +186,7 @@ function makeTick(addon: Addon, addonName: string, game: Game, texts: Texts, buf
             reminders.added,
             reminders.seal,
             reminders.tracking,
+            reminders.totemGone,
             settings,
             game.clock,
         ),

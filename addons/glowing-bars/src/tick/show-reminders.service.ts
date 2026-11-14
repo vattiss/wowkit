@@ -6,7 +6,7 @@
 import type { MessagesService, SoundKey } from "@wowkit/ui";
 import type { StyleService } from "../settings/style.service";
 import { WINDOW_ICONS_SETTINGS } from "../settings/settings.constants";
-import type { AddonSettingsService, ReminderType, Style } from "../settings/settings.interface";
+import type { AddonSettingsService, Style } from "../settings/settings.interface";
 import {
     type ActionBarsService,
     type BarFadeService,
@@ -24,93 +24,7 @@ import {
 import type { NoticesService } from "./notices.service";
 import type { FedBuffsService } from "../reminders/fed-buffs.service";
 import type { Reminders } from "./tick.interface";
-
-/** One type of reminder: the setting that switches it on, and the spells of the reminders that make it glow. */
-interface GlowType {
-    category: ReminderType;
-    isOnSetting:
-        | "isMissingBuffEnabled"
-        | "isWeaponBuffEnabled"
-        | "isMissingSealEnabled"
-        | "isMissingTrackingEnabled"
-        | "isReadyCooldownEnabled"
-        | "isProcEnabled"
-        | "isOldRankEnabled"
-        | "isLowReagentEnabled"
-        | "isLowStockEnabled";
-    /** Does it glow on the Cooldown Manager's icons too? A buff, a cooldown or a proc does; a rank or a reagent is the button's. */
-    isOnIcons: boolean;
-    /** Puts the spells of the type's reminders into `spells`, an empty list. */
-    collectSpells: (this: void, reminders: Reminders, spells: number[]) => void;
-}
-
-function pushAll(spells: number[], ids: number[]): void {
-    for (const id of ids) spells.push(id);
-}
-
-const TYPES: GlowType[] = [
-    {
-        category: "missingBuff",
-        isOnSetting: "isMissingBuffEnabled",
-        isOnIcons: true,
-        collectSpells: (reminders, spells) => pushAll(spells, reminders.buffsToCast),
-    },
-    {
-        category: "weaponBuff",
-        isOnSetting: "isWeaponBuffEnabled",
-        isOnIcons: true,
-        collectSpells: (reminders, spells) => {
-            if (reminders.weaponSpell !== undefined) spells.push(reminders.weaponSpell);
-            pushAll(spells, reminders.addedWeaponSpells);
-        },
-    },
-    {
-        category: "missingSeal",
-        isOnSetting: "isMissingSealEnabled",
-        isOnIcons: true,
-        collectSpells: (reminders, spells) => pushAll(spells, reminders.seals),
-    },
-    {
-        category: "missingTracking",
-        isOnSetting: "isMissingTrackingEnabled",
-        isOnIcons: true,
-        collectSpells: (reminders, spells) => pushAll(spells, reminders.trackings),
-    },
-    {
-        category: "readyCooldown",
-        isOnSetting: "isReadyCooldownEnabled",
-        isOnIcons: true,
-        collectSpells: (reminders, spells) => pushAll(spells, reminders.readyCooldowns),
-    },
-    {
-        category: "proc",
-        isOnSetting: "isProcEnabled",
-        isOnIcons: true,
-        collectSpells: (reminders, spells) => pushAll(spells, reminders.procs),
-    },
-    {
-        category: "oldRank",
-        isOnSetting: "isOldRankEnabled",
-        isOnIcons: false,
-        collectSpells: (reminders, spells) => {
-            for (const rank of reminders.outdatedRanks) spells.push(rank.id);
-        },
-    },
-    {
-        category: "lowReagent",
-        isOnSetting: "isLowReagentEnabled",
-        isOnIcons: false,
-        collectSpells: (reminders, spells) => pushAll(spells, reminders.reagentSpells),
-    },
-    {
-        category: "lowStock",
-        isOnSetting: "isLowStockEnabled",
-        isOnIcons: false,
-        collectSpells: (reminders, spells) => {
-            for (const stock of reminders.lowStock) spells.push(stock.key);
-        },
-    },
-];
+import { pushAll, TYPES } from "./glow-types";
 
 /** The spells that glow in one color, glow % and animation: one glow shows them. */
 interface GlowGroup {
