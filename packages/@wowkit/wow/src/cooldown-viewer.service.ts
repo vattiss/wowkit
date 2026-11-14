@@ -219,8 +219,13 @@ export class CooldownViewerService {
         noteState(this.iconStatesById, entry.ids, isUp);
     }
 
-    /** The cooldown is of the entry's own spell, not of the spells linked to it. */
+    /**
+     * The cooldown is of the entry's own spell, not of the spells linked to it. An icon that shows the spell's buff (Read
+     * Leyline's, after its cast) says nothing of its cooldown then: it is not noted, the cooldown read before goes on.
+     */
     private noteCooldownState(item: CooldownViewerItem, entry: ViewerEntry): void {
+        // Comparing with nil is allowed on a secret
+        if (item.auraInstanceID !== undefined || getReadable(item.wasSetFromAura) === true) return;
         // The field, not IsOnCooldown(): that one tests it, and on a secret it fails in addon code
         const isOnCooldown = getReadable(item.isOnActualCooldown);
         const name = entry.names[0];

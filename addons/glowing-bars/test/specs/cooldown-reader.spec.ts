@@ -152,6 +152,26 @@ describe("one reader for the icons", () => {
         expect(world.glowsOn(1)).toBe(1);
     });
 
+    it("does not take an icon that shows the spell's buff for a cooldown over (Read Leyline cast before a fight)", () => {
+        const LEYLINE: SpellDefinition = { id: 1259705, name: "Read Leyline", rank: 1, icon: 1, cooldownSeconds: 120 };
+        const world = createWorld((state) => {
+            playAs(state, PRIEST);
+            learnSpell(state, LEYLINE);
+            state.bars[1] = LEYLINE.id;
+            state.trackedBuffs.push({ spellId: LEYLINE.id, isActive: false, isInSpellsTab: true, isOnCooldown: false, isOwnBuff: true });
+        });
+        world.advance(2);
+        // Cast out of a fight: its cooldown runs, and its buff is up, which its icon shows (and says no cooldown then)
+        world.state.cooldowns[LEYLINE.id] = { start: GetTime(), duration: 120 };
+        world.state.trackedBuffs[0]!.isActive = true;
+        world.advance(2);
+        world.state.isInCombat = true;
+        world.state.areCooldownsHidden = true;
+        world.fire("PLAYER_REGEN_DISABLED");
+        world.advance(2);
+        expect(world.glowsOn(1)).toBe(0);
+    });
+
     describe("for a proc", () => {
         const MISSILES: SpellDefinition = { id: 5143, name: "Arcane Missiles", rank: 1, icon: 136096, maxRange: 30, isHarmful: true };
         const BARRAGE = 400588;
