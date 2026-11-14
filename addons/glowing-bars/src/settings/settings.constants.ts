@@ -1,7 +1,7 @@
 import { isSoundKey } from "@wowkit/ui";
 import { tryCall, type GlowAnimation } from "@wowkit/wow";
 import { convertOldSettings } from "./settings-migration";
-import type { AddonSettings, ReminderType, AddableType, StyleOverride, When, MessageTextChoice } from "./settings.interface";
+import type { AddonSettings, ReminderType, AddableType, CooldownType, StyleOverride, When, MessageTextChoice } from "./settings.interface";
 
 /** The global the TOC saves per character (## SavedVariablesPerCharacter). */
 export const SAVED_VARIABLES_NAME = "GlowingBarsCharDB";
@@ -21,6 +21,14 @@ const HIDDEN_WINDOWS = { trackedBuffsIcons: "hide", trackedBarsIcons: "hide", es
 
 /** The lines the addon writes in the chat by itself: the greeting, and the notes of a buff of an older rank. */
 const CHAT_LINES = { shouldShowGreeting: true, shouldNoteOwnOlderRankBuffs: true, shouldNoteOthersOlderRankBuffs: true } as const;
+
+/** The cooldowns and procs that glow as they are ready: all on; the looks of the utility cooldowns not moved yet. */
+const COOLDOWN_SWITCHES = {
+    isReadyCooldownEnabled: true,
+    isUtilityCooldownEnabled: true,
+    isProcEnabled: true,
+    areUtilityLooksMoved: false,
+} as const;
 
 /** The shaman's totems: whether a totem gone glows, and the last dropped in each slot (none yet). */
 function createTotemSettings(): Pick<AddonSettings, "isTotemGoneEnabled" | "lastTotems"> {
@@ -59,12 +67,11 @@ export function createDefaultSettings(): AddonSettings {
         raidGroupFrom: 1,
         isOldRankEnabled: true,
         isLowReagentEnabled: true,
-        isReadyCooldownEnabled: true,
+        ...COOLDOWN_SWITCHES,
         reagentBelow: 10,
         stockBelow: 20,
         isLowStockEnabled: true,
         belowLimits: {},
-        isProcEnabled: true,
         isMissingSealEnabled: true,
         isMissingTrackingEnabled: true,
         ...createTotemSettings(),
@@ -99,7 +106,7 @@ const READY_WHENS: When[] = ["always", "alwaysStart", "inCombat", "inCombatStart
  * the low reagents and the low stock also with their alert in a town.
  */
 export function listWhenChoices(reminderType: ReminderType): When[] {
-    if (reminderType === "readyCooldown") {
+    if (COOLDOWN_TYPES.includes(reminderType as CooldownType)) {
         return [...READY_WHENS, "enemyTargeted", "allyTargeted", "anyTargeted"];
     }
     const choices: When[] = ["always", "inCombat", "outOfCombat", "enemyTargeted", "allyTargeted", "anyTargeted"];
@@ -143,6 +150,7 @@ export const GROUP_FROM_CHOICES = [1, 2, 3, 4, 5];
 /** The types a spell can be added as, in the order the add button goes through them. */
 export const ADDABLE_TYPES: AddableType[] = [
     "readyCooldown",
+    "utilityCooldown",
     "proc",
     "missingBuff",
     "weaponBuff",
@@ -162,9 +170,13 @@ export const TYPE_ORDER: ReminderType[] = [
     "lowReagent",
     "lowStock",
     "readyCooldown",
+    "utilityCooldown",
     "proc",
     "oldRank",
 ];
+
+/** The types of a cooldown that glows as it is ready: each glows once, with the "+ start" choices to glow again. */
+export const COOLDOWN_TYPES: CooldownType[] = ["readyCooldown", "utilityCooldown"];
 
 /** A saved value that is one of the choices; undefined for any other. */
 /** How long a message can stay, in seconds; 0 is as long as the button glows. */

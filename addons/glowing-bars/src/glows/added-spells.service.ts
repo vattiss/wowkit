@@ -25,7 +25,7 @@ export class AddedSpellsService {
     findTypeProblem(spellId: number, reminderType: AddableType): TextKey | undefined {
         // A trinket's use spell has none of its own: the item's counts
         if (
-            reminderType === "readyCooldown" &&
+            (reminderType === "readyCooldown" || reminderType === "utilityCooldown") &&
             !FORM_COOLDOWNS.includes(spellId) &&
             this.cooldowns.getBaseCooldown(spellId) <= 0 &&
             this.cooldowns.findUseItem(spellId) === undefined

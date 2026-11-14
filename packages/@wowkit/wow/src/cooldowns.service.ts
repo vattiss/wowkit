@@ -1,6 +1,7 @@
 // Spell cooldowns as the client tells them. In combat the client often hides them (secret values); the answer says so.
 // A trinket's use spell has no cooldown of its own: the item has it, so the item's is read.
 import { OnGameEvent } from "@wowkit/core";
+import { USE_SPELL_ITEMS } from "@wowkit/wow-data";
 import { findItemUseSpell } from "./utils/item-button.utils";
 import { attempt, attemptMulti } from "./utils/protected-call.utils";
 import { getReadable, getReadableId, isReadable } from "./utils/secret-value.utils";
@@ -31,11 +32,15 @@ export class CooldownsService {
         for (const [spellId] of this.useItems) this.useItems.delete(spellId);
     }
 
-    /** The item, equipped or on the bars, whose use is this spell, when the spell has no cooldown of its own (a trinket's). */
+    /**
+     * The item, equipped or on the bars, whose use is this spell, when the spell has no cooldown of its own (a trinket's), or
+     * is one the item keeps (the Hearthstone's).
+     */
     findUseItem(spellId: number): number | undefined {
         const kept = this.useItems.get(spellId);
         if (kept !== undefined) return kept === false ? undefined : kept;
-        const found = this.getBaseCooldown(spellId) <= 0 ? this.lookUpUseItem(spellId) : undefined;
+        const isItemSpell = USE_SPELL_ITEMS[spellId] !== undefined || this.getBaseCooldown(spellId) <= 0;
+        const found = isItemSpell ? this.lookUpUseItem(spellId) : undefined;
         this.useItems.set(spellId, found ?? false);
         return found;
     }

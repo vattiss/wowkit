@@ -156,6 +156,7 @@ export class CooldownManagerService implements OnLogin, OnLogout {
             ...this.addedSpells.listAdded("missingBuff"),
             ...this.glowCues.listBuiltInIds("proc"),
             ...this.glowCues.listCueIds("readyCooldown"),
+            ...this.glowCues.listCueIds("utilityCooldown"),
             ...this.glowCues.listProcAuras(),
         ];
         for (const classBuff of this.classBuffs.getClassBuffs()) ids.push(classBuff.id, ...(classBuff.categoryMembers ?? []));

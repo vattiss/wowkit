@@ -1,5 +1,5 @@
 // The looks of the reminders until the player changes them: of each type, and of the few spells that want another.
-import { Paladin, Racial, Warrior } from "@wowkit/wow-data";
+import { Paladin, Warrior } from "@wowkit/wow-data";
 import { TOTEM_ELEMENTS } from "../reminders/totems.constants";
 import type { ReminderType, Style, StyleOverride } from "./settings.interface";
 
@@ -13,14 +13,6 @@ export const SPELL_STYLE_DEFAULTS: { [key in ReminderType]?: { [spellId: number]
     proc: { [DEFENSIVE_EXECUTE_ROW]: { messageTextChoice: "name" }, [Paladin.TemplarsBulwark]: { when: "inCombat" } },
     // Shield Block lasts 7 seconds: out of a fight it is no use
     missingBuff: { [Warrior.ShieldBlock]: { when: "inCombat" } },
-    // Cultivation grows a second herb: it is used while gathering, out of a fight. The Skyborne's racials (Read Leyline,
-    // Skysight, Walk on Air) can each be of use in a fight or out of one: the player chooses when
-    readyCooldown: {
-        [Racial.Cultivation]: { when: "outOfCombat" },
-        [Racial.ReadLeyline]: { when: "always" },
-        [Racial.Skysight]: { when: "always" },
-        [Racial.WalkOnAir]: { when: "always" },
-    },
     // Each element in its colour: the glow itself tells which one went
     totemGone: Object.fromEntries(TOTEM_ELEMENTS.map((element) => [element.rowId, { color: element.color }])),
 };
@@ -87,6 +79,17 @@ export const STYLE_DEFAULTS: { [key in ReminderType]: Style } = {
         sound: "none",
         repeat: 0,
         when: "inCombat",
+        glowTime: 3,
+        animation: "circling",
+    },
+    // The cooldowns of between fights (a herb, a fall, a run): white as the ready ones, and anywhere, once as each is ready
+    utilityCooldown: {
+        color: [1, 1, 1],
+        glowPercent: 100,
+        isMessageOn: false,
+        sound: "none",
+        repeat: 0,
+        when: "always",
         glowTime: 3,
         animation: "circling",
     },

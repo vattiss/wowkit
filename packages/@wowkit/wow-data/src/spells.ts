@@ -291,6 +291,7 @@ export const Rogue = {
     Preparation: 14185,
 };
 export const Shaman = {
+    AstralRecall: 556,
     LightningShield: 324,
     WaterShield: 408510,
     // The imbues, every rank (the last ones are Forever's own)
@@ -498,6 +499,11 @@ export const Cure = {
  * The buffs of eating and drinking: a food gives the buff "Food", a drink "Drink", Forever's better ones "Nutritious Food"
  * and "Nutritious Drink" (each food has an ID of its own, the name is the one to go by); a good food or a Nutritious Drink, after it, "Well Fed".
  */
+/** The ways home: the spell the Hearthstone item casts. */
+export const Travel = {
+    Hearthstone: 8690,
+};
+
 /** Things to rest and camp with, and the buffs they give under another name. */
 export const Camp = {
     CozySleepingBag: 211527,
@@ -614,6 +620,7 @@ export const SPELLS = {
     Rogue,
     Shaman,
     Tracking,
+    Travel,
     Warlock,
     Warrior,
 };

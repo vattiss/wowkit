@@ -67,6 +67,7 @@ import { WeaponReminderService } from "./reminders/weapon/weapon-reminder.servic
 import { ACCOUNT_VARIABLES_NAME, createDefaultSettings, repairSettings } from "./settings/settings.constants";
 import type { AddonSettings } from "./settings/settings.interface";
 import { StyleService } from "./settings/style.service";
+import { UtilityLooksService } from "./glows/utility-looks.service";
 import { EnabledService } from "./settings/enabled.service";
 import { DisplayService } from "./tick/display.service";
 import { FindRemindersService } from "./tick/find-reminders.service";
@@ -97,6 +98,7 @@ function makeTexts(addon: Addon, game: Game) {
     // At each login it tells where the table is, unless the player switched it off
     addon.register(new GreetingService(messages, locale.getText("INIT"), { settings, key: "shouldShowGreeting" }));
     const styles = addon.register(new StyleService(game.spells, settings));
+    addon.register(new UtilityLooksService(game.spells, settings, styles));
     return { settings, locale, messages, styles };
 }
 export type Texts = ReturnType<typeof makeTexts>;

@@ -41,6 +41,9 @@ export interface Reminders {
     readyCooldowns: number[];
     /** The same, due but on no button now (a page of a bar not shown): their glow time waits for them. */
     pagedAwayCooldowns: number[];
+    /** The cooldowns of between fights that are ready and on a button, and the ones due on no button now. */
+    utilityCooldowns: number[];
+    pagedAwayUtilityCooldowns: number[];
     /** Spells the game says are usable now (and ready): their buttons glow. */
     procs: number[];
 }

@@ -66,6 +66,7 @@ describe("the spells of the table, fixed and added by the player", () => {
         const { reminderType: kind } = findAddRow();
         expect(world.openMenu(kind).map((choice) => choice.label)).toEqual([
             "Ready cooldown",
+            "Utility cooldown",
             "Proc",
             "Missing buff",
             "Weapon buff",

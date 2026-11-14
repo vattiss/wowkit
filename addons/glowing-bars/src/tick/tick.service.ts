@@ -7,7 +7,8 @@
 // the same lists every time, and the tests the filter asks are made once.
 import { Interval, type OnFirstLogin, type OnLogout, type OnReady } from "@wowkit/core";
 import type { ClockService, PlayerService } from "@wowkit/wow";
-import type { ReminderType } from "../settings/settings.interface";
+import type { CooldownType, ReminderType } from "../settings/settings.interface";
+import { COOLDOWN_TYPES } from "../settings/settings.constants";
 import type { StyleService } from "../settings/style.service";
 import type { FindRemindersService } from "./find-reminders.service";
 import type { ShowRemindersService } from "./show-reminders.service";
@@ -87,18 +88,26 @@ export class TickService implements OnFirstLogin, OnLogout, OnReady {
         this.wasInTown = this.isInTown;
         readWhenStarts(now, this.wasWhenState, this.whenStarts);
         this.schedule.startTick();
-        // A ready cooldown on a page not shown keeps the glow time it has had: it does not start over when it is back
-        for (const id of reminders.pagedAwayCooldowns) {
-            if (this.isAllowedNow("readyCooldown", id)) this.schedule.pause(`readyCooldown:${id}`, this.time);
-            else this.schedule.track(`readyCooldown:${id}`, this.time);
-        }
-        // One whose When does not hold now counts its time all the same: it does not glow later, out of its time
-        for (const id of reminders.readyCooldowns) {
-            if (!this.isAllowedNow("readyCooldown", id)) this.schedule.track(`readyCooldown:${id}`, this.time);
-        }
+        this.trackCooldowns("readyCooldown", reminders.readyCooldowns, reminders.pagedAwayCooldowns);
+        this.trackCooldowns("utilityCooldown", reminders.utilityCooldowns, reminders.pagedAwayUtilityCooldowns);
         filterReminders(this.showing, this.byWhen, this.isDueNow);
         this.showing.isInTown = this.isInTown;
         return this.showing;
+    }
+
+    /**
+     * The glow time of the ready cooldowns that do not show now. One on a page not shown keeps the time it has had: it does
+     * not start over when it is back. One whose When does not hold counts its time all the same: it does not glow later,
+     * out of its time.
+     */
+    private trackCooldowns(cooldownType: CooldownType, ready: number[], pagedAway: number[]): void {
+        for (const id of pagedAway) {
+            if (this.isAllowedNow(cooldownType, id)) this.schedule.pause(`${cooldownType}:${id}`, this.time);
+            else this.schedule.track(`${cooldownType}:${id}`, this.time);
+        }
+        for (const id of ready) {
+            if (!this.isAllowedNow(cooldownType, id)) this.schedule.track(`${cooldownType}:${id}`, this.time);
+        }
     }
 
     /** Does the When of the reminder's look hold now? */
@@ -108,7 +117,8 @@ export class TickService implements OnFirstLogin, OnLogout, OnReady {
     private readonly isDueNow: IsShown = (reminderType, id) => {
         const style = this.styles.getStyle(reminderType, id);
         const isStartingOver =
-            (style.when === "townAlert" && this.hasArrivedInTown) || (reminderType === "readyCooldown" && this.whenStarts[style.when]);
+            (style.when === "townAlert" && this.hasArrivedInTown) ||
+            (COOLDOWN_TYPES.includes(reminderType as CooldownType) && this.whenStarts[style.when]);
         return this.schedule.isShowing(`${reminderType}:${id}`, style, this.time, this.isInTown, isStartingOver);
     };
 }

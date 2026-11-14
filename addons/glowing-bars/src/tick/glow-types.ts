@@ -12,6 +12,7 @@ export interface GlowType {
         | "isMissingTrackingEnabled"
         | "isTotemGoneEnabled"
         | "isReadyCooldownEnabled"
+        | "isUtilityCooldownEnabled"
         | "isProcEnabled"
         | "isOldRankEnabled"
         | "isLowReagentEnabled"
@@ -65,6 +66,12 @@ export const TYPES: GlowType[] = [
         isOnSetting: "isReadyCooldownEnabled",
         isOnIcons: true,
         collectSpells: (reminders, spells) => pushAll(spells, reminders.readyCooldowns),
+    },
+    {
+        category: "utilityCooldown",
+        isOnSetting: "isUtilityCooldownEnabled",
+        isOnIcons: true,
+        collectSpells: (reminders, spells) => pushAll(spells, reminders.utilityCooldowns),
     },
     {
         category: "proc",

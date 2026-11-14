@@ -193,6 +193,7 @@ export class NoticesService {
         this.addTypeLines(lines, "missingTracking", reminders.trackings, "TEXT_TRACKING");
         this.addTypeLines(lines, "totemGone", reminders.totemsGone, "TEXT_TOTEM_GONE");
         this.addTypeLines(lines, "readyCooldown", reminders.readyCooldowns, "TEXT_COOLDOWN");
+        this.addTypeLines(lines, "utilityCooldown", reminders.utilityCooldowns, "TEXT_COOLDOWN");
         this.addTypeLines(lines, "proc", reminders.procs, "TEXT_PROC");
         this.addTypeLines(lines, "oldRank", this.listRankIds(reminders), "TEXT_RANK");
         for (const stock of reminders.lowStock)

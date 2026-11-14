@@ -11,7 +11,18 @@ export const Reagents = {
     SymbolOfKings: 21177,
 };
 
+/** Items whose use is a spell with a cooldown of its own, read off the item: the Hearthstone. */
+export const UseItems = {
+    Hearthstone: 6948,
+};
+
+/** The item each such spell is the use of (the spell 8690 is the Hearthstone's). */
+export const USE_SPELL_ITEMS: { [spellId: number]: number | undefined } = {
+    8690: UseItems.Hearthstone,
+};
+
 /** Every table above, by name: what the check goes through. A new table is added here too. */
 export const ITEMS = {
     Reagents,
+    UseItems,
 };

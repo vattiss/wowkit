@@ -1,5 +1,6 @@
-// Cultivation, the tauren's second herb (issue #57): a ready cooldown used while gathering, so out of combat by its own
-// default look. What the player sets on its row wins; the Ready cooldown type's When does not move it, as with Shield Block.
+// Cultivation, the tauren's second herb (issue #57): a utility cooldown, of between fights. It glows anywhere, once as it is
+// ready; its type's When (Utility cooldown) moves it as it moves every utility cooldown, and what the player sets on its row
+// wins over that. The Ready cooldown type's When leaves it alone.
 import { createWorld, describe, expect, it, learnSpell, playAs, WARRIOR, type SpellDefinition, type World } from "@wowkit/test-kit";
 
 const CULTIVATION: SpellDefinition = { id: 20552, name: "Cultivation", rank: 1, icon: 136099, cooldownSeconds: 900 };
@@ -21,8 +22,8 @@ function startFight(world: World): void {
     world.advance(0.5);
 }
 
-describe("Cultivation, a racial used out of combat", () => {
-    it("glows out of combat when ready, for the glow time, and not in a fight", () => {
+describe("Cultivation, a utility cooldown", () => {
+    it("glows once when ready, for the glow time, and not again as a fight starts", () => {
         const world = createTauren();
         expect(world.glowsOn(1)).toBe(1);
         world.advance(3);
@@ -38,19 +39,23 @@ describe("Cultivation, a racial used out of combat", () => {
         expect(world.glowsOn(1)).toBe(0);
     });
 
-    it("goes by the When of its own row, whatever the Ready cooldown type's When is", () => {
+    it("goes by its row's When, else the Utility cooldown type's, and never by the Ready cooldown type's", () => {
         const wrong: string[] = [];
         for (const typeWhen of ["default", ...WHENS]) {
             for (const rowWhen of ["default", ...WHENS]) {
                 const world = createTauren({
-                    styles: typeWhen !== "default" ? { readyCooldown: { when: typeWhen } } : {},
-                    spellStyles: rowWhen !== "default" ? { "readyCooldown:Cultivation": { when: rowWhen } } : {},
+                    styles: {
+                        ...(typeWhen !== "default" ? { utilityCooldown: { when: typeWhen } } : {}),
+                        readyCooldown: { when: "inCombat" },
+                    },
+                    spellStyles: rowWhen !== "default" ? { "utilityCooldown:Cultivation": { when: rowWhen } } : {},
                 });
                 const peace = world.glowsOn(1);
                 startFight(world);
                 const fight = world.glowsOn(1);
-                // Its own row, else its default: Out of combat. In a fight a ready one glows as it starts only with In combat + start
-                const when = rowWhen !== "default" ? rowWhen : "outOfCombat";
+                // Its own row, else its type, else Always. In a fight a ready one glows as it starts only with In combat + start,
+                // or still within its glow time where it may glow in a fight
+                const when = rowWhen !== "default" ? rowWhen : typeWhen !== "default" ? typeWhen : "always";
                 const isInCombatOnly = when === "inCombat" || when === "inCombatStart";
                 const want = `${isInCombatOnly ? 0 : 1}${when !== "outOfCombat" && when !== "inCombat" ? 1 : 0}`;
                 const got = `${peace}${fight}`;

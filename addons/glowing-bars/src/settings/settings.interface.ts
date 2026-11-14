@@ -9,6 +9,7 @@ export type ReminderType =
     | "missingTracking"
     | "totemGone"
     | "readyCooldown"
+    | "utilityCooldown"
     | "proc"
     | "oldRank"
     | "lowReagent"
@@ -68,7 +69,18 @@ export interface Style {
 
 /** The types a spell can be added as by the player: every type but the old ranks, which are found for every spell. */
 export type AddableType =
-    "missingBuff" | "weaponBuff" | "missingSeal" | "missingTracking" | "lowReagent" | "readyCooldown" | "proc" | "lowStock";
+    | "missingBuff"
+    | "weaponBuff"
+    | "missingSeal"
+    | "missingTracking"
+    | "lowReagent"
+    | "readyCooldown"
+    | "utilityCooldown"
+    | "proc"
+    | "lowStock";
+
+/** The types of a cooldown that glows as it is ready: the ones of a fight, and the ones of between fights (a herb, a fall). */
+export type CooldownType = "readyCooldown" | "utilityCooldown";
 
 /** A spell the player added by its ID; for the low stock an item, by its item ID. */
 export interface AddedSpell {
@@ -151,6 +163,10 @@ export interface AddonSettings {
     isLowReagentEnabled: boolean;
     /** Important cooldowns that are ready. */
     isReadyCooldownEnabled: boolean;
+    /** Cooldowns of between fights that are ready (a herb, a fall, a run). */
+    isUtilityCooldownEnabled: boolean;
+    /** Have the looks the player set for them as ready cooldowns moved to their own type (UtilityLooksService)? */
+    areUtilityLooksMoved: boolean;
     /** A group buff's reagent runs low with fewer than this in the bags. */
     reagentBelow: number;
     /** The same of the items the player watches, and whether they are watched. */

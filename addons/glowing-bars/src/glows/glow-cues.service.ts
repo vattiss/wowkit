@@ -12,7 +12,8 @@ import type {
     CooldownViewerService,
     UnitsService,
 } from "@wowkit/wow";
-import type { AddonSettingsService, AddableType } from "../settings/settings.interface";
+import type { AddonSettingsService, AddableType, CooldownType } from "../settings/settings.interface";
+import { COOLDOWN_TYPES } from "../settings/settings.constants";
 import type { AddedSpellsService } from "./added-spells.service";
 import {
     COOLDOWN_CUES,
@@ -21,6 +22,7 @@ import {
     RACIAL_COOLDOWNS,
     SPELL_PROC_CUES,
     TARGET_TYPE_CUES,
+    UTILITY_COOLDOWNS,
     type SpellProcCue,
 } from "./glow-cues.constants";
 import { READY_MARGIN, type CooldownTrackerService } from "./cooldown-tracker.service";
@@ -28,8 +30,8 @@ import type { StanceProcsService } from "./stance-procs.service";
 import type { StyleService } from "../settings/style.service";
 
 export class GlowCuesService {
-    /** The ready cooldowns found due but on no button now (see listPagedAwayCooldowns). */
-    private readonly pagedAway: number[] = [];
+    /** The ready cooldowns of each type found due but on no button now (see listPagedAwayCooldowns). */
+    private readonly pagedAway: { [cooldownType in CooldownType]: number[] } = { readyCooldown: [], utilityCooldown: [] };
     /** The cooldowns that have been running at some point of this fight (or ready as it started, if the player asked). */
     private usedInCombat = new LuaSet<number>();
     /** The spells of each type, kept until the settings or the spells change: every tick asks for them. */
@@ -59,9 +61,11 @@ export class GlowCuesService {
     @OnGameEvent("PLAYER_REGEN_DISABLED")
     startFight(): void {
         this.usedInCombat = new LuaSet<number>();
-        for (const id of this.listCues(this.listCueIds("readyCooldown"), false)) {
-            const isReadyShown = this.styles.getStyle("readyCooldown", id).when === "inCombatStart" && this.actionBars.isOnBars(id);
-            if (isReadyShown || this.tracker.getRemaining(id) > READY_MARGIN) this.usedInCombat.add(id);
+        for (const cooldownType of COOLDOWN_TYPES) {
+            for (const id of this.listCues(this.listCueIds(cooldownType), false)) {
+                const isReadyShown = this.styles.getStyle(cooldownType, id).when === "inCombatStart" && this.actionBars.isOnBars(id);
+                if (isReadyShown || this.tracker.getRemaining(id) > READY_MARGIN) this.usedInCombat.add(id);
+            }
         }
     }
 
@@ -73,38 +77,39 @@ export class GlowCuesService {
      * client hides them. Those of no button are read as well: a bar that pages (by stance, or a bar addon's by Shift or the
      * target) may show them later in the fight.
      */
-    findReadyCooldowns(): number[] {
+    findReadyCooldowns(cooldownType: CooldownType): number[] {
         // The same list each time: a tick makes as few new tables as it can
-        for (let index = this.pagedAway.length; index > 0; index--) this.pagedAway.pop();
-        if (!this.settings.get("isReadyCooldownEnabled")) return [];
+        const pagedAway = this.pagedAway[cooldownType];
+        for (let index = pagedAway.length; index > 0; index--) pagedAway.pop();
+        if (!this.settings.get(cooldownType === "readyCooldown" ? "isReadyCooldownEnabled" : "isUtilityCooldownEnabled")) return [];
         const isInCombat = this.player.isInCombat();
         const ready: number[] = [];
-        for (const id of this.listCues(this.listCueIds("readyCooldown"), false)) {
+        for (const id of this.listCues(this.listCueIds(cooldownType), false)) {
             if (this.tracker.getRemaining(id) > READY_MARGIN) {
                 if (isInCombat) this.usedInCombat.add(id);
                 continue;
             }
             // No cooldown in this form (Faerie Fire out of Bear Form): nothing to wait for
             if (!this.tracker.hasCooldownNow(id)) continue;
-            if (!isInCombat || this.usedInCombat.has(id) || this.isGlowingWheneverReady(id)) {
+            if (!isInCombat || this.usedInCombat.has(id) || this.isGlowingWheneverReady(cooldownType, id)) {
                 if (this.actionBars.isOnBars(id)) ready.push(id);
-                else this.pagedAway.push(id);
+                else pagedAway.push(id);
             }
         }
         return ready;
     }
 
     /** The ready cooldowns the last look found due but on no button now: a page of a bar not shown (a stance, Shift). */
-    listPagedAwayCooldowns(): number[] {
-        return this.pagedAway;
+    listPagedAwayCooldowns(cooldownType: CooldownType): number[] {
+        return this.pagedAway[cooldownType];
     }
 
     /**
      * A look whose When is not In combat (Always, Enemy targeted, Alert in town) glows whenever the cooldown is ready, in a
      * fight too: the rule of what was used in the fight is the one of In combat.
      */
-    private isGlowingWheneverReady(spellId: number): boolean {
-        const when = this.styles.getStyle("readyCooldown", spellId).when;
+    private isGlowingWheneverReady(cooldownType: CooldownType, spellId: number): boolean {
+        const when = this.styles.getStyle(cooldownType, spellId).when;
         return when !== "inCombat" && when !== "inCombatStart";
     }
 
@@ -188,13 +193,15 @@ export class GlowCuesService {
 
     /**
      * The spells of the lists of a type (their wow-data IDs): for cooldowns the class's and the racials the player has
-     * learned, for procs the class's.
+     * learned, for the utility cooldowns the ones of between fights the player has (learned, or on a bar), for procs the class's.
      */
     listBuiltInIds(reminderType: AddableType): number[] {
         const classToken = this.player.getClassToken() ?? "";
         if (reminderType === "proc") return [...(PROC_CUES[classToken] ?? []), ...this.listSpellProcs().map((proc) => proc.id)];
-        const racials = RACIAL_COOLDOWNS.filter((id) => this.spells.isLearned(this.addedSpells.getEffectiveId(id)));
-        return (COOLDOWN_CUES[classToken] ?? []).concat(racials);
+        const isLearned = (id: number): boolean => this.spells.isLearned(this.addedSpells.getEffectiveId(id));
+        // The Hearthstone is an item: it counts on a bar
+        if (reminderType === "utilityCooldown") return UTILITY_COOLDOWNS.filter((id) => isLearned(id) || this.tracker.hasItemCooldown(id));
+        return (COOLDOWN_CUES[classToken] ?? []).concat(RACIAL_COOLDOWNS.filter((id) => isLearned(id)));
     }
 
     /** The spells of a type: the lists', and the ones the player added. */
@@ -210,7 +217,7 @@ export class GlowCuesService {
         return ids;
     }
 
-    @OnEvent("setting.changed", "spells.refreshed", "spells.invalidated", "spellbook.indexed")
+    @OnEvent("setting.changed", "spells.refreshed", "spells.invalidated", "spellbook.indexed", "bars.mapped")
     forgetCueIds(): void {
         for (const [reminderType] of this.cueIds) this.cueIds.delete(reminderType);
     }

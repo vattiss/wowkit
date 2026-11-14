@@ -47,6 +47,7 @@ export const TYPE_TEXTS: { [reminderType in ReminderType]: TextKey } = {
     missingTracking: "TYPE_MISSING_TRACKING",
     totemGone: "TYPE_TOTEM_GONE",
     readyCooldown: "TYPE_READY_COOLDOWN",
+    utilityCooldown: "TYPE_UTILITY_COOLDOWN",
     proc: "TYPE_PROC",
     oldRank: "TYPE_OLD_RANK",
     lowReagent: "TYPE_LOW_REAGENT",
@@ -153,7 +154,7 @@ export class StyleRowsService {
         for (const entry of this.weaponChoice.getWeaponChoices()) addListed("weaponBuff", entry.id);
         for (const id of this.sealReminder.listTableSeals()) addListed("missingSeal", id);
         for (const id of this.trackingReminder.listTrackings()) addListed("missingTracking", id);
-        for (const reminderType of ["readyCooldown", "proc"] as const) {
+        for (const reminderType of ["readyCooldown", "utilityCooldown", "proc"] as const) {
             for (const id of this.glowCues.listBuiltInIds(reminderType)) addListed(reminderType, id);
         }
         // A defensive at low health: the game lights it by itself, so no sound or glow time can follow it

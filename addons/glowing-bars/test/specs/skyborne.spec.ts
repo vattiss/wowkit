@@ -15,13 +15,13 @@ function startFight(world: World): void {
 }
 
 /** A Skyborne with the racial learned and on button 1; the client knows the names of the others, as it does in the game. */
-function createSkyborne(racial: SpellDefinition): World {
+function createSkyborne(racial: SpellDefinition, saved?: Record<string, unknown>): World {
     const world = createWorld((state) => {
         playAs(state, WARRIOR);
         for (const spell of [READ_LEYLINE, SKYSIGHT, WALK_ON_AIR]) state.spells[spell.id] = spell;
         learnSpell(state, racial);
         state.bars[1] = racial.id;
-    });
+    }, saved);
     world.advance(1);
     return world;
 }
@@ -48,6 +48,25 @@ describe("the Skyborne's racial cooldowns", () => {
         toggleTable();
         expect(findLabel(world, "Skysight")).not.toBe(undefined);
         expect(findLabel(world, "Read Leyline")).toBe(undefined);
+        toggleTable();
+    });
+
+    it("goes by the Utility cooldown type's When, all of them alike, and not by the Ready cooldown type's", () => {
+        for (const racial of [READ_LEYLINE, SKYSIGHT, WALK_ON_AIR]) {
+            expect(createSkyborne(racial, { styles: { utilityCooldown: { when: "inCombat" } } }).glowsOn(1)).toBe(0);
+            expect(createSkyborne(racial, { styles: { readyCooldown: { when: "inCombat" } } }).glowsOn(1)).toBe(1);
+        }
+    });
+
+    it("has a Utility cooldown type in the table for a Skyborne, and none for a race without one", () => {
+        const world = createSkyborne(WALK_ON_AIR);
+        toggleTable();
+        expect(findLabel(world, "Utility cooldown")).not.toBe(undefined);
+        toggleTable();
+        const human = createWorld((state) => playAs(state, WARRIOR));
+        human.advance(1);
+        toggleTable();
+        expect(findLabel(human, "Utility cooldown")).toBe(undefined);
         toggleTable();
     });
 });

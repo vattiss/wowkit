@@ -278,6 +278,7 @@ export const TEXTS = {
     TYPE_MISSING_TRACKING: "Missing tracking",
     TYPE_TOTEM_GONE: "Totem gone",
     TYPE_READY_COOLDOWN: "Ready cooldown",
+    TYPE_UTILITY_COOLDOWN: "Utility cooldown",
     TYPE_PROC: "Proc",
     TYPE_OLD_RANK: "Old rank",
     TYPE_LOW_REAGENT: "Low reagent",

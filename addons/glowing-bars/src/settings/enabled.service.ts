@@ -16,6 +16,7 @@ const TYPE_SWITCHES = {
     totemGone: "isTotemGoneEnabled",
     lowReagent: "isLowReagentEnabled",
     readyCooldown: "isReadyCooldownEnabled",
+    utilityCooldown: "isUtilityCooldownEnabled",
     proc: "isProcEnabled",
     oldRank: "isOldRankEnabled",
     lowStock: "isLowStockEnabled",

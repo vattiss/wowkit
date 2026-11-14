@@ -37,6 +37,9 @@ Your Rotation.
   ones glow as a fight starts too (In combat + start), a reminder to use them. Out of
   combat they glow only if you set their When to Always or Out of combat. The list is a default you can switch off spell by spell. When the client hides a
   cooldown in combat, the addon remembers the one it saw or started with a cast.
+- **Utility cooldowns**: the cooldowns of between fights, a type of their own: the racials Cultivation (Tauren), Cannibalize (Undead), Rapid Regeneration (Troll), and the Skyborne's Read
+  Leyline, Skysight and Walk on Air; also the shaman's Astral Recall, and the Hearthstone on a bar. Each glows once as it is
+  ready, anywhere, for 3 seconds by default; the type's row in the table sets them all at once.
 - **Procs**: Overpower and Revenge glow in any stance; the others glow while the game says they can be used: Overpower, Revenge, Execute, Victory Rush, Riposte,
   Counterattack, Mongoose Bite, Hammer of Wrath.
 - **Old ranks**: a spell on your action bars that is a lower rank than the one you know glows, quietly. A spell in a macro doesn't count.
@@ -59,7 +62,7 @@ Any targeted. In a fight Enemy targeted and Any targeted hold without a target t
 its + start choices (Always + start, In combat + start, Out of combat + start) also as their time begins: a fight's start,
 or for Out of combat its end. The targeted ones light it again with each new target. The low reagents and the low
 stock can also be Alert in town, the low reagents' default: the glow anywhere, the message and the sound only in a town or an inn. Everything else shows always by default, but the ready cooldowns and the seals only in combat. The defaults: missing
-buffs blue, weapon buffs orange, ready cooldowns white, procs red, old ranks and low reagents yellow (and a quieter glow
+buffs blue, weapon buffs orange, ready and utility cooldowns white, procs red, old ranks and low reagents yellow (and a quieter glow
 than the others), low stock a quieter red. By default only the old ranks, the reagents and the low stock show a message; the buff messages (including the ones that name a
 buff on no bar and the party members who miss one) are there to switch on. They are set in a table, and every spell of your class can have a look of its own in the same table.
 It opens with `/gb` (or `/gb table`, or the Open Table button of the settings), in a Basic view with the main columns (the Advanced button at the top shows them all), and shows only the types your character has spells of. The Below column appears only when a row has a limit to set. Its Enabled column

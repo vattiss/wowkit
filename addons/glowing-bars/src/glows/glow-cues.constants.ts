@@ -1,6 +1,6 @@
 // The spells that glow by themselves, per class (UnitClass token): the cooldowns worth pressing the moment they are ready,
 // and the spells that become usable only after something happened (a dodge, a parry, a kill, a low target).
-import { Druid, Hunter, Mage, Paladin, Priest, Racial, Rogue, Shaman, Warlock, Warrior } from "@wowkit/wow-data";
+import { Druid, Hunter, Mage, Paladin, Priest, Racial, Rogue, Shaman, Travel, Warlock, Warrior } from "@wowkit/wow-data";
 
 /** Important cooldowns: they glow when ready, in combat. The player can switch each off. */
 export const COOLDOWN_CUES: { [classToken: string]: number[] | undefined } = {
@@ -26,12 +26,11 @@ export const COOLDOWN_CUES: { [classToken: string]: number[] | undefined } = {
 
 /**
  * The racials worth a glow in a fight, of every race: only the ones the player has learned count. Offensive (Blood Fury,
- * Berserking, Elune's Light, Eureka), defensive (Stoneform, Will to Survive, Rapid Regeneration), and the ones that break
- * out of a hold (Will of the Forsaken, Escape Artist, Shatter Curse), War Stomp and Perception. Cultivation, the tauren's
- * second herb, is for between fights (out of combat by its default look); the Skyborne's Read Leyline, Skysight and Walk
- * on Air glow in a fight and out of one (Wind Blessed is passive). And the priest's spells of each race that have a
- * cooldown (Desperate Prayer, Elune's Grace, Feedback, Divine Grace...); the ones without one (Touch of Weakness,
- * Shadowguard, Hex of Weakness) are buffs and debuffs, not cooldowns.
+ * Berserking, Elune's Light, Eureka), defensive (Stoneform, Will to Survive), and the ones that break
+ * out of a hold (Will of the Forsaken, Escape Artist, Shatter Curse), War Stomp and Perception. And the priest's spells
+ * of each race that have a cooldown (Desperate Prayer, Elune's Grace, Feedback, Divine Grace...); the ones without one
+ * (Touch of Weakness, Shadowguard, Hex of Weakness) are buffs and debuffs, not cooldowns. The racials of between fights are
+ * the utility cooldowns.
  */
 export const RACIAL_COOLDOWNS: number[] = [
     Racial.BloodFury,
@@ -40,16 +39,11 @@ export const RACIAL_COOLDOWNS: number[] = [
     Racial.Eureka,
     Racial.Stoneform,
     Racial.WillToSurvive,
-    Racial.RapidRegeneration,
     Racial.WillOfTheForsaken,
     Racial.EscapeArtist,
     Racial.ShatterCurse,
     Racial.WarStomp,
-    Racial.Cultivation,
     Racial.Perception,
-    Racial.ReadLeyline,
-    Racial.Skysight,
-    Racial.WalkOnAir,
     Priest.DesperatePrayer,
     Priest.DivineGrace,
     Priest.Feedback,
@@ -59,6 +53,24 @@ export const RACIAL_COOLDOWNS: number[] = [
     Priest.DarkSacrifice,
     Priest.ConfoundingFlash,
     Priest.ContingencyPlan,
+];
+
+/**
+ * The cooldowns of between fights, a type of their own (Utility cooldown) that glows anywhere, once as each is ready. The
+ * racials: Cultivation, the tauren's second herb; Cannibalize, the undead's regeneration on a corpse; Rapid Regeneration,
+ * the troll's heal that any move or hit breaks; the Skyborne's Read Leyline, Skysight and Walk on Air (Wind Blessed is
+ * passive). And the shaman's Astral Recall, and the Hearthstone. Only the ones the player has learned count, and the
+ * Hearthstone, an item, on a bar. A profession's cooldown (a transmute) cannot go on a bar: it has nothing to glow on.
+ */
+export const UTILITY_COOLDOWNS: number[] = [
+    Racial.Cultivation,
+    Racial.Cannibalize,
+    Racial.RapidRegeneration,
+    Racial.ReadLeyline,
+    Racial.Skysight,
+    Racial.WalkOnAir,
+    Shaman.AstralRecall,
+    Travel.Hearthstone,
 ];
 
 /** Procs: the spell glows while the game says it is usable (and not on cooldown). The player can switch each off. */
