@@ -113,7 +113,6 @@ export class ProcRulesTab {
         const bySpell = new LuaMap<string, SpellRules>();
         const isUnlearnedShown = this.windows.isUnlearnedShown("procRules");
         const add = (entry: RuleEntry) => {
-            if (HIDDEN_KINDS.includes(entry.rule.kind)) return;
             if (entry.ownIndex === undefined && !isUnlearnedShown && !this.spells.isLearned(entry.rule.spellId)) return;
             const label = this.spells.getSpellLabel(entry.rule.spellId) ?? string.format("%d", entry.rule.spellId);
             const spell = bySpell.get(label) ?? { spellId: entry.rule.spellId, label, entries: [] };
@@ -162,16 +161,25 @@ export class ProcRulesTab {
         const { rule } = entry;
         const isOwn = entry.ownIndex !== undefined;
         row.priority.SetText(string.format("%d", rule.priority));
-        row.condition.SetText(describeCondition(rule, this.locale, this.spells));
+        // A buff of the player's rule that only the Cooldown Manager can tell in a fight, with no access to it: marked, its tip says why
+        const isUntold = isOwn && this.isBuffUntold(rule);
+        row.condition.SetText(describeCondition(rule, this.locale, this.spells) + (isUntold ? " *" : ""));
         row.result.SetText(this.locale.getText(rule.result === "noGlow" ? "RULE_NO_GLOW" : "RULE_GLOW"));
         row.group.SetText(rule.group ?? "");
         row.isOn.SetChecked(isOwn ? rule.isOff !== true : this.edits.isBuiltInOn(rule));
         row.builtIn.SetShown(!isOwn);
         row.remove.SetShown(isOwn);
         // The addon's rules are switched off and on only; nothing while the rules are off
-        for (const control of [row.priority, row.result, row.group, row.remove]) this.setEnabled(control, isOn && isOwn);
+        for (const control of [row.priority, row.group, row.remove]) this.setEnabled(control, isOn && isOwn);
+        // A rule on the health can only light its spell
+        this.setEnabled(row.result, isOn && isOwn && !HIDDEN_KINDS.includes(rule.kind));
         this.setEnabled(row.isOn, isOn);
         row.frame.Show();
+    }
+
+    /** A buff rule whose buff the game hides in a fight, while the addon may not have the Cooldown Manager track it. */
+    private isBuffUntold(rule: ProcRule): boolean {
+        return rule.kind === "buff" && this.settings.get("cooldownManagerAccess") !== "full";
     }
 
     private setEnabled(control: Button | EditBox | CheckButton, isEnabled: boolean): void {
@@ -239,6 +247,15 @@ export class ProcRulesTab {
             })),
         );
         row.isOn.SetScript("OnClick", () => this.applyRuleSwitch(row));
+        row.result.SetScript("OnEnter", () => {
+            if (row.entry !== undefined && HIDDEN_KINDS.includes(row.entry.rule.kind)) this.showTip(row.result, "TIP_RULE_HEALTH_RESULT");
+        });
+        row.result.SetScript("OnLeave", () => GameTooltip.Hide());
+        row.frame.EnableMouse(true);
+        row.frame.SetScript("OnEnter", () => {
+            if (row.entry?.ownIndex !== undefined && this.isBuffUntold(row.entry.rule)) this.showTip(row.frame, "TIP_RULE_BUFF_NO_CDM");
+        });
+        row.frame.SetScript("OnLeave", () => GameTooltip.Hide());
         row.isOn.SetScript("OnEnter", () => {
             if (row.entry?.ownIndex === undefined) this.showTip(row.isOn, "TIP_RULE_BUILT_IN");
         });

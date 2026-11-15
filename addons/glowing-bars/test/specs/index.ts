@@ -85,4 +85,5 @@ import "./upgrade-from-main.spec";
 import "./cache-live.spec";
 import "./proc-rules.spec";
 import "./proc-rules-table.spec";
+import "./proc-rules-health.spec";
 import "./tick-garbage.spec";

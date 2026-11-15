@@ -50,10 +50,12 @@ function createWarlock(): World {
 }
 
 describe("a proc told by its spell", () => {
-    it("lights Arcane Missiles only while it is free", () => {
-        const world = createMage(85);
+    it("lights Arcane Missiles by Missile Barrage's buff, not by its being free", () => {
+        const world = createMage(0);
         expect(world.glowsOn(1)).toBe(0);
-        world.state.spellCosts[MISSILES.id] = 0;
+        world.state.spells[MISSILE_BARRAGE.id] = MISSILE_BARRAGE;
+        world.state.auras.push(world.makeAura(MISSILE_BARRAGE.name, MISSILE_BARRAGE.id, 15));
+        world.fire("UNIT_AURA", "player");
         world.advance(1);
         expect(world.glowsOn(1)).toBe(1);
     });
@@ -65,11 +67,6 @@ describe("a proc told by its spell", () => {
         world.fire("UNIT_AURA", "player");
         world.advance(1);
         expect(world.glowsOn(1)).toBe(0);
-        // Gone: free now is Missile Barrage's proc
-        world.state.auras = [];
-        world.fire("UNIT_AURA", "player");
-        world.advance(1);
-        expect(world.glowsOn(1)).toBe(1);
     });
 
     it("lights Arcane Missiles for Missile Barrage's icon, Clearcasting up or not", () => {

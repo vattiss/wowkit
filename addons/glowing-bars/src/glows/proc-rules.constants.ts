@@ -16,8 +16,8 @@ export const CREATURE_TYPES = {
 };
 
 /**
- * The groups of the rules of a spell told two ways: by its buff's icon in the Cooldown Manager, or, where it has no say, by
- * a backup check. Each has its own row and look on the Procs tab, so the player sees which way lit it. A rule with no CDM way
+ * The groups of the rules of a spell told two ways (Shadow Bolt): by its buff's icon in the Cooldown Manager, or, where it
+ * has no say, by a backup check. Each has its own row and look on the Procs tab, so the player sees which way lit it. A rule with no CDM way
  * at all (Revenge after a dodge, Maelstrom Weapon) needs no group.
  */
 const CDM = "CDM";
@@ -43,39 +43,33 @@ const EXORCISM: BuiltInProcRule[] = [CREATURE_TYPES.Undead, CREATURE_TYPES.Demon
 }));
 
 /**
- * Missile Barrage makes Arcane Missiles free, and so does Clearcasting, which makes every spell free: the buff tells first;
- * Clearcasting up, or the buff surely gone, keeps it dark; the spell turning free tells only where nothing says (in a fight
- * the game hides the buffs, and an icon of the Cooldown Manager may have no say).
+ * Missile Barrage's proc, by its buff only (its aura, or in a fight its icon in the Cooldown Manager): Clearcasting makes
+ * Arcane Missiles free too, as every other spell, and in a fight the game may hide which of them did. A rule on Clearcasting
+ * is the player's to add.
  */
-const ARCANE_MISSILES: BuiltInProcRule[] = [
-    { ...describeGlow(Mage.ArcaneMissiles, "buff", Mage.MissileBarrage), group: CDM },
-    { spellId: Mage.ArcaneMissiles, kind: "buff", value: Mage.Clearcasting, result: "noGlow", priority: 2 },
-    { spellId: Mage.ArcaneMissiles, kind: "buffGone", value: Mage.MissileBarrage, result: "noGlow", priority: 2 },
-    { spellId: Mage.ArcaneMissiles, kind: "free", result: "glow", priority: 3, group: BACKUP },
-];
+const ARCANE_MISSILES: BuiltInProcRule[] = [describeGlow(Mage.ArcaneMissiles, "buff", Mage.MissileBarrage)];
+
+/** The two rules on the health the addon lights by services of their own (and rows of their own on the Procs tab). */
+export const EXECUTE_HEALTH_RULE: BuiltInProcRule = { ...describeGlow(Warrior.Execute, "targetHealth", 20), group: "Defensive Stance" };
+export const BULWARK_HEALTH_RULE: BuiltInProcRule = describeGlow(Paladin.TemplarsBulwark, "myHealth", 10);
 
 export const BUILT_IN_PROC_RULES: { [classToken: string]: BuiltInProcRule[] | undefined } = {
     HUNTER: [describeGlow(Hunter.Counterattack, "usable"), describeGlow(Hunter.MongooseBite, "usable")],
     MAGE: ARCANE_MISSILES,
-    PALADIN: [
-        describeGlow(Paladin.HammerOfWrath, "usable"),
-        ...EXORCISM,
-        { ...describeGlow(Paladin.TemplarsBulwark, "myHealth", 10), group: "low health" },
-    ],
+    PALADIN: [describeGlow(Paladin.HammerOfWrath, "usable"), ...EXORCISM, BULWARK_HEALTH_RULE],
     ROGUE: [describeGlow(Rogue.Riposte, "usable")],
     // Instant with 5 stacks of Maelstrom Weapon only; its icon shows at any number, so no buff tells
     SHAMAN: [describeGlow(Shaman.LightningBolt, "instant")],
     WARLOCK: [
         { ...describeGlow(Warlock.ShadowBolt, "buff", Warlock.ShadowTrance), group: CDM },
-        { spellId: Warlock.ShadowBolt, kind: "buffGone", value: Warlock.ShadowTrance, result: "noGlow", priority: 2 },
-        { spellId: Warlock.ShadowBolt, kind: "instant", result: "glow", priority: 3, group: BACKUP },
+        { spellId: Warlock.ShadowBolt, kind: "instant", result: "glow", priority: 2, group: BACKUP },
     ],
     WARRIOR: [
         describeGlow(Warrior.Overpower, "usable"),
         describeGlow(Warrior.Overpower, "targetDodged"),
         ...REVENGE,
         describeGlow(Warrior.Execute, "usable"),
-        { ...describeGlow(Warrior.Execute, "targetHealth", 20), group: "Defensive Stance" },
+        EXECUTE_HEALTH_RULE,
         describeGlow(Warrior.VictoryRush, "usable"),
     ],
 };

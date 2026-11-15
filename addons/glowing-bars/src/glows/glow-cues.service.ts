@@ -178,22 +178,8 @@ export class GlowCuesService {
     /** The buffs of the procs told by their spell, for the Cooldown Manager to track. */
     listProcAuras(): number[] {
         const ids: number[] = [];
-        for (const proc of this.listSpellProcs()) ids.push(...proc.auras, ...(proc.notWhile ?? []));
+        for (const proc of this.listSpellProcs()) ids.push(...proc.auras);
         return ids;
-    }
-
-    /** What the icons of a proc's buffs say: up when one is, gone when all are out, undefined when one has no say. */
-    private readProcIcons(auras: number[]): boolean | undefined {
-        // No buff to ask: the spell tells
-        if (auras.length === 0) return undefined;
-        let isAnyUnknown = false;
-        for (const id of auras) {
-            const name = this.spells.getSpellName(id);
-            const isUp = name !== undefined ? this.cooldownViewer.isBuffActive(name) : undefined;
-            if (isUp === true) return true;
-            if (isUp === undefined) isAnyUnknown = true;
-        }
-        return isAnyUnknown ? undefined : false;
     }
 
     private isProcUp(id: number): boolean {
@@ -201,7 +187,7 @@ export class GlowCuesService {
         const creatureTypes = TARGET_TYPE_CUES.find(([listId]) => this.spells.getSpellLabel(listId) === name)?.[1];
         if (creatureTypes !== undefined && !this.isTargetOfType(id, creatureTypes)) return false;
         const spellProc = this.listSpellProcs().find((proc) => this.spells.getSpellLabel(proc.id) === name);
-        if (spellProc !== undefined) return this.readProcIcons(spellProc.auras) ?? this.isSignShowing(id, spellProc);
+        if (spellProc !== undefined) return this.isAnyBuffUp(spellProc.auras) || this.isSignShowing(id, spellProc);
         return this.spellDetails.readUsability(id).isUsable === true || this.stanceProcs.isOpen(id);
     }
 
@@ -216,10 +202,16 @@ export class GlowCuesService {
         return this.spellDetails.isInRange(id, "target") === true;
     }
 
-    /** Is the spell free or instant now, by its proc, not by a buff that makes every spell so (Clearcasting)? */
+    /** Is the spell free or instant now, by its proc (a proc with no such sign: no)? */
     private isSignShowing(id: number, spellProc: SpellProcCue): boolean {
-        const isShowing = spellProc.sign === "free" ? this.spellDetails.isFreeNow(id) : this.spellDetails.isInstantNow(id);
-        return isShowing && !(spellProc.notWhile ?? []).some((buff) => this.isBuffUp(buff));
+        if (spellProc.sign === undefined) return false;
+        return spellProc.sign === "free" ? this.spellDetails.isFreeNow(id) : this.spellDetails.isInstantNow(id);
+    }
+
+    /** Is one of the proc's buffs on the player (by its aura, or its icon in the Cooldown Manager)? */
+    private isAnyBuffUp(buffs: number[]): boolean {
+        for (const buff of buffs) if (this.isBuffUp(buff)) return true;
+        return false;
     }
 
     /**

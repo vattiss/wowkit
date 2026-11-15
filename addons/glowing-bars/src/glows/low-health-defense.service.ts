@@ -4,6 +4,8 @@
 // or below. Its message, if the player wants one, does the same. The addon never learns whether they show: no sound and no
 // glow time can follow them, and the table fades those on its row.
 import { Interval } from "@wowkit/core";
+import { BULWARK_HEALTH_RULE } from "./proc-rules.constants";
+import { isBuiltInRuleOff } from "./proc-rules.interface";
 import type {
     ActionBarsService,
     BarKeysService,
@@ -97,6 +99,8 @@ export class LowHealthDefenseService {
         if (!this.settings.get("isProcEnabled") || this.settings.get("isDisabled") || this.idle.shouldStayIdle(false)) return undefined;
         for (const listId of this.glowCues.listLowHealthIds()) {
             if (this.settings.get("enabledSpells")[string.format("%d", listId)] === false) continue;
+            // Its rule switched off on the Proc rules tab (with the rules on)
+            if (listId === BULWARK_HEALTH_RULE.spellId && isBuiltInRuleOff(this.settings, BULWARK_HEALTH_RULE)) continue;
             const spellId = this.spells.resolve(listId);
             if (spellId !== undefined && this.actionBars.isOnBars(spellId) && !this.glowCues.isOnCooldown(spellId)) return spellId;
         }

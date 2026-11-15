@@ -100,23 +100,23 @@ export const TARGET_TYPE_CUES: [spellId: number, creatureTypes: number[]][] = [
     [Paladin.Exorcism, [CREATURE_TYPE.Demon, CREATURE_TYPE.Undead]],
 ];
 
-/** A proc told by its spell, and the buffs that tell it. */
+/** A proc told by its buffs, and by its spell where no other buff makes it so. */
 export interface SpellProcCue {
     id: number;
-    sign: "free" | "instant";
-    /** The proc's buffs: their icons in the Cooldown Manager tell first. */
+    /** The spell turns free or instant with the proc; none where something else does it too (Clearcasting: any spell free). */
+    sign?: "free" | "instant";
+    /** The proc's buffs: by their aura, or in a fight by their icons in the Cooldown Manager. */
     auras: number[];
-    /** Buffs that make every spell so (Clearcasting: any spell free): while one is up, the sign tells nothing of the proc. */
-    notWhile?: number[];
 }
 
 /**
- * Procs told by their spell: the game hides them in a fight, as buffs. Their icons in the Cooldown Manager tell (`auras`),
- * else their spell, by turning free or instant. Without the talent the spell never does, so no other check is needed.
+ * Procs told by their buffs (`auras`: the aura, or in a fight, when the game hides it, the icon in the Cooldown Manager), or
+ * by their spell turning free or instant. Without the talent the spell never does, so no other check is needed.
  */
 export const SPELL_PROC_CUES: { [classToken: string]: SpellProcCue[] | undefined } = {
-    // Missile Barrage's proc. Clearcasting makes Arcane Missiles free too, as every other spell: that is not its proc
-    MAGE: [{ id: Mage.ArcaneMissiles, sign: "free", auras: [Mage.MissileBarrage], notWhile: [Mage.Clearcasting] }],
+    // Missile Barrage's proc, by its buff only: Clearcasting makes Arcane Missiles free too, as every other spell, which is not
+    // its proc, and in a fight the game may hide which of them did
+    MAGE: [{ id: Mage.ArcaneMissiles, auras: [Mage.MissileBarrage] }],
     WARLOCK: [{ id: Warlock.ShadowBolt, sign: "instant", auras: [Warlock.ShadowTrance] }],
     // Instant with 5 stacks of Maelstrom Weapon only. No buff to ask: its icon shows at any number of stacks
     SHAMAN: [{ id: Shaman.LightningBolt, sign: "instant", auras: [] }],

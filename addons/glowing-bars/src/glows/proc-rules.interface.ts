@@ -1,12 +1,12 @@
 // The rules of the procs (beta, behind "Use advanced proc rules"): each rule is a spell and one condition; a spell with
 // several rules glows by the first priority at which one of them holds (the same number counts equally, the lowest is
 // asked first), and that rule's result and group decide whether it glows and with which row's look.
+import type { AddonSettingsService } from "../settings/settings.interface";
 
 /**
  * What a rule asks:
  * - usable: the game says the spell can be cast now (Execute below 20%, Victory Rush after a kill)
  * - buff: a buff (`value`, its spell ID) is on the player, by its aura or its icon in the Cooldown Manager
- * - buffGone: the buff is surely not on the player: its icon in the Cooldown Manager is out (not knowing is not gone)
  * - targetType: a living enemy of a creature type (`value`, the game's ID: 3 Demon, 6 Undead) is targeted, and the spell is
  *   usable
  * - afterBlock / afterDodge / afterParry: the player blocked, dodged or parried in the last few seconds
@@ -18,7 +18,6 @@
 export type ProcConditionKind =
     | "usable"
     | "buff"
-    | "buffGone"
     | "targetType"
     | "afterBlock"
     | "afterDodge"
@@ -33,7 +32,6 @@ export type ProcConditionKind =
 export const PROC_CONDITION_KINDS: ProcConditionKind[] = [
     "usable",
     "buff",
-    "buffGone",
     "targetType",
     "afterBlock",
     "afterDodge",
@@ -68,13 +66,33 @@ export interface BuiltInProcRule extends ProcRule {
      * only for a spell that hits nothing else (Exorcism).
      */
     isRangeFallback?: boolean;
+    /** A rule of the player's, as the engine lists it (its buff may also be told by the addon's memory of a cast). */
+    isOwn?: boolean;
+    /** The switch of its group's row, as the engine lists it (see buildGroupSwitchKey); none for a rule of no group. */
+    switchKey?: string;
 }
 
 /** The kinds whose answer only the game knows (a glow it fades): the engine of the ticks leaves them to their own services. */
 export const HIDDEN_KINDS: ProcConditionKind[] = ["targetHealth", "myHealth"];
 
 /** The kinds that take a value, and the ones that take none. */
-export const VALUE_KINDS: ProcConditionKind[] = ["buff", "buffGone", "targetType", "targetHealth", "myHealth"];
+export const VALUE_KINDS: ProcConditionKind[] = ["buff", "targetType", "targetHealth", "myHealth"];
+
+/** The group of a rule of the player's on the health: always one (its glow can do less than the spell's row), by default its condition. */
+export function findHealthGroup(rule: ProcRule): string {
+    if (rule.group !== undefined && rule.group !== "") return rule.group;
+    return string.format("%s <= %d%%", rule.kind === "myHealth" ? "my health" : "target health", rule.value ?? 0);
+}
+
+/** Has the player switched this built-in rule off, with the rules on? (The rules on the health are lit by services of their own.) */
+export function isBuiltInRuleOff(settings: AddonSettingsService, rule: ProcRule): boolean {
+    return settings.get("shouldUseProcRules") && settings.get("disabledProcRules")[buildProcRuleKey(rule)] === true;
+}
+
+/** The key of the switch of a group's row on the Procs tab, in the per-spell switches ("group:6572:dodge"). */
+export function buildGroupSwitchKey(spellId: number, group: string): string {
+    return `group:${spellId}:${group}`;
+}
 
 /** The key a built-in rule is switched off by: its spell, its kind and its value ("20271:targetType:6"). */
 export function buildProcRuleKey(rule: ProcRule): string {

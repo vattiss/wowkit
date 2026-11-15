@@ -1,6 +1,18 @@
 // The Proc rules tab of the table (beta): the switch of the new engine, the addon's rules switched off and on, the
 // player's rules added, changed and taken out, and a group's row on the Procs tab with a look of its own.
-import { createWorld, describe, expect, it, learnSpell, PALADIN, playAs, WARRIOR, type FakeFrame, type World } from "@wowkit/test-kit";
+import {
+    createWorld,
+    describe,
+    expect,
+    it,
+    learnSpell,
+    MAGE,
+    PALADIN,
+    playAs,
+    WARRIOR,
+    type FakeFrame,
+    type World,
+} from "@wowkit/test-kit";
 import { findLabel, findRow, showTab, toggleTable } from "./table.helpers";
 
 const REVENGE = { id: 6572, name: "Revenge", rank: 1, icon: 132353, isHarmful: true, cooldownSeconds: 5 };
@@ -137,5 +149,57 @@ describe("a rule of the player's in the Proc rules tab", () => {
         click(findRule(world, "Buff up: Holy Shield").remove);
         expect(world.getSavedSettings()!.procRules).toEqual([]);
         expect(findLabel(world, "Holy Strike (shield)")).toBeUndefined();
+    });
+});
+
+describe("the switches of the Procs and Proc rules tabs", () => {
+    function createWarrior(saved: Record<string, unknown> = {}): World {
+        const world = createWorld((state) => {
+            playAs(state, WARRIOR);
+            learnSpell(state, REVENGE);
+            state.bars[1] = REVENGE.id;
+            state.unusableSpells[REVENGE.id] = true;
+            state.isInCombat = true;
+        }, saved);
+        world.advance(1);
+        return world;
+    }
+
+    it("switch a group's row off on the Procs tab: its rules light nothing, the others still do", () => {
+        const world = createWarrior({
+            shouldUseProcRules: true,
+            disabledProcRules: { "6572:afterDodge": true },
+            procRules: [{ spellId: REVENGE.id, kind: "afterDodge", result: "glow", priority: 1, group: "dodge" }],
+        });
+        toggleTable();
+        showTab(world, "Procs");
+        click(findRow(world, "Revenge (dodge)").enabled, false);
+        expect((world.getSavedSettings()!.enabledSpells as Record<string, boolean>)["group:6572:dodge"]).toBe(false);
+        world.fire("UNIT_COMBAT", "player", "DODGE", "", 0, 1);
+        world.advance(0.5);
+        expect(world.glowsOn(1)).toBe(0);
+        world.fire("UNIT_COMBAT", "player", "BLOCK", "", 0, 1);
+        world.advance(0.5);
+        expect(world.glowsOn(1)).toBe(1);
+    });
+
+    it("show the spells not learned yet: on Procs always offered, on Proc rules shown by default", () => {
+        // A mage whose one proc, Arcane Missiles, is learned: no spell of the tab to show, the switch all the same
+        const mage = createWorld((state) => {
+            playAs(state, MAGE);
+            learnSpell(state, { id: 5143, name: "Arcane Missiles", rank: 1, icon: 136096, isHarmful: true });
+            state.bars[1] = 5143;
+        });
+        mage.advance(1);
+        toggleTable();
+        showTab(mage, "Procs");
+        expect(findFrameOf(mage, "Show unlearned spells")).toBeDefined();
+        toggleTable();
+        const world = createWarrior();
+        // Overpower is known to the game, not learned yet
+        world.state.spells[7384] = { id: 7384, name: "Overpower", rank: 1, icon: 132223, isHarmful: true };
+        toggleTable();
+        showTab(world, "Proc rules");
+        expect(findFrameOf(world, "Overpower")).toBeDefined();
     });
 });

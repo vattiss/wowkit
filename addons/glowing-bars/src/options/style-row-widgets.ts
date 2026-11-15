@@ -76,8 +76,6 @@ export class StyleRowWidgets {
         this.edits.fillBelowBox(widgets.belowBox, row);
         applyRowView(widgets, this.windows.getColumns(), this.windows.isAdvanced());
         this.choices.fillMessageGear(widgets.messageGear, row, this.windows.isAdvanced());
-        // A group's row of the proc rules has no switch of its own: its rules are switched on the Proc rules tab
-        if (row.isGroupRow === true) widgets.enabled.Hide();
     }
 
     createWidgets(content: Frame): RowWidgets {

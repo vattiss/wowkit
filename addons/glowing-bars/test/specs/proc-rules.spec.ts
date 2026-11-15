@@ -126,9 +126,9 @@ describe("Revenge by the proc rules", () => {
 describe("Arcane Missiles by the proc rules", () => {
     const MISSILES: SpellDefinition = { id: 5143, name: "Arcane Missiles", rank: 1, icon: 136096, maxRange: 30, isHarmful: true };
     const BARRAGE = 400588;
-    const LOOKS = { "proc:Arcane Missiles (CDM)": { glowPercent: 40 }, "proc:Arcane Missiles (backup)": { glowPercent: 60 } };
+    const CLEARCASTING = 12536;
 
-    function createMage(barrage: boolean | undefined): World {
+    function createMage(saved: Record<string, unknown>, buffs: [id: number, name: string][]): World {
         const world = createWorld(
             (state) => {
                 playAs(state, MAGE);
@@ -136,16 +136,33 @@ describe("Arcane Missiles by the proc rules", () => {
                 state.bars[1] = MISSILES.id;
                 state.spellCosts[MISSILES.id] = 0;
                 state.spells[BARRAGE] = { id: BARRAGE, name: "Missile Barrage", rank: 1, icon: 1 };
-                if (barrage !== undefined) state.trackedBuffs.push({ spellId: BARRAGE, isActive: barrage });
+                state.spells[CLEARCASTING] = { id: CLEARCASTING, name: "Clearcasting", rank: 1, icon: 1 };
             },
-            { shouldUseProcRules: true, spellStyles: LOOKS },
+            { shouldUseProcRules: true, ...saved },
         );
+        for (const [id, name] of buffs) world.state.auras.push(world.makeAura(name, id, 15));
         world.advance(2);
         return world;
     }
 
-    it("shows by the look of the CDM row what the Cooldown Manager lit, and by the backup row what the free spell did", () => {
-        expect(createMage(true).glowAlphasOn(1)).toEqual([0.4]);
-        expect(createMage(undefined).glowAlphasOn(1)).toEqual([0.6]);
+    it("lights it by Missile Barrage, not by Clearcasting or its being free", () => {
+        expect(createMage({}, [[BARRAGE, "Missile Barrage"]]).glowsOn(1)).toBe(1);
+        expect(createMage({}, [[CLEARCASTING, "Clearcasting"]]).glowsOn(1)).toBe(0);
+        expect(createMage({}, []).glowsOn(1)).toBe(0);
+    });
+
+    it("lights it by Clearcasting too with a rule of the player's, in the look of its group", () => {
+        const saved = {
+            procRules: [{ spellId: MISSILES.id, kind: "buff", value: CLEARCASTING, result: "glow", priority: 2, group: "clearcasting" }],
+            spellStyles: { "proc:Arcane Missiles (clearcasting)": { glowPercent: 40 } },
+        };
+        expect(createMage(saved, [[CLEARCASTING, "Clearcasting"]]).glowAlphasOn(1)).toEqual([0.4]);
+        // Missile Barrage first: its rule is of a lower number, the spell's own look
+        expect(
+            createMage(saved, [
+                [BARRAGE, "Missile Barrage"],
+                [CLEARCASTING, "Clearcasting"],
+            ]).glowAlphasOn(1),
+        ).toEqual([1]);
     });
 });

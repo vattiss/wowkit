@@ -6,8 +6,16 @@ import { OnEvent } from "@wowkit/core";
 import type { AurasService, CooldownViewerService, PlayerService, SpellDetailsService, SpellsService, UnitsService } from "@wowkit/wow";
 import type { AddonSettingsService } from "../settings/settings.interface";
 import { BUILT_IN_PROC_RULES } from "./proc-rules.constants";
-import { buildProcRuleKey, HIDDEN_KINDS, type BuiltInProcRule, type ProcConditionKind } from "./proc-rules.interface";
+import {
+    buildGroupSwitchKey,
+    buildProcRuleKey,
+    HIDDEN_KINDS,
+    type BuiltInProcRule,
+    type ProcConditionKind,
+    type ProcRule,
+} from "./proc-rules.interface";
 import type { StanceProcsService } from "./stance-procs.service";
+import type { BuffStateService } from "../character/buff-state.service";
 
 /** What a condition says of a spell now: holds, does not, or the game does not tell (undefined). */
 type Check = (this: void, spellId: number, rule: BuiltInProcRule) => boolean | undefined;
@@ -18,6 +26,10 @@ export class ProcRulesService {
     private spellIds: number[] | undefined;
     /** The group of the rule that lit each spell at the last look; none: the spell's own row. */
     private readonly litGroups = new LuaMap<number, string>();
+    /** The spells a rule whose answer the addon knows lit at the last look: a rule on the health then has nothing to add. */
+    private readonly litSpells = new LuaSet<number>();
+    /** The player's rules on the health that are on, worked out with the others. */
+    private ownHealthRules: ProcRule[] | undefined;
     private readonly checks: { [kind in ProcConditionKind]?: Check };
 
     constructor(
@@ -29,11 +41,11 @@ export class ProcRulesService {
         private readonly stanceProcs: StanceProcsService,
         private readonly cooldownViewer: CooldownViewerService,
         private readonly auras: AurasService,
+        private readonly buffState: BuffStateService,
     ) {
         this.checks = {
             usable: (spellId) => this.isUsable(spellId),
-            buff: (_spellId, rule) => this.isBuffUp(rule.value ?? 0),
-            buffGone: (_spellId, rule) => this.isBuffSurelyGone(rule.value ?? 0),
+            buff: (_spellId, rule) => this.isBuffUp(rule.value ?? 0, rule.isOwn === true),
             targetType: (spellId, rule) => this.isTargetOfType(spellId, rule),
             afterBlock: () => this.stanceProcs.isAfterAvoided("BLOCK"),
             afterDodge: () => this.stanceProcs.isAfterAvoided("DODGE"),
@@ -53,13 +65,17 @@ export class ProcRulesService {
     forgetRules(): void {
         this.rulesByName = undefined;
         this.spellIds = undefined;
+        this.ownHealthRules = undefined;
     }
 
     /** Every rule that counts: the class's own but those switched off, and the player's. */
     listRules(): BuiltInProcRule[] {
         const disabled = this.settings.get("disabledProcRules");
         const builtIn = BUILT_IN_PROC_RULES[this.player.getClassToken() ?? ""] ?? [];
-        const own = this.settings.get("procRules").filter((rule) => rule.isOff !== true);
+        const own = this.settings
+            .get("procRules")
+            .filter((rule) => rule.isOff !== true)
+            .map((rule) => ({ ...rule, isOwn: true }));
         return [...builtIn.filter((rule) => disabled[buildProcRuleKey(rule)] !== true), ...own];
     }
 
@@ -75,9 +91,11 @@ export class ProcRulesService {
     /** Is the proc up by its rules? A spell with no rule (a proc added before the rules) goes by the game calling it usable. */
     isProcUp(spellId: number): boolean {
         this.litGroups.delete(spellId);
+        this.litSpells.delete(spellId);
         const rules = this.findRulesOf(spellId);
         if (rules === undefined) return this.isUsable(spellId);
         const lit = this.findLitRule(spellId, rules);
+        if (lit !== undefined) this.litSpells.add(spellId);
         if (lit?.group !== undefined && lit.group !== "") this.litGroups.set(spellId, lit.group);
         return lit !== undefined;
     }
@@ -92,11 +110,34 @@ export class ProcRulesService {
                 if (lit !== undefined || isKeptDark) break;
                 level = rule.priority;
             }
+            // A group switched off on the Procs tab: its rules hold for nothing
+            if (rule.switchKey !== undefined && this.settings.get("enabledSpells")[rule.switchKey] === false) continue;
             if (this.checks[rule.kind]?.(spellId, rule) !== true) continue;
             if (rule.result === "noGlow") isKeptDark = true;
             else lit ??= rule;
         }
         return lit;
+    }
+
+    /** The buffs the player's rules that are on ask for (up or gone), for the Cooldown Manager to track; none while the rules are off. */
+    listRuleBuffs(): number[] {
+        if (!this.isOn()) return [];
+        const buffs: number[] = [];
+        for (const rule of this.settings.get("procRules")) {
+            if (rule.kind === "buff" && rule.isOff !== true && rule.value !== undefined) buffs.push(rule.value);
+        }
+        return buffs;
+    }
+
+    /** Did a rule whose answer the addon knows light the spell at the last look? */
+    isLitNow(spellId: number): boolean {
+        return this.litSpells.has(spellId);
+    }
+
+    /** The player's rules on the health that are on: lit by a service of their own, as only the game knows the health. */
+    listOwnHealthRules(): ProcRule[] {
+        this.ownHealthRules ??= this.settings.get("procRules").filter((rule) => rule.isOff !== true && HIDDEN_KINDS.includes(rule.kind));
+        return this.ownHealthRules;
     }
 
     /** The group of the rule that lit the spell at the last look: its look is that row's. */
@@ -112,7 +153,8 @@ export class ProcRulesService {
                 const name = this.spells.getSpellLabel(rule.spellId) ?? string.format("%d", rule.spellId);
                 const list = byName.get(name) ?? [];
                 byName.set(name, list);
-                list.push(rule);
+                const switchKey = rule.group !== undefined ? buildGroupSwitchKey(rule.spellId, rule.group) : undefined;
+                list.push({ ...rule, switchKey });
             }
             for (const [, list] of byName) list.sort((a, b) => a.priority - b.priority);
             this.rulesByName = byName;
@@ -124,21 +166,18 @@ export class ProcRulesService {
         return this.spellDetails.readUsability(spellId).isUsable === true;
     }
 
-    /** Is the buff on the player: by its aura, else its icon in the Cooldown Manager; out of a fight no aura is no buff. */
-    private isBuffUp(buffId: number): boolean | undefined {
+    /**
+     * Is the buff on the player: by its aura, else its icon in the Cooldown Manager; for a rule of the player's, also by the
+     * addon's memory of it (cast, or seen before the fight hid it), as a missing buff is told. Out of a fight no aura is no buff.
+     */
+    private isBuffUp(buffId: number, isOwn = false): boolean | undefined {
+        // Asked first: it reads the aura too, and remembers it for the fight, when the game hides it
+        if (isOwn && this.buffState.hasAura(buffId)) return true;
         if (this.auras.readPlayerAura(buffId)?.isFound === true) return true;
         const name = this.spells.getSpellName(buffId);
         const isIconUp = name !== undefined ? this.cooldownViewer.isBuffActive(name) : undefined;
         if (isIconUp !== undefined) return isIconUp;
         return this.player.isInCombat() ? undefined : false;
-    }
-
-    /** Is the buff surely not on the player: its icon in the Cooldown Manager is out? No aura is no proof: the game may hide it. */
-    private isBuffSurelyGone(buffId: number): boolean | undefined {
-        if (this.auras.readPlayerAura(buffId)?.isFound === true) return false;
-        const name = this.spells.getSpellName(buffId);
-        const isIconUp = name !== undefined ? this.cooldownViewer.isBuffActive(name) : undefined;
-        return isIconUp === undefined ? undefined : !isIconUp;
     }
 
     /**

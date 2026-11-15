@@ -200,8 +200,8 @@ describe("one reader for the icons", () => {
             expect(createMage(0, false, false).glowsOn(1)).toBe(0);
         });
 
-        it("falls back on its spell when its icon has no say", () => {
-            expect(createMage(0, undefined, undefined).glowsOn(1)).toBe(1);
+        it("does not glow by its cost alone when its icon has no say: Clearcasting makes every spell free too", () => {
+            expect(createMage(0, undefined, undefined).glowsOn(1)).toBe(0);
         });
 
         it("does not glow for Clearcasting's icon, nor fall back on the spell it makes free", () => {

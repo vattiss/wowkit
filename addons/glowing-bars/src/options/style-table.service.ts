@@ -198,7 +198,9 @@ export class StyleTableService {
             this.tableWidth,
             takenOver.map((row) => row.label),
         );
-        this.showUnlearnedSwitch(content, hasUnlearned ? { tab, top: y, isChecked: isUnlearnedShown } : undefined);
+        // On the Procs tab always, as on the Proc rules tab beside it
+        const hasSwitch = hasUnlearned || tab.key === "procs";
+        this.showUnlearnedSwitch(content, hasSwitch ? { tab, top: y, isChecked: isUnlearnedShown } : undefined);
         if (shownRows.length > 0 || hasUnlearned) y = this.drawSection(content, "HDR_TABLE_SPELLS", shownRows, y);
         const addTypes = ADDABLE_TYPES.filter((reminderType) => tab.types.includes(reminderType));
         if (addTypes.length === 0) {

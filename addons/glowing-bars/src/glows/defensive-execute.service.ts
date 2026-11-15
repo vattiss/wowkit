@@ -4,6 +4,8 @@
 // ValueCurvesService), so it shows only on a low target. Its message, if the player wants one, does the same. The addon
 // never learns whether they show: no sound and no glow time can follow them. The table fades those on this row.
 import { Interval } from "@wowkit/core";
+import { EXECUTE_HEALTH_RULE } from "./proc-rules.constants";
+import { isBuiltInRuleOff } from "./proc-rules.interface";
 import type {
     ActionBarsService,
     ButtonGlow,
@@ -97,6 +99,8 @@ export class DefensiveExecuteService {
         if (this.player.getClassToken() !== "WARRIOR" || !this.player.hasEnemyTarget()) return undefined;
         if (!this.settings.get("isProcEnabled") || this.settings.get("isDisabled") || this.idle.shouldStayIdle(false)) return undefined;
         if (this.settings.get("enabledSpells")[string.format("%d", DEFENSIVE_EXECUTE_ROW)] === false) return undefined;
+        // Its rule switched off on the Proc rules tab (with the rules on)
+        if (isBuiltInRuleOff(this.settings, EXECUTE_HEALTH_RULE)) return undefined;
         const spellId = this.spells.resolve(Warrior.Execute);
         if (spellId === undefined || !this.actionBars.isOnBars(spellId)) return undefined;
         return this.isInDefensiveStance() ? spellId : undefined;

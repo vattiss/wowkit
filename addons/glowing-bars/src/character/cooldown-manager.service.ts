@@ -32,6 +32,8 @@ export class CooldownManagerService implements OnLogin, OnLogout {
     private glowWindows: CooldownWindow[] | undefined;
     private hiddenWindows: CooldownWindow[] | undefined;
     private wasRunByOther = false;
+    /** More buffs to track, from elsewhere (the buffs of the player's proc rules). */
+    private listExtraBuffs: (this: void) => number[] = () => [];
 
     constructor(
         private readonly viewer: CooldownViewerService,
@@ -47,6 +49,11 @@ export class CooldownManagerService implements OnLogin, OnLogout {
         private readonly glow: GlowService,
         private readonly buttons: ButtonRegistryService,
     ) {}
+
+    /** More buffs for the manager to track, asked for each time it is set up. */
+    useExtraBuffs(listExtraBuffs: (this: void) => number[]): void {
+        this.listExtraBuffs = listExtraBuffs;
+    }
 
     onLogin(): void {
         this.chooseDefaults();
@@ -161,6 +168,8 @@ export class CooldownManagerService implements OnLogin, OnLogout {
     applyChoice(key: string): void {
         // The windows kept are worked out again first, whichever handler of the change runs first
         this.clearKeptWindows();
+        // A rule asking for another buff: the manager tracks it from the next peace
+        if (key === "procRules" || key === "shouldUseProcRules") return this.waitToTrackBuffs();
         if (key !== "cooldownManagerAccess" && !COOLDOWN_WINDOWS.some((window) => WINDOW_ICONS_SETTINGS[window] === key)) return;
         this.applyAccess();
         if (this.settings.get("cooldownManagerAccess") === "full") this.waitToTrackBuffs();
@@ -194,6 +203,7 @@ export class CooldownManagerService implements OnLogin, OnLogout {
             ...this.glowCues.listCueIds("readyCooldown"),
             ...this.glowCues.listCueIds("utilityCooldown"),
             ...this.glowCues.listProcAuras(),
+            ...this.listExtraBuffs(),
         ];
         for (const classBuff of this.classBuffs.getClassBuffs()) ids.push(classBuff.id, ...(classBuff.categoryMembers ?? []));
         const names = new LuaSet<string>();

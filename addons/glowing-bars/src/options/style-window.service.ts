@@ -88,7 +88,8 @@ export class StyleWindowService {
 
     /** Does this tab list the spells not learned yet too? */
     isUnlearnedShown(tab: TableTab): boolean {
-        return this.settings.get("shownUnlearned")[tab] === true;
+        // The Proc rules list every spell's rules by default: the class's rules are worth reading before the spell is learned
+        return this.settings.get("shownUnlearned")[tab] ?? tab === "procRules";
     }
 
     /** This tab lists the spells not learned yet too, or leaves them out (saved for the character). */

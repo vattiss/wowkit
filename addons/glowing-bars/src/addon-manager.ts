@@ -6,7 +6,7 @@ import type { Game } from "./game-services";
 
 /** Blizzard's Cooldown Manager, running in the background: what the addon reminds about goes on display in it. */
 export function makeCooldownManager(addon: Addon, game: Game, texts: Texts, buffs: Buffs, reminders: Reminders) {
-    addon.register(
+    const manager = addon.register(
         new CooldownManagerService(
             game.cooldownViewer,
             game.player,
@@ -22,4 +22,6 @@ export function makeCooldownManager(addon: Addon, game: Game, texts: Texts, buff
             game.buttonRegistry,
         ),
     );
+    // The buffs the player's proc rules ask for: in a fight only the manager's icons tell them
+    manager.useExtraBuffs(() => reminders.procRules.listRuleBuffs());
 }

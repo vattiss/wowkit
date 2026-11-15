@@ -4,7 +4,7 @@ import { connectChoiceMenu, type MessagesService } from "@wowkit/ui";
 import type { SpellsService } from "@wowkit/wow";
 import type { AddonLocale } from "../locale/locale.interface";
 import type { TextKey } from "../locale/texts.constants";
-import type { ProcRuleResult } from "../glows/proc-rules.interface";
+import { findHealthGroup, HIDDEN_KINDS, type ProcRuleResult } from "../glows/proc-rules.interface";
 import type { ProcRulesEditsService } from "../glows/proc-rules-edits.service";
 import { CONDITION_CHOICES, describeChoice, type ConditionChoice } from "./proc-rule-words";
 
@@ -21,6 +21,7 @@ export class ProcRulesAddRow {
     private parts: { spell: EditBox; buff: EditBox; buffLabel: FontString; priority: EditBox; group: EditBox } | undefined;
     private controls: (Button | EditBox)[] = [];
     private showChoices: () => void = () => undefined;
+    private isOn = false;
 
     constructor(
         private readonly locale: AddonLocale,
@@ -34,10 +35,12 @@ export class ProcRulesAddRow {
         const frame = this.frame ?? this.create(holder);
         frame.ClearAllPoints();
         frame.SetPoint("TOPLEFT", holder, "TOPLEFT", 0, -top);
+        this.isOn = isOn;
         for (const control of this.controls) {
             if (isOn) control.Enable();
             else control.Disable();
         }
+        this.showChoices();
         frame.Show();
         return top + LABEL_HEIGHT * 2 + ROW_HEIGHT;
     }
@@ -50,14 +53,7 @@ export class ProcRulesAddRow {
         const frame = CreateFrame("Frame", undefined, holder);
         frame.SetSize(AT.add + 80, LABEL_HEIGHT * 2 + ROW_HEIGHT);
         this.frame = frame;
-        this.createText(frame, "GameFontNormal", this.locale.getText("HDR_RULE_ADD"), 0, 0);
-        const labelTop = LABEL_HEIGHT;
-        this.createText(frame, "GameFontNormalSmall", this.locale.getText("LABEL_RULE_SPELL"), AT.spell, labelTop);
-        this.createText(frame, "GameFontNormalSmall", this.locale.getText("HDR_RULE_CONDITION"), AT.condition, labelTop);
-        const buffLabel = this.createText(frame, "GameFontNormalSmall", this.locale.getText("LABEL_RULE_BUFF"), AT.buff, labelTop);
-        this.createText(frame, "GameFontNormalSmall", this.locale.getText("HDR_RULE_RESULT"), AT.result, labelTop);
-        this.createText(frame, "GameFontNormalSmall", this.locale.getText("HDR_RULE_PRIORITY"), AT.priority, labelTop);
-        this.createText(frame, "GameFontNormalSmall", this.locale.getText("HDR_RULE_GROUP"), AT.group, labelTop);
+        const buffLabel = this.createLabels(frame);
         const rowTop = LABEL_HEIGHT * 2;
         const spell = this.createBox(frame, AT.spell + 6, rowTop, 70, true);
         const buff = this.createBox(frame, AT.buff + 6, rowTop, 70, true);
@@ -73,12 +69,45 @@ export class ProcRulesAddRow {
         addButton.SetScript("OnClick", () => this.addRule());
         this.controls = [spell, buff, priority, group, conditionButton, resultButton, addButton];
         this.showChoices = () => {
+            // A rule on the health lights its spell only: the game hides the health, nothing can keep it dark
+            const isHealth = HIDDEN_KINDS.includes(this.choice.kind);
+            if (isHealth) this.result = "glow";
             conditionButton.SetText(describeChoice(this.choice, this.locale));
             resultButton.SetText(this.locale.getText(RESULT_TEXTS[this.result]));
-            const isBuff = this.choice.kind === "buff" || this.choice.kind === "buffGone";
-            buff.SetShown(isBuff);
-            buffLabel.SetShown(isBuff);
+            const isBuff = this.choice.kind === "buff";
+            buff.SetShown(isBuff || isHealth);
+            buffLabel.SetShown(isBuff || isHealth);
+            buffLabel.SetText(this.locale.getText(isHealth ? "LABEL_RULE_PERCENT" : "LABEL_RULE_BUFF"));
+            if (isHealth) resultButton.Disable();
+            else if (this.isOn) resultButton.Enable();
         };
+        resultButton.SetScript("OnEnter", () => {
+            if (!HIDDEN_KINDS.includes(this.choice.kind)) return;
+            GameTooltip.SetOwner(resultButton, "ANCHOR_RIGHT");
+            GameTooltip.SetText(this.locale.getText("TIP_RULE_HEALTH_RESULT"), 1, 1, 1, 1, true);
+            GameTooltip.Show();
+        });
+        resultButton.SetScript("OnLeave", () => GameTooltip.Hide());
+        this.connectMenus(conditionButton, resultButton);
+        this.showChoices();
+        return frame;
+    }
+
+    /** The words over the row: its header, and the name of each part; returns the one over the buff, which changes. */
+    private createLabels(frame: Frame): FontString {
+        this.createText(frame, "GameFontNormal", this.locale.getText("HDR_RULE_ADD"), 0, 0);
+        const labelTop = LABEL_HEIGHT;
+        this.createText(frame, "GameFontNormalSmall", this.locale.getText("LABEL_RULE_SPELL"), AT.spell, labelTop);
+        this.createText(frame, "GameFontNormalSmall", this.locale.getText("HDR_RULE_CONDITION"), AT.condition, labelTop);
+        const buffLabel = this.createText(frame, "GameFontNormalSmall", this.locale.getText("LABEL_RULE_BUFF"), AT.buff, labelTop);
+        this.createText(frame, "GameFontNormalSmall", this.locale.getText("HDR_RULE_RESULT"), AT.result, labelTop);
+        this.createText(frame, "GameFontNormalSmall", this.locale.getText("HDR_RULE_PRIORITY"), AT.priority, labelTop);
+        this.createText(frame, "GameFontNormalSmall", this.locale.getText("HDR_RULE_GROUP"), AT.group, labelTop);
+        return buffLabel;
+    }
+
+    /** The lists of the condition and of the result. */
+    private connectMenus(conditionButton: Button, resultButton: Button): void {
         connectChoiceMenu(conditionButton, () =>
             CONDITION_CHOICES.map((choice) => ({
                 label: describeChoice(choice, this.locale),
@@ -99,8 +128,6 @@ export class ProcRulesAddRow {
                 },
             })),
         );
-        this.showChoices();
-        return frame;
     }
 
     /** Adds the rule the row says, or says what is wrong with it. */
@@ -110,15 +137,14 @@ export class ProcRulesAddRow {
         if (spellId === undefined || this.spells.getSpellInfo(spellId) === undefined) {
             return this.messages.say(string.format(this.locale.getText("MSG_UNKNOWN_SPELL"), spellId ?? 0));
         }
-        let value = this.choice.creatureType;
-        if (this.choice.kind === "buff" || this.choice.kind === "buffGone") {
-            value = tonumber(parts.buff.GetText());
-            if (value === undefined) return this.messages.say(this.locale.getText("MSG_RULE_NO_BUFF"));
-            if (this.spells.getSpellInfo(value) === undefined) {
-                return this.messages.say(string.format(this.locale.getText("MSG_UNKNOWN_SPELL"), value));
-            }
-        }
-        const group = strtrim(parts.group.GetText());
+        const value = this.readValue(parts.buff.GetText());
+        if (value === false) return;
+        const typed = strtrim(parts.group.GetText());
+        // A rule on the health always has a group: its glow can do less than the spell's own row
+        const isHealth = HIDDEN_KINDS.includes(this.choice.kind);
+        const group = isHealth
+            ? findHealthGroup({ spellId, kind: this.choice.kind, value, result: "glow", priority: 1, group: typed })
+            : typed;
         const priority = math.max(1, math.min(9, tonumber(parts.priority.GetText()) ?? 1));
         this.edits.addRule({
             spellId,
@@ -132,6 +158,23 @@ export class ProcRulesAddRow {
         parts.buff.SetText("");
         parts.group.SetText("");
         for (const box of [parts.spell, parts.buff, parts.group, parts.priority]) box.ClearFocus();
+    }
+
+    /** The value the condition takes: the creature type picked, the buff, or the percent typed; false when it is wrong (the chat says why). */
+    private readValue(typed: string): number | undefined | false {
+        const kind = this.choice.kind;
+        const number = tonumber(typed);
+        if (HIDDEN_KINDS.includes(kind)) {
+            if (number !== undefined && number >= 1 && number <= 99) return math.floor(number);
+            this.messages.say(this.locale.getText("MSG_RULE_NO_PERCENT"));
+            return false;
+        }
+        if (kind !== "buff") return this.choice.creatureType;
+        if (number === undefined) this.messages.say(this.locale.getText("MSG_RULE_NO_BUFF"));
+        else if (this.spells.getSpellInfo(number) === undefined)
+            this.messages.say(string.format(this.locale.getText("MSG_UNKNOWN_SPELL"), number));
+        else return number;
+        return false;
     }
 
     private createText(frame: Frame, font: string, words: string, x: number, top: number): FontString {

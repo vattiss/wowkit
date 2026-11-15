@@ -2,6 +2,7 @@
 // where it always did (the buff list, the ranks, the cooldowns, procs and reagent spells); this answers for any row in one way, so the
 // table can show and change them in one column.
 import type { SpellsService } from "@wowkit/wow";
+import { buildGroupSwitchKey } from "../glows/proc-rules.interface";
 import type { StyleRow } from "../options/style-rows.service";
 import type { ClassBuffsService } from "../reminders/class-buffs.service";
 import type { AddonSettingsService, ReminderType } from "./settings.interface";
@@ -59,6 +60,8 @@ export class EnabledService {
 
     /** The switch of a cooldown or proc is kept by its ID in the lists; that of a spell the player added by its own. */
     private getGlowKey(row: StyleRow, spellId: number): string {
+        // A group's row of the proc rules: by its spell and group, its ID is made up for the session
+        if (row.group !== undefined && row.sharesIdOf !== undefined) return buildGroupSwitchKey(row.sharesIdOf, row.group);
         return string.format("%d", row.listId ?? spellId);
     }
 

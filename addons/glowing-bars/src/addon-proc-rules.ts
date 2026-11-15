@@ -3,8 +3,11 @@ import type { Addon } from "@wowkit/core";
 import type { Texts } from "./addon";
 import type { Game } from "./game-services";
 import { ProcRulesService } from "./glows/proc-rules.service";
+import { HealthRulesService } from "./glows/health-rules.service";
+import type { GlowCuesService } from "./glows/glow-cues.service";
 import { ProcRulesEditsService } from "./glows/proc-rules-edits.service";
 import type { StanceProcsService } from "./glows/stance-procs.service";
+import type { BuffStateService } from "./character/buff-state.service";
 import { ProcRulesAddRow } from "./options/proc-rules-add-row";
 import { ProcRulesTab } from "./options/proc-rules-tab";
 import type { StyleWindowService } from "./options/style-window.service";
@@ -15,10 +18,11 @@ export function makeProcRules(
     game: Game,
     texts: Texts,
     stanceProcs: StanceProcsService,
+    buffState: BuffStateService,
 ): { procRules: ProcRulesService; procEdits: ProcRulesEditsService } {
     const { spells, player, units, spellDetails, cooldownViewer, auras } = game;
     const procRules = addon.register(
-        new ProcRulesService(texts.settings, spells, player, units, spellDetails, stanceProcs, cooldownViewer, auras),
+        new ProcRulesService(texts.settings, spells, player, units, spellDetails, stanceProcs, cooldownViewer, auras, buffState),
     );
     texts.styles.useProcGroups((spellId) => (procRules.isOn() ? procRules.findLitGroup(spellId) : undefined));
     const procEdits = addon.register(new ProcRulesEditsService(texts.settings, player));
@@ -29,4 +33,14 @@ export function makeProcRules(
 export function makeProcRulesTab(game: Game, texts: Texts, procEdits: ProcRulesEditsService, windows: StyleWindowService): ProcRulesTab {
     const addRow = new ProcRulesAddRow(texts.locale, game.spells, procEdits, texts.messages);
     return new ProcRulesTab(texts.locale, game.spells, texts.settings, procEdits, windows, addRow);
+}
+
+/** The player's rules on the health: lit faded by the game, as Templar's Bulwark; the parts of the glows of the low health. */
+export function makeHealthRules(
+    addon: Addon,
+    procRules: ProcRulesService,
+    glowCues: GlowCuesService,
+    glowParts: Readonly<ConstructorParameters<typeof HealthRulesService> extends [unknown, unknown, ...infer Rest] ? Rest : never>,
+): void {
+    addon.register(new HealthRulesService(procRules, glowCues, ...glowParts));
 }

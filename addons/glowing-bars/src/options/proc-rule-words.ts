@@ -10,7 +10,6 @@ import type { ProcConditionKind, ProcRule } from "../glows/proc-rules.interface"
 const KIND_TEXTS: { [kind in ProcConditionKind]: TextKey } = {
     usable: "COND_USABLE",
     buff: "COND_BUFF",
-    buffGone: "COND_BUFF_GONE",
     targetType: "COND_TARGET",
     afterBlock: "COND_AFTER_BLOCK",
     afterDodge: "COND_AFTER_DODGE",
@@ -40,11 +39,10 @@ export interface ConditionChoice {
     creatureType?: number;
 }
 
-/** The conditions of the add row, in its list's order (the health ones come with what they need). */
+/** The conditions of the add row, in its list's order. */
 export const CONDITION_CHOICES: ConditionChoice[] = [
     { kind: "usable" },
     { kind: "buff" },
-    { kind: "buffGone" },
     ...CREATURE_TEXTS.map(([creatureType]) => ({ kind: "targetType" as const, creatureType })),
     { kind: "afterBlock" },
     { kind: "afterDodge" },
@@ -52,6 +50,8 @@ export const CONDITION_CHOICES: ConditionChoice[] = [
     { kind: "targetDodged" },
     { kind: "free" },
     { kind: "instant" },
+    { kind: "targetHealth" },
+    { kind: "myHealth" },
 ];
 
 /** The words of a condition of the add row's list. */
@@ -65,7 +65,7 @@ export function describeChoice(choice: ConditionChoice, locale: AddonLocale): st
 export function describeCondition(rule: ProcRule, locale: AddonLocale, spells: SpellsService): string {
     if (rule.kind === "targetType") return describeChoice({ kind: rule.kind, creatureType: rule.value }, locale);
     const words = locale.getText(KIND_TEXTS[rule.kind]);
-    if (rule.kind === "buff" || rule.kind === "buffGone") {
+    if (rule.kind === "buff") {
         const buff = rule.value !== undefined ? (spells.getSpellLabel(rule.value) ?? string.format("%d", rule.value)) : "?";
         return `${words}: ${buff}`;
     }

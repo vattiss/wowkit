@@ -5,7 +5,7 @@ import { type PlayerService, type SpellsService, getItemButtonKey, readItemLook 
 import { Warrior } from "@wowkit/wow-data";
 import type { AddedSpellsService } from "../glows/added-spells.service";
 import type { GlowCuesService } from "../glows/glow-cues.service";
-import { HIDDEN_KINDS } from "../glows/proc-rules.interface";
+import { findHealthGroup, HIDDEN_KINDS } from "../glows/proc-rules.interface";
 import type { ProcRulesService } from "../glows/proc-rules.service";
 import type { AddonLocale } from "../locale/locale.interface";
 import type { TextKey } from "../locale/texts.constants";
@@ -39,8 +39,9 @@ export interface StyleRow {
     sharesIdOf?: number;
     /** A glow only the game itself can light: what would have to know when it starts is faded on the row. */
     isFadeOnly?: boolean;
-    /** The row of a group of the proc rules ("Revenge (dodge)"): a look of its own, and no switch (its rules have theirs). */
+    /** The row of a group of the proc rules ("Revenge (dodge)"): a look and a switch of its own; its group. */
     isGroupRow?: boolean;
+    group?: string;
 }
 
 /** The words that name each type of reminder. */
@@ -227,18 +228,25 @@ export class StyleRowsService {
     private listGroupRows(): StyleRow[] {
         if (!this.procRules.isOn()) return [];
         const rows: StyleRow[] = [];
-        for (const rule of this.procRules.listRules()) {
-            if (rule.group === undefined || HIDDEN_KINDS.includes(rule.kind)) continue;
-            const rowId = this.styles.groupRows.findRowId(rule.spellId, rule.group);
+        // The addon's rules on the health have rows of their own already; the player's glow faded, as theirs do
+        const healthRules = this.procRules.listOwnHealthRules();
+        for (const rule of [...this.procRules.listRules(), ...healthRules]) {
+            const isHealth = HIDDEN_KINDS.includes(rule.kind);
+            if (isHealth && !healthRules.includes(rule)) continue;
+            const group = isHealth ? findHealthGroup(rule) : rule.group;
+            if (group === undefined) continue;
+            const rowId = this.styles.groupRows.findRowId(rule.spellId, group);
             if (rows.some((row) => row.spellId === rowId)) continue;
             rows.push({
                 reminderType: "proc",
                 spellId: rowId,
-                label: `${this.spells.getSpellLabel(rule.spellId) ?? ""} (${rule.group})`,
+                label: `${this.spells.getSpellLabel(rule.spellId) ?? ""} (${group})`,
                 iconId: this.spells.getSpellInfo(rule.spellId)?.iconID,
                 isLearned: this.spells.isLearned(rule.spellId),
                 sharesIdOf: rule.spellId,
                 isGroupRow: true,
+                group,
+                isFadeOnly: isHealth,
             });
         }
         return rows;
