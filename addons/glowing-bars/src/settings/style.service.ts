@@ -4,6 +4,7 @@
 // default, until the type is changed again. No spell keeps a default of its own hidden from the type's row. A spell's look
 // belongs to one type of it: a buff that also has ranks keeps the quiet yellow of its old rank when the player colors the buff.
 import { OnEvent } from "@wowkit/core";
+import { ProcGroupRows } from "./proc-group-rows";
 import type { Rgb, SpellsService } from "@wowkit/wow";
 import { SPELL_STYLE_DEFAULTS, STYLE_DEFAULTS } from "./settings.constants";
 import type { AddonSettingsService, MessageTextChoice, ReminderType, Style, StyleOverride } from "./settings.interface";
@@ -41,7 +42,8 @@ export class StyleService {
     private kept = new LuaMap<ReminderType, LuaMap<number, Style>>();
     /** The group of the proc rule that lit a spell (see useProcGroups), and the looks of the groups' rows, kept as the others. */
     private findLitGroup: (this: void, spellId: number) => string | undefined = () => undefined;
-    private groupLooks = new LuaMap<string, Style>();
+    /** The rows of the groups of the proc rules, by IDs made up for them. */
+    readonly groupRows = new ProcGroupRows();
 
     constructor(
         private readonly spells: SpellsService,
@@ -72,7 +74,6 @@ export class StyleService {
     @OnEvent("setting.changed", "spells.refreshed", "spells.invalidated", "spellbook.indexed")
     clearKeptLooks(): void {
         this.kept = new LuaMap();
-        this.groupLooks = new LuaMap();
     }
 
     /** The look a glow shows now: the one of its row, or for a proc lit by a rule of a group, the group's row's. */
@@ -86,14 +87,7 @@ export class StyleService {
      * its own, as the spell's: it does not take what the player set for the spell.
      */
     getGroupStyle(spellId: number, group: string): Style {
-        const key = `${spellId}:${group}`;
-        const kept = this.groupLooks.get(key);
-        if (kept !== undefined) return kept;
-        const name = this.spells.getSpellName(spellId);
-        const own = this.settings.get("spellStyles")[`proc:${this.getSpellKey(spellId)} (${group})`] ?? {};
-        const style = this.buildStyle([own, this.getOverride("proc"), STYLE_DEFAULTS.proc]);
-        if (name !== undefined) this.groupLooks.set(key, style);
-        return style;
+        return this.getStyle("proc", this.groupRows.findRowId(spellId, group));
     }
 
     /**
@@ -120,6 +114,9 @@ export class StyleService {
      */
     private isLookFinal(reminderType: ReminderType, rowSpellId: number | undefined): boolean {
         if (rowSpellId === undefined) return true;
+        // A group's row goes by its spell's name
+        const groupRow = this.groupRows.findGroup(rowSpellId);
+        if (groupRow !== undefined) return this.spells.getSpellName(groupRow.spellId) !== undefined;
         if (reminderType === "totemGone") return false;
         // A weapon buff's look goes by the name of its row's spell
         const keyId = reminderType === "weaponBuff" ? this.findWeaponBuffRow(rowSpellId) : rowSpellId;
@@ -329,6 +326,8 @@ export class StyleService {
 
     /** The key of a spell's look: its type and its name ("rank:Smite"). */
     private getStyleKey(reminderType: ReminderType, spellId: number): string {
+        const groupRow = this.groupRows.findGroup(spellId);
+        if (groupRow !== undefined) return `${reminderType}:${this.getSpellKey(groupRow.spellId)} (${groupRow.group})`;
         const id =
             reminderType === "weaponBuff"
                 ? this.findWeaponBuffRow(spellId)

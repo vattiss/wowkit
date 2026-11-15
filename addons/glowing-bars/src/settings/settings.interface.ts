@@ -81,7 +81,7 @@ export type AddableType =
     | "lowStock";
 
 /** The tabs of the table of looks (TABLE_TABS). */
-export type TableTab = "buffs" | "cooldowns" | "procs" | "consumables" | "oldRanks" | "sounds" | "help";
+export type TableTab = "buffs" | "cooldowns" | "procRules" | "procs" | "consumables" | "oldRanks" | "sounds" | "help";
 
 /** The types of a cooldown that glows as it is ready: the ones of a fight, and the ones of between fights (a herb, a fall). */
 export type CooldownType = "readyCooldown" | "utilityCooldown";

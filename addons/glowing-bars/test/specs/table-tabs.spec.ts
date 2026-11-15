@@ -248,6 +248,7 @@ describe("the Help tab of the table", () => {
         expect(stones).toContain("Buffs tab, Weapon buff");
         expect(texts.find((text) => text.includes("Trinkets"))).toContain("Cooldowns tab, Ready cooldown");
         expect(texts.find((text) => text.includes("paladin seal"))).toContain("Buffs tab, Missing seal");
+        expect(texts.find((text) => text.includes("creature type"))).toContain("Proc rules tab (beta)");
         toggleTable();
     });
 

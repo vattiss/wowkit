@@ -15,6 +15,14 @@ export const CREATURE_TYPES = {
     Mechanical: 9,
 };
 
+/**
+ * The groups of the rules of a spell told two ways: by its buff's icon in the Cooldown Manager, or, where it has no say, by
+ * a backup check. Each has its own row and look on the Procs tab, so the player sees which way lit it. A rule with no CDM way
+ * at all (Revenge after a dodge, Maelstrom Weapon) needs no group.
+ */
+const CDM = "CDM";
+const BACKUP = "backup";
+
 /** A rule that lights its spell, asked first, with no group. */
 function describeGlow(spellId: number, kind: ProcConditionKind, value?: number): BuiltInProcRule {
     return { spellId, kind, value, result: "glow", priority: 1 };
@@ -40,10 +48,10 @@ const EXORCISM: BuiltInProcRule[] = [CREATURE_TYPES.Undead, CREATURE_TYPES.Demon
  * the game hides the buffs, and an icon of the Cooldown Manager may have no say).
  */
 const ARCANE_MISSILES: BuiltInProcRule[] = [
-    describeGlow(Mage.ArcaneMissiles, "buff", Mage.MissileBarrage),
+    { ...describeGlow(Mage.ArcaneMissiles, "buff", Mage.MissileBarrage), group: CDM },
     { spellId: Mage.ArcaneMissiles, kind: "buff", value: Mage.Clearcasting, result: "noGlow", priority: 2 },
     { spellId: Mage.ArcaneMissiles, kind: "buffGone", value: Mage.MissileBarrage, result: "noGlow", priority: 2 },
-    { spellId: Mage.ArcaneMissiles, kind: "free", result: "glow", priority: 3 },
+    { spellId: Mage.ArcaneMissiles, kind: "free", result: "glow", priority: 3, group: BACKUP },
 ];
 
 export const BUILT_IN_PROC_RULES: { [classToken: string]: BuiltInProcRule[] | undefined } = {
@@ -58,9 +66,9 @@ export const BUILT_IN_PROC_RULES: { [classToken: string]: BuiltInProcRule[] | un
     // Instant with 5 stacks of Maelstrom Weapon only; its icon shows at any number, so no buff tells
     SHAMAN: [describeGlow(Shaman.LightningBolt, "instant")],
     WARLOCK: [
-        describeGlow(Warlock.ShadowBolt, "buff", Warlock.ShadowTrance),
+        { ...describeGlow(Warlock.ShadowBolt, "buff", Warlock.ShadowTrance), group: CDM },
         { spellId: Warlock.ShadowBolt, kind: "buffGone", value: Warlock.ShadowTrance, result: "noGlow", priority: 2 },
-        { spellId: Warlock.ShadowBolt, kind: "instant", result: "glow", priority: 3 },
+        { spellId: Warlock.ShadowBolt, kind: "instant", result: "glow", priority: 3, group: BACKUP },
     ],
     WARRIOR: [
         describeGlow(Warrior.Overpower, "usable"),

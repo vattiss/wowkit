@@ -5,6 +5,8 @@ import { type PlayerService, type SpellsService, getItemButtonKey, readItemLook 
 import { Warrior } from "@wowkit/wow-data";
 import type { AddedSpellsService } from "../glows/added-spells.service";
 import type { GlowCuesService } from "../glows/glow-cues.service";
+import { HIDDEN_KINDS } from "../glows/proc-rules.interface";
+import type { ProcRulesService } from "../glows/proc-rules.service";
 import type { AddonLocale } from "../locale/locale.interface";
 import type { TextKey } from "../locale/texts.constants";
 import type { ReagentsService } from "../reagents/reagents.service";
@@ -37,6 +39,8 @@ export interface StyleRow {
     sharesIdOf?: number;
     /** A glow only the game itself can light: what would have to know when it starts is faded on the row. */
     isFadeOnly?: boolean;
+    /** The row of a group of the proc rules ("Revenge (dodge)"): a look of its own, and no switch (its rules have theirs). */
+    isGroupRow?: boolean;
 }
 
 /** The words that name each type of reminder. */
@@ -68,6 +72,7 @@ export class StyleRowsService {
         private readonly sealReminder: SealReminderService,
         private readonly trackingReminder: TrackingReminderService,
         private readonly fedBuffs: FedBuffsService,
+        private readonly procRules: ProcRulesService,
     ) {}
 
     /** The default look of each type of reminder this character has spells of (a warrior has no weapon buff to remind of). */
@@ -218,10 +223,32 @@ export class StyleRowsService {
         };
     }
 
+    /** While the proc rules are on, a row for each group of a spell's rules ("Revenge (dodge)"): the look of the glows they light. */
+    private listGroupRows(): StyleRow[] {
+        if (!this.procRules.isOn()) return [];
+        const rows: StyleRow[] = [];
+        for (const rule of this.procRules.listRules()) {
+            if (rule.group === undefined || HIDDEN_KINDS.includes(rule.kind)) continue;
+            const rowId = this.styles.groupRows.findRowId(rule.spellId, rule.group);
+            if (rows.some((row) => row.spellId === rowId)) continue;
+            rows.push({
+                reminderType: "proc",
+                spellId: rowId,
+                label: `${this.spells.getSpellLabel(rule.spellId) ?? ""} (${rule.group})`,
+                iconId: this.spells.getSpellInfo(rule.spellId)?.iconID,
+                isLearned: this.spells.isLearned(rule.spellId),
+                sharesIdOf: rule.spellId,
+                isGroupRow: true,
+            });
+        }
+        return rows;
+    }
+
     /** The rows of no spell a class has: a warrior's Execute in Defensive Stance, a shaman's elements of the totems gone. */
     private addClassRows(rows: StyleRow[]): void {
         const classToken = this.player.getClassToken();
         if (classToken === "WARRIOR") rows.push(this.createDefensiveExecuteRow());
+        rows.push(...this.listGroupRows());
         if (classToken === "SHAMAN") for (const element of TOTEM_ELEMENTS) rows.push(this.createTotemRow(element));
     }
 

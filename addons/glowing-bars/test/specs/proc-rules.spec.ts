@@ -6,6 +6,7 @@ import {
     expect,
     it,
     learnSpell,
+    MAGE,
     PALADIN,
     playAs,
     targetEnemy,
@@ -119,5 +120,32 @@ describe("Revenge by the proc rules", () => {
         blocked.fire("UNIT_COMBAT", "player", "BLOCK", "", 0, 1);
         blocked.advance(0.5);
         expect(blocked.glowAlphasOn(1)).toEqual([1]);
+    });
+});
+
+describe("Arcane Missiles by the proc rules", () => {
+    const MISSILES: SpellDefinition = { id: 5143, name: "Arcane Missiles", rank: 1, icon: 136096, maxRange: 30, isHarmful: true };
+    const BARRAGE = 400588;
+    const LOOKS = { "proc:Arcane Missiles (CDM)": { glowPercent: 40 }, "proc:Arcane Missiles (backup)": { glowPercent: 60 } };
+
+    function createMage(barrage: boolean | undefined): World {
+        const world = createWorld(
+            (state) => {
+                playAs(state, MAGE);
+                learnSpell(state, MISSILES);
+                state.bars[1] = MISSILES.id;
+                state.spellCosts[MISSILES.id] = 0;
+                state.spells[BARRAGE] = { id: BARRAGE, name: "Missile Barrage", rank: 1, icon: 1 };
+                if (barrage !== undefined) state.trackedBuffs.push({ spellId: BARRAGE, isActive: barrage });
+            },
+            { shouldUseProcRules: true, spellStyles: LOOKS },
+        );
+        world.advance(2);
+        return world;
+    }
+
+    it("shows by the look of the CDM row what the Cooldown Manager lit, and by the backup row what the free spell did", () => {
+        expect(createMage(true).glowAlphasOn(1)).toEqual([0.4]);
+        expect(createMage(undefined).glowAlphasOn(1)).toEqual([0.6]);
     });
 });

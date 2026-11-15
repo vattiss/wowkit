@@ -41,7 +41,7 @@ function isOnScreen(frame: FakeFrame | undefined): boolean {
     return true;
 }
 
-/** The tabs of the table, in their order. */
+/** The tabs of the table that have rows, in their order (Proc rules has its own headings, not rows: its specs open it). */
 const TABS = ["Buffs", "Cooldowns", "Procs", "Consumables", "Old ranks", "Sounds"];
 
 /**

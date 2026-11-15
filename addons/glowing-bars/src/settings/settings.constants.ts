@@ -33,7 +33,7 @@ const HIDDEN_WINDOWS = { trackedBuffsIcons: "hide", trackedBarsIcons: "hide", es
 const CHAT_LINES = { shouldShowGreeting: true, shouldNoteOwnOlderRankBuffs: true, shouldNoteOthersOlderRankBuffs: true } as const;
 
 /** The tabs of the table of looks, which a saved tab has to be one of. */
-const TABLE_TAB_KEYS: TableTab[] = ["buffs", "cooldowns", "procs", "consumables", "oldRanks", "sounds", "help"];
+const TABLE_TAB_KEYS: TableTab[] = ["buffs", "cooldowns", "procRules", "procs", "consumables", "oldRanks", "sounds", "help"];
 
 /** The table of looks opens in its Basic view, on its first tab, the spells not learned yet left out (a new table each time). */
 function createTableView(): Pick<AddonSettings, "isTableAdvanced" | "tableTab" | "shownUnlearned"> {

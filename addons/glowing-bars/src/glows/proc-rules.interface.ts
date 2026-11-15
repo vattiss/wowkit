@@ -57,6 +57,8 @@ export interface ProcRule {
     priority: number;
     /** The row of the Procs tab whose look the glow takes: none, the spell's own; else "<spell> (<group>)". */
     group?: string;
+    /** A rule of the player's switched off (a built-in one is switched off by its key, see disabledProcRules). */
+    isOff?: boolean;
 }
 
 /** A rule of the addon's: switched off by the player by its key, never changed. */
@@ -91,7 +93,8 @@ export function repairProcRules(rules: unknown): ProcRule[] {
             value: tonumber(rule.value),
             result: rule.result === "noGlow" ? "noGlow" : "glow",
             priority: math.max(1, math.floor(tonumber(rule.priority) ?? 1)),
-            group: type(rule.group) === "string" ? rule.group : undefined,
+            group: type(rule.group) === "string" && rule.group !== "" ? rule.group : undefined,
+            isOff: rule.isOff === true ? true : undefined,
         });
     }
     return repaired;

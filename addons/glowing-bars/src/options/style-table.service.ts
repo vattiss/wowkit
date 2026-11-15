@@ -27,6 +27,7 @@ import { TYPE_TEXTS, type StyleRow, type StyleRowsService } from "./style-rows.s
 import { StyleRowWidgets, type RowWidgets } from "./style-row-widgets";
 import { TakenOverNotice } from "./taken-over-notice";
 import { TableHelp } from "./table-help";
+import type { ProcRulesTab } from "./proc-rules-tab";
 
 /** The words beside the switch of the spells not learned yet. */
 const UNLEARNED_LABEL_WIDTH = 130;
@@ -67,6 +68,7 @@ export class StyleTableService {
         private readonly choices: StyleChoicesService,
         private readonly windows: StyleWindowService,
         private readonly edits: StyleEditsService,
+        private readonly procRulesTab: ProcRulesTab,
     ) {
         this.rowWidgets = new StyleRowWidgets(locale, styles, choices, windows, edits);
         this.takenOver = new TakenOverNotice(locale);
@@ -159,12 +161,14 @@ export class StyleTableService {
                 ? this.drawCustomSounds(content, 0)
                 : tab.key === "help"
                   ? this.help.draw(content, 0, this.tableWidth, this.windows.isAdvanced(), this.contentLeft)
-                  : this.drawTypeTab(
-                        content,
-                        tab,
-                        typeRows.filter((row) => isInTab(row)),
-                        spellRows.filter((row) => isInTab(row)),
-                    );
+                  : tab.key === "procRules"
+                    ? this.procRulesTab.draw(content, 0, this.tableWidth, this.contentLeft)
+                    : this.drawTypeTab(
+                          content,
+                          tab,
+                          typeRows.filter((row) => isInTab(row)),
+                          spellRows.filter((row) => isInTab(row)),
+                      );
         for (let i = this.usedHeaders; i < this.headers.length; i++) this.headers[i]!.Hide();
         for (let i = this.usedWidgets; i < this.widgets.length; i++) this.widgets[i]!.frame.Hide();
         content.SetHeight(math.max(10, y));
@@ -243,6 +247,7 @@ export class StyleTableService {
         if (this.content !== undefined) hideHeaderTip(this.content);
         this.windows.hideCustomSounds();
         this.help.hide();
+        this.procRulesTab.hide();
         this.takenOver.hide();
         this.addRow?.Hide();
         this.edits.useAddHeader(undefined);

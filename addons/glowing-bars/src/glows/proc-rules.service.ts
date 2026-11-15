@@ -59,7 +59,8 @@ export class ProcRulesService {
     listRules(): BuiltInProcRule[] {
         const disabled = this.settings.get("disabledProcRules");
         const builtIn = BUILT_IN_PROC_RULES[this.player.getClassToken() ?? ""] ?? [];
-        return [...builtIn.filter((rule) => disabled[buildProcRuleKey(rule)] !== true), ...this.settings.get("procRules")];
+        const own = this.settings.get("procRules").filter((rule) => rule.isOff !== true);
+        return [...builtIn.filter((rule) => disabled[buildProcRuleKey(rule)] !== true), ...own];
     }
 
     /** The spells the rules can light by the ticks' engine: those with a rule whose answer the addon can know. */

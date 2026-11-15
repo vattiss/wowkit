@@ -43,7 +43,7 @@ import { StyleRowsService } from "./options/style-rows.service";
 import { StyleTableService } from "./options/style-table.service";
 import { StyleWindowService } from "./options/style-window.service";
 import { TableCommand } from "./options/table-command";
-import { makeProcRules } from "./addon-proc-rules";
+import { makeProcRules, makeProcRulesTab } from "./addon-proc-rules";
 import { ScanReport } from "./options/scan-report";
 import { WelcomeService } from "./options/welcome.service";
 import { WhatsNewService } from "./options/whats-new.service";
@@ -139,7 +139,7 @@ function makeReminders(addon: Addon, addonName: string, game: Game, texts: Texts
     const tracker = addon.register(new CooldownTrackerService(game.spells, game.cooldowns, game.clock, game.cooldownViewer));
     addon.register(new AfkRainbowService(game.buttonSearch, game.glow, game.clock, game.player, settings));
     const stanceProcs = addon.register(new StanceProcsService(game.player, game.spells, game.clock, addon.events));
-    const procRules = makeProcRules(addon, game, texts, stanceProcs);
+    const { procRules, procEdits } = makeProcRules(addon, game, texts, stanceProcs);
     const glowCues = addon.register(
         new GlowCuesService(
             game.player,
@@ -169,7 +169,10 @@ function makeReminders(addon: Addon, addonName: string, game: Game, texts: Texts
     );
     const seal = addon.register(new SealReminderService(game.spells, game.actionBars, buffs.state, game.player, settings, addedSpells));
     const tracking = addon.register(new TrackingReminderService(game.spells, game.actionBars, buffs.state, settings, addedSpells));
-    return { buff, reagents, party, weaponChoice, weapon, outdatedRanks, glowCues, addedSpells, added, fedBuffs, limits, seal, tracking };
+    return {
+        ...{ buff, reagents, party, weaponChoice, weapon, outdatedRanks, glowCues, addedSpells, added, fedBuffs, limits, seal, tracking },
+        ...{ procRules, procEdits },
+    };
 }
 export type Reminders = ReturnType<typeof makeReminders> & { totemGone: ReturnType<typeof makeTotemGone> };
 
@@ -245,6 +248,7 @@ function makeTable(addon: Addon, addonName: string, game: Game, texts: Texts, bu
             reminders.seal,
             reminders.tracking,
             reminders.fedBuffs,
+            reminders.procRules,
         ),
     );
     const choices = addon.register(new StyleChoicesService(locale, styles, messages, texts.settings));
@@ -255,7 +259,8 @@ function makeTable(addon: Addon, addonName: string, game: Game, texts: Texts, bu
     const edits = addon.register(
         new StyleEditsService(locale, reminders.addedSpells, tableNotice, switches, rows, styles, reminders.limits),
     );
-    return addon.register(new StyleTableService(locale, styles, rows, messages, choices, windows, edits));
+    const procRulesTab = makeProcRulesTab(game, texts, reminders.procEdits, windows);
+    return addon.register(new StyleTableService(locale, styles, rows, messages, choices, windows, edits, procRulesTab));
 }
 
 /** The Settings panel. */
