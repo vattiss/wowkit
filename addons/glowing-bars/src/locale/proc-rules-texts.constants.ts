@@ -42,6 +42,27 @@ export const PROC_RULES_TEXTS = {
     TIP_RULE_HEALTH_RESULT: "A rule on the health can only light its spell: the game hides the health, so nothing can keep it dark.",
     TIP_RULE_BUFF_NO_CDM:
         "In a fight the game hides this buff, and only the Cooldown Manager can tell it: set its access to Full in Settings, Cooldown Manager.",
+    HELP_RULES_TITLE: "Proc rules (beta)",
+    HELP_RULES_INTRO:
+        "Switched on at the top of the Proc rules tab, the procs are lit by its rules, a new engine, instead of the built-in one. Each rule is a spell and one condition.",
+    HELP_RULES_PRIORITY: "Prio",
+    HELP_RULES_PRIORITY_HOW:
+        "the lowest number is checked first: the first number where a rule holds decides. Rules of one number count equally.",
+    HELP_RULES_RESULT: "Result",
+    HELP_RULES_RESULT_HOW: "Glow lights the spell, No glow keeps it dark. Of one number, a Glow wins.",
+    HELP_RULES_GROUP: "Group",
+    HELP_RULES_GROUP_HOW:
+        "rules with the same group share a row, look and switch on the Procs tab: Spell (group). None: the spell's own row.",
+    HELP_RULES_BUILT_IN: "built-in",
+    HELP_RULES_BUILT_IN_HOW: "the addon's rules can only be switched off. To change one, switch it off and add your own.",
+    HELP_RULES_CDM: "CDM, backup",
+    HELP_RULES_CDM_HOW: "CDM rules go by the Cooldown Manager's icon of a buff; backup rules tell without it.",
+    HELP_RULES_FIGHT: "Buff up in a fight",
+    HELP_RULES_FIGHT_HOW:
+        "the game hides buffs in a fight: the Cooldown Manager tells them with Full access, else your cast is remembered. A * marks a buff only it could tell.",
+    HELP_RULES_HEALTH: "Target health, My health",
+    HELP_RULES_HEALTH_HOW:
+        "only the game knows the health: the glow fades in below the percent, with no sound, repeat or glow time, and Glow only.",
     MSG_RULE_NO_PERCENT: "Enter the health percent, 1 to 99.",
     MSG_RULE_NO_BUFF: "Enter the Buff ID of the buff, as a spell's ID.",
 };

@@ -24,9 +24,19 @@ const WHERE_HELP: [label: TextKey, help: TextKey][] = [
     ["HELP_WHERE_TRAVEL", "HELP_WHERE_TRAVEL_HOW"],
     ["HELP_WHERE_PROC", "HELP_WHERE_PROC_HOW"],
     ["HELP_WHERE_PROC_RULE", "HELP_WHERE_PROC_RULE_HOW"],
-    ["HELP_WHERE_PROC_RULE_GROUPS", "HELP_WHERE_PROC_RULE_GROUPS_HOW"],
     ["HELP_WHERE_REAGENT", "HELP_WHERE_REAGENT_HOW"],
     ["HELP_WHERE_STOCK", "HELP_WHERE_STOCK_HOW"],
+];
+
+/** The proc rules (beta): what each part of a rule does, and what the engine can and cannot tell. */
+const RULES_HELP: [label: TextKey, help: TextKey][] = [
+    ["HELP_RULES_PRIORITY", "HELP_RULES_PRIORITY_HOW"],
+    ["HELP_RULES_RESULT", "HELP_RULES_RESULT_HOW"],
+    ["HELP_RULES_GROUP", "HELP_RULES_GROUP_HOW"],
+    ["HELP_RULES_BUILT_IN", "HELP_RULES_BUILT_IN_HOW"],
+    ["HELP_RULES_CDM", "HELP_RULES_CDM_HOW"],
+    ["HELP_RULES_FIGHT", "HELP_RULES_FIGHT_HOW"],
+    ["HELP_RULES_HEALTH", "HELP_RULES_HEALTH_HOW"],
 ];
 
 /** The columns explained, in the order of the table: their header's words and the help on them. */
@@ -123,6 +133,7 @@ export class TableHelp {
         this.usedTexts = 0;
         this.left = left;
         let y = this.showWhereToAdd(content, top, width) + GAP * 2;
+        y = this.showList(content, "HELP_RULES_TITLE", "HELP_RULES_INTRO", RULES_HELP, y, width) + GAP * 2;
         y = this.showText(content, INTRO_FONT, this.locale.getText("HELP_INTRO"), 0, y, width) + GAP;
         const columns = findColumns(isAdvanced);
         for (const [column, title, help] of HELP_COLUMNS) {
@@ -155,6 +166,17 @@ export class TableHelp {
             y = this.showText(content, BODY_FONT, words, BULLET_INDENT, y + 2, width - BULLET_INDENT);
         }
         return this.showText(content, BODY_FONT, this.locale.getText("HELP_WHERE_IDS"), BODY_INDENT, y + 4, width - BODY_INDENT);
+    }
+
+    /** A title, its words, and a line for each of its parts: the name in gold, then what it does; returns where it ends. */
+    private showList(content: Frame, title: TextKey, intro: TextKey, lines: [TextKey, TextKey][], top: number, width: number): number {
+        this.showText(content, TITLE_FONT, this.locale.getText(title), 0, top, width);
+        let y = this.showText(content, BODY_FONT, this.locale.getText(intro), BODY_INDENT, top + TITLE_HEIGHT, width - BODY_INDENT);
+        for (const [label, help] of lines) {
+            const words = `•  ${CHOICE_COLOR}${this.locale.getText(label)}|r: ${this.locale.getText(help)}`;
+            y = this.showText(content, BODY_FONT, words, BULLET_INDENT, y + 2, width - BULLET_INDENT);
+        }
+        return y;
     }
 
     hide(): void {

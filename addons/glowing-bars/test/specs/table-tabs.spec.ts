@@ -249,6 +249,8 @@ describe("the Help tab of the table", () => {
         expect(texts.find((text) => text.includes("Trinkets"))).toContain("Cooldowns tab, Ready cooldown");
         expect(texts.find((text) => text.includes("paladin seal"))).toContain("Buffs tab, Missing seal");
         expect(texts.find((text) => text.includes("creature type"))).toContain("Proc rules tab (beta)");
+        expect(texts.includes("Proc rules (beta)")).toBe(true);
+        expect(texts.find((text) => text.includes("Prio|r:"))).toContain("the lowest number is checked first");
         toggleTable();
     });
 

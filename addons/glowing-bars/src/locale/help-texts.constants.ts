@@ -21,9 +21,6 @@ export const HELP_TEXTS = {
     HELP_WHERE_PROC_RULE: "A spell lit by a buff, a target's creature type, or a block, dodge or parry",
     HELP_WHERE_PROC_RULE_HOW:
         "Proc rules tab (beta): switch on Use advanced proc rules, then add its Spell ID with a condition. Its look is on the Procs tab.",
-    HELP_WHERE_PROC_RULE_GROUPS: "The groups CDM and backup, and the rules on the health",
-    HELP_WHERE_PROC_RULE_GROUPS_HOW:
-        "CDM rules go by the Cooldown Manager's icon, backup ones tell without it. A rule on the health can only fade its glow in: no sound, repeat or glow time.",
     HELP_WHERE_REAGENT: "A spell that uses a reagent",
     HELP_WHERE_REAGENT_HOW: "Consumables tab, Low reagent, by its Spell ID.",
     HELP_WHERE_STOCK: "Arrows, ammo, or any item to keep count of",
