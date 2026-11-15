@@ -83,4 +83,5 @@ import "./warlock.spec";
 import "./whats-new.spec";
 import "./upgrade-from-main.spec";
 import "./cache-live.spec";
+import "./proc-rules.spec";
 import "./tick-garbage.spec";

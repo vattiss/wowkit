@@ -25,7 +25,12 @@ for (const file of [addonFile, testsFile]) {
     }
 }
 
-const result = spawnSync(lua, [testsFile, addonFile], { stdio: "inherit" });
+// --settings key=value,...: every world of the run starts with them (see readRunSettings in the test kit)
+const settingsAt = process.argv.indexOf("--settings");
+const runSettings = settingsAt >= 0 ? process.argv[settingsAt + 1] : undefined;
+if (runSettings !== undefined) console.log(`Again, every world with ${runSettings}:`);
+const env = runSettings !== undefined ? { ...process.env, WOWKIT_TEST_SETTINGS: runSettings } : process.env;
+const result = spawnSync(lua, [testsFile, addonFile], { stdio: "inherit", env });
 if (result.error) {
     console.error(`Could not run "${lua}": ${result.error.message}. Install LuaJIT or set LUA.`);
     process.exit(1);

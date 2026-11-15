@@ -43,6 +43,7 @@ import { StyleRowsService } from "./options/style-rows.service";
 import { StyleTableService } from "./options/style-table.service";
 import { StyleWindowService } from "./options/style-window.service";
 import { TableCommand } from "./options/table-command";
+import { makeProcRules } from "./addon-proc-rules";
 import { ScanReport } from "./options/scan-report";
 import { WelcomeService } from "./options/welcome.service";
 import { WhatsNewService } from "./options/whats-new.service";
@@ -138,6 +139,7 @@ function makeReminders(addon: Addon, addonName: string, game: Game, texts: Texts
     const tracker = addon.register(new CooldownTrackerService(game.spells, game.cooldowns, game.clock, game.cooldownViewer));
     addon.register(new AfkRainbowService(game.buttonSearch, game.glow, game.clock, game.player, settings));
     const stanceProcs = addon.register(new StanceProcsService(game.player, game.spells, game.clock, addon.events));
+    const procRules = makeProcRules(addon, game, texts, stanceProcs);
     const glowCues = addon.register(
         new GlowCuesService(
             game.player,
@@ -152,6 +154,7 @@ function makeReminders(addon: Addon, addonName: string, game: Game, texts: Texts
             texts.styles,
             game.auras,
             game.units,
+            procRules,
         ),
     );
     const fedBuffs = addon.register(

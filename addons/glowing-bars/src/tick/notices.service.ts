@@ -229,7 +229,7 @@ export class NoticesService {
         if (spellIds.length === 0) return;
         const added: Line[] = [];
         for (const id of spellIds) {
-            const style = this.styles.getStyle(reminderType, id);
+            const style = this.styles.getShownStyle(reminderType, id);
             if (!style.isMessageOn) continue;
             const color = style.messageColor ?? style.color;
             const words = this.findWords(reminderType, id, style, text, this.spells.getSpellLabel(id));
@@ -262,7 +262,7 @@ export class NoticesService {
         stock: { name: string; count: number },
         reminders: Reminders,
     ): void {
-        const style = this.styles.getStyle(reminderType, id);
+        const style = this.styles.getShownStyle(reminderType, id);
         if (!this.isTold(style, reminders)) return;
         const words = this.findWords(reminderType, id, style, "TEXT_LOW", `${stock.name} (${stock.count})`);
         lines.push({
@@ -277,7 +277,7 @@ export class NoticesService {
 
     /** What a line says, by what the player chose for it. */
     private findWords(reminderType: ReminderType, id: number, style: Style, text: TextKey, name: string | undefined): Words {
-        const choice = this.styles.getMessageTextChoice(reminderType, id);
+        const choice = this.styles.getMessageTextChoice(reminderType, id, true);
         return findWords(choice, style.messageText, this.locale.getText(text), name);
     }
 

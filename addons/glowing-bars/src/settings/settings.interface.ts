@@ -1,4 +1,5 @@
 import type { CustomSoundFolder, SettingsService, SoundKey } from "@wowkit/ui";
+import type { ProcRule } from "../glows/proc-rules.interface";
 import type { GlowAnimation, Rgb } from "@wowkit/wow";
 
 /** The types of reminder. Each has a look (color, glow %, message, sound) the player can change for the type and for a spell. */
@@ -181,6 +182,12 @@ export interface AddonSettings {
     belowLimits: { [entry: string]: number | undefined };
     /** Spells the game says are usable now (Overpower, Revenge, Execute...). */
     isProcEnabled: boolean;
+    /** The procs go by the proc rules (beta), a new engine, instead of the built-in one. */
+    shouldUseProcRules: boolean;
+    /** The proc rules the player added. */
+    procRules: ProcRule[];
+    /** The built-in proc rules the player switched off, by their key ("20271:targetType:6"). */
+    disabledProcRules: { [ruleKey: string]: boolean | undefined };
     /** A paladin in a fight with no seal up. */
     isMissingSealEnabled: boolean;
     /** A miner or a herbalist with no tracking on. */

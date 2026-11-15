@@ -76,6 +76,19 @@ function loadAddon(): void {
     (chunk as (...args: unknown[]) => unknown)(config.addonName, {});
 }
 
+/**
+ * Settings every world of this run starts with, unless a test gives its own: WOWKIT_TEST_SETTINGS="key=true,other=3", to run
+ * every spec again with a switch on (a new engine behind it does all the old one did).
+ */
+function readRunSettings(): Record<string, unknown> {
+    const settings: Record<string, unknown> = {};
+    const text = os.getenv("WOWKIT_TEST_SETTINGS") ?? "";
+    for (const [key, value] of string.gmatch(text, "([%w_]+)=([^,]+)")) {
+        settings[key!] = value === "true" ? true : value === "false" ? false : (tonumber(value) ?? value);
+    }
+    return settings;
+}
+
 /** The frames of the last world: their names are globals, which the next world takes away (a frame only it made stays gone). */
 let lastFrames: FakeFrame[] = [];
 
@@ -87,7 +100,7 @@ export function createWorld(setup: (state: ClientState) => void, savedSettings?:
     clearGlobal("WowkitNotices");
     // What the game loaded from the character's file before the addon started: a character that played before
     // The welcome window is its own spec's: in the others its scan would light the buttons
-    defineValues({ [config.savedVariables]: { isWelcomeDone: true, isCooldownChoiceSeen: true, ...savedSettings } });
+    defineValues({ [config.savedVariables]: { isWelcomeDone: true, isCooldownChoiceSeen: true, ...readRunSettings(), ...savedSettings } });
     const state = createClientState();
     setup(state);
     // What the game loaded from the account's file: an account that played before

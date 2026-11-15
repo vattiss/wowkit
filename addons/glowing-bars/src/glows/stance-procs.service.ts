@@ -24,6 +24,8 @@ const AVOIDED_ACTIONS = ["BLOCK", "DODGE", "PARRY"];
 export class StanceProcsService {
     /** When the opening of Revenge ends. */
     private revengeUntil = 0;
+    /** When the opening after each kind of attack avoided ends (BLOCK, DODGE, PARRY), for the proc rules; any class. */
+    private readonly avoidedUntil = new LuaMap<string, number>();
 
     constructor(
         private readonly player: PlayerService,
@@ -35,10 +37,15 @@ export class StanceProcsService {
     /** The player blocked (fully or partly), dodged or parried. */
     @OnGameEvent("UNIT_COMBAT")
     noteCombat(unit: UnitToken, action: string, flagText: string): void {
-        if (unit !== "player" || !this.isWarrior()) return;
-        const isAvoided = (isReadable(action) && AVOIDED_ACTIONS.includes(action)) || isBlockedHit(action, flagText);
-        if (!isAvoided) return;
-        this.revengeUntil = this.clock.getCurrentTime() + REVENGE_SECONDS;
+        if (unit !== "player") return;
+        const avoided =
+            isReadable(action) && AVOIDED_ACTIONS.includes(action) ? action : isBlockedHit(action, flagText) ? "BLOCK" : undefined;
+        if (avoided === undefined) return;
+        const until = this.clock.getCurrentTime() + REVENGE_SECONDS;
+        this.avoidedUntil.set(avoided, until);
+        // Only the warrior's opening asks for a tick at once, as before the rules; the others wait for the next one
+        if (!this.isWarrior()) return;
+        this.revengeUntil = until;
         this.bus.emit("procs.changed");
     }
 
@@ -50,7 +57,9 @@ export class StanceProcsService {
 
     @OnEvent("player.spell-cast")
     noteCast(cast: PlayerSpellCast): void {
-        if (cast.spellId !== undefined && this.isNamed(cast.spellId, Warrior.Revenge)) this.revengeUntil = 0;
+        if (cast.spellId === undefined || !this.isNamed(cast.spellId, Warrior.Revenge)) return;
+        this.revengeUntil = 0;
+        for (const [avoided] of this.avoidedUntil) this.avoidedUntil.delete(avoided);
     }
 
     /** Is the spell Overpower or Revenge, with its opening up, whatever the stance? */
@@ -59,6 +68,16 @@ export class StanceProcsService {
         if (this.isNamed(spellId, Warrior.Overpower)) return (this.player.readComboPoints() ?? 0) > 0;
         if (this.isNamed(spellId, Warrior.Revenge)) return this.clock.getCurrentTime() < this.revengeUntil;
         return false;
+    }
+
+    /** Did the player block, dodge or parry ("BLOCK", "DODGE", "PARRY") in the last few seconds? Revenge cast forgets it. */
+    isAfterAvoided(avoided: string): boolean {
+        return this.clock.getCurrentTime() < (this.avoidedUntil.get(avoided) ?? 0);
+    }
+
+    /** Did the target dodge the warrior: Forever's combo point for Overpower is there? */
+    hasTargetDodged(): boolean {
+        return this.isWarrior() && (this.player.readComboPoints() ?? 0) > 0;
     }
 
     /** Has the spell the name of this one (any rank)? */

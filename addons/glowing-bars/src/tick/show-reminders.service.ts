@@ -187,7 +187,7 @@ export class ShowRemindersService {
         const reminderType = TYPES[index]!;
         for (const id of this.current[index]!) {
             const key = `${reminderType.category}:${id}`;
-            const style = this.styles.getStyle(reminderType.category, id);
+            const style = this.styles.getShownStyle(reminderType.category, id);
             const lastAt = this.soundPlayedAt.get(key);
             this.soundSeen.add(key);
             const isNew = !this.previous[index]!.includes(id) || lastAt === undefined || this.isStartingOver(style, hasArrivedInTown);
@@ -273,7 +273,7 @@ export class ShowRemindersService {
         for (let index = 0; index < TYPES.length; index++) {
             const reminderType = TYPES[index]!;
             for (const id of this.current[index]!) {
-                const style = this.styles.getStyle(reminderType.category, id);
+                const style = this.styles.getShownStyle(reminderType.category, id);
                 // A look on the icons and the same look only on the buttons are two glows
                 const { isOnIcons } = reminderType;
                 const key = `${style.color.join(",")}|${style.glowPercent}|${style.animation}|${isOnIcons ? "icons" : "buttons"}`;

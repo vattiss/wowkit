@@ -1,0 +1,73 @@
+// The addon's own proc rules, one class at a time: what the built-in procs did, as rules (see proc-rules.interface.ts). The
+// player can switch each off, and add rules of their own beside them.
+import { Hunter, Mage, Paladin, Rogue, Shaman, Warlock, Warrior } from "@wowkit/wow-data";
+import type { BuiltInProcRule, ProcConditionKind } from "./proc-rules.interface";
+
+/** The creature types of the game, by their IDs (UnitCreatureType's second answer): the same in every client language. */
+export const CREATURE_TYPES = {
+    Beast: 1,
+    Dragonkin: 2,
+    Demon: 3,
+    Elemental: 4,
+    Giant: 5,
+    Undead: 6,
+    Humanoid: 7,
+    Mechanical: 9,
+};
+
+/** A rule that lights its spell, asked first, with no group. */
+function describeGlow(spellId: number, kind: ProcConditionKind, value?: number): BuiltInProcRule {
+    return { spellId, kind, value, result: "glow", priority: 1 };
+}
+
+/** Usable by the game's word, in its own stance, and after a block, a dodge or a parry in any (Forever hides the log). */
+const REVENGE: BuiltInProcRule[] = [
+    describeGlow(Warrior.Revenge, "usable"),
+    describeGlow(Warrior.Revenge, "afterBlock"),
+    describeGlow(Warrior.Revenge, "afterDodge"),
+    describeGlow(Warrior.Revenge, "afterParry"),
+];
+
+/** Exorcism hits only undead and demons: where the game hides the target's type, its range check tells. */
+const EXORCISM: BuiltInProcRule[] = [CREATURE_TYPES.Undead, CREATURE_TYPES.Demon].map((creatureType) => ({
+    ...describeGlow(Paladin.Exorcism, "targetType", creatureType),
+    isRangeFallback: true,
+}));
+
+/**
+ * Missile Barrage makes Arcane Missiles free, and so does Clearcasting, which makes every spell free: the buff tells first;
+ * Clearcasting up, or the buff surely gone, keeps it dark; the spell turning free tells only where nothing says (in a fight
+ * the game hides the buffs, and an icon of the Cooldown Manager may have no say).
+ */
+const ARCANE_MISSILES: BuiltInProcRule[] = [
+    describeGlow(Mage.ArcaneMissiles, "buff", Mage.MissileBarrage),
+    { spellId: Mage.ArcaneMissiles, kind: "buff", value: Mage.Clearcasting, result: "noGlow", priority: 2 },
+    { spellId: Mage.ArcaneMissiles, kind: "buffGone", value: Mage.MissileBarrage, result: "noGlow", priority: 2 },
+    { spellId: Mage.ArcaneMissiles, kind: "free", result: "glow", priority: 3 },
+];
+
+export const BUILT_IN_PROC_RULES: { [classToken: string]: BuiltInProcRule[] | undefined } = {
+    HUNTER: [describeGlow(Hunter.Counterattack, "usable"), describeGlow(Hunter.MongooseBite, "usable")],
+    MAGE: ARCANE_MISSILES,
+    PALADIN: [
+        describeGlow(Paladin.HammerOfWrath, "usable"),
+        ...EXORCISM,
+        { ...describeGlow(Paladin.TemplarsBulwark, "myHealth", 10), group: "low health" },
+    ],
+    ROGUE: [describeGlow(Rogue.Riposte, "usable")],
+    // Instant with 5 stacks of Maelstrom Weapon only; its icon shows at any number, so no buff tells
+    SHAMAN: [describeGlow(Shaman.LightningBolt, "instant")],
+    WARLOCK: [
+        describeGlow(Warlock.ShadowBolt, "buff", Warlock.ShadowTrance),
+        { spellId: Warlock.ShadowBolt, kind: "buffGone", value: Warlock.ShadowTrance, result: "noGlow", priority: 2 },
+        { spellId: Warlock.ShadowBolt, kind: "instant", result: "glow", priority: 3 },
+    ],
+    WARRIOR: [
+        describeGlow(Warrior.Overpower, "usable"),
+        describeGlow(Warrior.Overpower, "targetDodged"),
+        ...REVENGE,
+        describeGlow(Warrior.Execute, "usable"),
+        { ...describeGlow(Warrior.Execute, "targetHealth", 20), group: "Defensive Stance" },
+        describeGlow(Warrior.VictoryRush, "usable"),
+    ],
+};

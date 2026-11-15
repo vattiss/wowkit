@@ -117,11 +117,11 @@ export class TickService implements OnFirstLogin, OnLogout, OnReady {
     }
 
     /** Does the When of the reminder's look hold now? */
-    private readonly isAllowedNow: IsShown = (reminderType, id) => this.whenState[this.styles.getStyle(reminderType, id).when];
+    private readonly isAllowedNow: IsShown = (reminderType, id) => this.whenState[this.styles.getShownStyle(reminderType, id).when];
 
     /** Does the reminder show now, by its glow time and repeat? */
     private readonly isDueNow: IsShown = (reminderType, id) => {
-        const style = this.styles.getStyle(reminderType, id);
+        const style = this.styles.getShownStyle(reminderType, id);
         const isStartingOver =
             (style.when === "townAlert" && this.hasArrivedInTown) ||
             (COOLDOWN_TYPES.includes(reminderType as CooldownType) && this.whenStarts[style.when]);

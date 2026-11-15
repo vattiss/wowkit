@@ -1,4 +1,5 @@
 import { isSoundKey } from "@wowkit/ui";
+import { repairProcRules } from "../glows/proc-rules.interface";
 import { tryCall, type GlowAnimation } from "@wowkit/wow";
 import { convertOldSettings } from "./settings-migration";
 import type {
@@ -44,6 +45,7 @@ const COOLDOWN_SWITCHES = {
     isReadyCooldownEnabled: true,
     isUtilityCooldownEnabled: true,
     isProcEnabled: true,
+    shouldUseProcRules: false,
     areUtilityLooksMoved: false,
     areReagentRowsSplit: false,
 } as const;
@@ -51,6 +53,11 @@ const COOLDOWN_SWITCHES = {
 /** The shaman's totems: whether a totem gone glows, and the last dropped in each slot (none yet). */
 function createTotemSettings(): Pick<AddonSettings, "isTotemGoneEnabled" | "lastTotems"> {
     return { isTotemGoneEnabled: true, lastTotems: {} };
+}
+
+/** The proc rules: none of the player's, none of the built-in ones switched off (new tables each time). */
+function createProcRuleSettings(): Pick<AddonSettings, "procRules" | "disabledProcRules"> {
+    return { procRules: [], disabledProcRules: {} };
 }
 
 export function createDefaultSettings(): AddonSettings {
@@ -86,6 +93,7 @@ export function createDefaultSettings(): AddonSettings {
         isOldRankEnabled: true,
         isLowReagentEnabled: true,
         ...COOLDOWN_SWITCHES,
+        ...createProcRuleSettings(),
         reagentBelow: 10,
         stockBelow: 20,
         isLowStockEnabled: true,
@@ -283,6 +291,8 @@ export function repairSettings(values: AddonSettings): void {
     values.reagentBelow = repairLimit(values.reagentBelow, defaults.reagentBelow);
     values.stockBelow = repairLimit(values.stockBelow, defaults.stockBelow);
     values.customSoundFolders = repairSoundFolders(values.customSoundFolders, defaults.customSoundFolders);
+    values.procRules = repairProcRules(values.procRules);
+    if (type(values.disabledProcRules) !== "table") values.disabledProcRules = {};
     // The old switch of a Greater Blessing for one member of a class in a party is a party group version from one
     const old = values as { showGreaterForOne?: boolean };
     if (old.showGreaterForOne === true) values.partyGroupFrom = 1;

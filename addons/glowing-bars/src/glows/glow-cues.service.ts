@@ -27,6 +27,7 @@ import {
 } from "./glow-cues.constants";
 import { READY_MARGIN, type CooldownTrackerService } from "./cooldown-tracker.service";
 import type { StanceProcsService } from "./stance-procs.service";
+import type { ProcRulesService } from "./proc-rules.service";
 import type { StyleService } from "../settings/style.service";
 
 /** The list emptied, the same table: a tick makes as few new tables as it can. */
@@ -64,6 +65,7 @@ export class GlowCuesService {
         private readonly styles: StyleService,
         private readonly auras: AurasService,
         private readonly units: UnitsService,
+        private readonly procRules: ProcRulesService,
     ) {}
 
     /**
@@ -156,7 +158,9 @@ export class GlowCuesService {
         const procs = clearList(this.procsFound);
         if (!this.settings.get("isProcEnabled")) return procs;
         for (const id of this.listCues(this.listCueIds("proc"), true, clearList(this.cuesFound))) {
-            if (this.isProcUp(id) && this.tracker.getRemaining(id) <= READY_MARGIN) procs.push(id);
+            // The proc rules (beta) when the player switched them on, else the built-in checks
+            const isUp = this.procRules.isOn() ? this.procRules.isProcUp(id) : this.isProcUp(id);
+            if (isUp && this.tracker.getRemaining(id) <= READY_MARGIN) procs.push(id);
         }
         return procs;
     }
@@ -234,6 +238,7 @@ export class GlowCuesService {
      */
     listBuiltInIds(reminderType: AddableType): number[] {
         const classToken = this.player.getClassToken() ?? "";
+        if (reminderType === "proc" && this.procRules.isOn()) return this.procRules.listSpellIds();
         if (reminderType === "proc") return [...(PROC_CUES[classToken] ?? []), ...this.listSpellProcs().map((proc) => proc.id)];
         const isLearned = (id: number): boolean => this.spells.isLearned(this.addedSpells.getEffectiveId(id));
         // The Hearthstone is an item: it counts on a bar

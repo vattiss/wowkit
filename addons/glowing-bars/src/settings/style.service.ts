@@ -39,6 +39,9 @@ export class StyleService {
     private findTotemRow: (this: void, spellId: number) => number = (spellId) => spellId;
     /** The looks worked out, by type and spell, kept until a setting or the spells change: a tick asks for them often. */
     private kept = new LuaMap<ReminderType, LuaMap<number, Style>>();
+    /** The group of the proc rule that lit a spell (see useProcGroups), and the looks of the groups' rows, kept as the others. */
+    private findLitGroup: (this: void, spellId: number) => string | undefined = () => undefined;
+    private groupLooks = new LuaMap<string, Style>();
 
     constructor(
         private readonly spells: SpellsService,
@@ -60,10 +63,37 @@ export class StyleService {
         this.findTotemRow = findTotemRow;
     }
 
+    /** A proc lit by a proc rule of a group shows that group's row's look ("Revenge (dodge)"), not the spell's own. */
+    useProcGroups(findLitGroup: (this: void, spellId: number) => string | undefined): void {
+        this.findLitGroup = findLitGroup;
+    }
+
     /** A setting (a look, a food learned) or the spells (their names) changed: the looks are worked out anew. */
     @OnEvent("setting.changed", "spells.refreshed", "spells.invalidated", "spellbook.indexed")
     clearKeptLooks(): void {
         this.kept = new LuaMap();
+        this.groupLooks = new LuaMap();
+    }
+
+    /** The look a glow shows now: the one of its row, or for a proc lit by a rule of a group, the group's row's. */
+    getShownStyle(reminderType: ReminderType, spellId: number): Style {
+        const group = reminderType === "proc" ? this.findLitGroup(spellId) : undefined;
+        return group === undefined ? this.getStyle(reminderType, spellId) : this.getGroupStyle(spellId, group);
+    }
+
+    /**
+     * The look of a group's row of a proc: what the player set for "proc:<spell> (<group>)", else the Proc type's. A row of
+     * its own, as the spell's: it does not take what the player set for the spell.
+     */
+    getGroupStyle(spellId: number, group: string): Style {
+        const key = `${spellId}:${group}`;
+        const kept = this.groupLooks.get(key);
+        if (kept !== undefined) return kept;
+        const name = this.spells.getSpellName(spellId);
+        const own = this.settings.get("spellStyles")[`proc:${this.getSpellKey(spellId)} (${group})`] ?? {};
+        const style = this.buildStyle([own, this.getOverride("proc"), STYLE_DEFAULTS.proc]);
+        if (name !== undefined) this.groupLooks.set(key, style);
+        return style;
     }
 
     /**
@@ -125,8 +155,9 @@ export class StyleService {
     }
 
     /** What the message of a type or a spell says: what the player chose; else the item and its count, or the type alone. */
-    getMessageTextChoice(reminderType: ReminderType, spellId: number | undefined): MessageTextChoice {
-        const choice = this.getStyle(reminderType, spellId).messageTextChoice;
+    getMessageTextChoice(reminderType: ReminderType, spellId: number | undefined, isShown = false): MessageTextChoice {
+        const style = isShown && spellId !== undefined ? this.getShownStyle(reminderType, spellId) : this.getStyle(reminderType, spellId);
+        const choice = style.messageTextChoice;
         return choice ?? (NAMED_TYPES.includes(reminderType) ? "typeAndName" : "typeOnly");
     }
 
