@@ -81,4 +81,6 @@ import "./food-buff-names.spec";
 import "./buff-groups.spec";
 import "./warlock.spec";
 import "./whats-new.spec";
+import "./upgrade-from-main.spec";
+import "./cache-live.spec";
 import "./tick-garbage.spec";
