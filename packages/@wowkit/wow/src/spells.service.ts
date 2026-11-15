@@ -20,6 +20,8 @@ declare module "@wowkit/core/event-bus" {
 export class SpellsService implements OnFirstLogin {
     /** spell ID -> the ID the player knows, or false when not known (cached until invalidated). */
     private readonly resolveCache = new LuaMap<number, number | false>();
+    /** The names of the spells asked for: the client makes a new table for each question, and a tick asks often. */
+    private readonly names = new LuaMap<number, string>();
     /** The ID the client knows a spell by, when the player gave it another one (see useIdAlias). */
     private findAlias: (this: void, spellId: number) => number = (spellId) => spellId;
 
@@ -47,11 +49,13 @@ export class SpellsService implements OnFirstLogin {
      */
     useIdAlias(alias: (this: void, spellId: number) => number): void {
         this.findAlias = alias;
+        for (const [id] of this.names) this.names.delete(id);
     }
 
     /** The answer for one spell is asked again: its ID was given another one. */
     forgetResolved(spellId: number): void {
         this.resolveCache.delete(spellId);
+        this.names.delete(spellId);
     }
 
     getSpellInfo(spellId: number | undefined): SpellInfo | undefined {
@@ -60,8 +64,14 @@ export class SpellsService implements OnFirstLogin {
     }
 
     getSpellName(spellId: number | undefined): string | undefined {
+        if (spellId === undefined) return undefined;
+        const kept = this.names.get(spellId);
+        if (kept !== undefined) return kept;
         const info = this.getSpellInfo(spellId);
-        return info ? getReadable(info.name) : undefined;
+        const name = info ? getReadable(info.name) : undefined;
+        // A spell whose data has not come yet has no name: asked again next time
+        if (name !== undefined) this.names.set(spellId, name);
+        return name;
     }
 
     /** Rebuilds the spellbook index (see SpellBookService.rebuild). */
@@ -98,6 +108,7 @@ export class SpellsService implements OnFirstLogin {
      * failed lookups are forgotten, so a newly learned rank resolves.
      */
     invalidateSpells(shouldDropSpellBook: boolean): void {
+        for (const [id] of this.names) this.names.delete(id);
         for (const [id, resolved] of this.resolveCache) {
             if (shouldDropSpellBook || resolved === false) this.resolveCache.delete(id);
         }

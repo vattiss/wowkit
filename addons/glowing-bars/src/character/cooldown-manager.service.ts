@@ -28,6 +28,10 @@ const HIDE_CHECK_SECONDS = 1;
 
 export class CooldownManagerService implements OnLogin, OnLogout {
     private isTrackingDue = false;
+    /** The windows that glow and those kept out of sight, as last worked out; undefined: to work out again. */
+    private glowWindows: CooldownWindow[] | undefined;
+    private hiddenWindows: CooldownWindow[] | undefined;
+    private wasRunByOther = false;
 
     constructor(
         private readonly viewer: CooldownViewerService,
@@ -49,7 +53,10 @@ export class CooldownManagerService implements OnLogin, OnLogout {
         this.buttons.useOtherPlaces((spellId) => this.hasGlowIcon(spellId));
         this.glow.useExtraTargets(
             (spellId) => this.listGlowIcons(spellId),
-            () => (this.listGlowWindows().length > 0 ? this.viewer.getIconsKey(this.listGlowWindows()) : ""),
+            () => {
+                const windows = this.listGlowWindows();
+                return windows.length > 0 ? this.viewer.getIconsKey(windows) : "";
+            },
         );
         this.applyAccess();
         this.ensureIconsHidden();
@@ -61,12 +68,34 @@ export class CooldownManagerService implements OnLogin, OnLogout {
         applyWaitingSwitch(this.settings, this.viewer);
     }
 
-    /** The windows that glow. The icons must be on the screen: a glow on a hidden one would float over nothing. */
+    /**
+     * The windows that glow. The icons must be on the screen: a glow on a hidden one would float over nothing. Kept until a
+     * setting changes: it is asked for on every tick.
+     */
     private listGlowWindows(): CooldownWindow[] {
-        if (this.settings.get("cooldownManagerAccess") === "off") return [];
+        this.checkWindowsKept();
+        if (this.glowWindows !== undefined) return this.glowWindows;
         const barsThatGlow = this.settings.get("barsThatGlow");
         const hidden = this.listHiddenWindows();
-        return COOLDOWN_WINDOWS.filter((window) => barsThatGlow[window] !== false && !hidden.includes(window));
+        this.glowWindows =
+            this.settings.get("cooldownManagerAccess") === "off"
+                ? []
+                : COOLDOWN_WINDOWS.filter((window) => barsThatGlow[window] !== false && !hidden.includes(window));
+        return this.glowWindows;
+    }
+
+    /** The windows worked out are kept while the settings, and whether another addon runs the manager, stay the same. */
+    private checkWindowsKept(): void {
+        const isRunByOther = this.viewer.isRunByOtherAddon();
+        if (isRunByOther === this.wasRunByOther) return;
+        this.wasRunByOther = isRunByOther;
+        this.clearKeptWindows();
+    }
+
+    @OnEvent("setting.changed")
+    clearKeptWindows(): void {
+        this.glowWindows = undefined;
+        this.hiddenWindows = undefined;
     }
 
     /** A spell only in the Cooldown Manager can be reminded of too: the icon is where the player looks. */
@@ -105,10 +134,15 @@ export class CooldownManagerService implements OnLogin, OnLogout {
         if (!isRunByOther) this.viewer.showIcons(COOLDOWN_WINDOWS.filter((window) => !hidden.includes(window)));
     }
 
-    /** The windows the addon keeps out of sight. */
+    /** The windows the addon keeps out of sight; kept as the glowing ones are. */
     private listHiddenWindows(): CooldownWindow[] {
-        if (this.viewer.isRunByOtherAddon() || this.settings.get("cooldownManagerAccess") === "off") return [];
-        return COOLDOWN_WINDOWS.filter((window) => this.settings.get(WINDOW_ICONS_SETTINGS[window]) === "hide");
+        this.checkWindowsKept();
+        if (this.hiddenWindows !== undefined) return this.hiddenWindows;
+        this.hiddenWindows =
+            this.wasRunByOther || this.settings.get("cooldownManagerAccess") === "off"
+                ? []
+                : COOLDOWN_WINDOWS.filter((window) => this.settings.get(WINDOW_ICONS_SETTINGS[window]) === "hide");
+        return this.hiddenWindows;
     }
 
     /** Edit Mode gives a window its opacity back whenever it applies its settings, and not every time is announced by an event. */
@@ -125,6 +159,8 @@ export class CooldownManagerService implements OnLogin, OnLogout {
 
     @OnEvent("setting.changed")
     applyChoice(key: string): void {
+        // The windows kept are worked out again first, whichever handler of the change runs first
+        this.clearKeptWindows();
         if (key !== "cooldownManagerAccess" && !COOLDOWN_WINDOWS.some((window) => WINDOW_ICONS_SETTINGS[window] === key)) return;
         this.applyAccess();
         if (this.settings.get("cooldownManagerAccess") === "full") this.waitToTrackBuffs();

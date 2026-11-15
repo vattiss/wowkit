@@ -5,12 +5,12 @@
 // client when many slots updated after a quest turn-in), and map the bars a few buttons per frame.
 // The client's own bars are mapped (Blizzard's, and the gamepad bars Forever draws in its gamepad mode), and Bartender4's,
 // Dominos's and EllesmereUI's: their buttons keep their action slot where Blizzard's do.
-import { type EventBus, OnGameEvent, type OnFirstLogin } from "@wowkit/core";
+import { type EventBus, OnEvent, OnGameEvent, type OnFirstLogin } from "@wowkit/core";
 import type { ButtonRegistryService, ButtonShape } from "./button-registry.service";
 import type { ClockService } from "./clock.service";
 import { findButtonItem, findItemUseSpell, getItemButtonKey, readTextureKey } from "./utils/item-button.utils";
 import { clearMap, pushToList, removeFromLists } from "./utils/lua-map.utils";
-import { addSpellIconKeys } from "./utils/spell-icon.utils";
+import { listIconButtons } from "./utils/spell-icon.utils";
 import { buildButtonKey, findMacroOfAction, findSpellMacroOfSlot, isMacroSlot, readMacroSpells } from "./utils/macro-text.utils";
 import { attempt, attemptMulti } from "./utils/protected-call.utils";
 import { getReadableId, isReadable } from "./utils/secret-value.utils";
@@ -29,8 +29,6 @@ declare module "@wowkit/core/event-bus" {
 const MAP_BUDGET = 20;
 /** Mapping is skipped when the last one is more recent than this (unless forced). */
 const MAP_THROTTLE = 2;
-/** An icon on more buttons than this is a generic one, not a particular spell's. */
-const MAX_BUTTONS_PER_ICON = 4;
 
 export class ActionBarsService implements OnFirstLogin {
     private readonly buttonsBySpell = new LuaMap<number, ActionButton[]>();
@@ -57,6 +55,8 @@ export class ActionBarsService implements OnFirstLogin {
     private readonly handSlotOfButton = new LuaMap<ActionButton, number>();
     /** The macro buttons whose text was read: what they cast is known, so their icon tells nothing more. */
     private readonly readMacroButtons = new LuaMap<ActionButton, boolean>();
+    /** The buttons found for a spell, kept until a button or a spell changes: a tick asks for them often. Read only. */
+    private foundButtons = new LuaMap<number, ActionButton[]>();
     /** Do macros with #showtooltip or #show count for every spell they cast, not only the one they show? */
     private isEveryMacroSpell = false;
 
@@ -134,6 +134,7 @@ export class ActionBarsService implements OnFirstLogin {
         ];
         for (const map of [...maps, this.macroSpellNames, this.handSlotOfButton, this.readMacroButtons])
             clearMap(map as unknown as LuaMap<AnyNotNil, unknown>);
+        this.forgetFoundButtons();
         this.hasUnknownMacroUse = false;
         this.lastMapAt = this.clock.getCurrentTime();
         this.isMapping = true;
@@ -189,6 +190,22 @@ export class ActionBarsService implements OnFirstLogin {
 
     /** The buttons a spell sits on: by ID, resolved ID and name; by its (rarely shared) icon only when none is found so. */
     findButtonsOf(spellId: number | undefined): ActionButton[] {
+        const key = getReadableId(spellId);
+        const kept = key !== undefined ? this.foundButtons.get(key) : undefined;
+        if (kept !== undefined) return kept;
+        const found = this.findButtonsNow(spellId);
+        // Not while the bars are being mapped: the buttons found are only those mapped so far
+        if (key !== undefined && !this.isMapping) this.foundButtons.set(key, found);
+        return found;
+    }
+
+    /** A button was mapped, or a spell's ID or name may have changed: the buttons of a spell are found again. */
+    @OnEvent("spells.invalidated", "spells.refreshed", "spellbook.indexed", "bars.mapped")
+    forgetFoundButtons(): void {
+        this.foundButtons = new LuaMap();
+    }
+
+    private findButtonsNow(spellId: number | undefined): ActionButton[] {
         const out: ActionButton[] = [];
         const seen = new LuaSet<ActionButton>();
         const take = (list: ActionButton[] | undefined) => {
@@ -211,23 +228,9 @@ export class ActionBarsService implements OnFirstLogin {
         }
         // The icon is the last resort: a button found by the spell or its name is the one (the ranks of a poison share
         // one icon, and only the one rank asked for glows)
-        if (out.length === 0) for (const list of this.listIconButtons(id, resolved)) take(list);
+        const { buttonsByIcon, readMacroButtons } = this;
+        if (out.length === 0) for (const list of listIconButtons(this.spells, buttonsByIcon, readMacroButtons, id, resolved)) take(list);
         return out;
-    }
-
-    /** The buttons that show the spell's icon, where few do (an icon many buttons share tells nothing). */
-    private listIconButtons(id: number | undefined, resolved: number | undefined): ActionButton[][] {
-        const icons = new LuaSet<number | string>();
-        addSpellIconKeys(id, this.spells.getSpellInfo(id), icons);
-        addSpellIconKeys(resolved ?? id, this.spells.getSpellInfo(resolved ?? id), icons);
-        const lists: ActionButton[][] = [];
-        for (const key of icons) {
-            const list = this.buttonsByIcon.get(key);
-            // Not a macro whose text was read: a /target macro with the icon of a buff does not cast it
-            if (list && list.length > 0 && list.length <= MAX_BUTTONS_PER_ICON)
-                lists.push(list.filter((button) => !this.readMacroButtons.has(button)));
-        }
-        return lists;
     }
 
     /** The action slot of a button the spell sits on (for the client's range check); undefined when none. */

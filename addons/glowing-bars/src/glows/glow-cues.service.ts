@@ -46,6 +46,10 @@ export class GlowCuesService {
     private usedInCombat = new LuaSet<number>();
     /** The spells of each type, kept until the settings or the spells change: every tick asks for them. */
     private readonly cueIds = new LuaMap<AddableType, number[]>();
+    /** The answers of a tick, in the same lists each time: the ready cooldowns of each type, the procs, and the cues read. */
+    private readonly readyFound: { [cooldownType in CooldownType]: number[] } = { readyCooldown: [], utilityCooldown: [] };
+    private readonly procsFound: number[] = [];
+    private readonly cuesFound: number[] = [];
 
     constructor(
         private readonly player: PlayerService,
@@ -91,10 +95,10 @@ export class GlowCuesService {
         // The same list each time: a tick makes as few new tables as it can
         const pagedAway = clearList(this.pagedAway[cooldownType]);
         const readyBefore = clearList(this.readyBefore[cooldownType]);
-        if (!this.settings.get(cooldownType === "readyCooldown" ? "isReadyCooldownEnabled" : "isUtilityCooldownEnabled")) return [];
+        const ready = clearList(this.readyFound[cooldownType]);
+        if (!this.settings.get(cooldownType === "readyCooldown" ? "isReadyCooldownEnabled" : "isUtilityCooldownEnabled")) return ready;
         const isInCombat = this.player.isInCombat();
-        const ready: number[] = [];
-        for (const id of this.listCues(this.listCueIds(cooldownType), false)) {
+        for (const id of this.listCues(this.listCueIds(cooldownType), false, clearList(this.cuesFound))) {
             if (this.checkRunning(id, isInCombat)) continue;
             if (!this.seenRunning.has(id)) readyBefore.push(id);
             // No cooldown in this form (Faerie Fire out of Bear Form): nothing to wait for
@@ -149,8 +153,12 @@ export class GlowCuesService {
 
     /** The procs of the class that the game says are usable now (Overpower and Revenge in any stance), and on a button. */
     findProcs(): number[] {
-        if (!this.settings.get("isProcEnabled")) return [];
-        return this.listCues(this.listCueIds("proc")).filter((id) => this.isProcUp(id) && this.tracker.getRemaining(id) <= READY_MARGIN);
+        const procs = clearList(this.procsFound);
+        if (!this.settings.get("isProcEnabled")) return procs;
+        for (const id of this.listCues(this.listCueIds("proc"), true, clearList(this.cuesFound))) {
+            if (this.isProcUp(id) && this.tracker.getRemaining(id) <= READY_MARGIN) procs.push(id);
+        }
+        return procs;
     }
 
     /** The class's last-resort defensives that glow at low health (their own service lights them, not the procs' look). */
@@ -251,10 +259,12 @@ export class GlowCuesService {
         for (const [reminderType] of this.cueIds) this.cueIds.delete(reminderType);
     }
 
-    /** The cues that are learned, switched on, and on an action button (unless `isOnBarsOnly` is false), as the IDs the buttons hold. */
-    private listCues(ids: number[], isOnBarsOnly = true): number[] {
+    /**
+     * The cues that are learned, switched on, and on an action button (unless `isOnBarsOnly` is false), as the IDs the buttons
+     * hold; into `found`, a list a tick reuses, or a new one.
+     */
+    private listCues(ids: number[], isOnBarsOnly = true, found: number[] = []): number[] {
         const enabledSpells = this.settings.get("enabledSpells");
-        const found: number[] = [];
         for (const id of ids) {
             const effectiveId = this.addedSpells.getEffectiveId(id);
             // A trinket's use spell is never learned: the item it is the use of counts

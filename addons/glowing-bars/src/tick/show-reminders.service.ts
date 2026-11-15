@@ -12,6 +12,7 @@ import {
     type BarFadeService,
     type BarKeysService,
     type CooldownViewerService,
+    type CooldownWindow,
     type ClockService,
     type GlowService,
     type GlowAnimation,
@@ -65,6 +66,9 @@ export class ShowRemindersService {
     private readonly sounds: SoundKey[] = [];
     /** The bars to fade, by number, and their opacity: kept from tick to tick. */
     private readonly opacityByBar = new LuaMap<number, number>();
+    /** The other faded buttons (the stance bar, the Cooldown Manager's icons) and their windows: reused on every tick. */
+    private readonly fadedOthers: ActionButton[] = [];
+    private readonly fadedWindows: CooldownWindow[] = [];
     /** When the sound of each glowing spell last played ("buff:21562"), for the ones that repeat. */
     private readonly soundPlayedAt = new LuaMap<string, number>();
     /** Was the player in a town at the previous tick: arriving, an Alert in town sounds once more. */
@@ -137,9 +141,13 @@ export class ShowRemindersService {
             if (isFaded === true && number !== undefined) opacityByBar.set(number, glowPercent);
         }
         const fadedBars = this.settings.get("fadedBars");
-        const others: ActionButton[] = [];
+        const others = this.fadedOthers;
+        others.length = 0;
         if (fadedBars[STANCE_BAR_KEY] === true) others.push(...this.barKeys.listStanceButtons());
-        others.push(...this.cooldownViewer.listIcons(COOLDOWN_WINDOWS.filter((window) => fadedBars[window] === true)));
+        const windows = this.fadedWindows;
+        windows.length = 0;
+        for (const window of COOLDOWN_WINDOWS) if (fadedBars[window] === true) windows.push(window);
+        if (windows.length > 0) this.cooldownViewer.listIcons(windows, others);
         this.barFade.applyBarFades(opacityByBar, others, glowPercent);
     }
 

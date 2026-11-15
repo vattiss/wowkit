@@ -177,8 +177,8 @@ export class GlowService {
     }
 
     /** The buttons a glow is lit on, but those of the gamepad bars: their glow is beside them. */
-    listGlowing(): ActionButton[] {
-        const buttons: ActionButton[] = [];
+    /** Added to `buttons` (a list the caller reuses), or to a new list. */
+    listGlowing(buttons: ActionButton[] = []): ActionButton[] {
         for (const [button] of this.overlays) if (this.isGlowing(button) && !this.isBesideButton(button)) buttons.push(button);
         return buttons;
     }

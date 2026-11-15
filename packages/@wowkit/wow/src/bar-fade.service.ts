@@ -15,6 +15,10 @@ export class BarFadeService {
     private readonly faded = new LuaMap<ActionButton, number>();
     /** The glowing buttons this service drew in full whatever their parent's opacity. */
     private readonly opaque = new LuaSet<ActionButton>();
+    /** What each button is to be now, and the buttons glowing now: worked out on every tick, in the same tables. */
+    private readonly wanted = new LuaMap<ActionButton, number>();
+    private readonly glowing = new LuaSet<ActionButton>();
+    private readonly glowingList: ActionButton[] = [];
 
     constructor(
         private readonly glow: GlowService,
@@ -26,7 +30,8 @@ export class BarFadeService {
      * these other ones (a stance bar, the icons of the Cooldown Manager) to `otherOpacity`.
      */
     applyBarFades(opacityByBar: LuaMap<number, number>, others: ActionButton[], otherOpacity: number): void {
-        const wanted = new LuaMap<ActionButton, number>();
+        const wanted = this.wanted;
+        for (const [button] of wanted) wanted.delete(button);
         for (const [bar, opacity] of opacityByBar) {
             for (const button of this.listBarButtons(bar)) wanted.set(button, this.glow.isGlowing(button) ? 1 : opacity);
         }
@@ -49,8 +54,11 @@ export class BarFadeService {
 
     /** Glowing buttons ignore their parent's opacity; the others follow it again. */
     private showGlowingInFull(): void {
-        const glowing = new LuaSet<ActionButton>();
-        for (const button of this.glow.listGlowing()) {
+        const glowing = this.glowing;
+        for (const button of glowing) glowing.delete(button);
+        const list = this.glowingList;
+        list.length = 0;
+        for (const button of this.glow.listGlowing(list)) {
             glowing.add(button);
             if (!this.opaque.has(button)) button.SetIgnoreParentAlpha(true);
             this.opaque.add(button);

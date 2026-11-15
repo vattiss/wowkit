@@ -2,6 +2,7 @@
 // know whether the buff they track is up. It has to be running for that, it can be out of sight. One answer for all four
 // windows: up, gone, or undefined when an icon has nothing to say and the addon must find out another way.
 import { OnEvent } from "@wowkit/core";
+import { clearMap } from "./utils/lua-map.utils";
 import {
     findActiveLayout,
     readCategoryOverrides,
@@ -66,11 +67,15 @@ const LAST_CATEGORY = 8;
 
 export class CooldownViewerService {
     private readonly entries = new LuaMap<number, ViewerEntry>();
-    private iconStates = new LuaMap<string, boolean>();
+    private readonly iconStates = new LuaMap<string, boolean>();
     /** The same, by each spell ID the icons take an aura by. */
-    private iconStatesById = new LuaMap<number, boolean>();
-    private cooldownStates = new LuaMap<string, boolean>();
+    private readonly iconStatesById = new LuaMap<number, boolean>();
+    private readonly cooldownStates = new LuaMap<string, boolean>();
     private iconStatesAt = -1;
+    /** The icons of a window as last listed: the same list each time, so reading them every tick makes no garbage. */
+    private readonly itemsRead: CooldownViewerItem[] = [];
+    /** The IDs of the icons glowing, to tell when one gets another spell; reused like the icons. */
+    private readonly iconIds: string[] = [];
     /** Is the addon allowed to go by the icons? */
     private isUsingIcons = true;
 
@@ -141,12 +146,14 @@ export class CooldownViewerService {
     findIconsOf(spellName: string, windows: CooldownWindow[]): ActionButton[] {
         const icons: ActionButton[] = [];
         for (const window of windows) {
-            for (const item of this.listIcons([window])) {
-                const cooldownId = getReadable((item as unknown as CooldownViewerItem).cooldownID);
+            const viewer = this.getViewer(ICON_VIEWERS[window]);
+            if (viewer === undefined || !this.isRunning(viewer)) continue;
+            for (const item of this.listItems(viewer)) {
+                const cooldownId = getReadable(item.cooldownID);
                 if (cooldownId === undefined || this.findEntry(cooldownId)?.names.includes(spellName) !== true) continue;
                 // A bar's own icon, the square at its end; hidden with the bar showing only a name, and the glow with it
                 const barIcon = window === "trackedBars" ? (item as unknown as { Icon?: ActionButton }).Icon : undefined;
-                icons.push(barIcon ?? item);
+                icons.push(barIcon ?? (item as unknown as ActionButton));
             }
         }
         return icons;
@@ -157,20 +164,26 @@ export class CooldownViewerService {
         return this.findIconsOf(spellName, windows).some((icon) => getReadable(attempt(() => icon.IsVisible())) === true);
     }
 
-    listIcons(windows: CooldownWindow[]): ActionButton[] {
-        const icons: ActionButton[] = [];
+    /** The icons of these windows, added to `icons` (a list the caller reuses), or to a new list. */
+    listIcons(windows: CooldownWindow[], icons: ActionButton[] = []): ActionButton[] {
         for (const window of windows) {
             const viewer = this.getViewer(ICON_VIEWERS[window]);
-            if (viewer !== undefined && this.isRunning(viewer)) icons.push(...(this.listItems(viewer) as unknown as ActionButton[]));
+            if (viewer === undefined || !this.isRunning(viewer)) continue;
+            for (const item of this.listItems(viewer)) icons.push(item as unknown as ActionButton);
         }
         return icons;
     }
 
     /** Changes when an icon gets another spell: the window reuses its icons. */
     getIconsKey(windows: CooldownWindow[]): string {
-        return this.listIcons(windows)
-            .map((icon) => tostring(getReadable((icon as unknown as CooldownViewerItem).cooldownID)))
-            .join(",");
+        const ids = this.iconIds;
+        ids.length = 0;
+        for (const window of windows) {
+            const viewer = this.getViewer(ICON_VIEWERS[window]);
+            if (viewer === undefined || !this.isRunning(viewer)) continue;
+            for (const item of this.listItems(viewer)) ids.push(tostring(getReadable(item.cooldownID)));
+        }
+        return ids.join(",");
     }
 
     /** Is the spell on its own cooldown (the global cooldown ignored), by its icon on the Spells tab? Undefined with no such icon. */
@@ -188,9 +201,9 @@ export class CooldownViewerService {
     }
 
     private readIconStates(): void {
-        this.iconStates = new LuaMap<string, boolean>();
-        this.iconStatesById = new LuaMap<number, boolean>();
-        this.cooldownStates = new LuaMap<string, boolean>();
+        clearMap(this.iconStates);
+        clearMap(this.iconStatesById);
+        clearMap(this.cooldownStates);
         for (const name of ALL_VIEWERS) {
             const viewer = this.getViewer(name);
             if (viewer === undefined || !this.isRunning(viewer)) continue;
@@ -350,12 +363,10 @@ export class CooldownViewerService {
     /** The bars of the tracked buffs go with their icons. */
     private setIconsVisible(windows: CooldownWindow[], isVisible: boolean): void {
         for (const window of windows) {
-            for (const name of [ICON_VIEWERS[window]]) {
-                const viewer = this.getViewer(name);
-                if (viewer === undefined) continue;
-                viewer.SetAlpha(isVisible ? 1 : 0);
-                for (const item of this.listItems(viewer)) item.SetMouseMotionEnabled(isVisible);
-            }
+            const viewer = this.getViewer(ICON_VIEWERS[window]);
+            if (viewer === undefined) continue;
+            viewer.SetAlpha(isVisible ? 1 : 0);
+            for (const item of this.listItems(viewer)) item.SetMouseMotionEnabled(isVisible);
         }
     }
 
@@ -363,8 +374,10 @@ export class CooldownViewerService {
         return (_G as unknown as { [name: string]: CooldownViewer | undefined })[name];
     }
 
+    /** The window's icons, in a list that is reused: read it before the next call. */
     private listItems(viewer: CooldownViewer): CooldownViewerItem[] {
-        const items: CooldownViewerItem[] = [];
+        const items = this.itemsRead;
+        items.length = 0;
         if (viewer.itemFramePool === undefined) return items;
         for (const item of viewer.itemFramePool.EnumerateActive()) items.push(item);
         return items;

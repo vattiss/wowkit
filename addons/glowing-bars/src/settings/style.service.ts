@@ -3,6 +3,7 @@
 // every spell of it, one with a default of its own too: that spell shows it is changed, and its Reset gives it back its own
 // default, until the type is changed again. No spell keeps a default of its own hidden from the type's row. A spell's look
 // belongs to one type of it: a buff that also has ranks keeps the quiet yellow of its old rank when the player colors the buff.
+import { OnEvent } from "@wowkit/core";
 import type { Rgb, SpellsService } from "@wowkit/wow";
 import { SPELL_STYLE_DEFAULTS, STYLE_DEFAULTS } from "./settings.constants";
 import type { AddonSettingsService, MessageTextChoice, ReminderType, Style, StyleOverride } from "./settings.interface";
@@ -23,6 +24,9 @@ const PARTS: (keyof Style)[] = [
     "messageShowFor",
 ];
 
+/** A type's own look, under no spell, in the kept looks. */
+const TYPE_LOOK = -1;
+
 /** The types whose message names what it is about by default: what to buy, or which button to change. */
 const NAMED_TYPES: ReminderType[] = ["lowStock", "lowReagent", "oldRank", "totemGone"];
 
@@ -33,6 +37,8 @@ export class StyleService {
     private findWeaponBuffRow: (this: void, spellId: number) => number = (spellId) => spellId;
     /** The table's row of a totem's element (see useTotemLooks). */
     private findTotemRow: (this: void, spellId: number) => number = (spellId) => spellId;
+    /** The looks worked out, by type and spell, kept until a setting or the spells change: a tick asks for them often. */
+    private kept = new LuaMap<ReminderType, LuaMap<number, Style>>();
 
     constructor(
         private readonly spells: SpellsService,
@@ -54,8 +60,43 @@ export class StyleService {
         this.findTotemRow = findTotemRow;
     }
 
-    /** The look of a type of reminder, or of one spell of it: the spell's own, else the type's, else the default. */
+    /** A setting (a look, a food learned) or the spells (their names) changed: the looks are worked out anew. */
+    @OnEvent("setting.changed", "spells.refreshed", "spells.invalidated", "spellbook.indexed")
+    clearKeptLooks(): void {
+        this.kept = new LuaMap();
+    }
+
+    /**
+     * The look of a type of reminder, or of one spell of it: the spell's own, else the type's, else the default. The same
+     * table until something changes: it is read, never changed.
+     */
     getStyle(reminderType: ReminderType, rowSpellId?: number): Style {
+        let looks = this.kept.get(reminderType);
+        if (looks === undefined) {
+            looks = new LuaMap();
+            this.kept.set(reminderType, looks);
+        }
+        const key = rowSpellId ?? TYPE_LOOK;
+        const kept = looks.get(key);
+        if (kept !== undefined) return kept;
+        const style = this.buildLook(reminderType, rowSpellId);
+        if (this.isLookFinal(reminderType, rowSpellId)) looks.set(key, style);
+        return style;
+    }
+
+    /**
+     * Can the look be kept until an event says something changed? Not while the spell's name is unknown (its look goes by
+     * it), nor for a totem: the game may tell its element later, with no event.
+     */
+    private isLookFinal(reminderType: ReminderType, rowSpellId: number | undefined): boolean {
+        if (rowSpellId === undefined) return true;
+        if (reminderType === "totemGone") return false;
+        // A weapon buff's look goes by the name of its row's spell
+        const keyId = reminderType === "weaponBuff" ? this.findWeaponBuffRow(rowSpellId) : rowSpellId;
+        return this.spells.getSpellName(rowSpellId) !== undefined && this.spells.getSpellName(keyId) !== undefined;
+    }
+
+    private buildLook(reminderType: ReminderType, rowSpellId: number | undefined): Style {
         const spellId = reminderType === "totemGone" && rowSpellId !== undefined ? this.findTotemRow(rowSpellId) : rowSpellId;
         return this.buildStyle([
             spellId !== undefined ? this.getOverride(reminderType, spellId) : {},

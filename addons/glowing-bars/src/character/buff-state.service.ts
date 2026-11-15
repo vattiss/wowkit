@@ -4,6 +4,7 @@
 import {
     type AuraEntry,
     type AuraRead,
+    type AuraScan,
     type AurasService,
     type CooldownViewerService,
     type PlayerService,
@@ -20,6 +21,15 @@ import type { BuffMemoryService } from "./buff-memory.service";
 export interface BuffRead extends AuraRead {
     /** The buff categories seen in the scan (category key -> aura). */
     categories?: LuaMap<string, AuraEntry>;
+}
+
+/** A scan of the player's auras indexed for the lookups of a tick. */
+interface AuraIndex {
+    scan: AuraScan;
+    names: LuaMap<string, AuraEntry>;
+    ids: LuaMap<number, AuraEntry>;
+    categories: LuaMap<string, AuraEntry>;
+    hasHiddenAura: boolean;
 }
 
 export type UnitBuffState = "has" | "missing" | "unknown";
@@ -47,6 +57,8 @@ export class BuffStateService {
     private readonly auraIds = new LuaMap<string, number>();
     /** The answer of the last look at each buff of hasPerCasterBuff (by spell ID): it holds while the client hides auras. */
     private readonly perCasterVerdicts = new LuaMap<number, boolean>();
+    /** The auras of the last scan looked up, indexed (see indexAuras). */
+    private indexed: AuraIndex | undefined;
 
     constructor(
         private readonly auras: AurasService,
@@ -293,9 +305,8 @@ export class BuffStateService {
         const scan = this.auras.scanAuras("player");
         // No auras at all in combat while buffs are remembered, or an aura whose name is secret: the client hides them, and
         // the buff may be one of them
-        const hasHiddenAura = scan.auras.some((aura) => aura.isHidden || aura.name === undefined);
+        const { names, ids, categories, hasHiddenAura } = this.indexAuras(scan);
         const isUnreadable = scan.isUnreadable || hasHiddenAura || (scan.auras.length === 0 && this.isEmptyListSuspicious());
-        const { names, ids, categories } = this.indexAuras(scan.auras);
         const wantCategory = this.knowledge.findCategory(wantName, spellId);
         const aura =
             (wantName !== undefined ? names.get(buildNameKey(wantName)) : undefined) ??
@@ -307,16 +318,19 @@ export class BuffStateService {
         return { isFound: false, remain: 0, isUnreadable, categories };
     }
 
-    /** The readable auras by name key, by ID, and by buff category. */
-    private indexAuras(auras: AuraEntry[]): {
-        names: LuaMap<string, AuraEntry>;
-        ids: LuaMap<number, AuraEntry>;
-        categories: LuaMap<string, AuraEntry>;
-    } {
+    /**
+     * The readable auras of a scan by name key, by ID, and by buff category, and whether one hides its name. Worked out once
+     * for each scan: every buff of a tick is looked up in the same one.
+     */
+    private indexAuras(scan: AuraScan): AuraIndex {
+        if (this.indexed?.scan === scan) return this.indexed;
         const names = new LuaMap<string, AuraEntry>();
         const ids = new LuaMap<number, AuraEntry>();
         const categories = new LuaMap<string, AuraEntry>();
-        for (const aura of auras) {
+        const index: AuraIndex = { scan, names, ids, categories, hasHiddenAura: false };
+        this.indexed = index;
+        for (const aura of scan.auras) {
+            if (aura.isHidden || aura.name === undefined) index.hasHiddenAura = true;
             if (aura.isHidden) continue;
             if (aura.spellId !== undefined) ids.set(aura.spellId, aura);
             if (aura.name === undefined) continue;
@@ -324,7 +338,7 @@ export class BuffStateService {
             const category = this.knowledge.findCategory(aura.name, aura.spellId);
             if (category) categories.set(category.key, aura);
         }
-        return { names, ids, categories };
+        return index;
     }
 
     /**
