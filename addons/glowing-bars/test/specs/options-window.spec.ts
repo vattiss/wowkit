@@ -209,6 +209,17 @@ describe("the Help tab", () => {
         const world = createPlayer();
         expect(world.frames.some((frame) => (frame as unknown as { optionLabel?: string }).optionLabel === "Report an issue")).toBe(true);
     });
+
+    it("has the invite to the Discord server, put in the chat box to copy", () => {
+        const world = createPlayer();
+        const row = world.frames.find((frame) => (frame as unknown as { optionLabel?: string }).optionLabel === "Discord invite");
+        const opened: string[] = [];
+        const globals = _G as unknown as Record<string, unknown>;
+        globals.ChatFrameUtil = { OpenChat: (text: string) => opened.push(text) };
+        (row as unknown as { applyOption: (this: void) => void }).applyOption();
+        globals.ChatFrameUtil = undefined;
+        expect(opened).toEqual(["https://discord.gg/knxvhkrzsG"]);
+    });
 });
 
 describe("the Defaults button of a tab", () => {

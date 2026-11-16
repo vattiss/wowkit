@@ -11,6 +11,7 @@ export const TEXTS = {
     INIT: "Loaded. Type /gb to customize your reminders.",
 
     INFO_ISSUES: "Report an issue",
+    INFO_DISCORD: "Discord invite",
     INFO_COPY: "Show in chat",
     OPT_SHOW_WHATS_NEW: "Show what's new after new features",
     TIP_SHOW_WHATS_NEW:
@@ -34,6 +35,8 @@ export const TEXTS = {
     HELP_TEXT:
         "The fastest way to get it fixed:\n1. On the Welcome tab, click Scan and copy the details it shows.\n2. Open an issue on GitHub and paste them in. This can speed up a fix a lot.",
     HELP_CURSEFORGE: "I also move issues over from CurseForge, but writing on GitHub directly helps them get solved sooner.",
+    HDR_DISCORD: "Join The Discord",
+    HELP_DISCORD: "Questions, ideas, or news of what comes next: come and talk on the Glowing Bars Discord server.",
     WELCOME_OTHER_MANAGERS:
         "Some addons that change Blizzard's Cooldown Manager don't work well with Glowing Bars. If you see glows floating where nothing is, open the Bars tab and untick Essential Cooldowns, Utility Cooldowns and Tracked Buffs under Action Bars That Glow. Please tell me which addon you use and with what settings: see the Help tab.",
     TAB_WHATS_NEW: "What's New",

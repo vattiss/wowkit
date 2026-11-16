@@ -30,6 +30,8 @@ const NOTES_HEIGHT = WINDOW_HEIGHT - 132;
 
 /** Where a player reports a problem. */
 const ISSUES_URL = "https://github.com/vattiss/wowkit/issues";
+/** The invite to the Discord server of the addon's players. */
+const DISCORD_URL = "https://discord.gg/knxvhkrzsG";
 
 export class RemindersPage implements OptionsPage {
     constructor(
@@ -200,12 +202,15 @@ export class RemindersPage implements OptionsPage {
         );
     }
 
-    /** How to report a problem so it is fixed soon, and where. */
+    /** How to report a problem so it is fixed soon, and where; and the Discord server, to talk about the addon. */
     private addHelpTab(tab: OptionsTab): void {
         tab.addHeader(this.locale.getText("HDR_HELP"));
         tab.addText(() => this.locale.getText("HELP_TEXT"));
         this.widgets.addLinkButton(tab, this.locale.getText("INFO_ISSUES"), ISSUES_URL);
         tab.addText(() => this.locale.getText("HELP_CURSEFORGE"), "GameFontNormalSmall");
+        tab.addHeader(this.locale.getText("HDR_DISCORD"));
+        tab.addText(() => this.locale.getText("HELP_DISCORD"));
+        this.widgets.addLinkButton(tab, this.locale.getText("INFO_DISCORD"), DISCORD_URL);
     }
 
     /** Whether the tab opens by itself after an update, and the notes of every version. */
