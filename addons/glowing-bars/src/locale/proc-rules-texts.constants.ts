@@ -40,8 +40,19 @@ export const PROC_RULES_TEXTS = {
     CREATURE_HUMANOID: "Humanoid",
     CREATURE_MECHANICAL: "Mechanical",
     TIP_RULE_HEALTH_RESULT: "A rule on the health can only light its spell: the game hides the health, so nothing can keep it dark.",
-    TIP_RULE_BUFF_NO_CDM:
-        "In a fight the game hides this buff, and only the Cooldown Manager can tell it: set its access to Full in Settings, Cooldown Manager.",
+    HDR_RULE_ID: "ID",
+    HDR_RULE_CDM: "CDM",
+    CDM_TRACKED: "CDM",
+    CDM_RELOAD: "/reload",
+    CDM_BY_HAND: "by hand",
+    CDM_NONE: "no CDM",
+    TIP_RULE_BUFF: "Out of a fight the addon reads the buff itself. In a fight the game hides it: the Cooldown Manager tells it.",
+    TIP_CDM_TRACKED: "Its icon is in the Cooldown Manager: it works in a fight.",
+    TIP_CDM_RELOAD: "It goes into the Cooldown Manager's Tracked Buffs out of a fight: /reload then, for it to work in a fight.",
+    TIP_CDM_BY_HAND:
+        "Move it to Tracked Buffs in the Cooldown Manager's settings (Edit Mode), or set the access to Full in Settings, Cooldown Manager.",
+    TIP_CDM_NONE: "It is not on the Cooldown Manager's list: in a fight only your own cast of it counts.",
+    TIP_RULE_HEALTH_GROUP: "A rule on the health always has a row of its own on the Procs tab: named by its group, else by its condition.",
     HELP_RULES_TITLE: "Proc rules (beta)",
     HELP_RULES_INTRO:
         "Switched on at the top of the Proc rules tab, the procs are lit by its rules, a new engine, instead of the built-in one. Each rule is a spell and one condition.",
@@ -57,12 +68,12 @@ export const PROC_RULES_TEXTS = {
     HELP_RULES_BUILT_IN_HOW: "the addon's rules can only be switched off. To change one, switch it off and add your own.",
     HELP_RULES_CDM: "CDM, backup",
     HELP_RULES_CDM_HOW: "CDM rules go by the Cooldown Manager's icon of a buff; backup rules tell without it.",
-    HELP_RULES_FIGHT: "Buff up in a fight",
+    HELP_RULES_FIGHT: "Buff up",
     HELP_RULES_FIGHT_HOW:
-        "the game hides buffs in a fight: the Cooldown Manager tells them with Full access, else your cast is remembered. A * marks a buff only it could tell.",
+        "out of a fight the addon reads the buff itself. In a fight the game hides it: the Cooldown Manager tells it, else your own cast is remembered. The CDM column says where it stands: CDM, /reload, by hand, or no CDM.",
     HELP_RULES_HEALTH: "Target health below, My health below",
     HELP_RULES_HEALTH_HOW:
-        "only the game knows the health: the glow fades in below the percent, with no sound, repeat or glow time, and Glow only.",
+        "only the game knows the health: the glow fades in below the percent, with no sound, repeat or glow time, and Glow only. It always has a row of its own on the Procs tab.",
     MSG_RULE_NO_PERCENT: "Enter the health percent, 1 to 99.",
     MSG_RULE_NO_BUFF: "Enter the Buff ID of the buff, as a spell's ID.",
 };

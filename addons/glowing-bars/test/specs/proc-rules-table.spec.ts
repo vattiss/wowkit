@@ -203,3 +203,77 @@ describe("the switches of the Procs and Proc rules tabs", () => {
         expect(findFrameOf(world, "Overpower")).toBeDefined();
     });
 });
+
+describe("the IDs and the Cooldown Manager on the Proc rules tab", () => {
+    const RULE = { spellId: HOLY_STRIKE.id, kind: "buff", value: HOLY_SHIELD, result: "glow", priority: 1 };
+
+    function openPaladin(saved: Record<string, unknown>, setUp?: (world: World) => void): World {
+        const world = createWorld(
+            (state) => {
+                playAs(state, PALADIN);
+                learnSpell(state, HOLY_STRIKE);
+                state.spells[HOLY_SHIELD] = { id: HOLY_SHIELD, name: "Holy Shield", rank: 1, icon: 135880 };
+                state.bars[1] = HOLY_STRIKE.id;
+            },
+            { shouldUseProcRules: true, isCooldownManagerSetUp: true, ...saved },
+        );
+        setUp?.(world);
+        world.advance(1);
+        openRules(world);
+        return world;
+    }
+
+    /** The words of the rule's row whose condition says these. */
+    function readRow(world: World, condition: string): string {
+        return findFrameOf(world, condition)!
+            .fontStrings.map((text) => text.text ?? "")
+            .join(" | ");
+    }
+
+    it("shows the spell's ID under its name, and the buff's ID in its rule's row", () => {
+        const world = openPaladin({ procRules: [RULE] });
+        expect(findFrameOf(world, "Holy Strike")!.fontStrings.some((text) => text.text === String(HOLY_STRIKE.id))).toBe(true);
+        expect(readRow(world, "Buff up: Holy Shield")).toContain(String(HOLY_SHIELD));
+    });
+
+    it("says where the buff stands with the Cooldown Manager", () => {
+        const onList = (world: World) => world.state.buffCatalog.push({ spellId: HOLY_SHIELD, isHiddenByDefault: true });
+        expect(readRow(openPaladin({ procRules: [RULE] }), "Buff up: Holy Shield")).toContain("no CDM");
+        const byHand = openPaladin({ procRules: [RULE], cooldownManagerAccess: "readOnly" }, onList);
+        expect(readRow(byHand, "Buff up: Holy Shield")).toContain("by hand");
+        const reload = openPaladin({ procRules: [RULE], cooldownManagerAccess: "full" }, onList);
+        expect(readRow(reload, "Buff up: Holy Shield")).toContain("/reload");
+        const tracked = openPaladin({ procRules: [RULE] }, (world) =>
+            world.state.trackedBuffs.push({ spellId: HOLY_SHIELD, isActive: false }),
+        );
+        expect(readRow(tracked, "Buff up: Holy Shield")).toContain("CDM|r");
+    });
+
+    it("says on adding a buff rule what the Cooldown Manager needs", () => {
+        const world = openPaladin({ cooldownManagerAccess: "full" }, (each) =>
+            each.state.buffCatalog.push({ spellId: HOLY_SHIELD, isHiddenByDefault: true }),
+        );
+        const addRow = findFrameOf(world, "Add a rule")!;
+        const [spell, buff] = listParts(world, addRow, "EditBox");
+        const [conditionButton, , addButton] = listParts(world, addRow, "Button");
+        world.pickFromMenu(conditionButton!, "Buff up");
+        spell!.text = String(HOLY_STRIKE.id);
+        buff!.text = String(HOLY_SHIELD);
+        click(addButton!);
+        expect(world.chat[world.chat.length - 1]).toContain("Holy Shield: It goes into the Cooldown Manager's Tracked Buffs");
+    });
+
+    it("saves no group for a rule on the health, and shows the name its row gets, grey", () => {
+        const world = openPaladin({});
+        const addRow = findFrameOf(world, "Add a rule")!;
+        const [spell, percent] = listParts(world, addRow, "EditBox");
+        const [conditionButton, , addButton] = listParts(world, addRow, "Button");
+        world.pickFromMenu(conditionButton!, "My health below");
+        spell!.text = String(HOLY_STRIKE.id);
+        percent!.text = "20";
+        click(addButton!);
+        expect((world.getSavedSettings()!.procRules as { group?: string }[])[0]!.group).toBe(undefined);
+        const group = findRule(world, "My health below 20%").group;
+        expect(group.fontStrings.some((text) => text.text === "my health below 20%" && text.isShown !== false)).toBe(true);
+    });
+});

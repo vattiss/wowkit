@@ -10,6 +10,7 @@ import type { StanceProcsService } from "./glows/stance-procs.service";
 import type { BuffStateService } from "./character/buff-state.service";
 import { ProcRulesAddRow } from "./options/proc-rules-add-row";
 import { ProcRulesTab } from "./options/proc-rules-tab";
+import { ProcRuleRows } from "./options/proc-rule-rows";
 import type { StyleWindowService } from "./options/style-window.service";
 
 /** The engine of the proc rules (beta), the looks of their groups' rows while it is on, and the changes of the table. */
@@ -31,8 +32,10 @@ export function makeProcRules(
 
 /** The Proc rules tab of the table, with the row that adds a rule. */
 export function makeProcRulesTab(game: Game, texts: Texts, procEdits: ProcRulesEditsService, windows: StyleWindowService): ProcRulesTab {
-    const addRow = new ProcRulesAddRow(texts.locale, game.spells, procEdits, texts.messages);
-    return new ProcRulesTab(texts.locale, game.spells, texts.settings, procEdits, windows, addRow);
+    const { locale, settings, messages } = texts;
+    const addRow = new ProcRulesAddRow(locale, game.spells, procEdits, messages, game.cooldownViewer, settings);
+    const rows = new ProcRuleRows(locale, game.spells, settings, procEdits, game.cooldownViewer);
+    return new ProcRulesTab(locale, game.spells, settings, procEdits, windows, addRow, rows);
 }
 
 /** The player's rules on the health: lit faded by the game, as Templar's Bulwark; the parts of the glows of the low health. */

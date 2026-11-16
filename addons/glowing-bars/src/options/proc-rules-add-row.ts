@@ -1,10 +1,12 @@
 // The row at the end of the Proc rules tab that adds a rule of the player's: the spell, the condition (with the buff it asks
 // for), the result, the priority and the group. A spell or buff the game does not know is refused, and the chat says why.
 import { connectChoiceMenu, type MessagesService } from "@wowkit/ui";
-import type { SpellsService } from "@wowkit/wow";
+import type { CooldownViewerService, SpellsService } from "@wowkit/wow";
+import type { AddonSettingsService } from "../settings/settings.interface";
+import { CDM_TEXTS, findCdmStatus } from "./proc-rule-cdm";
 import type { AddonLocale } from "../locale/locale.interface";
 import type { TextKey } from "../locale/texts.constants";
-import { findHealthGroup, HIDDEN_KINDS, type ProcRuleResult } from "../glows/proc-rules.interface";
+import { HIDDEN_KINDS, type ProcRuleResult } from "../glows/proc-rules.interface";
 import type { ProcRulesEditsService } from "../glows/proc-rules-edits.service";
 import { CONDITION_CHOICES, describeChoice, type ConditionChoice } from "./proc-rule-words";
 
@@ -28,6 +30,8 @@ export class ProcRulesAddRow {
         private readonly spells: SpellsService,
         private readonly edits: ProcRulesEditsService,
         private readonly messages: MessagesService,
+        private readonly viewer: CooldownViewerService,
+        private readonly settings: AddonSettingsService,
     ) {}
 
     /** The row at `top` of `holder`; its controls work only while the rules are on. Returns where it ends. */
@@ -139,12 +143,8 @@ export class ProcRulesAddRow {
         }
         const value = this.readValue(parts.buff.GetText());
         if (value === false) return;
-        const typed = strtrim(parts.group.GetText());
-        // A rule on the health always has a group: its glow can do less than the spell's own row
-        const isHealth = HIDDEN_KINDS.includes(this.choice.kind);
-        const group = isHealth
-            ? findHealthGroup({ spellId, kind: this.choice.kind, value, result: "glow", priority: 1, group: typed })
-            : typed;
+        // A rule on the health with no group still has a row of its own, named by its condition: no name is saved for it
+        const group = strtrim(parts.group.GetText() ?? "");
         const priority = math.max(1, math.min(9, tonumber(parts.priority.GetText()) ?? 1));
         this.edits.addRule({
             spellId,
@@ -154,10 +154,18 @@ export class ProcRulesAddRow {
             priority,
             group: group !== "" ? group : undefined,
         });
+        if (this.choice.kind === "buff" && value !== undefined) this.sayCdmStatus(value);
         parts.spell.SetText("");
         parts.buff.SetText("");
         parts.group.SetText("");
         for (const box of [parts.spell, parts.buff, parts.group, parts.priority]) box.ClearFocus();
+    }
+
+    /** Where a new buff rule's buff stands with the Cooldown Manager, which alone tells it in a fight: what to do, if anything. */
+    private sayCdmStatus(buffId: number): void {
+        const status = findCdmStatus(buffId, this.spells, this.viewer, this.settings);
+        const name = this.spells.getSpellLabel(buffId) ?? string.format("%d", buffId);
+        this.messages.say(`${name}: ${this.locale.getText(CDM_TEXTS[status].tip)}`);
     }
 
     /** The value the condition takes: the creature type picked, the buff, or the percent typed; false when it is wrong (the chat says why). */
