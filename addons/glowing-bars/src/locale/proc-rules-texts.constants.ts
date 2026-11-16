@@ -10,7 +10,7 @@ export const PROC_RULES_TEXTS = {
     HDR_RULE_CONDITION: "Condition",
     HDR_RULE_RESULT: "Result",
     HDR_RULE_GROUP: "Group",
-    HDR_RULE_ON: "On",
+    HDR_RULE_ON: "Enabled",
     HDR_RULE_ADD: "Add a rule",
     LABEL_RULE_SPELL: "Spell ID",
     LABEL_RULE_BUFF: "Buff ID",
