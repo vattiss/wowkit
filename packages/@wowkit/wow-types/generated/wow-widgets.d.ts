@@ -1,6 +1,6 @@
 // GENERATED FILE - do not edit. Regenerate with "pnpm gen:types".
 // Widget (ScriptObject) interfaces; methods are called with `:`.
-// Source: https://github.com/Gethe/wow-ui-source.git (forever @ 9dc84f0d3b), game version 1.60.1.70862
+// Source: https://github.com/Gethe/wow-ui-source.git (forever @ bebcb6bf30), game version 1.60.1.70938
 
 interface FrameScriptObject {
     /**

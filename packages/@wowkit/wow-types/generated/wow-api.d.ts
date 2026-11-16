@@ -1,6 +1,6 @@
 // GENERATED FILE - do not edit. Regenerate with "pnpm gen:types".
 // Global functions and C_* namespaces.
-// Source: https://github.com/Gethe/wow-ui-source.git (forever @ 9dc84f0d3b), game version 1.60.1.70862
+// Source: https://github.com/Gethe/wow-ui-source.git (forever @ bebcb6bf30), game version 1.60.1.70938
 
 /** @noSelfInFile */
 
@@ -6217,6 +6217,7 @@ declare namespace C_TradeSkillUI {
     function GetSourceTypeFilter(): number;
     function GetTradeSkillDisplayName(skillLineID: number): string;
     function HasFavoriteOrderRecipes(): boolean;
+    function HasNoReagentCost(recipeID: number): boolean;
     function IsEnchantTargetValid(recipeID: number, itemGUID: string, craftingReagents?: CraftingReagentInfo[]): boolean;
     function IsGuildTradeSkillsEnabled(): boolean;
     function IsNearProfessionSpellFocus(profession: Enum.Profession): boolean;
@@ -6440,7 +6441,7 @@ declare namespace C_TransmogOutfitInfo {
     function GetOutfitSituation(option: TransmogSituationOption): boolean;
     function GetOutfitSituationsEnabled(): boolean;
     function GetPendingTransmogCost(): LuaMultiReturn<[cost: number | undefined, modifierFlags: number | undefined]>;
-    function GetSecondarySlotState(slot: Enum.TransmogOutfitSlot): boolean;
+    function GetSecondarySlotState(slot: Enum.TransmogOutfitSlot, option: Enum.TransmogOutfitSlotOption): boolean;
     function GetSetSourcesForSlot(transmogSetID: number, slot: Enum.TransmogOutfitSlot): AppearanceSourceInfo[] | undefined;
     function GetSlotGroupInfo(): TransmogOutfitSlotGroup[] | undefined;
     function GetSourceIDsForSlot(transmogSetID: number, slot: Enum.TransmogOutfitSlot): number[] | undefined;
@@ -6469,7 +6470,7 @@ declare namespace C_TransmogOutfitInfo {
     function SetOutfitToSet(transmogSetID: number): void;
     function SetPendingTransmog(slot: Enum.TransmogOutfitSlot, type: Enum.TransmogType, option: Enum.TransmogOutfitSlotOption, transmogID: number, displayType: Enum.TransmogOutfitDisplayType): void;
     function SetPendingTransmogSheatheCategory(slot: Enum.TransmogOutfitSlot, option: Enum.TransmogOutfitSlotOption, category: Enum.TransmogOutfitSlotOptionSheatheCategory): void;
-    function SetSecondarySlotState(slot: Enum.TransmogOutfitSlot, state: boolean): void;
+    function SetSecondarySlotState(slot: Enum.TransmogOutfitSlot, option: Enum.TransmogOutfitSlotOption, state: boolean): void;
     function SetViewedOptionForSlot(slot: Enum.TransmogOutfitSlot, option: Enum.TransmogOutfitSlotOption): void;
     function SlotHasSecondary(slot: Enum.TransmogOutfitSlot): boolean;
     function TransmogEventActive(): boolean;

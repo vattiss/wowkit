@@ -1,6 +1,6 @@
 // GENERATED FILE - do not edit. Regenerate with "pnpm gen:types".
 // Event payloads, keyed by event name.
-// Source: https://github.com/Gethe/wow-ui-source.git (forever @ 9dc84f0d3b), game version 1.60.1.70862
+// Source: https://github.com/Gethe/wow-ui-source.git (forever @ bebcb6bf30), game version 1.60.1.70938
 
 interface WowEventPayloads {
     /** @remarks Synchronous event. */
@@ -2314,7 +2314,7 @@ interface WowEventPayloads {
     /** @remarks Synchronous event. */
     PARTY_INVITE_CANCEL: [];
     /** @remarks Synchronous event. */
-    PARTY_INVITE_REQUEST: [name: string, isTank: boolean, isHealer: boolean, isDamage: boolean, isNativeRealm: boolean, allowMultipleRoles: boolean, inviterGUID: string, questSessionActive: boolean];
+    PARTY_INVITE_REQUEST: [name: string, isTank: boolean, isHealer: boolean, isDamage: boolean, isNativeRealm: boolean, isCrossShard: boolean, allowMultipleRoles: boolean, inviterGUID: string, questSessionActive: boolean];
     /** @remarks Synchronous event. */
     PARTY_KILL: [attackerGUID: string, targetGUID: string];
     /** @remarks Unique event: only the most recent one is delivered per frame. */
