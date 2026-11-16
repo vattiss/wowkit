@@ -25,6 +25,8 @@ import type { GlowCuesService } from "./glow-cues.service";
 import { buildGroupSwitchKey, findHealthGroup, type ProcRule } from "./proc-rules.interface";
 import type { ProcRulesService } from "./proc-rules.service";
 
+/** The name this service puts its faded line up by. */
+const TEXT_OWNER = "healthRules";
 /** The curve's short ramp ends this far below the percent, where the glow is full. */
 const CURVE_RAMP = 2;
 
@@ -77,11 +79,11 @@ export class HealthRulesService {
 
     /** Lights the rule's glow if its spell is ready on a bar and nothing else lit it; returns whether it put a message up. */
     private showRule(rule: ProcRule, hasText: boolean): boolean {
-        const spellId = this.spells.resolve(rule.spellId);
-        if (spellId === undefined || !this.actionBars.isOnBars(spellId) || this.glowCues.isOnCooldown(spellId)) return false;
-        if (this.procRules.isLitNow(spellId) || !this.hasUnit(rule)) return false;
+        const spellId = this.findReadySpell(rule);
+        if (spellId === undefined) return false;
         const group = findHealthGroup(rule);
-        if (this.settings.get("enabledSpells")[buildGroupSwitchKey(rule.spellId, group)] === false) return false;
+        const name = this.spells.getSpellLabel(rule.spellId) ?? string.format("%d", rule.spellId);
+        if (this.settings.get("enabledSpells")[buildGroupSwitchKey(name, group)] === false) return false;
         const style = this.styles.getGroupStyle(rule.spellId, group);
         if (!readWhenState(this.player, this.whenState)[style.when]) return false;
         const unit = rule.kind === "targetHealth" ? "target" : "player";
@@ -97,6 +99,17 @@ export class HealthRulesService {
         return !hasText && this.showText(spellId, style, unit, percent);
     }
 
+    /**
+     * The spell the rule may light: switched on, learned, on a bar, off its cooldown, lit by no rule the addon can read, with
+     * its unit there; undefined when not.
+     */
+    private findReadySpell(rule: ProcRule): number | undefined {
+        if (this.settings.get("enabledSpells")[string.format("%d", rule.spellId)] === false) return undefined;
+        const spellId = this.spells.resolve(rule.spellId);
+        if (spellId === undefined || !this.actionBars.isOnBars(spellId) || this.glowCues.isOnCooldown(spellId)) return undefined;
+        return this.procRules.isLitNow(spellId) || !this.hasUnit(rule) ? undefined : spellId;
+    }
+
     /** A rule on the target's health needs a living enemy targeted; one on the player's, a living player. */
     private hasUnit(rule: ProcRule): boolean {
         return rule.kind === "targetHealth" ? this.player.hasEnemyTarget() : !this.player.isDead();
@@ -104,19 +117,31 @@ export class HealthRulesService {
 
     /** Its message, if the player wants one: as hidden from the addon as the glow is. */
     private showText(spellId: number, style: Style, unit: UnitToken, percent: number): boolean {
+        // The line of the addon's own glows on the health (Templar's Bulwark, Execute) comes first: it is not overwritten
+        const owner = this.notice.findFadedTextOwner();
+        if (owner !== undefined && owner !== TEXT_OWNER) {
+            this.isTextShown = false;
+            return false;
+        }
         const alpha = style.isMessageOn ? this.curves.getHealthAlpha(unit, percent, "below") : undefined;
         if (alpha === undefined) return false;
         const choice = style.messageTextChoice ?? "typeOnly";
         const { words } = findWords(choice, style.messageText, this.locale.getText("TEXT_PROC"), this.spells.getSpellLabel(spellId));
         const text = this.styles.applyTextColor(style.messageColor ?? style.color, words);
-        this.notice.showFadedText(text, alpha, { scale: this.settings.get("messageSize") / 100, top: this.settings.get("messageTop") });
+        this.notice.showFadedText(
+            text,
+            alpha,
+            { scale: this.settings.get("messageSize") / 100, top: this.settings.get("messageTop") },
+            TEXT_OWNER,
+        );
         this.isTextShown = true;
         return true;
     }
 
+    /** Takes its line down: only its own, another service may have put its line up since. */
     private clearText(): void {
         if (!this.isTextShown) return;
-        this.notice.clearFadedText();
+        if (this.notice.findFadedTextOwner() === TEXT_OWNER) this.notice.clearFadedText();
         this.isTextShown = false;
     }
 

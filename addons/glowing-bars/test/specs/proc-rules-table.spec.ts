@@ -174,7 +174,7 @@ describe("the switches of the Procs and Proc rules tabs", () => {
         toggleTable();
         showTab(world, "Procs");
         click(findRow(world, "Revenge (dodge)").enabled, false);
-        expect((world.getSavedSettings()!.enabledSpells as Record<string, boolean>)["group:6572:dodge"]).toBe(false);
+        expect((world.getSavedSettings()!.enabledSpells as Record<string, boolean>)["group:Revenge:dodge"]).toBe(false);
         world.fire("UNIT_COMBAT", "player", "DODGE", "", 0, 1);
         world.advance(0.5);
         expect(world.glowsOn(1)).toBe(0);

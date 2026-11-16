@@ -156,6 +156,7 @@ export class GlowCuesService {
     /** The procs of the class that the game says are usable now (Overpower and Revenge in any stance), and on a button. */
     findProcs(): number[] {
         const procs = clearList(this.procsFound);
+        if (this.procRules.isOn()) this.procRules.forgetLit();
         if (!this.settings.get("isProcEnabled")) return procs;
         for (const id of this.listCues(this.listCueIds("proc"), true, clearList(this.cuesFound))) {
             // The proc rules (beta) when the player switched them on, else the built-in checks

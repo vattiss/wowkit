@@ -74,6 +74,8 @@ declare global {
 export class NoticeService {
     /** The line of showFadedText, made the first time it is asked for. */
     private faded: { frame: Frame; text: FontString } | undefined;
+    /** Who put the faded line up: one service's line is not another's to overwrite (see findFadedTextOwner). */
+    private fadedOwner: string | undefined;
 
     constructor(
         /** The addon that shows the messages: its block of lines in the shared notice. */
@@ -123,8 +125,9 @@ export class NoticeService {
      * A line whose opacity the client worked out from a value it hides from addons: its own frame, above the shared messages,
      * since fading those would fade every other line too.
      */
-    showFadedText(text: string, alpha: HiddenAlpha, look: { scale: number; top: number }): void {
+    showFadedText(text: string, alpha: HiddenAlpha, look: { scale: number; top: number }, owner = ""): void {
         const faded = this.faded ?? this.createFadedText();
+        this.fadedOwner = owner;
         faded.text.SetText(text);
         faded.frame.SetScale(look.scale);
         faded.frame.ClearAllPoints();
@@ -136,6 +139,12 @@ export class NoticeService {
 
     clearFadedText(): void {
         this.faded?.frame.Hide();
+        this.fadedOwner = undefined;
+    }
+
+    /** Who has the faded line up now ("" for one who gave no name); undefined while none is up. */
+    findFadedTextOwner(): string | undefined {
+        return this.fadedOwner;
     }
 
     private createFadedText(): { frame: Frame; text: FontString } {

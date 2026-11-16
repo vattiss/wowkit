@@ -89,9 +89,12 @@ export function isBuiltInRuleOff(settings: AddonSettingsService, rule: ProcRule)
     return settings.get("shouldUseProcRules") && settings.get("disabledProcRules")[buildProcRuleKey(rule)] === true;
 }
 
-/** The key of the switch of a group's row on the Procs tab, in the per-spell switches ("group:6572:dodge"). */
-export function buildGroupSwitchKey(spellId: number, group: string): string {
-    return `group:${spellId}:${group}`;
+/**
+ * The key of the switch of a group's row on the Procs tab, in the per-spell switches, by the spell's name ("group:Revenge:dodge"):
+ * the rules of every rank of a spell with one group share it.
+ */
+export function buildGroupSwitchKey(spellName: string, group: string): string {
+    return `group:${spellName}:${group}`;
 }
 
 /** The key a built-in rule is switched off by: its spell, its kind and its value ("20271:targetType:6"). */

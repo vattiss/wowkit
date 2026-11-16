@@ -88,6 +88,12 @@ export class ProcRulesService {
         return ids;
     }
 
+    /** A new look at the procs: what was lit at the last one is forgotten, a spell not looked at again is lit by nothing. */
+    forgetLit(): void {
+        for (const [spellId] of this.litGroups) this.litGroups.delete(spellId);
+        for (const spellId of this.litSpells) this.litSpells.delete(spellId);
+    }
+
     /** Is the proc up by its rules? A spell with no rule (a proc added before the rules) goes by the game calling it usable. */
     isProcUp(spellId: number): boolean {
         this.litGroups.delete(spellId);
@@ -153,7 +159,7 @@ export class ProcRulesService {
                 const name = this.spells.getSpellLabel(rule.spellId) ?? string.format("%d", rule.spellId);
                 const list = byName.get(name) ?? [];
                 byName.set(name, list);
-                const switchKey = rule.group !== undefined ? buildGroupSwitchKey(rule.spellId, rule.group) : undefined;
+                const switchKey = rule.group !== undefined ? buildGroupSwitchKey(name, rule.group) : undefined;
                 list.push({ ...rule, switchKey });
             }
             for (const [, list] of byName) list.sort((a, b) => a.priority - b.priority);
@@ -171,12 +177,14 @@ export class ProcRulesService {
      * addon's memory of it (cast, or seen before the fight hid it), as a missing buff is told. Out of a fight no aura is no buff.
      */
     private isBuffUp(buffId: number, isOwn = false): boolean | undefined {
-        // Asked first: it reads the aura too, and remembers it for the fight, when the game hides it
-        if (isOwn && this.buffState.hasAura(buffId)) return true;
+        // Asked every time, for the memory to keep up (it reads the aura, and remembers it for the fight); it counts last
+        const isRemembered = isOwn && this.buffState.hasAura(buffId);
         if (this.auras.readPlayerAura(buffId)?.isFound === true) return true;
+        // The icon in the Cooldown Manager, where it has a say, over the memory: a buff can end before its time
         const name = this.spells.getSpellName(buffId);
         const isIconUp = name !== undefined ? this.cooldownViewer.isBuffActive(name) : undefined;
         if (isIconUp !== undefined) return isIconUp;
+        if (isRemembered) return true;
         return this.player.isInCombat() ? undefined : false;
     }
 

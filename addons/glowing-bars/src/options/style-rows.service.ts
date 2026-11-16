@@ -235,7 +235,7 @@ export class StyleRowsService {
             if (isHealth && !healthRules.includes(rule)) continue;
             const group = isHealth ? findHealthGroup(rule) : rule.group;
             if (group === undefined) continue;
-            const rowId = this.styles.groupRows.findRowId(rule.spellId, group);
+            const rowId = this.styles.findGroupRowId(rule.spellId, group);
             if (rows.some((row) => row.spellId === rowId)) continue;
             rows.push({
                 reminderType: "proc",

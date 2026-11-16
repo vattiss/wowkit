@@ -87,7 +87,12 @@ export class StyleService {
      * its own, as the spell's: it does not take what the player set for the spell.
      */
     getGroupStyle(spellId: number, group: string): Style {
-        return this.getStyle("proc", this.groupRows.findRowId(spellId, group));
+        return this.getStyle("proc", this.findGroupRowId(spellId, group));
+    }
+
+    /** The row of a spell's group of the proc rules: one for every rank of the spell (by its name). */
+    findGroupRowId(spellId: number, group: string): number {
+        return this.groupRows.findRowId(spellId, group, this.getSpellKey(spellId));
     }
 
     /**

@@ -10,9 +10,9 @@ export class ProcGroupRows {
     private readonly groups = new LuaMap<number, { spellId: number; group: string }>();
     private nextRowId = FIRST_ROW_ID;
 
-    /** The row of a spell's group, made the first time it is asked for. */
-    findRowId(spellId: number, group: string): number {
-        const key = `${spellId}:${group}`;
+    /** The row of a spell's group (every rank of the spell by its name, `spellKey`), made the first time it is asked for. */
+    findRowId(spellId: number, group: string, spellKey: string): number {
+        const key = `${spellKey}:${group}`;
         const kept = this.rowIds.get(key);
         if (kept !== undefined) return kept;
         const rowId = this.nextRowId;

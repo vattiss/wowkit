@@ -61,7 +61,9 @@ export class EnabledService {
     /** The switch of a cooldown or proc is kept by its ID in the lists; that of a spell the player added by its own. */
     private getGlowKey(row: StyleRow, spellId: number): string {
         // A group's row of the proc rules: by its spell and group, its ID is made up for the session
-        if (row.group !== undefined && row.sharesIdOf !== undefined) return buildGroupSwitchKey(row.sharesIdOf, row.group);
+        if (row.group !== undefined && row.sharesIdOf !== undefined) {
+            return buildGroupSwitchKey(this.spells.getSpellLabel(row.sharesIdOf) ?? string.format("%d", row.sharesIdOf), row.group);
+        }
         return string.format("%d", row.listId ?? spellId);
     }
 

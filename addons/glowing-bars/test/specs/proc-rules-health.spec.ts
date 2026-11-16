@@ -125,3 +125,103 @@ describe("a buff of the player's rule in a fight", () => {
         expect(tracked.includes(HOLY_SHIELD)).toBe(true);
     });
 });
+
+describe("the fixes of the proc rules' review", () => {
+    it("believes the Cooldown Manager's icon over the memory: a buff gone before its time lights nothing", () => {
+        const world = createWorld(
+            (state) => {
+                playAs(state, PALADIN);
+                learnSpell(state, HOLY_STRIKE);
+                state.spells[HOLY_SHIELD] = { id: HOLY_SHIELD, name: "Holy Shield", rank: 1, icon: 135880 };
+                state.bars[1] = HOLY_STRIKE.id;
+            },
+            {
+                shouldUseProcRules: true,
+                procRules: [{ spellId: HOLY_STRIKE.id, kind: "buff", value: HOLY_SHIELD, result: "glow", priority: 1 }],
+            },
+        );
+        world.state.auras.push(world.makeAura("Holy Shield", HOLY_SHIELD, 10));
+        world.advance(2);
+        expect(world.glowsOn(1)).toBe(1);
+        world.state.isInCombat = true;
+        world.state.areAurasHidden = true;
+        world.state.trackedBuffs.push({ spellId: HOLY_SHIELD, isActive: false });
+        world.fire("PLAYER_REGEN_DISABLED");
+        world.advance(1);
+        expect(world.glowsOn(1)).toBe(0);
+    });
+
+    it("leaves the faded line of Templar's Bulwark to it, a rule's on the health waiting", () => {
+        const BULWARK = { id: 1311015, name: "Templar's Bulwark", rank: 1, icon: 135874, isHelpful: true };
+        const world = createWorld(
+            (state) => {
+                playAs(state, PALADIN);
+                learnSpell(state, HOLY_LIGHT);
+                learnSpell(state, BULWARK);
+                state.bars[1] = HOLY_LIGHT.id;
+                state.bars[2] = BULWARK.id;
+                state.health = 5;
+                // Templar's Bulwark glows in a fight by its own default
+                state.isInCombat = true;
+            },
+            {
+                shouldUseProcRules: true,
+                procRules: [{ spellId: HOLY_LIGHT.id, kind: "myHealth", value: 35, result: "glow", priority: 1, group: "low" }],
+                spellStyles: {
+                    "proc:Templar's Bulwark": { isMessageOn: true, messageTextChoice: "name" },
+                    "proc:Holy Light (low)": { isMessageOn: true, messageTextChoice: "name" },
+                },
+            },
+        );
+        const isHolyLightShown = () =>
+            world.frames.some((frame) => frame.isShown && frame.fontStrings.some((text) => (text.text ?? "").includes("Holy Light")));
+        for (let step = 0; step < 4; step++) {
+            world.advance(0.25);
+            expect(isHolyLightShown()).toBe(false);
+        }
+    });
+
+    it("gives the rules of two ranks of a spell with one group one row on the Procs tab", () => {
+        const RANK_2 = { ...HOLY_STRIKE, id: 407677, rank: 2 };
+        const world = createWorld(
+            (state) => {
+                playAs(state, PALADIN);
+                learnSpell(state, HOLY_STRIKE);
+                state.spells[RANK_2.id] = RANK_2;
+                state.bars[1] = HOLY_STRIKE.id;
+            },
+            {
+                shouldUseProcRules: true,
+                procRules: [
+                    { spellId: HOLY_STRIKE.id, kind: "usable", result: "glow", priority: 1, group: "strike" },
+                    { spellId: RANK_2.id, kind: "free", result: "glow", priority: 1, group: "strike" },
+                ],
+            },
+        );
+        world.advance(1);
+        toggleTable();
+        showTab(world, "Procs");
+        const rows = world.frames.filter(
+            (frame) => frame.isShown && frame.fontStrings.some((text) => text.text === "Holy Strike (strike)"),
+        );
+        expect(rows.length).toBe(1);
+    });
+
+    it("lights no rule on the health of a spell switched off on its own row", () => {
+        const world = createWorld(
+            (state) => {
+                playAs(state, PALADIN);
+                learnSpell(state, HOLY_LIGHT);
+                state.bars[1] = HOLY_LIGHT.id;
+                state.health = 20;
+            },
+            {
+                shouldUseProcRules: true,
+                procRules: [{ spellId: HOLY_LIGHT.id, kind: "myHealth", value: 35, result: "glow", priority: 1 }],
+                enabledSpells: { "635": false },
+            },
+        );
+        world.advance(1);
+        expect(world.glowAlphasOn(1)).toEqual([]);
+    });
+});
