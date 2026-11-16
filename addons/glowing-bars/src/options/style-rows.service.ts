@@ -191,7 +191,9 @@ export class StyleRowsService {
         for (const id of this.sealReminder.listTableSeals()) addListed("missingSeal", id);
         for (const id of this.trackingReminder.listTrackings()) addListed("missingTracking", id);
         for (const reminderType of ["readyCooldown", "utilityCooldown", "proc"] as const) {
-            for (const id of this.glowCues.listBuiltInIds(reminderType)) addListed(reminderType, id);
+            // A proc of the rules whose rules all have a group: the rows of its groups alone
+            const ids = this.glowCues.listBuiltInIds(reminderType).filter((id) => reminderType !== "proc" || this.procRules.hasOwnRow(id));
+            for (const id of ids) addListed(reminderType, id);
         }
         // A defensive at low health: the game lights it by itself, so no sound or glow time can follow it
         for (const id of this.glowCues.listLowHealthIds()) rows.push(this.createLowHealthRow(id));

@@ -24,6 +24,8 @@ export class ProcRulesService {
     /** The rules of each spell by its name, sorted by priority: worked out again when a setting or the spells change. */
     private rulesByName: LuaMap<string, BuiltInProcRule[]> | undefined;
     private spellIds: number[] | undefined;
+    /** The spells with a rule of no group, whose own row on the Procs tab shows; worked out again with the rules. */
+    private plainRowIds: LuaSet<number> | undefined;
     /** The group of the rule that lit each spell at the last look; none: the spell's own row. */
     private readonly litGroups = new LuaMap<number, string>();
     /** The spells a rule whose answer the addon knows lit at the last look: a rule on the health then has nothing to add. */
@@ -65,6 +67,7 @@ export class ProcRulesService {
     forgetRules(): void {
         this.rulesByName = undefined;
         this.spellIds = undefined;
+        this.plainRowIds = undefined;
         this.ownHealthRules = undefined;
     }
 
@@ -88,6 +91,29 @@ export class ProcRulesService {
         return ids;
     }
 
+    /**
+     * Has the spell a rule of no group (not one on the health, which has a row of its own)? Only then its own row on the Procs
+     * tab shows, with its look and switch; the rows of its groups do the rest.
+     */
+    hasPlainRow(spellId: number): boolean {
+        if (this.plainRowIds === undefined) {
+            const ids = new LuaSet<number>();
+            for (const rule of this.listRules()) if (rule.group === undefined && !HIDDEN_KINDS.includes(rule.kind)) ids.add(rule.spellId);
+            if (this.player.getClassToken() !== undefined) this.plainRowIds = ids;
+            return ids.has(spellId);
+        }
+        return this.plainRowIds.has(spellId);
+    }
+
+    /** Are the rows of its groups all the spell's rules have (it has rules, each of a group)? Its own row is then hidden. */
+    hasOnlyGroupRows(spellId: number): boolean {
+        return this.listSpellIds().includes(spellId) && !this.hasPlainRow(spellId);
+    }
+
+    /** Does the spell's own row show on the Procs tab: always without the rules, with them while it has a rule of no group (or no rule)? */
+    hasOwnRow(spellId: number): boolean {
+        return !this.isOn() || !this.hasOnlyGroupRows(spellId);
+    }
     /** A new look at the procs: what was lit at the last one is forgotten, a spell not looked at again is lit by nothing. */
     forgetLit(): void {
         for (const [spellId] of this.litGroups) this.litGroups.delete(spellId);

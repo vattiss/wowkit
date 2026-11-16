@@ -158,7 +158,7 @@ export class GlowCuesService {
         const procs = clearList(this.procsFound);
         if (this.procRules.isOn()) this.procRules.forgetLit();
         if (!this.settings.get("isProcEnabled")) return procs;
-        for (const id of this.listCues(this.listCueIds("proc"), true, clearList(this.cuesFound))) {
+        for (const id of this.listCues(this.listCueIds("proc"), true, clearList(this.cuesFound), true)) {
             // The proc rules (beta) when the player switched them on, else the built-in checks
             const isUp = this.procRules.isOn() ? this.procRules.isProcUp(id) : this.isProcUp(id);
             if (isUp && this.tracker.getRemaining(id) <= READY_MARGIN) procs.push(id);
@@ -258,16 +258,23 @@ export class GlowCuesService {
     }
 
     /**
+     * Is the cue switched off on its row? A proc of the rules with no row of its own on the Procs tab (its rules all have a
+     * group) has no switch of its own: its groups' alone count.
+     */
+    private isCueSwitchedOff(id: number, isProc: boolean, enabledSpells: { [key: string]: boolean | undefined }): boolean {
+        return enabledSpells[String(id)] === false && (!isProc || this.procRules.hasOwnRow(id));
+    }
+    /**
      * The cues that are learned, switched on, and on an action button (unless `isOnBarsOnly` is false), as the IDs the buttons
      * hold; into `found`, a list a tick reuses, or a new one.
      */
-    private listCues(ids: number[], isOnBarsOnly = true, found: number[] = []): number[] {
+    private listCues(ids: number[], isOnBarsOnly = true, found: number[] = [], isProc = false): number[] {
         const enabledSpells = this.settings.get("enabledSpells");
         for (const id of ids) {
             const effectiveId = this.addedSpells.getEffectiveId(id);
             // A trinket's use spell is never learned: the item it is the use of counts
             const learned = this.spells.resolve(effectiveId) ?? (this.tracker.hasItemCooldown(effectiveId) ? effectiveId : undefined);
-            if (learned === undefined || enabledSpells[String(id)] === false) continue;
+            if (learned === undefined || this.isCueSwitchedOff(id, isProc, enabledSpells)) continue;
             if (isOnBarsOnly && !this.actionBars.isOnBars(learned)) continue;
             found.push(learned);
         }
