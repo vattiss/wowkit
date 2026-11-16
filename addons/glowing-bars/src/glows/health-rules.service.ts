@@ -1,7 +1,7 @@
 // The player's proc rules on the health (beta): "glow Holy Light while my health is at or below 35%". The game hides the
 // health from addons, so, as with Templar's Bulwark, the glow is lit while the spell is ready and the game fades it through
 // a curve: it shows only below the percent. A spell a rule the addon can read lit already has nothing to add. Each rule
-// glows with the look of its group's row ("Holy Light (my health <= 35%)"), where nothing that needs to know when the glow
+// glows with the look of its group's row ("Holy Light (my health below 35%)"), where nothing that needs to know when the glow
 // starts (sound, repeat, glow time) can be set; one message at a time, the first rule's, as faded as its glow.
 import { Interval } from "@wowkit/core";
 import type {
@@ -90,7 +90,8 @@ export class HealthRulesService {
         const percent = (rule.value ?? 0) + CURVE_RAMP;
         const alpha = this.curves.getHealthAlpha(unit, percent, "below", style.glowPercent / 100);
         if (alpha === undefined) return false;
-        const key = `${rule.spellId}:${group}`;
+        // One glow for a group, as one row: every rule of the spell (any rank) with that group lights the same
+        const key = `${name}:${group}`;
         const ruleGlow = this.takeGlow(key, style.animation);
         ruleGlow.spellIds[0] = spellId;
         ruleGlow.glow.show(ruleGlow.spellIds, style.color);

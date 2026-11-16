@@ -49,7 +49,7 @@ describe("the addon's rule on the health of Execute in Defensive Stance", () => 
 });
 
 describe("a rule of the player's on the health", () => {
-    const RULE = { spellId: HOLY_LIGHT.id, kind: "myHealth", value: 35, result: "glow", priority: 1, group: "my health <= 35%" };
+    const RULE = { spellId: HOLY_LIGHT.id, kind: "myHealth", value: 35, result: "glow", priority: 1, group: "my health below 35%" };
 
     function createPaladin(health: number, saved: Record<string, unknown> = {}): World {
         const world = createWorld(
@@ -78,7 +78,7 @@ describe("a rule of the player's on the health", () => {
         const world = createPaladin(30);
         toggleTable();
         showTab(world, "Procs");
-        const row = findRow(world, "Holy Light (my health <= 35%)");
+        const row = findRow(world, "Holy Light (my health below 35%)");
         expect(row.sound.alpha < 1).toBe(true);
     });
 });
@@ -205,6 +205,43 @@ describe("the fixes of the proc rules' review", () => {
             (frame) => frame.isShown && frame.fontStrings.some((text) => text.text === "Holy Strike (strike)"),
         );
         expect(rows.length).toBe(1);
+    });
+
+    it("names the row of a rule on the health with no group by its condition: below the percent", () => {
+        const world = createWorld(
+            (state) => {
+                playAs(state, PALADIN);
+                learnSpell(state, HOLY_LIGHT);
+                state.bars[1] = HOLY_LIGHT.id;
+            },
+            { shouldUseProcRules: true, procRules: [{ spellId: HOLY_LIGHT.id, kind: "myHealth", value: 35, result: "glow", priority: 1 }] },
+        );
+        world.advance(1);
+        toggleTable();
+        showTab(world, "Procs");
+        expect(findRow(world, "Holy Light (my health below 35%)").sound.alpha < 1).toBe(true);
+    });
+
+    it("lights one glow for two rules on the health of a spell in one group", () => {
+        const RANK_2 = { ...HOLY_LIGHT, id: 639, rank: 2 };
+        const world = createWorld(
+            (state) => {
+                playAs(state, PALADIN);
+                learnSpell(state, HOLY_LIGHT);
+                state.spells[RANK_2.id] = RANK_2;
+                state.bars[1] = HOLY_LIGHT.id;
+                state.health = 20;
+            },
+            {
+                shouldUseProcRules: true,
+                procRules: [
+                    { spellId: HOLY_LIGHT.id, kind: "myHealth", value: 35, result: "glow", priority: 1, group: "low" },
+                    { spellId: RANK_2.id, kind: "myHealth", value: 50, result: "glow", priority: 1, group: "low" },
+                ],
+            },
+        );
+        world.advance(1);
+        expect(world.glowsOn(1)).toBe(1);
     });
 
     it("lights no rule on the health of a spell switched off on its own row", () => {

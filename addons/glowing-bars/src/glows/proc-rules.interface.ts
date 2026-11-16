@@ -81,7 +81,7 @@ export const VALUE_KINDS: ProcConditionKind[] = ["buff", "targetType", "targetHe
 /** The group of a rule of the player's on the health: always one (its glow can do less than the spell's row), by default its condition. */
 export function findHealthGroup(rule: ProcRule): string {
     if (rule.group !== undefined && rule.group !== "") return rule.group;
-    return string.format("%s <= %d%%", rule.kind === "myHealth" ? "my health" : "target health", rule.value ?? 0);
+    return string.format("%s below %d%%", rule.kind === "myHealth" ? "my health" : "target health", rule.value ?? 0);
 }
 
 /** Has the player switched this built-in rule off, with the rules on? (The rules on the health are lit by services of their own.) */

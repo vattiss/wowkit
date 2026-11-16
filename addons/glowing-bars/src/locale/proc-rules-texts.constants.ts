@@ -13,7 +13,7 @@ export const PROC_RULES_TEXTS = {
     HDR_RULE_ADD: "Add a rule",
     LABEL_RULE_SPELL: "Spell ID",
     LABEL_RULE_BUFF: "Buff ID",
-    LABEL_RULE_PERCENT: "Health %",
+    LABEL_RULE_PERCENT: "Below %",
     LABEL_RULE_BUILT_IN: "built-in",
     TIP_RULE_BUILT_IN: "A rule of the addon's. To change it, switch it off and add your own.",
     TIP_RULE_GROUP: "Rules of a spell with the same group share a row and a look on the Procs tab, named after the group.",
@@ -29,8 +29,8 @@ export const PROC_RULES_TEXTS = {
     COND_TARGET_DODGED: "Target dodged (warriors)",
     COND_FREE: "Free now",
     COND_INSTANT: "Instant now",
-    COND_TARGET_HEALTH: "Target health",
-    COND_MY_HEALTH: "My health",
+    COND_TARGET_HEALTH: "Target health below",
+    COND_MY_HEALTH: "My health below",
     CREATURE_BEAST: "Beast",
     CREATURE_DRAGONKIN: "Dragonkin",
     CREATURE_DEMON: "Demon",
@@ -60,7 +60,7 @@ export const PROC_RULES_TEXTS = {
     HELP_RULES_FIGHT: "Buff up in a fight",
     HELP_RULES_FIGHT_HOW:
         "the game hides buffs in a fight: the Cooldown Manager tells them with Full access, else your cast is remembered. A * marks a buff only it could tell.",
-    HELP_RULES_HEALTH: "Target health, My health",
+    HELP_RULES_HEALTH: "Target health below, My health below",
     HELP_RULES_HEALTH_HOW:
         "only the game knows the health: the glow fades in below the percent, with no sound, repeat or glow time, and Glow only.",
     MSG_RULE_NO_PERCENT: "Enter the health percent, 1 to 99.",

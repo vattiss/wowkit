@@ -69,6 +69,6 @@ export function describeCondition(rule: ProcRule, locale: AddonLocale, spells: S
         const buff = rule.value !== undefined ? (spells.getSpellLabel(rule.value) ?? string.format("%d", rule.value)) : "?";
         return `${words}: ${buff}`;
     }
-    if (rule.kind === "targetHealth" || rule.kind === "myHealth") return string.format("%s <= %d%%", words, rule.value ?? 0);
+    if (rule.kind === "targetHealth" || rule.kind === "myHealth") return string.format("%s %d%%", words, rule.value ?? 0);
     return words;
 }
