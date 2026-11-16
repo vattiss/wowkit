@@ -1,6 +1,7 @@
 // English only: the Proc rules tab of the table of looks (beta): its switch, its columns, the words of its conditions.
 export const PROC_RULES_TEXTS = {
     TAB_TABLE_PROC_RULES: "Proc rules",
+    ROW_LOW_HEALTH: "low health",
     OPT_USE_PROC_RULES: "Use advanced proc rules (beta)",
     INFO_USE_PROC_RULES:
         "Procs are then lit by the rules below, a new engine, instead of the built-in one. Switch it off to go back; your looks stay.",
@@ -45,12 +46,14 @@ export const PROC_RULES_TEXTS = {
     CDM_TRACKED: "CDM",
     CDM_RELOAD: "/reload",
     CDM_BY_HAND: "by hand",
+    CDM_UNLEARNED: "not learned",
     CDM_NONE: "no CDM",
     TIP_RULE_BUFF: "Out of a fight the addon reads the buff itself. In a fight the game hides it: the Cooldown Manager tells it.",
     TIP_CDM_TRACKED: "Its icon is in the Cooldown Manager: it works in a fight.",
     TIP_CDM_RELOAD: "It goes into the Cooldown Manager's Tracked Buffs out of a fight: /reload then, for it to work in a fight.",
     TIP_CDM_BY_HAND:
         "Move it to Tracked Buffs in the Cooldown Manager's settings (Edit Mode), or set the access to Full in Settings, Cooldown Manager.",
+    TIP_CDM_UNLEARNED: "The Cooldown Manager shows it once the spell that gives it is learned.",
     TIP_CDM_NONE: "It is not on the Cooldown Manager's list: in a fight only your own cast of it counts.",
     TIP_RULE_HEALTH_GROUP: "A rule on the health always has a row of its own on the Procs tab: named by its group, else by its condition.",
     HELP_RULES_TITLE: "Proc rules (beta)",
@@ -70,7 +73,7 @@ export const PROC_RULES_TEXTS = {
     HELP_RULES_CDM_HOW: "CDM rules go by the Cooldown Manager's icon of a buff; backup rules tell without it.",
     HELP_RULES_FIGHT: "Buff up",
     HELP_RULES_FIGHT_HOW:
-        "out of a fight the addon reads the buff itself. In a fight the game hides it: the Cooldown Manager tells it, else your own cast is remembered. The CDM column says where it stands: CDM, /reload, by hand, or no CDM.",
+        "out of a fight the addon reads the buff itself. In a fight the game hides it: the Cooldown Manager tells it, else your own cast is remembered. The CDM column says where it stands: CDM, /reload, by hand, not learned, or no CDM.",
     HELP_RULES_HEALTH: "Target health below, My health below",
     HELP_RULES_HEALTH_HOW:
         "only the game knows the health: the glow fades in below the percent, with no sound, repeat or glow time, and Glow only. It always has a row of its own on the Procs tab.",

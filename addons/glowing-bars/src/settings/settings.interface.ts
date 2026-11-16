@@ -173,6 +173,8 @@ export interface AddonSettings {
     areUtilityLooksMoved: boolean;
     /** Have the switch, limit and look of each reagent's row moved to the rows of its spells (ReagentRowsService)? */
     areReagentRowsSplit: boolean;
+    /** Have the look and switch of a defensive at low health moved to its own row (LowHealthRowsService)? */
+    areLowHealthRowsMoved: boolean;
     /** A group buff's reagent runs low with fewer than this in the bags. */
     reagentBelow: number;
     /** The same of the items the player watches, and whether they are watched. */

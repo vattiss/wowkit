@@ -4,6 +4,7 @@ import type { Texts } from "./addon";
 import type { Game } from "./game-services";
 import { ProcRulesService } from "./glows/proc-rules.service";
 import { HealthRulesService } from "./glows/health-rules.service";
+import { LowHealthRowsService } from "./glows/low-health-rows.service";
 import type { GlowCuesService } from "./glows/glow-cues.service";
 import { ProcRulesEditsService } from "./glows/proc-rules-edits.service";
 import type { StanceProcsService } from "./glows/stance-procs.service";
@@ -46,4 +47,7 @@ export function makeHealthRules(
     glowParts: Readonly<ConstructorParameters<typeof HealthRulesService> extends [unknown, unknown, ...infer Rest] ? Rest : never>,
 ): void {
     addon.register(new HealthRulesService(procRules, glowCues, ...glowParts));
+    // The look and switch of a defensive at low health, moved to its own row once
+    const [, , , , , , styles, settings] = glowParts;
+    addon.register(new LowHealthRowsService(settings, styles));
 }

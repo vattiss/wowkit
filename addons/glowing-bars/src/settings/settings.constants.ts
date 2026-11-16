@@ -48,6 +48,7 @@ const COOLDOWN_SWITCHES = {
     shouldUseProcRules: false,
     areUtilityLooksMoved: false,
     areReagentRowsSplit: false,
+    areLowHealthRowsMoved: false,
 } as const;
 
 /** The shaman's totems: whether a totem gone glows, and the last dropped in each slot (none yet). */
@@ -122,7 +123,7 @@ export function createDefaultSettings(): AddonSettings {
     };
 }
 
-export { DEFENSIVE_EXECUTE_ROW, SPELL_STYLE_DEFAULTS, STYLE_DEFAULTS } from "./style-defaults.constants";
+export { DEFENSIVE_EXECUTE_ROW, findLowHealthRow, SPELL_STYLE_DEFAULTS, STYLE_DEFAULTS } from "./style-defaults.constants";
 
 /** The Whens a ready cooldown has before the targeted ones: each with its "+ start" choice. */
 const READY_WHENS: When[] = ["always", "alwaysStart", "inCombat", "inCombatStart", "outOfCombat", "outOfCombatStart"];

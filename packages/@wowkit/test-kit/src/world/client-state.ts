@@ -120,7 +120,8 @@ export interface ClientState {
     /** The spells linked to an entry of the Cooldown Manager, by its cooldown ID. */
     linkedSpells: { [cooldownId: number]: number[] | undefined };
     /** What Blizzard offers in the Cooldown Manager's Tracked Buffs. */
-    buffCatalog: { spellId: number; isHiddenByDefault: boolean; isInSpellsTab?: boolean }[];
+    /** Blizzard's list of the Cooldown Manager; `isKnown` false: the spell that gives it is not learned yet (by default it is). */
+    buffCatalog: { spellId: number; isHiddenByDefault: boolean; isInSpellsTab?: boolean; isKnown?: boolean }[];
     /** The saved layouts of the Cooldown Manager, as the addon reads them; undefined: none yet. */
     layoutData: { [field: number]: unknown } | undefined;
     /** Blizzard's layout of the Cooldown Manager for the character's spec. */

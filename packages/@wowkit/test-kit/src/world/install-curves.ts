@@ -56,13 +56,15 @@ function installCooldownViewers(state: ClientState): void {
     });
     defineNamespace<typeof C_CooldownViewer>("C_CooldownViewer", {
         GetCooldownViewerCooldownInfo: (cooldownID) => {
-            const isHidden = state.buffCatalog.find((buff) => buff.spellId === cooldownID)?.isHiddenByDefault === true;
+            const entry = state.buffCatalog.find((buff) => buff.spellId === cooldownID);
+            const isHidden = entry?.isHiddenByDefault === true;
             return fake<CooldownViewerCooldown>({
                 cooldownID,
                 spellID: cooldownID,
                 flags: (isHidden ? 2 : 0) as Enum.CooldownSetSpellFlags,
                 linkedSpellIDs: state.linkedSpells[cooldownID] ?? [],
                 selfAura: state.trackedBuffs.find((buff) => buff.spellId === cooldownID)?.isOwnBuff === true,
+                isKnown: entry?.isKnown !== false,
             });
         },
         GetGroupBuffItems: () => [],

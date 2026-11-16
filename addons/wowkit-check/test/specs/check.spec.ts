@@ -82,7 +82,7 @@ describe("the list of the Cooldown Manager", () => {
         world.advance(9);
         const saved = (_G as unknown as Record<string, Record<string, string[] | undefined>>)["WowkitCheckCooldownsDB"]!;
         expect(saved["PRIEST-1"]![0]).toBe(
-            `2|${FORTITUDE.id}|${FORTITUDE.id}|Power Word: Fortitude|self=false|aura=false|hidden=true|known=false|`,
+            `2|${FORTITUDE.id}|${FORTITUDE.id}|Power Word: Fortitude|self=false|aura=false|hidden=true|known=true|`,
         );
     });
 });

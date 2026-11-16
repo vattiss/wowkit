@@ -68,7 +68,7 @@ export class ProcRuleRows {
         const { rule } = entry;
         const isOwn = entry.ownIndex !== undefined;
         const isHealth = HIDDEN_KINDS.includes(rule.kind);
-        this.fillWords(row, rule, isHealth);
+        this.fillWords(row, rule, isHealth && isOwn);
         row.isOn.SetChecked(isOwn ? rule.isOff !== true : this.edits.isBuiltInOn(rule));
         row.builtIn.SetShown(!isOwn);
         row.remove.SetShown(isOwn);
@@ -79,8 +79,8 @@ export class ProcRuleRows {
         row.frame.Show();
     }
 
-    /** The words of the row: priority, condition, ID, the Cooldown Manager, result, group (or the name a health rule's row gets). */
-    private fillWords(row: RuleWidgets, rule: ProcRule, isHealth: boolean): void {
+    /** The words of the row: priority, condition, ID, the Cooldown Manager, result, group (or the name an own health rule's row gets). */
+    private fillWords(row: RuleWidgets, rule: ProcRule, hasHint: boolean): void {
         row.priority.SetText(string.format("%d", rule.priority));
         row.condition.SetText(describeCondition(rule, this.locale, this.spells));
         const hasId = (rule.kind === "buff" || rule.kind === "targetType") && rule.value !== undefined;
@@ -88,8 +88,8 @@ export class ProcRuleRows {
         row.cdm.SetText(this.describeCdm(rule));
         row.result.SetText(this.locale.getText(rule.result === "noGlow" ? "RULE_NO_GLOW" : "RULE_GLOW"));
         row.group.SetText(rule.group ?? "");
-        row.groupHint.SetText(isHealth ? findHealthGroup(rule) : "");
-        row.groupHint.SetShown(isHealth && (rule.group ?? "") === "");
+        row.groupHint.SetText(hasHint ? findHealthGroup(rule) : "");
+        row.groupHint.SetShown(hasHint && (rule.group ?? "") === "");
     }
 
     /** Where a buff rule's buff stands with the Cooldown Manager, in its color; nothing for another rule. */

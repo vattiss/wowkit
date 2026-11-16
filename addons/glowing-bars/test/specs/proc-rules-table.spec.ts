@@ -243,6 +243,10 @@ describe("the IDs and the Cooldown Manager on the Proc rules tab", () => {
         expect(readRow(byHand, "Buff up: Holy Shield")).toContain("by hand");
         const reload = openPaladin({ procRules: [RULE], cooldownManagerAccess: "full" }, onList);
         expect(readRow(reload, "Buff up: Holy Shield")).toContain("/reload");
+        const unlearned = openPaladin({ procRules: [RULE], cooldownManagerAccess: "full" }, (world) =>
+            world.state.buffCatalog.push({ spellId: HOLY_SHIELD, isHiddenByDefault: true, isKnown: false }),
+        );
+        expect(readRow(unlearned, "Buff up: Holy Shield")).toContain("not learned");
         const tracked = openPaladin({ procRules: [RULE] }, (world) =>
             world.state.trackedBuffs.push({ spellId: HOLY_SHIELD, isActive: false }),
         );

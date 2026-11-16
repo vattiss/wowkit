@@ -16,7 +16,7 @@ import type { SealReminderService } from "../reminders/seal-reminder.service";
 import type { TrackingReminderService } from "../reminders/tracking-reminder.service";
 import { TOTEM_ELEMENTS, type TotemElement } from "../reminders/totems.constants";
 import type { WeaponChoiceService } from "../reminders/weapon/weapon-choice.service";
-import { ADDABLE_TYPES, TYPE_ORDER, DEFENSIVE_EXECUTE_ROW } from "../settings/settings.constants";
+import { ADDABLE_TYPES, TYPE_ORDER, DEFENSIVE_EXECUTE_ROW, findLowHealthRow } from "../settings/settings.constants";
 import type { ReminderType, AddableType } from "../settings/settings.interface";
 import type { StyleService } from "../settings/style.service";
 
@@ -194,9 +194,7 @@ export class StyleRowsService {
             for (const id of this.glowCues.listBuiltInIds(reminderType)) addListed(reminderType, id);
         }
         // A defensive at low health: the game lights it by itself, so no sound or glow time can follow it
-        this.glowCues
-            .listLowHealthIds()
-            .forEach((id) => add("proc", this.addedSpells.getEffectiveId(id), { listId: id, isFadeOnly: true }));
+        for (const id of this.glowCues.listLowHealthIds()) rows.push(this.createLowHealthRow(id));
         for (const { reminderType, id, extra } of this.listAddedRows()) add(reminderType, id, extra);
         // A row for each group buff of a reagent, its ranks together: each has its own look, switch and limit
         for (const { listId, label, reagentName } of this.listReagentRows()) {
@@ -208,6 +206,20 @@ export class StyleRowsService {
         this.addClassRows(rows);
         rows.sort((a, b) => this.compareRows(a, b));
         return rows;
+    }
+
+    /** A defensive at low health: a row of its own ("Templar's Bulwark (low health)"), beside the one a proc rule may give the spell. */
+    private createLowHealthRow(listId: number): StyleRow {
+        const spellId = this.addedSpells.getEffectiveId(listId);
+        return {
+            reminderType: "proc",
+            spellId: findLowHealthRow(listId),
+            label: `${this.spells.getSpellLabel(spellId) ?? ""} (${this.locale.getText("ROW_LOW_HEALTH")})`,
+            iconId: this.spells.getSpellInfo(spellId)?.iconID,
+            isLearned: this.spells.isLearned(spellId),
+            sharesIdOf: spellId,
+            isFadeOnly: true,
+        };
     }
 
     /** Execute in Defensive Stance: a row of its own beside the one of Execute, whose glow can do all that this one cannot. */

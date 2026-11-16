@@ -1,7 +1,18 @@
 // A paladin's Templar's Bulwark at low health (an idea of sorrow8's fork): lit all the while it is ready, and shown by the
 // health the game hides, through a curve, only at 10% or below. It has a row among the procs, but no proc glow of its own.
-import { createWorld, describe, expect, it, learnSpell, PALADIN, playAs, type SpellDefinition, type World } from "@wowkit/test-kit";
-import { findLabel, toggleTable } from "./table.helpers";
+import {
+    createWorld,
+    describe,
+    expect,
+    it,
+    learnSpell,
+    PALADIN,
+    playAs,
+    type FakeFrame,
+    type SpellDefinition,
+    type World,
+} from "@wowkit/test-kit";
+import { findLabel, findRow, showTab, toggleTable } from "./table.helpers";
 
 const BULWARK: SpellDefinition = { id: 1311015, name: "Templar's Bulwark", rank: 1, icon: 135880, isHelpful: true, cooldownSeconds: 120 };
 
@@ -59,7 +70,42 @@ describe("Templar's Bulwark, a paladin's defensive at low health", () => {
     it("has a row among the procs in the table", () => {
         const world = createPaladin(60);
         toggleTable();
-        const row = findLabel(world, BULWARK.name)?.parent;
+        const row = findLabel(world, `${BULWARK.name} (low health)`)?.parent;
         expect(row?.fontStrings.some((line) => line.text === "Proc")).toBe(true);
+    });
+});
+
+describe("the row of Templar's Bulwark at low health", () => {
+    it("stays beside the spell's own row that a proc rule gives it", () => {
+        const world = createWorld(
+            (state) => {
+                playAs(state, PALADIN);
+                learnSpell(state, BULWARK);
+                state.bars[1] = BULWARK.id;
+            },
+            { shouldUseProcRules: true, procRules: [{ spellId: BULWARK.id, kind: "usable", result: "glow", priority: 1 }] },
+        );
+        world.advance(1);
+        toggleTable();
+        showTab(world, "Procs");
+        expect(findRow(world, "Templar's Bulwark (low health)").sound.alpha < 1).toBe(true);
+        expect(findRow(world, "Templar's Bulwark").sound.alpha).toBe(1);
+        // On the Proc rules tab its built-in rule shows no made-up group: its row is named above
+        showTab(world, "Proc rules");
+        const isShown = (frame: FakeFrame | undefined): boolean => frame === undefined || (frame.isShown && isShown(frame.parent));
+        const shownTexts = world.frames.filter((frame) => isShown(frame)).flatMap((frame) => frame.fontStrings);
+        expect(shownTexts.some((text) => text.text === "my health below 10%" && text.isShown !== false)).toBe(false);
+    });
+
+    it("takes the look and the switch the spell's row had, once", () => {
+        const world = createPaladin(8, {
+            spellStyles: { "proc:Templar's Bulwark": { glowPercent: 50 } },
+            enabledSpells: { [String(BULWARK.id)]: false },
+        });
+        const saved = world.getSavedSettings()!;
+        expect((saved.spellStyles as Record<string, unknown>)["proc:Templar's Bulwark"]).toBe(undefined);
+        expect((saved.spellStyles as Record<string, { glowPercent?: number }>)["proc:-" + String(BULWARK.id)]?.glowPercent).toBe(50);
+        expect((saved.enabledSpells as Record<string, boolean>)["-" + String(BULWARK.id)]).toBe(false);
+        expect(world.glowsOn(1)).toBe(0);
     });
 });

@@ -7,10 +7,18 @@ import type { ReminderType, Style, StyleOverride } from "./settings.interface";
 /** The row of Execute in Defensive Stance in the table: no spell has this ID, so its look and its switch are its own. */
 export const DEFENSIVE_EXECUTE_ROW = -Warrior.Execute;
 
+/**
+ * The row of a last-resort defensive at low health (Templar's Bulwark): no spell has this ID either, so its look and switch
+ * are its own, apart from the spell's row a proc rule may give it.
+ */
+export function findLowHealthRow(listId: number): number {
+    return -listId;
+}
+
 export const SPELL_STYLE_DEFAULTS: { [key in ReminderType]?: { [spellId: number]: StyleOverride | undefined } } = {
     // Its row has a type of its own to tell apart from: "Proc" alone would say little
     // A last-resort defensive is no use out of a fight, eating or drinking at low health
-    proc: { [DEFENSIVE_EXECUTE_ROW]: { messageTextChoice: "name" }, [Paladin.TemplarsBulwark]: { when: "inCombat" } },
+    proc: { [DEFENSIVE_EXECUTE_ROW]: { messageTextChoice: "name" }, [findLowHealthRow(Paladin.TemplarsBulwark)]: { when: "inCombat" } },
     // Shield Block lasts 7 seconds: out of a fight it is no use
     missingBuff: { [Warrior.ShieldBlock]: { when: "inCombat" } },
     // Each element in its colour: the glow itself tells which one went

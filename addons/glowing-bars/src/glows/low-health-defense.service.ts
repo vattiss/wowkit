@@ -23,6 +23,7 @@ import type { AddonSettingsService, Style } from "../settings/settings.interface
 import type { StyleService } from "../settings/style.service";
 import { findWords } from "../tick/message-words";
 import { createWhenState, readWhenState } from "../tick/when-state";
+import { findLowHealthRow } from "../settings/settings.constants";
 import type { GlowCuesService } from "./glow-cues.service";
 
 /** The curve ends here: its short ramp is over at 10% health, where the glow is full. */
@@ -36,6 +37,8 @@ export class LowHealthDefenseService {
     private readonly spellIds: number[] = [];
     /** Did this service put its message up? The faded text is one for every service: only its own is taken down. */
     private isTextShown = false;
+    /** The row of the defensive lit last: its look and its message are that row's. */
+    private rowId = 0;
 
     constructor(
         private readonly player: PlayerService,
@@ -56,7 +59,7 @@ export class LowHealthDefenseService {
     @Interval(250)
     updateGlow(): void {
         const spellId = this.findDefensive();
-        const style = spellId !== undefined ? this.styles.getStyle("proc", spellId) : undefined;
+        const style = spellId !== undefined ? this.styles.getStyle("proc", this.rowId) : undefined;
         const alpha =
             spellId !== undefined && style !== undefined && readWhenState(this.player, this.whenState)[style.when]
                 ? this.curves.getHealthAlpha("player", CURVE_END_PERCENT, "below", style.glowPercent / 100)
@@ -80,7 +83,7 @@ export class LowHealthDefenseService {
             this.clearText();
             return;
         }
-        const choice = this.styles.getMessageTextChoice("proc", spellId);
+        const choice = this.styles.getMessageTextChoice("proc", this.rowId);
         const { words } = findWords(choice, style.messageText, this.locale.getText("TEXT_PROC"), this.spells.getSpellLabel(spellId));
         const text = this.styles.applyTextColor(style.messageColor ?? style.color, words);
         this.notice.showFadedText(text, alpha, { scale: this.settings.get("messageSize") / 100, top: this.settings.get("messageTop") });
@@ -98,11 +101,14 @@ export class LowHealthDefenseService {
         if (this.player.isDead()) return undefined;
         if (!this.settings.get("isProcEnabled") || this.settings.get("isDisabled") || this.idle.shouldStayIdle(false)) return undefined;
         for (const listId of this.glowCues.listLowHealthIds()) {
-            if (this.settings.get("enabledSpells")[string.format("%d", listId)] === false) continue;
+            // Its own row's switch: the spell's row is a proc rule's
+            if (this.settings.get("enabledSpells")[string.format("%d", findLowHealthRow(listId))] === false) continue;
             // Its rule switched off on the Proc rules tab (with the rules on)
             if (listId === BULWARK_HEALTH_RULE.spellId && isBuiltInRuleOff(this.settings, BULWARK_HEALTH_RULE)) continue;
             const spellId = this.spells.resolve(listId);
-            if (spellId !== undefined && this.actionBars.isOnBars(spellId) && !this.glowCues.isOnCooldown(spellId)) return spellId;
+            if (spellId === undefined || !this.actionBars.isOnBars(spellId) || this.glowCues.isOnCooldown(spellId)) continue;
+            this.rowId = findLowHealthRow(listId);
+            return spellId;
         }
         return undefined;
     }

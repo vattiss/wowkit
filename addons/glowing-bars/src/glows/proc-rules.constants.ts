@@ -51,7 +51,7 @@ const ARCANE_MISSILES: BuiltInProcRule[] = [describeGlow(Mage.ArcaneMissiles, "b
 
 /** The two rules on the health the addon lights by services of their own (and rows of their own on the Procs tab). */
 export const EXECUTE_HEALTH_RULE: BuiltInProcRule = { ...describeGlow(Warrior.Execute, "targetHealth", 20), group: "Defensive Stance" };
-export const BULWARK_HEALTH_RULE: BuiltInProcRule = describeGlow(Paladin.TemplarsBulwark, "myHealth", 10);
+export const BULWARK_HEALTH_RULE: BuiltInProcRule = { ...describeGlow(Paladin.TemplarsBulwark, "myHealth", 10), group: "low health" };
 
 export const BUILT_IN_PROC_RULES: { [classToken: string]: BuiltInProcRule[] | undefined } = {
     HUNTER: [describeGlow(Hunter.Counterattack, "usable"), describeGlow(Hunter.MongooseBite, "usable")],
