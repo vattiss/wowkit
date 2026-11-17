@@ -23,6 +23,7 @@ const PARTS: (keyof Style)[] = [
     "messageText",
     "messageColor",
     "messageShowFor",
+    "before",
 ];
 
 /** A type's own look, under no spell, in the kept looks. */
@@ -95,6 +96,12 @@ export class StyleService {
         return this.groupRows.findRowId(spellId, group, this.getSpellKey(spellId));
     }
 
+    /** Seconds before the buff, weapon buff or seal of this row runs out that it is asked for: its look's Before (0: once gone). */ findBefore(
+        reminderType: ReminderType,
+        rowSpellId: number,
+    ): number {
+        return this.getStyle(reminderType, rowSpellId).before ?? 0;
+    }
     /**
      * The look of a type of reminder, or of one spell of it: the spell's own, else the type's, else the default. The same
      * table until something changes: it is read, never changed.
@@ -153,6 +160,7 @@ export class StyleService {
             messageText: this.pickPart(layers, "messageText"),
             messageColor: this.pickPart(layers, "messageColor"),
             messageShowFor: this.pickPart(layers, "messageShowFor"),
+            before: this.pickPart(layers, "before"),
         };
     }
 

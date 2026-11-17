@@ -20,10 +20,14 @@ import { findReagentRowEntry, type ReagentsService } from "../reagents/reagents.
 import type { AddonSettingsService, AddableType } from "../settings/settings.interface";
 import type { FedBuffsService } from "./fed-buffs.service";
 import type { CoveredWeaponButton } from "./reminders.interface";
+import type { StyleService } from "../settings/style.service";
+import { isAboutToExpire } from "./weapon/weapon-reactions";
 import { BUFF_GIVEN_BY_ITEM, BUFF_GIVEN_BY_SPELL } from "./given-buffs.constants";
 import type { BouncedBuffsService } from "../character/bounced-buffs.service";
 
 export class AddedRemindersService {
+    private styles: StyleService | undefined;
+
     constructor(
         private readonly addedSpells: AddedSpellsService,
         private readonly spells: SpellsService,
@@ -46,7 +50,9 @@ export class AddedRemindersService {
         return ids.filter((id) =>
             this.fedBuffs.isFedSpell(id)
                 ? missingFed.includes(id)
-                : !this.buffState.hasAura(this.findGivenBuff(id)) && this.spells.isCastable(id) !== false && !this.bounced.isBounced(id),
+                : !this.buffState.hasAura(this.findGivenBuff(id), this.findBefore("missingBuff", id)) &&
+                  this.spells.isCastable(id) !== false &&
+                  !this.bounced.isBounced(id),
         );
     }
 
@@ -57,34 +63,48 @@ export class AddedRemindersService {
         return (bySpell ?? byItem)?.[1] ?? spellId;
     }
 
-    /** The added weapon buffs with a button for a weapon that has no temporary enchant (a stone, an oil), whatever its imbue. */
+    /**
+     * The added weapon buffs with a button for a weapon whose temporary enchant (a stone, an oil) is missing or about to run
+     * out (its row's Before), whatever its imbue.
+     */
     findWeaponSpells(): number[] {
         const spellIds = this.listOnBars("weaponBuff");
         if (spellIds.length === 0) return [];
-        return spellIds.filter((id) => this.actionBars.findButtonsOf(id).some((button) => this.isButtonForBareWeapon(button)));
+        return spellIds.filter((id) => this.actionBars.findButtonsOf(id).some((button) => this.isButtonForWantingWeapon(button, id)));
     }
 
-    /** The buttons of the added weapon buffs whose weapon has a temporary enchant on it: they stay dark for them. */
+    /** The buttons of the added weapon buffs whose weapon has its temporary enchant on, not running out: they stay dark for them. */
     findCoveredButtons(): CoveredWeaponButton[] {
         const covered: CoveredWeaponButton[] = [];
         for (const id of this.listOnBars("weaponBuff")) {
             for (const button of this.actionBars.findButtonsOf(id)) {
-                if (!this.isButtonForBareWeapon(button)) covered.push({ button, spellId: id });
+                if (!this.isButtonForWantingWeapon(button, id)) covered.push({ button, spellId: id });
             }
         }
         return covered;
     }
 
-    /** Has the weapon of this button no temporary enchant: the one its macro says (/use 16 or /use 17), else either of them? */
-    private isButtonForBareWeapon(button: ActionButton): boolean {
+    /** Does the weapon of this button want the weapon buff: the one its macro says (/use 16 or /use 17), else either of them? */
+    private isButtonForWantingWeapon(button: ActionButton, spellId: number): boolean {
         const handSlot = this.actionBars.findMacroHandSlot(button);
-        if (handSlot === undefined) return this.isWeaponBare(false) || this.isWeaponBare(true);
-        return this.isWeaponBare(handSlot === OFF_HAND_SLOT);
+        if (handSlot === undefined) return this.isWeaponWanting(false, spellId) || this.isWeaponWanting(true, spellId);
+        return this.isWeaponWanting(handSlot === OFF_HAND_SLOT, spellId);
     }
 
-    private isWeaponBare(isOffhand: boolean): boolean {
+    /** Has the weapon no temporary enchant, or one about to run out (by the weapon buff's Before)? */
+    private isWeaponWanting(isOffhand: boolean, spellId: number): boolean {
         if (isOffhand && !this.player.isOffhandWeaponEquipped()) return false;
-        return this.weaponEnchants.getWeaponEnchant(isOffhand, "temporary").has === false;
+        const read = this.weaponEnchants.getWeaponEnchant(isOffhand, "temporary");
+        return read.has === false || (read.has === true && isAboutToExpire(read.remain, this.findBefore("weaponBuff", spellId)));
+    }
+
+    /** The looks of the rows: how long before a buff or weapon buff runs out it is asked for (its Before). */
+    useLooks(styles: StyleService): void {
+        this.styles = styles;
+    }
+
+    private findBefore(reminderType: "missingBuff" | "weaponBuff", spellId: number): number {
+        return this.styles?.findBefore(reminderType, spellId) ?? 0;
     }
 
     /** The added spells whose reagent, named in the spell's tooltip, runs low in the bags. */

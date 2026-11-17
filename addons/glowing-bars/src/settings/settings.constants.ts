@@ -238,6 +238,8 @@ function repairStyle(style: StyleOverride | undefined, reminderType: ReminderTyp
     repaired.color = repairColor(style.color);
     repaired.messageColor = repairColor(style.messageColor);
     if (type(style.messageText) === "string" && style.messageText !== "") repaired.messageText = style.messageText;
+    const before = tonumber(style.before);
+    if (before !== undefined && before >= 0) repaired.before = before;
     return repaired;
 }
 

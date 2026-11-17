@@ -1,6 +1,6 @@
 import { createWorld, describe, expect, it, playAs, PRIEST, type FakeFrame, type World } from "@wowkit/test-kit";
 import { ARROW, createArcher } from "./low-stock.helpers";
-import { findLabel, toggleTable, findAddRowOf } from "./table.helpers";
+import { findLabel, toggleTable, findAddRowOf, setUpWarrior, useAndRecoverRecklessness } from "./table.helpers";
 
 describe("the Below column and the low stock in the table", () => {
     function findBoxes(world: World, label: string): FakeFrame[] {
@@ -68,9 +68,13 @@ describe("the Below column and the low stock in the table", () => {
         expect(findBoxes(world, "Rough Arrow")[2]!.text).toBe("200");
     });
 
-    it("has no Below on a row of another type", () => {
-        const world = createOpenTable();
-        const boxes = findBoxes(world, "Missing buff");
+    it("has no box in the Below column on a row of a type with neither a limit nor a Before", () => {
+        // The warrior of the table's tests: a ready cooldown, Recklessness
+        const world = createWorld(setUpWarrior);
+        world.advance(1);
+        useAndRecoverRecklessness(world);
+        toggleTable();
+        const boxes = findBoxes(world, "Ready cooldown");
         expect(boxes[boxes.length - 1]!.isShown).toBe(false);
     });
 

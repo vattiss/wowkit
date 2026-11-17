@@ -20,7 +20,8 @@ export const SPELL_STYLE_DEFAULTS: { [key in ReminderType]?: { [spellId: number]
     // A last-resort defensive is no use out of a fight, eating or drinking at low health
     proc: { [DEFENSIVE_EXECUTE_ROW]: { messageTextChoice: "name" }, [findLowHealthRow(Paladin.TemplarsBulwark)]: { when: "inCombat" } },
     // Shield Block lasts 7 seconds: out of a fight it is no use
-    missingBuff: { [Warrior.ShieldBlock]: { when: "inCombat" } },
+    // Battle Shout runs out in a fight and needs rage: asked for a little before it does
+    missingBuff: { [Warrior.ShieldBlock]: { when: "inCombat" }, [Warrior.BattleShout]: { before: 3 } },
     // Each element in its colour: the glow itself tells which one went
     totemGone: Object.fromEntries(TOTEM_ELEMENTS.map((element) => [element.rowId, { color: element.color }])),
 };
@@ -36,6 +37,7 @@ export const STYLE_DEFAULTS: { [key in ReminderType]: Style } = {
         when: "always",
         glowTime: 0,
         animation: "circling",
+        before: 0,
     },
     weaponBuff: {
         color: [1, 0.55, 0.1],
@@ -46,6 +48,7 @@ export const STYLE_DEFAULTS: { [key in ReminderType]: Style } = {
         when: "always",
         glowTime: 0,
         animation: "circling",
+        before: 30,
     },
     // The paladin's gold
     missingSeal: {
@@ -57,6 +60,7 @@ export const STYLE_DEFAULTS: { [key in ReminderType]: Style } = {
         when: "inCombat",
         glowTime: 0,
         animation: "circling",
+        before: 1.5,
     },
     // #1AA6BF, a deep turquoise: a lighter cyan glows almost white
     missingTracking: {

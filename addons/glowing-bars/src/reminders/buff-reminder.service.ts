@@ -6,6 +6,7 @@ import { OnEvent } from "@wowkit/core";
 import type { BuffStateService, OlderRankBuff } from "../character/buff-state.service";
 import type { ActionBarsService, PlayerService, PlayerSpellCast, SpellsService } from "@wowkit/wow";
 import type { AddonSettingsService } from "../settings/settings.interface";
+import type { StyleService } from "../settings/style.service";
 import type { ClassBuff } from "./class-buff.interface";
 import type { ClassBuffsService } from "./class-buffs.service";
 import type { BuffCheck, MissingBuffs } from "./reminders.interface";
@@ -20,6 +21,8 @@ function clearList(list: unknown[]): void {
 }
 
 export class BuffReminderService {
+    private styles: StyleService | undefined;
+
     /** The answer of the last look at the buffs: the same lists each time (whoever keeps them past a tick copies them). */
     private readonly missing: MissingBuffs = { glow: [], notOnBars: [] };
     /** The tables the look at the buffs works in, used again at each tick. */
@@ -47,6 +50,16 @@ export class BuffReminderService {
         return this.auras.findOlderRankBuffs();
     }
 
+    /** The looks of the rows: how long before a buff runs out it is asked for (its Before). */
+    useLooks(styles: StyleService): void {
+        this.styles = styles;
+    }
+
+    /** How long before the buff runs out it is asked for: its row's Before. */
+    private findBefore(classBuff: ClassBuff): number {
+        return this.styles?.findBefore("missingBuff", classBuff.id) ?? 0;
+    }
+
     /** Is this buff worth asking for now? */
     checkBuff(classBuff: ClassBuff): BuffCheck {
         const id = this.spells.resolve(classBuff.id);
@@ -54,10 +67,10 @@ export class BuffReminderService {
         if (!this.isSituationMet(classBuff)) return NOT_WANTED;
         // A blessing or a paladin aura: another paladin's other one does not take the place of the player's own
         if (classBuff.isOnePerCaster === true) {
-            return this.auras.hasPerCasterBuff(id, classBuff.party?.groupIds ?? [], classBuff.lead) ? NOT_WANTED : WANTED;
+            return this.auras.hasPerCasterBuff(id, classBuff.party?.groupIds ?? [], this.findBefore(classBuff)) ? NOT_WANTED : WANTED;
         }
         // hasAura reads the aura, and falls back on what was seen or cast while the client hides auras
-        return this.hasCategoryMember(classBuff) || this.auras.hasAura(id, classBuff.lead) ? NOT_WANTED : WANTED;
+        return this.hasCategoryMember(classBuff) || this.auras.hasAura(id, this.findBefore(classBuff)) ? NOT_WANTED : WANTED;
     }
 
     /**

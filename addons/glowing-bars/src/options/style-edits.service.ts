@@ -13,6 +13,7 @@ import type { StyleService } from "../settings/style.service";
 import { findReagentRowEntry } from "../reagents/reagents.service";
 import type { BelowLimitsService } from "../reminders/below-limits.service";
 import type { AddableType } from "../settings/settings.interface";
+import { formatBefore, hasBefore, parseBefore } from "./before-time";
 
 /** How faded the spell rows of a type that is switched off are. */
 const TYPE_OFF_ALPHA = 0.4;
@@ -125,25 +126,38 @@ export class StyleEditsService {
         box.SetTextColor(shade, shade, shade);
     }
 
-    /** The Below box of a row of a type with a limit: a click out of it keeps a number, and an empty box takes back the old one. */
+    /**
+     * The box of the Below column: a type with a limit keeps a number there, one that runs out (a buff, a weapon buff, a
+     * seal) its Before (15s, 30m, 1h). A click out of it keeps what it says; what is no number or time takes back the old one.
+     */
     createBelowBox(frame: Frame, getRow: (this: void) => StyleRow | undefined): EditBox {
         const box = this.createNumberBox(frame, findCenteredX(COLUMN.belowLimits, 44), 44, 5);
+        // Under its header, centered as it is: a short number or time (20, 3s) in the middle of the box
+        box.SetJustifyH("CENTER");
         box.SetScript("OnEnterPressed", () => box.ClearFocus());
         box.SetScript("OnEditFocusLost", () => {
             const row = getRow();
+            if (row === undefined) return;
+            const before = hasBefore(row.reminderType) ? parseBefore(box.GetText() ?? "") : undefined;
+            if (before !== undefined) this.styles.changeStyle(row.reminderType, row.spellId, { before });
             const limit = tonumber(box.GetText());
-            if (row !== undefined && limit !== undefined && this.limits.hasLimit(row.reminderType)) {
+            if (limit !== undefined && this.limits.hasLimit(row.reminderType)) {
                 this.limits.setLimit(row.reminderType, this.findLimitEntry(row), limit);
             }
-            if (row !== undefined) this.fillBelowBox(box, row);
+            this.fillBelowBox(box, row);
         });
         return box;
     }
 
     fillBelowBox(box: EditBox, row: StyleRow): void {
+        const isBefore = hasBefore(row.reminderType);
         const hasLimit = this.limits.hasLimit(row.reminderType);
-        box.SetShown(hasLimit);
-        if (this.limits.hasLimit(row.reminderType))
+        box.SetShown(hasLimit || isBefore);
+        // A time has letters (1h30m); a limit is a number alone
+        box.SetNumeric(!isBefore);
+        box.SetMaxLetters(isBefore ? 10 : 5);
+        if (isBefore) box.SetText(formatBefore(this.styles.getStyle(row.reminderType, row.spellId).before ?? 0));
+        else if (this.limits.hasLimit(row.reminderType))
             box.SetText(string.format("%d", this.limits.getLimit(row.reminderType, this.findLimitEntry(row))));
     }
 

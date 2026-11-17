@@ -5,12 +5,15 @@
 
 import { MAIN_HAND_SLOT, OFF_HAND_SLOT, type ClockService, type WeaponEnchantsService } from "@wowkit/wow";
 import type { WeaponCheck } from "../reminders.interface";
+import type { WeaponBuff } from "./weapon-buff.interface";
 import type { WeaponChoiceService } from "./weapon-choice.service";
 import type { WeaponMemoryService, Hand } from "./weapon-memory.service";
-import { isAboutToExpire, MISSING_CONFIRM, reactToReading } from "./weapon-reactions";
+import { EXPIRY_WARNING, isAboutToExpire, MISSING_CONFIRM, reactToReading } from "./weapon-reactions";
+import type { StyleService } from "../../settings/style.service";
 import type { WeaponReadingService } from "./weapon-reading.service";
 
 export class WeaponReminderService {
+    private styles: StyleService | undefined;
     /** The last check asked for the weapon buff. */
     private wasNeededLast = false;
 
@@ -57,6 +60,16 @@ export class WeaponReminderService {
         this.memory.forgetAll();
     }
 
+    /** The looks of the rows: how long before a weapon buff runs out it is asked for again (its Before). */
+    useLooks(styles: StyleService): void {
+        this.styles = styles;
+    }
+
+    /** How long before the weapon buff runs out it is asked for again: its row's Before, else the usual 30 seconds. */
+    private findBefore(entry: WeaponBuff): number {
+        return this.styles?.findBefore("weaponBuff", entry.id) ?? EXPIRY_WARNING;
+    }
+
     /** The weapon buff to remind about, if the class has one learned. */
     check(): WeaponCheck | undefined {
         if (this.choice.isCoatingBothWeapons()) return this.checkBothHands();
@@ -66,7 +79,8 @@ export class WeaponReminderService {
             return undefined;
         }
         const reading = this.reading.readWeaponBuff(pick.entry);
-        const { remain, isNeeded } = reactToReading(this.memory, pick.entry, reading, this.clock.getCurrentTime());
+        const now = this.clock.getCurrentTime();
+        const { remain, isNeeded } = reactToReading(this.memory, pick.entry, reading, now, this.findBefore(pick.entry));
         this.wasNeededLast = isNeeded;
         return { spellId: pick.spellId, remain, isNeeded, handSlot: MAIN_HAND_SLOT };
     }
@@ -83,7 +97,7 @@ export class WeaponReminderService {
         if (state === "up" || state === "unknown") {
             // Unknown: the client did not answer; stay quiet rather than nag
             this.memory.stopHandMissing(hand);
-            return state === "up" && isAboutToExpire(remain) ? { spellId: pick.spellId, remain } : undefined;
+            return state === "up" && isAboutToExpire(remain, this.findBefore(pick.entry)) ? { spellId: pick.spellId, remain } : undefined;
         }
         // Missing or another poison: wait out the cast, and believe a reading that holds
         const missingSeconds = this.memory.noteHandMissing(hand, now);

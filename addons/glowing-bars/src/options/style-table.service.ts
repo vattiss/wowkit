@@ -27,6 +27,7 @@ import { TYPE_TEXTS, type StyleRow, type StyleRowsService } from "./style-rows.s
 import { StyleRowWidgets, type RowWidgets } from "./style-row-widgets";
 import { TakenOverNotice } from "./taken-over-notice";
 import { TableHelp } from "./table-help";
+import { hasBefore } from "./before-time";
 import type { ProcRulesTab } from "./proc-rules-tab";
 
 /** The words beside the switch of the spells not learned yet. */
@@ -142,9 +143,10 @@ export class StyleTableService {
         );
         const tab = shownTabs.find((each) => each.key === this.windows.getTab()) ?? shownTabs[0]!;
         const isInTab = (row: StyleRow) => tab.types.includes(row.reminderType);
-        // The Below column only while a row of the tab has a limit
-        this.windows.setBelowShown(
-            typeRows.some((row) => isInTab(row) && (row.reminderType === "lowReagent" || row.reminderType === "lowStock")),
+        // The Below column says Below while a row of the tab has a limit, Before while one runs out (a buff); else nothing
+        const hasLimit = typeRows.some((row) => isInTab(row) && (row.reminderType === "lowReagent" || row.reminderType === "lowStock"));
+        this.windows.setLastColumn(
+            hasLimit ? "below" : typeRows.some((row) => isInTab(row) && hasBefore(row.reminderType)) ? "before" : undefined,
         );
         // The sounds and the help have no table: no column headers over them
         this.windows.setTableShown(tab.types.length > 0);

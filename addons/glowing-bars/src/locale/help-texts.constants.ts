@@ -52,7 +52,8 @@ export const HELP_TEXTS = {
     HELP_WHEN: "When the reminder may show. A ready cooldown glows once, as it is ready while its When holds:",
     HELP_GLOW_TIME: "How long it shows once it is due:",
     HELP_ANIMATION: "How the glow moves, and how it looks:",
-    HELP_BELOW: "Consumables: the reminder comes when you have fewer than this.",
+    HELP_BELOW:
+        "Consumables: the reminder comes when you have fewer than this. Buffs, weapon buffs and seals (Before): how long before it runs out to start glowing, such as 15s, 30m or 1h.",
     HELP_ENABLED: "Turns the row on or off; under Defaults, the whole type.",
     HELP_ACTIONS: "The buttons at the end of a row:",
     HELP_WHEN_ALWAYS: "whenever it is due.",

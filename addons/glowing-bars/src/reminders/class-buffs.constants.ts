@@ -58,9 +58,6 @@ export const PARTY_BLESSINGS = {
     other: [P.BlessingKings, P.BlessingMight, P.BlessingWisdom],
 };
 
-/** Battle Shout's reminder comes this many seconds before it runs out: it runs out in a fight, and needs rage. */
-const BATTLE_SHOUT_LEAD = 3;
-
 /** In list order: of a category, the first one that is learned and on the bars is the one asked for. */
 export const BUFF_LISTS: { [classToken: string]: ClassBuff[] | undefined } = {
     DRUID: [
@@ -94,7 +91,7 @@ export const BUFF_LISTS: { [classToken: string]: ClassBuff[] | undefined } = {
         createClassBuff("RighteousFury", P.RighteousFury, { last: 1800 }, false),
     ],
     WARRIOR: [
-        createClassBuff("BattleShout", W.BattleShout, { last: 180, lead: BATTLE_SHOUT_LEAD }),
+        createClassBuff("BattleShout", W.BattleShout, { last: 180 }),
         // A tank's: it glows only when it can be cast (Defensive Stance, a shield, rage, off cooldown), in a fight by default
         createClassBuff("ShieldBlock", W.ShieldBlock, { last: 7 }),
     ],

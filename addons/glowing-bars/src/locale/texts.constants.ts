@@ -184,6 +184,8 @@ export const TEXTS = {
         "When the reminder may show. A ready cooldown glows once, as it is ready; with + start, also as that time begins (Out of combat + start: as a fight ends). With Alert in town, the message and sound come only in towns.",
     TIP_BELOW:
         "Reminds you when you have fewer than this. The number on a row under Defaults is used for every row of that type, unless you set a different number on the row.",
+    TIP_BEFORE:
+        "How long before it runs out to start glowing: 15s, 30m, 1h. Empty: once it is gone. A time under Defaults is used for every row of that type, unless a row has its own.",
     TIP_ENABLED:
         "Turns the reminder on or off. On a row under Defaults, it turns the whole type on or off: while it's off, none of its rows work and they are grayed out.",
     COL_MESSAGE_LOOK: "Text",
@@ -263,6 +265,7 @@ export const TEXTS = {
     COL_GLOW_PERCENT: "Glow %",
     COL_MESSAGE: "Message",
     COL_BELOW: "Below",
+    COL_BEFORE: "Before",
     MSG_UNKNOWN_ITEM: "No item found with ID %d.",
     COL_SOUND: "Sound",
     TIP_SOUND: "The sound that plays when the reminder starts.",

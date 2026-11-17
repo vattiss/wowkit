@@ -66,6 +66,10 @@ export interface Style {
     messageColor?: Rgb;
     /** Seconds the message stays; 0: as long as the button glows; none: the usual time (NOTICE_SECONDS). */
     messageShowFor?: number;
+    /**
+     * Seconds before a buff, weapon buff or seal runs out that its reminder comes; 0: once it is gone. Other types have none.
+     */
+    before?: number;
 }
 
 /** The types a spell can be added as by the player: every type but the old ranks, which are found for every spell. */

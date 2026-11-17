@@ -88,4 +88,5 @@ import "./proc-rules-table.spec";
 import "./proc-rules-health.spec";
 import "./proc-rule-own-rows.spec";
 import "./weapon-places.spec";
+import "./before.spec";
 import "./tick-garbage.spec";

@@ -44,6 +44,7 @@ import { StyleTableService } from "./options/style-table.service";
 import { StyleWindowService } from "./options/style-window.service";
 import { TableCommand } from "./options/table-command";
 import { makeHealthRules, makeProcRules, makeProcRulesTab } from "./addon-proc-rules";
+import { makeWeapons } from "./addon-weapons";
 import { ScanReport } from "./options/scan-report";
 import { WelcomeService } from "./options/welcome.service";
 import { WhatsNewService } from "./options/whats-new.service";
@@ -60,11 +61,7 @@ import { OutdatedRanksService } from "./reminders/outdated-ranks.service";
 import { SealReminderService } from "./reminders/seal-reminder.service";
 import { TrackingReminderService } from "./reminders/tracking-reminder.service";
 import { PartyBuffsService } from "./reminders/party-buffs.service";
-import { WeaponChoiceService } from "./reminders/weapon/weapon-choice.service";
 import { WEAPON_BUFF_BY_SPELL } from "./reminders/weapon/weapon-buffs.constants";
-import { WeaponMemoryService } from "./reminders/weapon/weapon-memory.service";
-import { WeaponReadingService } from "./reminders/weapon/weapon-reading.service";
-import { WeaponReminderService } from "./reminders/weapon/weapon-reminder.service";
 import { ACCOUNT_VARIABLES_NAME, createDefaultSettings, repairSettings } from "./settings/settings.constants";
 import type { AddonSettings } from "./settings/settings.interface";
 import { StyleService } from "./settings/style.service";
@@ -128,10 +125,7 @@ function makeReminders(addon: Addon, addonName: string, game: Game, texts: Texts
     const party = addon.register(
         new PartyBuffsService(buffs.state, game.spells, game.clock, game.party, game.player, buffs.classBuffs, reagents, settings, buff),
     );
-    const weaponChoice = addon.register(new WeaponChoiceService(game.player, game.spells, settings, game.actionBars, game.bags));
-    const weaponMemory = addon.register(new WeaponMemoryService());
-    const weaponReading = addon.register(new WeaponReadingService(buffs.state, game.weaponEnchants, weaponChoice));
-    const weapon = addon.register(new WeaponReminderService(game.clock, game.weaponEnchants, weaponChoice, weaponMemory, weaponReading));
+    const { weaponChoice, weapon } = makeWeapons(addon, game, settings, buffs.state);
     const outdatedRanks = addon.register(new OutdatedRanksService(game.actionBars, game.spells, settings, game.barKeys));
     const addedSpells = addon.register(new AddedSpellsService(game.spells, settings, game.cooldowns, reagents));
     // A spell the player gave another ID is asked of that ID everywhere: buffs, weapon buffs, reagents, cooldowns, procs
@@ -169,6 +163,8 @@ function makeReminders(addon: Addon, addonName: string, game: Game, texts: Texts
     );
     const seal = addon.register(new SealReminderService(game.spells, game.actionBars, buffs.state, game.player, settings, addedSpells));
     const tracking = addon.register(new TrackingReminderService(game.spells, game.actionBars, buffs.state, settings, addedSpells));
+    // How long before a buff, weapon buff or seal runs out it is asked for: its row's Before
+    for (const reminder of [buff, weapon, added, seal]) reminder.useLooks(texts.styles);
     return {
         ...{ buff, reagents, party, weaponChoice, weapon, outdatedRanks, glowCues, addedSpells, added, fedBuffs, limits, seal, tracking },
         ...{ procRules, procEdits },

@@ -58,7 +58,8 @@ export class StyleWindowService {
     /** Does the tab shown list items too? Else the name and the ID are a spell's alone. */
     private isItemsShown = true;
     private customSounds: CustomSoundsSection | undefined;
-    private hasBelow = false;
+    /** What the Below column holds on the tab shown (see setLastColumn). */
+    private lastColumn: "below" | "before" | undefined;
 
     constructor(
         private readonly locale: AddonLocale,
@@ -113,9 +114,12 @@ export class StyleWindowService {
         this.tabBar?.select(TABLE_TABS.findIndex((tab) => tab.key === current));
     }
 
-    /** Does any row of the tab have a limit? Without one the Below column has no header (it keeps its place). */
-    setBelowShown(hasBelow: boolean): void {
-        this.hasBelow = hasBelow;
+    /**
+     * What the Below column holds on the tab shown: limits (Below), or how long before a buff runs out it is asked for
+     * (Before). With neither it has no header (it keeps its place).
+     */
+    setLastColumn(kind: "below" | "before" | undefined): void {
+        this.lastColumn = kind;
     }
 
     /** The folders with sounds of the player's own; returns where the next thing goes. */
@@ -139,7 +143,7 @@ export class StyleWindowService {
         const columns = this.getColumns();
         for (const { header, hover, column } of this.headers) {
             // The Below column stays, empty and with no header, where no row of the tab has a limit
-            const isHeaderShown = this.isTableShown && (column !== "belowLimits" || this.hasBelow);
+            const isHeaderShown = this.isTableShown && (column !== "belowLimits" || this.lastColumn !== undefined);
             const shown = isHeaderShown ? columns[column] : undefined;
             header.SetShown(shown !== undefined);
             hover?.SetShown(shown !== undefined);
@@ -149,10 +153,11 @@ export class StyleWindowService {
         this.viewButton?.SetText(this.locale.getText(this.isAdvanced() ? "BTN_BASIC" : "BTN_ADVANCED"));
     }
 
-    /** The name and the ID are a spell's or an item's where the tab lists items too, a spell's alone elsewhere. */
+    /** The name and the ID are a spell's or an item's where the tab lists items too, a spell's alone elsewhere; the Below column says what it holds. */
     private applyHeaderText(header: FontString, column: keyof typeof COLUMN): void {
         if (column === "name") header.SetText(this.locale.getText(this.isItemsShown ? "COL_SPELL_ITEM" : "COL_SPELL"));
         else if (column === "id") header.SetText(this.locale.getText(this.isItemsShown ? "COL_SPELL_ITEM_ID" : "COL_SPELL_ID"));
+        else if (column === "belowLimits") header.SetText(this.locale.getText(this.lastColumn === "before" ? "COL_BEFORE" : "COL_BELOW"));
     }
 
     private applyHeaderPosition(window: Frame, header: FontString, hover: Frame | undefined, column: Column): void {
@@ -267,20 +272,22 @@ export class StyleWindowService {
             header.SetJustifyH(isCentered ? "CENTER" : "LEFT");
             header.SetText(this.locale.getText(text));
             const tip = HEADER_TIPS[name];
-            const hover = tip !== undefined ? this.addHeaderTooltip(window, column, tip) : undefined;
+            // The Below column explains what it holds on the tab shown
+            const getTip = () => (name === "belowLimits" && this.lastColumn === "before" ? "TIP_BEFORE" : tip!);
+            const hover = tip !== undefined ? this.addHeaderTooltip(window, column, getTip) : undefined;
             this.headers.push({ header, hover, column: name });
         }
     }
 
     /** A header that explains its column as the mouse comes over it (the round buttons, for the animations). */
-    private addHeaderTooltip(window: Frame, column: Column, tip: TextKey): Frame {
+    private addHeaderTooltip(window: Frame, column: Column, getTip: (this: void) => TextKey): Frame {
         const hover = CreateFrame("Frame", undefined, window);
         hover.SetPoint("TOPLEFT", window, "TOPLEFT", TABLE_LEFT + column.x, -(HEADERS_TOP - 4));
         hover.SetSize(column.width, 18);
         hover.EnableMouse(true);
         hover.SetScript("OnEnter", () => {
             GameTooltip.SetOwner(hover, "ANCHOR_TOP");
-            GameTooltip.SetText(this.locale.getText(tip), 1, 1, 1, 1, true);
+            GameTooltip.SetText(this.locale.getText(getTip()), 1, 1, 1, 1, true);
             GameTooltip.Show();
         });
         hover.SetScript("OnLeave", () => GameTooltip.Hide());

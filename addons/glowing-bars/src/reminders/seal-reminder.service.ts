@@ -9,6 +9,7 @@ import { Paladin } from "@wowkit/wow-data";
 import type { BuffStateService } from "../character/buff-state.service";
 import type { AddedSpellsService } from "../glows/added-spells.service";
 import type { AddonSettingsService } from "../settings/settings.interface";
+import type { StyleService } from "../settings/style.service";
 
 /** The seals, in the order the table lists them (their wow-data IDs). */
 export const SEALS = [
@@ -21,7 +22,7 @@ export const SEALS = [
     Paladin.SealOfFury,
 ];
 
-/** A seal's reminder comes this many seconds before it runs out: one global cooldown, to cast the next in time. */
+/** A seal's reminder comes this many seconds before it runs out (one global cooldown, to cast the next in time), unless its row's Before says another time. */
 const SEAL_LEAD = 1.5;
 
 /** The seal each talent tree (1 Holy, 2 Protection, 3 Retribution) wants first, before the player has cast one. */
@@ -38,6 +39,13 @@ const LAST_SEAL_KEY = "missingSeal";
 const NO_SEALS: number[] = [];
 
 export class SealReminderService {
+    private styles: StyleService | undefined;
+
+    /** The looks of the rows: how long before a seal runs out it is asked for (its Before). */
+    useLooks(styles: StyleService): void {
+        this.styles = styles;
+    }
+
     /** The seals of the list and the added ones, kept until the settings or the spells change: every tick asks for them. */
     private allSeals: number[] | undefined;
 
@@ -98,7 +106,7 @@ export class SealReminderService {
         for (const listId of this.listAllSeals()) {
             const id = this.spells.resolve(listId) ?? listId;
             // Any seal counts for every other (one category)
-            if (this.buffState.hasAura(id, SEAL_LEAD)) return NO_SEALS;
+            if (this.buffState.hasAura(id, this.styles?.findBefore("missingSeal", listId) ?? SEAL_LEAD)) return NO_SEALS;
             if (enabledSpells[string.format("%d", listId)] !== false && this.actionBars.isOnBars(id)) onBars.push(listId);
         }
         const picked = this.pickSeal(onBars);

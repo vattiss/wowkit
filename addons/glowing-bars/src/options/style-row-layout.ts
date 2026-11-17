@@ -31,7 +31,8 @@ export function applyRowView(row: RowControls, columns: ReturnType<typeof findCo
     applyPosition(row.swatch, row.frame, findCenteredX(columns.color, 22));
     applyPosition(row.message, row.frame, findCenteredX(columns.message, 24));
     applyPosition(row.sound, row.frame, findCenteredX(columns.sound, 126));
-    if (columns.belowLimits !== undefined) applyPosition(row.belowBox, row.frame, findCenteredX(columns.belowLimits, 44));
+    // The input box draws its border a little to the left of where it starts, as when it was made
+    if (columns.belowLimits !== undefined) applyPosition(row.belowBox, row.frame, findCenteredX(columns.belowLimits, 44) + 3);
     applyPosition(row.enabled, row.frame, findCenteredX(columns.enabled, 24));
     applyPosition(row.reset, row.frame, columns.actions.x + 2);
     applyPosition(row.remove, row.frame, columns.actions.x + 50);
