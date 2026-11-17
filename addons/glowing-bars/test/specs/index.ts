@@ -89,4 +89,5 @@ import "./proc-rules-health.spec";
 import "./proc-rule-own-rows.spec";
 import "./weapon-places.spec";
 import "./before.spec";
+import "./teleport-runes.spec";
 import "./tick-garbage.spec";
