@@ -35,7 +35,7 @@ export class TableCommand implements OnFirstLogin {
         };
     }
 
-    /** A fight starts: the table and its message window close, as EllesmereUI's windows do. */
+    /** A fight starts: the table and its message window close. */
     @OnGameEvent("PLAYER_REGEN_DISABLED")
     hideForCombat(): void {
         const globals = _G as unknown as { [name: string]: Frame | undefined };

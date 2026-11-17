@@ -74,7 +74,7 @@ export class OptionsService implements OnFirstLogin {
         Settings.RegisterAddOnCategory(Settings.RegisterCanvasLayoutCategory(panel, texts.title));
     }
 
-    /** A fight starts: the window closes, as EllesmereUI's does. */
+    /** A fight starts: the window closes. */
     @OnGameEvent("PLAYER_REGEN_DISABLED")
     hideForCombat(): void {
         if (this.window?.isShown() !== true) return;
@@ -84,7 +84,7 @@ export class OptionsService implements OnFirstLogin {
 
     /** Blizzard's panel closes first, and the window opens a frame later: out of whatever opened it, as a slash command. */
     open(tab?: OptionsTab): void {
-        // Not in a fight, as EllesmereUI does: closing Blizzard's panel then has rules of its own, and the gamepad would be held
+        // Not in a fight: closing Blizzard's panel then has rules of its own, and the gamepad would be held
         if (InCombatLockdown()) {
             this.messages.say(this.page.getTexts().inCombat);
             return;

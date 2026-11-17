@@ -2,7 +2,7 @@
 // none of the button's transparency: a window's Opacity, or a visibility rule that fades it out. It goes into a holder of
 // its own that copies the button's effective transparency, and the game multiplies that with the glow's own, which can be
 // a secret value that addon code cannot compute with. The holder is in UIParent, whose transparency the button's has in it
-// already, so that is taken out. EllesmereUI holds its frames beside the icons the same way.
+// already, so that is taken out.
 import { attempt } from "./protected-call.utils";
 import { getReadable } from "./secret-value.utils";
 

@@ -97,7 +97,7 @@ export class CooldownViewerService {
         return (_G as unknown as { CooldownViewerSettings?: Frame }).CooldownViewerSettings !== undefined;
     }
 
-    /** Opens Blizzard's Cooldown Manager settings window. Only shows it, as EllesmereUI does: anything more from addon code (picking a tab) taints it. */
+    /** Opens Blizzard's Cooldown Manager settings window. Only shows it: anything more from addon code (picking a tab) taints it. */
     openSettingsWindow(): void {
         (_G as unknown as { CooldownViewerSettings?: Frame }).CooldownViewerSettings?.Show();
     }

@@ -76,7 +76,7 @@ export class StyleTableService {
     }
 
     /** Opens the window, or closes it when it is open. A failure is printed, never thrown. */
-    /** Opens or closes the table; in a fight it only closes, as EllesmereUI does with its windows. */
+    /** Opens or closes the table; in a fight it only closes. */
     toggle(): void {
         if (InCombatLockdown() && this.window?.IsShown() !== true) return this.messages.say(this.locale.getText("MSG_NOT_IN_COMBAT"));
         const [didSucceed, error] = pcall(() => this.toggleWindow());
