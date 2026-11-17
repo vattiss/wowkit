@@ -41,8 +41,9 @@ export class WeaponReminderService {
     }
 
     noteEnchantChanged(): void {
-        this.choice.noteWeaponEnchant(this.enchants.getWeaponEnchant(false).enchantId, false);
-        if (this.choice.isCoatingBothWeapons()) this.choice.noteWeaponEnchant(this.enchants.getWeaponEnchant(true).enchantId, true);
+        this.choice.noteWeaponEnchant(this.enchants.getWeaponEnchant(false, "imbue").enchantId, false);
+        if (this.choice.isCoatingBothWeapons())
+            this.choice.noteWeaponEnchant(this.enchants.getWeaponEnchant(true, "imbue").enchantId, true);
         const pick = this.choice.findSelectedWeaponBuff();
         if (!pick) return;
         const now = this.clock.getCurrentTime();

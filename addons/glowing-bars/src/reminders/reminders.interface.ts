@@ -47,3 +47,12 @@ export interface PickedWeaponBuff {
     /** The highest learned rank. */
     spellId: number;
 }
+
+/**
+ * A button of an added weapon buff whose weapon has its temporary enchant: it stays dark for that weapon buff, while another
+ * reminder may light it (a macro of a poison by one button and a stone by the other).
+ */
+export interface CoveredWeaponButton {
+    button: ActionButton;
+    spellId: number;
+}

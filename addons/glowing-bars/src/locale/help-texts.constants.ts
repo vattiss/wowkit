@@ -6,7 +6,7 @@ export const HELP_TEXTS = {
         "Your class's spells and racials are listed already. For anything else, open the tab, pick the type in its add row, and enter the ID:",
     HELP_WHERE_BUFFS: "Food, drink, elixirs, flasks, scrolls, or a buff of yours the lists lack",
     HELP_WHERE_BUFFS_HOW: "Buffs tab, Missing buff, by the Use spell ID (a spell's own ID).",
-    HELP_WHERE_WEAPON: "Sharpening stones, weightstones, oils, poisons",
+    HELP_WHERE_WEAPON: "Sharpening stones, weightstones, oils",
     HELP_WHERE_WEAPON_HOW: "Buffs tab, Weapon buff, by the Use spell ID. Not Missing buff: they go on your weapon, not on you.",
     HELP_WHERE_SEAL: "A paladin seal the lists lack",
     HELP_WHERE_SEAL_HOW: "Buffs tab, Missing seal, by its Spell ID.",
@@ -31,7 +31,8 @@ export const HELP_TEXTS = {
     HELP_SPELL_ITEM: "The type, or a spell or item of it. A gold name means you changed that row.",
     HELP_TYPE: "The kind of reminder of the row, and what makes it glow:",
     HELP_TYPE_MISSING_BUFF: "a buff of yours is missing.",
-    HELP_TYPE_WEAPON_BUFF: "your weapon has no stone, oil or poison on it.",
+    HELP_TYPE_WEAPON_BUFF:
+        "your weapon misses your class's weapon buff (a poison, an imbue, a Firestone) or the stone or oil you added. Each is kept up on its own.",
     HELP_TYPE_MISSING_SEAL: "paladins: in a fight with no seal up, the seal you used last.",
     HELP_TYPE_MISSING_TRACKING: "with no tracking on, the gathering tracking you know (Find Herbs, Find Minerals).",
     HELP_TYPE_TOTEM_GONE: "shamans: a totem you dropped was killed or ran out; the one you dropped last of its element.",

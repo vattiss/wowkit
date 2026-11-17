@@ -10,7 +10,7 @@ const MAX_HEALTH = 1000;
 const INTERACT_YARDS: { [index: number]: number | undefined } = { 1: 28, 2: 11, 3: 10 };
 
 /** A secret value of the fake game: issecretvalue knows it (addon code may only compare it with nil). */
-const SECRET_VALUE = { isSecret: true };
+export const SECRET_VALUE = { isSecret: true };
 
 export function installUnits(state: ClientState): void {
     /** party1..party4 (raid1..n in a raid) are the members of the test's party, the player is everyone else. */

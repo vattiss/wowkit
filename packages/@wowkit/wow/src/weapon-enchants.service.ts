@@ -5,6 +5,12 @@ import { tryCall } from "./utils/protected-call.utils";
 import { isReadable, getReadable } from "./utils/secret-value.utils";
 import { MAIN_HAND_SLOT, NO_EXPIRY, OFF_HAND_SLOT } from "./wow.constants";
 
+/**
+ * The two places of a weapon's enchants on Forever, held at once: an imbue (a class's: a rogue's poisons, a shaman's weapon
+ * imbues, a warlock's Firestone and Spellstone) and a temporary enchant (sharpening stones, weightstones, oils).
+ */
+export type EnchantPlace = "imbue" | "temporary";
+
 /** has: true/false, or undefined when the client gave no answer. remain: seconds, or NO_EXPIRY. */
 export interface EnchantRead {
     has: boolean | undefined;
@@ -16,9 +22,12 @@ export class WeaponEnchantsService {
     private tooltipCacheAt = 0;
     private tooltipCache: string[] | undefined;
 
-    /** The temporary enchant of a hand; `has` is undefined when neither API answers. */
-    getWeaponEnchant(isOffhand: boolean): EnchantRead {
-        return this.readTemporaryEnchant(isOffhand) ?? this.readItemEnchant(isOffhand) ?? { has: undefined, remain: 0 };
+    /**
+     * The enchant of one place of a hand; `has` is undefined when the client gives no answer. A client without the list of
+     * the hand's enchants gives the one its buff frame shows (the imbue first) for either place.
+     */
+    getWeaponEnchant(isOffhand: boolean, place: EnchantPlace): EnchantRead {
+        return this.readItemEnchant(isOffhand, place) ?? this.readTemporaryEnchant(isOffhand) ?? { has: undefined, remain: 0 };
     }
 
     clearWeaponTooltipCache(): void {
@@ -61,7 +70,7 @@ export class WeaponEnchantsService {
         return tonumber(value);
     }
 
-    /** C_PaperDollInfo, what the Blizzard buff frame uses. */
+    /** C_PaperDollInfo: one enchant of the hand (on Forever the imbue, else the temporary one), for a client without the list. */
     private readTemporaryEnchant(isOffhand: boolean): EnchantRead | undefined {
         const [didSucceed, info] = tryCall(C_PaperDollInfo.GetTemporaryEnchantmentInfo, isOffhand ? OFF_HAND_SLOT : MAIN_HAND_SLOT);
         if (!didSucceed) return undefined;
@@ -73,30 +82,34 @@ export class WeaponEnchantsService {
         return { has: true, remain: remain > 0 ? remain : NO_EXPIRY, enchantId: this.convertToNumber(enchant.enchantID) };
     }
 
-    private isTemporaryOrImbue(entry: WeaponEnchantInfo): boolean {
-        const kind = getReadable(entry.enchantType);
-        return (kind === Enum.ItemEnchantType.Temporary || kind === Enum.ItemEnchantType.Imbue) && getReadable(entry.hasEnchant) === true;
+    /**
+     * C_Item.GetWeaponEnchantInfo, what the Blizzard buff frame lists: every enchant of the hand with its kind, the one of this
+     * place. Undefined when the call fails (the other call answers then); no answer (has undefined) while the list or a value
+     * of it is secret.
+     */
+    private readItemEnchant(isOffhand: boolean, place: EnchantPlace): EnchantRead | undefined {
+        const [didSucceed, list] = tryCall(C_Item.GetWeaponEnchantInfo, isOffhand ? Enum.WeaponSlot.OffHand : Enum.WeaponSlot.MainHand);
+        if (!didSucceed) return undefined;
+        // Kept secret (in a fight): no answer, never a guess by the other call
+        if (!isReadable(list) || type(list) !== "table") return { has: undefined, remain: 0 };
+        const wanted = place === "imbue" ? Enum.ItemEnchantType.Imbue : Enum.ItemEnchantType.Temporary;
+        for (const entry of list as WeaponEnchantInfo[]) {
+            const kind = getReadable(entry.enchantType);
+            const has = getReadable(entry.hasEnchant);
+            if (kind === undefined || has === undefined) return { has: undefined, remain: 0 };
+            if (kind === wanted && has) return this.describeItemEnchant(entry);
+        }
+        return { has: false, remain: 0, enchantId: 0 };
     }
 
+    /** Its time left is in milliseconds, always (the buff frame divides it so). */
     private describeItemEnchant(entry: WeaponEnchantInfo): EnchantRead {
-        let remain = this.convertToNumber(entry.timeLeft) ?? 0;
-        // Some clients report milliseconds here
-        if (remain > 10000) remain = remain / 1000;
+        const remainMs = this.convertToNumber(entry.timeLeft) ?? 0;
         const enchantId = this.convertToNumber(entry.enchantID);
         return {
             has: true,
-            remain: remain > 0 ? remain : NO_EXPIRY,
+            remain: remainMs > 0 ? remainMs / 1000 : NO_EXPIRY,
             enchantId: enchantId !== undefined && enchantId > 0 ? enchantId : undefined,
         };
-    }
-
-    /** C_Item.GetWeaponEnchantInfo: only a temporary enchant or an imbue counts. */
-    private readItemEnchant(isOffhand: boolean): EnchantRead | undefined {
-        const [didSucceed, list] = tryCall(C_Item.GetWeaponEnchantInfo, isOffhand ? Enum.WeaponSlot.OffHand : Enum.WeaponSlot.MainHand);
-        if (!didSucceed || type(list) !== "table") return undefined;
-        for (const entry of list as WeaponEnchantInfo[]) {
-            if (this.isTemporaryOrImbue(entry)) return this.describeItemEnchant(entry);
-        }
-        return { has: false, remain: 0, enchantId: 0 };
     }
 }

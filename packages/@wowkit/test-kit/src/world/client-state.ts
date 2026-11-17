@@ -183,10 +183,14 @@ export interface ClientState {
     soundFiles: string[];
     /** The sound files the addon played. */
     playedSoundFiles: string[];
-    /** Inventory slot (16 main hand, 17 off hand) -> the temporary enchant on it. */
+    /** Inventory slot (16 main hand, 17 off hand) -> the imbue on it (a rogue's poison, a shaman's imbue, a Firestone). */
     enchants: { [slot: number]: FakeEnchant | undefined };
+    /** Inventory slot -> the temporary enchant on it (a stone, an oil): on Forever beside the imbue. */
+    temporaryEnchants: { [slot: number]: FakeEnchant | undefined };
     /** The client gives no answer about weapon enchants (reads fail), as it sometimes does. */
     areEnchantReadsBroken: boolean;
+    /** In a fight the client may keep the list of a weapon's enchants secret (C_Item.GetWeaponEnchantInfo). */
+    isEnchantListSecret: boolean;
     equippedItems: { [slot: number]: number | undefined };
     /** Spells that cannot be cast right now (no rage, no mana). */
     unusableSpells: { [spellId: number]: true | undefined };
@@ -293,7 +297,9 @@ export function createClientState(): ClientState {
         soundFiles: [],
         playedSoundFiles: [],
         enchants: {},
+        temporaryEnchants: {},
         areEnchantReadsBroken: false,
+        isEnchantListSecret: false,
         equippedItems: {},
         unusableSpells: {},
         party: [],

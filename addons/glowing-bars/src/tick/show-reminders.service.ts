@@ -25,6 +25,7 @@ import {
 import type { NoticesService } from "./notices.service";
 import type { FedBuffsService } from "../reminders/fed-buffs.service";
 import type { Reminders } from "./tick.interface";
+import type { CoveredWeaponButton } from "../reminders/reminders.interface";
 import { pushAll, TYPES } from "./glow-types";
 
 /** The spells that glow in one color, glow % and animation: one glow shows them. */
@@ -82,7 +83,7 @@ export class ShowRemindersService {
     /** The weapon buff that glows, and the weapon it is for: a macro for the other weapon stays dark. */
     private weaponSpell: number | undefined;
     private weaponHandSlot: number | undefined;
-    private coveredButtons: ActionButton[] = [];
+    private coveredButtons: CoveredWeaponButton[] = [];
 
     constructor(
         private readonly glow: GlowService,
@@ -244,27 +245,48 @@ export class ShowRemindersService {
     /** A button glows unless it holds an item that has run out, or its bar is switched off (a button of no numbered bar always may). */
     private isBarShown(button: ActionButton, groupKey: string): boolean {
         if (!this.settings.get("shouldGlowOnMacros") && this.actionBars.isMacroButton(button)) return false;
-        if (this.isForOtherWeapon(button) || this.coveredButtons.includes(button)) return false;
+        const spells = this.groupSpells.get(groupKey) ?? [];
+        if (this.isHeldBack(button, spells)) return false;
         const isUsedUpShown = this.usedUpShown.some((id) => this.actionBars.findButtonsOf(id).includes(button));
         if (!isUsedUpShown && isOutOfItem(this.actionBars, button)) return false;
         // Foods of one name are found on each other's buttons: a button glows only in the look of its own food
-        const spells = this.groupSpells.get(groupKey) ?? [];
         const isOwnUsedUp = spells.some((id) => this.usedUpShown.includes(id) && this.actionBars.findButtonsOf(id).includes(button));
         if (!isOwnUsedUp && !this.fedBuffs.isButtonWanted(button, spells)) return false;
         const bar = this.barKeys.getBarKey(button);
         return bar === undefined || this.settings.get("barsThatGlow")[bar] !== false;
     }
 
-    private isSameCovered(buttons: ActionButton[]): boolean {
-        const old = this.coveredButtons;
-        return buttons.length === old.length && buttons.every((button) => old.includes(button));
+    /**
+     * Is the button dark for every spell of the glow that sits on it? A weapon buff waits on a button that is not for it now:
+     * the class's on a macro for the other weapon than the one that needs it, an added one where its weapon has its temporary
+     * enchant. Another spell on the same button (the poison and the stone of one macro) still lights it.
+     */
+    private isHeldBack(button: ActionButton, spells: number[]): boolean {
+        let hasSpell = false;
+        for (const id of spells) {
+            if (!this.actionBars.findButtonsOf(id).includes(button)) continue;
+            hasSpell = true;
+            if (!this.isSpellHeldBack(button, id)) return false;
+        }
+        return hasSpell;
     }
 
-    /** Does this macro of the weapon buff put it on the other weapon than the one that needs it? */
+    private isSpellHeldBack(button: ActionButton, spellId: number): boolean {
+        if (this.coveredButtons.some((covered) => covered.button === button && covered.spellId === spellId)) return true;
+        return spellId === this.weaponSpell && this.isForOtherWeapon(button);
+    }
+
+    private isSameCovered(buttons: CoveredWeaponButton[]): boolean {
+        const old = this.coveredButtons;
+        return (
+            buttons.length === old.length &&
+            buttons.every((each) => old.some((kept) => kept.button === each.button && kept.spellId === each.spellId))
+        );
+    }
+    /** Is this macro (of the class's weapon buff) for the other weapon than the one that needs it? */
     private isForOtherWeapon(button: ActionButton): boolean {
         const handSlot = this.actionBars.findMacroHandSlot(button);
-        if (handSlot === undefined || this.weaponHandSlot === undefined || handSlot === this.weaponHandSlot) return false;
-        return this.actionBars.findButtonsOf(this.weaponSpell).includes(button);
+        return handSlot !== undefined && this.weaponHandSlot !== undefined && handSlot !== this.weaponHandSlot;
     }
 
     /** The spells to glow, in groups of the same look. */

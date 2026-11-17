@@ -31,7 +31,7 @@ export class WeaponReadingService {
 
     /** What is on one weapon, as far as the client says. */
     readHand(entry: WeaponBuff, isOffhand: boolean): HandReading {
-        const read = this.enchants.getWeaponEnchant(isOffhand);
+        const read = this.enchants.getWeaponEnchant(isOffhand, "imbue");
         if (read.has === true) {
             const owner = read.enchantId !== undefined ? WEAPON_BUFF_BY_ENCHANT.get(read.enchantId) : undefined;
             if (owner && owner !== entry) return { state: "other", remain: 0 };

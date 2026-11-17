@@ -1,6 +1,7 @@
 // The buffs, weapon buffs and group buffs with a reagent that the player added by their ID. The addon knows nothing more of
 // them than the spell, so each is reminded of in the simplest way that fits its type: a buff when the player has no aura
-// of its name (a food or drink: see FedBuffsService), a weapon buff when the main hand has no temporary enchant at all, a reagent when the item the spell's
+// of its name (a food or drink: see FedBuffsService), a weapon buff when its weapon has no temporary enchant (a stone, an oil:
+// the imbue of a class, a poison or a Firestone, is a place of its own beside it), a reagent when the item the spell's
 // tooltip names as its reagent runs low.
 import type { LowReagent } from "../reagents/reagent.interface";
 import {
@@ -18,6 +19,7 @@ import type { AddedSpellsService } from "../glows/added-spells.service";
 import { findReagentRowEntry, type ReagentsService } from "../reagents/reagents.service";
 import type { AddonSettingsService, AddableType } from "../settings/settings.interface";
 import type { FedBuffsService } from "./fed-buffs.service";
+import type { CoveredWeaponButton } from "./reminders.interface";
 import { BUFF_GIVEN_BY_ITEM, BUFF_GIVEN_BY_SPELL } from "./given-buffs.constants";
 import type { BouncedBuffsService } from "../character/bounced-buffs.service";
 
@@ -55,23 +57,25 @@ export class AddedRemindersService {
         return (bySpell ?? byItem)?.[1] ?? spellId;
     }
 
-    /** The added weapon buffs with a button for a weapon that has no temporary enchant (poison, imbue or stone) at all. */
+    /** The added weapon buffs with a button for a weapon that has no temporary enchant (a stone, an oil), whatever its imbue. */
     findWeaponSpells(): number[] {
         const spellIds = this.listOnBars("weaponBuff");
         if (spellIds.length === 0) return [];
         return spellIds.filter((id) => this.actionBars.findButtonsOf(id).some((button) => this.isButtonForBareWeapon(button)));
     }
 
-    /** The buttons of the added weapon buffs whose weapon has something on it: they stay dark. */
-    findCoveredButtons(): ActionButton[] {
-        const covered: ActionButton[] = [];
+    /** The buttons of the added weapon buffs whose weapon has a temporary enchant on it: they stay dark for them. */
+    findCoveredButtons(): CoveredWeaponButton[] {
+        const covered: CoveredWeaponButton[] = [];
         for (const id of this.listOnBars("weaponBuff")) {
-            for (const button of this.actionBars.findButtonsOf(id)) if (!this.isButtonForBareWeapon(button)) covered.push(button);
+            for (const button of this.actionBars.findButtonsOf(id)) {
+                if (!this.isButtonForBareWeapon(button)) covered.push({ button, spellId: id });
+            }
         }
         return covered;
     }
 
-    /** Is the weapon of this button bare: the one its macro says (/use 16 or /use 17), else either of them? */
+    /** Has the weapon of this button no temporary enchant: the one its macro says (/use 16 or /use 17), else either of them? */
     private isButtonForBareWeapon(button: ActionButton): boolean {
         const handSlot = this.actionBars.findMacroHandSlot(button);
         if (handSlot === undefined) return this.isWeaponBare(false) || this.isWeaponBare(true);
@@ -80,7 +84,7 @@ export class AddedRemindersService {
 
     private isWeaponBare(isOffhand: boolean): boolean {
         if (isOffhand && !this.player.isOffhandWeaponEquipped()) return false;
-        return this.weaponEnchants.getWeaponEnchant(isOffhand).has === false;
+        return this.weaponEnchants.getWeaponEnchant(isOffhand, "temporary").has === false;
     }
 
     /** The added spells whose reagent, named in the spell's tooltip, runs low in the bags. */

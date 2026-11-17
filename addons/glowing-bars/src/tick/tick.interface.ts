@@ -1,7 +1,7 @@
 import type { OlderRankBuff } from "../character/buff-state.service";
 import type { LowReagent } from "../reagents/reagent.interface";
 import type { OutdatedRank } from "../reminders/outdated-ranks.service";
-import type { PartySuggestion, LowStock } from "../reminders/reminders.interface";
+import type { CoveredWeaponButton, PartySuggestion, LowStock } from "../reminders/reminders.interface";
 
 /** Everything the player should be reminded of right now: what stage 1 of a tick finds. */
 export interface Reminders {
@@ -11,9 +11,9 @@ export interface Reminders {
     weaponSpell?: number;
     /** The weapon the weapon buff is for. */
     weaponHandSlot?: number;
-    /** The buttons of added weapon buffs whose weapon has something on it. */
-    coveredWeaponButtons: ActionButton[];
-    /** Weapon buffs the player added, when the main-hand weapon has no temporary enchant: their buttons glow. */
+    /** The buttons of added weapon buffs whose weapon has a temporary enchant on it: dark for that weapon buff alone. */
+    coveredWeaponButtons: CoveredWeaponButton[];
+    /** Weapon buffs the player added, when a weapon of theirs has no temporary enchant: their buttons glow. */
     addedWeaponSpells: number[];
     /** A paladin with no seal up: the seal to put on. */
     seals: number[];

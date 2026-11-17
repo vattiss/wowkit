@@ -240,7 +240,7 @@ export const TEXTS = {
     TIP_ADD_PROC: "A spell the game makes usable for a while (Overpower after a dodge). Enter its Spell ID.",
     TIP_ADD_MISSING_BUFF:
         "A buff on you: a spell, or food, drink, an elixir, a flask or a scroll. Enter its Spell ID (an item's Use spell ID).",
-    TIP_ADD_WEAPON_BUFF: "On your weapon: a sharpening stone, weightstone, oil or poison. Enter its Use spell ID.",
+    TIP_ADD_WEAPON_BUFF: "On your weapon: a sharpening stone, weightstone or oil. Enter its Use spell ID.",
     TIP_ADD_LOW_REAGENT: "A spell that uses a reagent: it glows while the reagent runs low. Enter its Spell ID.",
     TIP_ADD_LOW_STOCK: "An item to keep count of: arrows, drinks, candles. Enter its Item ID.",
     TIP_ADD_MISSING_SEAL: "A seal of yours the lists lack. Enter its Spell ID.",

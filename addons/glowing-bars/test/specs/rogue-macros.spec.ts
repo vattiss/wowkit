@@ -65,11 +65,17 @@ describe("a rogue who added a sharpening stone by the spell it casts, as a weapo
         expect(createStoneWorld(5).glowsOn(1)).toBe(1);
     });
 
-    it("sees no glow once the main hand has something on it", () => {
+    it("sees no glow once the main hand has a stone on it (a temporary enchant)", () => {
         const world = createStoneWorld(5);
-        world.state.enchants[MAIN_HAND] = poisonLasting(40, 3600);
+        world.state.temporaryEnchants[MAIN_HAND] = poisonLasting(40, 3600);
         world.advance(2);
         expect(world.glowsOn(1)).toBe(0);
+    });
+    it("sees the stone glow beside a poison: the poison is an imbue, a place of its own (issue #78)", () => {
+        const world = createStoneWorld(5);
+        world.state.enchants[MAIN_HAND] = poisonLasting(DEADLY_ENCHANT, 3600);
+        world.advance(2);
+        expect(world.glowsOn(1)).toBe(1);
     });
 
     it("sees no glow with no stone left", () => {
@@ -196,8 +202,12 @@ describe("a rogue with a macro of Deadly Poison for each weapon", () => {
     });
 });
 
+/** A stone's temporary enchant on a weapon: on Forever beside the poison, an imbue. */
+const STONE_ENCHANT = 14;
+
 describe("a rogue who added a stone, with a macro for each weapon", () => {
-    function createStoneMacros(coated: number): World {
+    /** Stones on the weapons of `stoned`, Deadly Poison on those of `poisoned`. */
+    function createStoneMacros(stoned: number[], poisoned: number[] = []): World {
         const world = createWorld(
             (state) => {
                 playAs(state, ROGUE);
@@ -209,7 +219,8 @@ describe("a rogue who added a stone, with a macro for each weapon", () => {
                 state.barMacros[2] = { body: "#showtooltip\n/use Coarse Sharpening Stone\n/use 17", name: "off", isShowingItem: true };
                 state.equippedItems[MAIN_HAND] = 1234;
                 state.equippedItems[OFF_HAND] = 5678;
-                state.enchants[coated] = poisonLasting(DEADLY_ENCHANT, 3600);
+                for (const slot of stoned) state.temporaryEnchants[slot] = poisonLasting(STONE_ENCHANT, 1800);
+                for (const slot of poisoned) state.enchants[slot] = poisonLasting(DEADLY_ENCHANT, 3600);
             },
             { addedSpells: [{ id: 2829, reminderType: "weaponBuff" }] },
         );
@@ -217,21 +228,27 @@ describe("a rogue who added a stone, with a macro for each weapon", () => {
         return world;
     }
 
-    it("lights the macro of the bare off-hand only", () => {
-        const world = createStoneMacros(MAIN_HAND);
+    it("lights the macro of the off-hand with no stone only", () => {
+        const world = createStoneMacros([MAIN_HAND]);
         expect(world.glowsOn(1)).toBe(0);
         expect(world.glowsOn(2)).toBe(1);
     });
 
-    it("lights the macro of the bare main hand only", () => {
-        const world = createStoneMacros(OFF_HAND);
+    it("lights the macro of the main hand with no stone only", () => {
+        const world = createStoneMacros([OFF_HAND]);
         expect(world.glowsOn(1)).toBe(1);
         expect(world.glowsOn(2)).toBe(0);
+    });
+
+    it("lights both beside the poisons on both weapons: a poison is no stone", () => {
+        const world = createStoneMacros([], [MAIN_HAND, OFF_HAND]);
+        expect(world.glowsOn(1)).toBe(1);
+        expect(world.glowsOn(2)).toBe(1);
     });
 });
 
 describe("a rogue who added a stone, with the stone itself on the bar", () => {
-    function createStoneOnBar(coated: number[]): World {
+    function createStoneOnBar(stoned: number[], poisoned: number[] = []): World {
         const world = createWorld(
             (state) => {
                 playAs(state, ROGUE);
@@ -241,7 +258,8 @@ describe("a rogue who added a stone, with the stone itself on the bar", () => {
                 state.bags[2863] = 5;
                 state.equippedItems[MAIN_HAND] = 1234;
                 state.equippedItems[OFF_HAND] = 5678;
-                for (const slot of coated) state.enchants[slot] = poisonLasting(DEADLY_ENCHANT, 3600);
+                for (const slot of stoned) state.temporaryEnchants[slot] = poisonLasting(STONE_ENCHANT, 1800);
+                for (const slot of poisoned) state.enchants[slot] = poisonLasting(DEADLY_ENCHANT, 3600);
             },
             { addedSpells: [{ id: 2829, reminderType: "weaponBuff" }] },
         );
@@ -249,15 +267,19 @@ describe("a rogue who added a stone, with the stone itself on the bar", () => {
         return world;
     }
 
-    it("glows while the off-hand is bare, with the main hand coated", () => {
+    it("glows while the off-hand has no stone, with the main hand's on", () => {
         expect(createStoneOnBar([MAIN_HAND]).glowsOn(1)).toBe(1);
     });
 
-    it("glows while the main hand is bare, with the off-hand coated", () => {
+    it("glows while the main hand has no stone, with the off-hand's on", () => {
         expect(createStoneOnBar([OFF_HAND]).glowsOn(1)).toBe(1);
     });
 
-    it("goes dark with both weapons coated", () => {
-        expect(createStoneOnBar([MAIN_HAND, OFF_HAND]).glowsOn(1)).toBe(0);
+    it("goes dark with a stone on both weapons, the poisons aside", () => {
+        expect(createStoneOnBar([MAIN_HAND, OFF_HAND], [MAIN_HAND, OFF_HAND]).glowsOn(1)).toBe(0);
+    });
+
+    it("glows with poisons on both weapons and no stone", () => {
+        expect(createStoneOnBar([], [MAIN_HAND, OFF_HAND]).glowsOn(1)).toBe(1);
     });
 });
