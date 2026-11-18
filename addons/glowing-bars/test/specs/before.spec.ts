@@ -165,6 +165,24 @@ describe("the Before of a weapon buff and of a seal", () => {
         expect(createPaladin(4).glowsOn(1)).toBe(0);
         expect(createPaladin(4, { spellStyles: { "missingSeal:Seal of the Crusader": { before: 5 } } }).glowsOn(1)).toBe(1);
     });
+
+    it("asks for the seal up by its own row's Before, another seal known as well: the one up decides", () => {
+        const RIGHTEOUSNESS: SpellDefinition = { id: 20154, name: "Seal of Righteousness", rank: 1, icon: 132325, isHelpful: true };
+        const world = createWorld(
+            (state) => {
+                playAs(state, PALADIN);
+                learnSpell(state, CRUSADER);
+                learnSpell(state, RIGHTEOUSNESS);
+                state.bars[1] = CRUSADER.id;
+                state.bars[2] = RIGHTEOUSNESS.id;
+                state.isInCombat = true;
+            },
+            { spellStyles: { "missingSeal:Seal of the Crusader": { before: 20 } } },
+        );
+        world.state.auras.push(world.makeAura(CRUSADER.name, CRUSADER.id, 15));
+        world.advance(1);
+        expect(world.glowsOn(1) + world.glowsOn(2)).toBe(1);
+    });
 });
 
 describe("the Before in the table's Below column", () => {

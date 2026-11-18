@@ -103,14 +103,28 @@ export class SealReminderService {
         if (!this.settings.get("isMissingSealEnabled") || this.listAllSeals().length === 0) return NO_SEALS;
         const enabledSpells = this.settings.get("enabledSpells");
         const onBars: number[] = [];
+        // Any seal counts for every other (one category), so the one up decides how long before its end it is asked for
+        const before = this.findSealBefore();
         for (const listId of this.listAllSeals()) {
             const id = this.spells.resolve(listId) ?? listId;
-            // Any seal counts for every other (one category)
-            if (this.buffState.hasAura(id, this.styles?.findBefore("missingSeal", listId) ?? SEAL_LEAD)) return NO_SEALS;
+            if (this.buffState.hasAura(id, before)) return NO_SEALS;
             if (enabledSpells[string.format("%d", listId)] !== false && this.actionBars.isOnBars(id)) onBars.push(listId);
         }
         const picked = this.pickSeal(onBars);
         return picked !== undefined ? [this.spells.resolve(picked) ?? picked] : NO_SEALS;
+    }
+
+    /**
+     * How long before the seal up runs out it is asked for: the Before of its row. Asked of another seal, the aura found is
+     * this one too (one category), so its own row decides. With the auras hidden (a fight), the seal cast last.
+     */
+    private findSealBefore(): number {
+        const seals = this.listAllSeals();
+        const read = this.buffState.findAura(this.spells.resolve(seals[0]!) ?? seals[0]);
+        const upName = read.isFound && read.spellId !== undefined ? this.spells.getSpellName(read.spellId) : undefined;
+        const up = upName !== undefined ? seals.find((listId) => this.spells.getSpellName(listId) === upName) : undefined;
+        const seal = up ?? this.settings.get("lastBuffs")[LAST_SEAL_KEY];
+        return seal !== undefined ? (this.styles?.findBefore("missingSeal", seal) ?? SEAL_LEAD) : SEAL_LEAD;
     }
 
     /** Of the seals that could glow (list IDs): the one cast last, else the main talent tree's, else the first. */
