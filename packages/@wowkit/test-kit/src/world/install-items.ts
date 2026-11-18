@@ -18,28 +18,6 @@ export function installItems(state: ClientState, sounds: number[]): void {
             const cooldown = state.itemCooldowns[itemId];
             return $multi(cooldown?.start ?? 0, cooldown?.duration ?? 0, 1);
         },
-        // The backpack holds every item of the bags, a slot each; the other bags are empty
-        GetContainerNumSlots: (bag) => (bag === 0 ? listBagItems(state).length : 0),
-        GetContainerItemInfo: (bag, slot) => {
-            const itemId = bag === 0 ? listBagItems(state)[slot - 1] : undefined;
-            if (itemId === undefined) return undefined;
-            const info = {
-                iconFileID: 0,
-                stackCount: state.bags[itemId]!,
-                isLocked: false,
-                isReadable: false,
-                hasLoot: false,
-                hyperlink: "",
-            };
-            return fake<ContainerItemInfo>({
-                ...info,
-                isFiltered: false,
-                hasNoValue: false,
-                itemID: itemId,
-                isBound: false,
-                itemName: findItemName(state, itemId)!,
-            });
-        },
     });
 
     defineNamespace<typeof C_Item>("C_Item", {
@@ -68,8 +46,8 @@ export function installItems(state: ClientState, sounds: number[]): void {
             const id = state.itemIds[item as string];
             return $multi(undefined, id !== undefined && (state.bags[id] ?? 0) > 0 ? state.itemUseSpells[id] : undefined);
         },
-        // By ID; by name the client answers 0 even for an item in the bags (issue #81), so the addon counts the bags by name itself
-        GetItemCount: (item) => (type(item) === "string" ? 0 : (state.bags[item as number] ?? 0)),
+        // By ID, or by a name the test gave an item ID
+        GetItemCount: (item) => state.bags[(type(item) === "string" ? state.itemIds[item as string] : (item as number)) ?? 0] ?? 0,
         GetItemNameByID: (item) => state.itemNames[item as number],
         GetItemIconByID: () => undefined,
     });
@@ -89,20 +67,4 @@ export function installItems(state: ClientState, sounds: number[]): void {
         },
     });
     defineValues({ SOUNDKIT: { ALARM_CLOCK_WARNING_2: 12867, ALARM_CLOCK_WARNING_3: 12889, RAID_WARNING: 8959 } });
-}
-
-/** The items in the bags, at least one of each, in the order of their IDs. */
-function listBagItems(state: ClientState): number[] {
-    const ids: number[] = [];
-    for (const [id, count] of pairs(state.bags)) if (count !== undefined && count > 0) ids.push(id as number);
-    ids.sort((a, b) => a - b);
-    return ids;
-}
-
-/** An item's name: the one the test gave it, by its name or by the name it is found by. */
-function findItemName(state: ClientState, itemId: number): string | undefined {
-    const named = state.itemNames[itemId];
-    if (named !== undefined) return named;
-    for (const [name, id] of pairs(state.itemIds)) if (id === itemId) return name as string;
-    return undefined;
 }
