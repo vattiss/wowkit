@@ -40,8 +40,9 @@ export class ReagentsService {
     findTooltipReagent(spellId: number): string | undefined {
         const list = this.spells.readTooltipReagents(spellId);
         if (list === undefined) return undefined;
-        // Color codes and counts are not part of the name: "|cffff2020Holy Candle|r (2)"
-        const [plain] = string.gsub(string.gsub(list, "|c%x%x%x%x%x%x%x%x", "")[0], "|r", "");
+        // Color codes, line breaks and counts are not part of the name: "|cffff2020Holy Candle|r (2)", " |nRune of Teleportation"
+        const [noColor] = string.gsub(string.gsub(list, "|c%x%x%x%x%x%x%x%x", "")[0], "|r", "");
+        const [plain] = string.gsub(noColor, "|n", " ");
         const [first] = string.match(plain, "^%s*([^,%(]-)%s*[,%(]");
         return first ?? string.match(plain, "^%s*(.-)%s*$")[0];
     }
