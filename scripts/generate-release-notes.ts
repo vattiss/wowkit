@@ -1,15 +1,13 @@
 // Writes the release notes of an addon (its release-notes/<version>.md) into its source, for the What's new window:
-// src/changelog/release-notes.generated.ts, newest first. The Markdown becomes the game's text: a "### New" heading
-// gold, a "- item" a bullet, **bold** and `code` plain words. The date of each is its release tag's (<package name>-v<version>),
+// src/changelog/release-notes.generated.ts, newest first. The Markdown becomes the game's text (see
+// lib/game-markdown.ts). The date of each is its release tag's (<package name>-v<version>),
 // today's for a version not tagged yet.
 //
 //   node ../../scripts/generate-release-notes.ts      (from the addon's folder, as its build does)
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { convertLines } from "./lib/game-markdown.ts";
 import { getAddonDir, readAddonPackageJson } from "./lib/paths.ts";
-
-/** The gold of the game's own headings. */
-const HEADING_COLOR = "ffd100";
 
 const addonDir = getAddonDir();
 const notesDir = `${addonDir}/release-notes`;
@@ -40,26 +38,13 @@ function findReleaseDate(version: string): string {
     return new Date().toISOString().slice(0, 10);
 }
 
-/** One line of Markdown as the game shows it; undefined for the title line ("## Glowing Bars 2.4.1"). */
-function convertLine(line: string): string | undefined {
-    if (/^##\s/.test(line)) return undefined;
-    const plain = line.replaceAll("**", "").replaceAll("`", "").replaceAll("|", "||");
-    const heading = /^###\s+(.*)$/.exec(plain);
-    if (heading !== null) return `|cff${HEADING_COLOR}${heading[1]}|r`;
-    return plain.replace(/^-\s+/, "• ");
-}
-
 const notes = existsSync(notesDir)
     ? readdirSync(notesDir)
           .filter((file) => /^\d+\.\d+\.\d+\.md$/.test(file))
           .map((file) => {
               const version = file.replace(/\.md$/, "");
               const markdown = readFileSync(`${notesDir}/${file}`, "utf8");
-              const lines = markdown.split(/\r?\n/).map(convertLine);
-              const text = lines
-                  .filter((line): line is string => line !== undefined)
-                  .join("\n")
-                  .trim();
+              const text = convertLines(markdown.split(/\r?\n/));
               return { version, date: findReleaseDate(version), hasNew: /^###\s+New\s*$/m.test(markdown), text };
           })
           .sort((a, b) => compareVersions(a.version, b.version))

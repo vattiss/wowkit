@@ -14,6 +14,7 @@ import type { WhatsNewService } from "./whats-new.service";
 import type { ReminderControlsService } from "./reminder-controls.service";
 import type { WeaponSection } from "./weapon.section";
 import { buildWelcomeTab } from "./welcome-tab";
+import { FAQS } from "./faq.generated";
 import { BASIC_WINDOW_WIDTH, WINDOW_HEIGHT } from "./style-table.constants";
 
 /** How the messages come and go. */
@@ -211,6 +212,12 @@ export class RemindersPage implements OptionsPage {
         tab.addHeader(this.locale.getText("HDR_DISCORD"));
         tab.addText(() => this.locale.getText("HELP_DISCORD"));
         this.widgets.addLinkButton(tab, this.locale.getText("INFO_DISCORD"), DISCORD_URL);
+        tab.addHeader(this.locale.getText("HDR_FAQ"));
+        // English only, from faq.md
+        for (const faq of FAQS) {
+            tab.addText(() => faq.question, "GameFontNormal");
+            tab.addText(() => faq.answer, "GameFontHighlightSmall");
+        }
     }
 
     /** Whether the tab opens by itself after an update, and the notes of every version. */

@@ -31,6 +31,7 @@ export const TEXTS = {
     WELCOME_READ: "Please read this page through: it only takes a minute, and it decides how well your reminders work in a fight.",
     WELCOME_CLOSING: "That's all. Enjoy your glowing bars, and if something doesn't work, the Help tab says how to tell me.",
     TAB_HELP: "Help",
+    HDR_FAQ: "Common Questions",
     HDR_HELP: "Found A Bug?",
     HELP_TEXT:
         "The fastest way to get it fixed:\n1. On the Welcome tab, click Scan and copy the details it shows.\n2. Open an issue on GitHub and paste them in. This can speed up a fix a lot.",

@@ -205,6 +205,27 @@ describe("a reload in a fight", () => {
 });
 
 describe("the Help tab", () => {
+    it("answers the common questions, under the invite to the Discord server", () => {
+        const world = createPlayer();
+        world.openOptions();
+        const help = world.frames.find((frame) => frame.frameType === "Button" && frame.text === "Help")!;
+        help.scripts.OnClick!(help);
+        // The rows of a tab are made top to bottom: the earlier one stands above
+        const at = (words: string) => world.frames.findIndex((frame) => frame.fontStrings.some((text) => text.text?.includes(words)));
+        const discord = world.frames.findIndex((frame) => (frame as unknown as { optionLabel?: string }).optionLabel === "Discord invite");
+        const questions = [
+            "The Cooldown Manager changes after every login.",
+            "An ID from Wowhead doesn't work.",
+            "The Cooldown Manager's windows don't show.",
+            "A buff that falls off in a dungeon or raid isn't reminded.",
+        ];
+        expect(discord).toBeGreaterThan(-1);
+        for (const question of questions) {
+            expect(at(question)).toBeGreaterThan(discord);
+        }
+        expect(at("food buffs and elixirs")).toBeGreaterThan(at(questions[3]!));
+    });
+
     it("has the link to the issues", () => {
         const world = createPlayer();
         expect(world.frames.some((frame) => (frame as unknown as { optionLabel?: string }).optionLabel === "Report an issue")).toBe(true);
