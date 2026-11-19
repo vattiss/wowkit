@@ -111,6 +111,8 @@ export class FedBuffsService {
     /** Which of these foods and drinks are not up. Spells of one name are one: the player eats either. */
     findMissing(spellIds: number[]): number[] {
         if (spellIds.length === 0) return spellIds;
+        // Kept secret by the client (a dungeon): a Well Fed reads absent, so no food is asked for
+        if (this.buffState.isAuraSecret(Consumable.WellFed)) return [];
         const auras = this.buffState.findAuras(Consumable.WellFed);
         if (auras === undefined) return this.buffState.hasAura(Consumable.WellFed) ? [] : spellIds;
         const keyByAura = this.listLearned();

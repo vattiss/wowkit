@@ -158,16 +158,18 @@ export function installAuras(state: ClientState): void {
         };
     }
 
-    /** What the game lets the addon see of the player's auras: nothing while they are hidden. */
+    /** What the game lets the addon see of the player's auras: nothing while they are hidden; the secret ones read absent while restricted. */
     function listPlayerAuras(): FakeAura[] {
-        return state.areAurasHidden ? [] : state.auras;
+        if (state.areAurasHidden) return [];
+        return state.areAurasRestricted ? state.auras.filter((aura) => state.secretAuraSpells[aura.spellId] !== true) : state.auras;
     }
 
     /** The buffs or the debuffs of a unit. */
     function listUnitAuras(unit: UnitToken, isHarmful: boolean): FakeAura[] {
         if (unit === "target") return (isHarmful ? state.target?.debuffs : state.target?.buffs) ?? [];
         if (unit === "player") return isHarmful ? state.playerDebuffs : listPlayerAuras();
-        return isHarmful ? [] : (findPartyMember(state, unit)?.auras ?? []);
+        const auras = isHarmful ? [] : (findPartyMember(state, unit)?.auras ?? []);
+        return state.areAurasRestricted ? auras.filter((aura) => state.secretAuraSpells[aura.spellId] !== true) : auras;
     }
 
     /** The auras of a unit by filter: buffs ("HELPFUL"), debuffs ("HARMFUL"), the player's own debuffs ("HARMFUL|PLAYER"). */
@@ -176,6 +178,11 @@ export function installAuras(state: ClientState): void {
         const auras = listUnitAuras(unit, has("HARMFUL"));
         return has("PLAYER") ? auras.filter((aura) => aura.sourceUnit === "player") : auras;
     }
+
+    defineNamespace<typeof C_Secrets>("C_Secrets", {
+        ShouldAurasBeSecret: () => state.areAurasRestricted,
+        ShouldSpellAuraBeSecret: (spellId) => state.secretAuraSpells[spellId as number] === true,
+    });
 
     defineNamespace<typeof C_UnitAuras>("C_UnitAuras", {
         GetAuraDataByIndex: (unit, index, filter) => {
