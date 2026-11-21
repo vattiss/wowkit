@@ -144,9 +144,6 @@ export interface ClientState {
     reloads: number;
     /** In combat the game hides the auras: the list comes back empty. */
     areAurasHidden: boolean;
-    /** In a dungeon the client keeps some spells' auras secret (C_Secrets): those of `secretAuraSpells` then read absent. */
-    areAurasRestricted: boolean;
-    secretAuraSpells: { [spellId: number]: true | undefined };
     /** In combat the game hides the spell cooldowns: no answer. */
     areCooldownsHidden: boolean;
     /** The player is dead or a ghost. */
@@ -280,8 +277,6 @@ export function createClientState(): ClientState {
         editModeSaves: 0,
         reloads: 0,
         areAurasHidden: false,
-        areAurasRestricted: false,
-        secretAuraSpells: {},
         areCooldownsHidden: false,
         isPlayerDead: false,
         areUnitsSecret: false,

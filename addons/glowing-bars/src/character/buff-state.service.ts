@@ -95,18 +95,11 @@ export class BuffStateService {
             this.memory.remember(spellId, undefined, read.remain, false);
             return lead === 0 || !hasKnownExpiry(read.remain) || read.remain > lead;
         }
-        // Kept secret by the client (a dungeon): its aura reads absent, so nothing tells it gone, and it is not asked for
-        if (this.auras.isAuraSecret(spellId)) return true;
         // The client hides auras in combat (none at all, or some whose name and ID are secret): a buff we saw or cast is
         // trusted until it runs out. A list it shows in full is believed, in combat too: a buff the player cancelled is gone.
         if (read.isUnreadable) return this.isHiddenBuffUp(spellId, lead);
         this.memory.release(spellId, read.categories);
         return false;
-    }
-
-    /** Does the client keep this spell's aura secret now (a dungeon)? It then reads absent: nothing tells it gone. */
-    isAuraSecret(spellId: number): boolean {
-        return this.auras.isAuraSecret(spellId);
     }
 
     /** The auras of the buff's name on the player (their IDs may differ); undefined while the client hides auras. */
@@ -151,8 +144,6 @@ export class BuffStateService {
         const sameKeys = [spellId, ...sameIds].map((id) => this.getBuffKey(id));
         const category = this.knowledge.findCategory(this.getBuffName(spellId), spellId);
         const isUp = scan.auras.some((aura) => this.isPerCasterCounted(aura, sameKeys, category, lead));
-        // Kept secret by the client (a dungeon): it reads absent, so nothing tells it gone, and it is not asked for
-        if (!isUp && this.isAnySecret(spellId, sameIds)) return true;
         this.perCasterVerdicts.set(spellId, isUp);
         return isUp;
     }
@@ -224,13 +215,7 @@ export class BuffStateService {
             if (verdict === "has") return "has";
             if (verdict === "hidden") isUnreadable = true;
         }
-        // Kept secret by the client (a dungeon): reading absent tells nothing
-        return isUnreadable || this.isAnySecret(spellId, sameIds) ? "unknown" : "missing";
-    }
-
-    /** Is the aura of the buff, or of one of its other spells (a group version), kept secret now? */
-    private isAnySecret(spellId: number, sameIds: number[]): boolean {
-        return this.auras.isAuraSecret(spellId) || sameIds.some((id) => this.auras.isAuraSecret(id));
+        return isUnreadable ? "unknown" : "missing";
     }
 
     /**

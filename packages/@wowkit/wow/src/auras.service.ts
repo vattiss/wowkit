@@ -56,8 +56,6 @@ const SCAN_REUSE = 0.2;
 export class AurasService {
     /** Scans per unit and filter. */
     private readonly scans = new LuaMap<string, { at: number; scan: AuraScan }>();
-    /** When the auras were last found restricted (see areAurasRestricted). */
-    private restrictedAt: number | undefined;
 
     constructor(private readonly spells: SpellsService) {}
 
@@ -70,31 +68,6 @@ export class AurasService {
     wipeAuraScan(unit: string | undefined): void {
         if (unit === undefined) return this.wipeAuraScans();
         for (const filter of ["HELPFUL", "HARMFUL", "HARMFUL|PLAYER"]) this.scans.delete(`${unit}\u0000${filter}`);
-    }
-
-    /**
-     * Does the client keep this spell's aura secret now: auras restricted (a dungeon) and the spell's among the secret ones?
-     * Its aura then reads absent, so "not found" proves nothing. A client that cannot say so is taken to keep it secret; one
-     * without the call has no secret auras.
-     */
-    isAuraSecret(spellId: number): boolean {
-        if (!this.areAurasRestricted()) return false;
-        if (C_Secrets?.ShouldSpellAuraBeSecret === undefined) return false;
-        const [didSucceed, isSecret] = tryCall(C_Secrets.ShouldSpellAuraBeSecret, this.spells.resolve(spellId) ?? spellId);
-        return !didSucceed || !isReadable(isSecret) || isSecret !== false;
-    }
-
-    /** Are the auras restricted now: the client says so, or reading the player's first buff fails? Kept for the moment it was asked at. */
-    private areAurasRestricted(): boolean {
-        const now = GetTime();
-        if (this.restrictedAt === now) return true;
-        const [didSay, isRestricted] = tryCall(() => C_Secrets?.ShouldAurasBeSecret?.() === true);
-        const [didRead] = tryCall(C_UnitAuras.GetAuraDataByIndex, "player", 1, "HELPFUL");
-        if ((didSay && isRestricted === true) || !didRead) {
-            this.restrictedAt = now;
-            return true;
-        }
-        return false;
     }
 
     /**
