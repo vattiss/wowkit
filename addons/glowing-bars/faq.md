@@ -13,7 +13,3 @@ Forever's IDs can differ. Turn on Show spell and item IDs in tooltips on the Gen
 ### The Cooldown Manager's windows don't show.
 
 On the Cooldown Manager tab, set the window to Show (e.g. Essential Cooldowns Icons), or press Repair Hidden Windows.
-
-### A buff that falls off in a dungeon or raid isn't reminded.
-
-There the game hides some buffs from addons, like food buffs and elixirs. Your class buffs in the Cooldown Manager's Tracked Buffs are still reminded.

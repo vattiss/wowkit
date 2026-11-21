@@ -217,13 +217,12 @@ describe("the Help tab", () => {
             "The Cooldown Manager changes after every login.",
             "An ID from Wowhead doesn't work.",
             "The Cooldown Manager's windows don't show.",
-            "A buff that falls off in a dungeon or raid isn't reminded.",
         ];
         expect(discord).toBeGreaterThan(-1);
         for (const question of questions) {
             expect(at(question)).toBeGreaterThan(discord);
         }
-        expect(at("food buffs and elixirs")).toBeGreaterThan(at(questions[3]!));
+        expect(at("e.g. Essential Cooldowns Icons")).toBeGreaterThan(at(questions[2]!));
     });
 
     it("has the link to the issues", () => {
