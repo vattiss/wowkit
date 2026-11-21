@@ -95,9 +95,8 @@ export class BuffStateService {
             this.memory.remember(spellId, undefined, read.remain, false);
             return lead === 0 || !hasKnownExpiry(read.remain) || read.remain > lead;
         }
-        // Kept secret by the client (a dungeon): its aura reads absent, so only the Cooldown Manager's icon can tell it gone
-        // (one of the player's own); without one it is not asked for
-        if (this.auras.isAuraSecret(spellId)) return this.isSecretBuffUp(spellId);
+        // Kept secret by the client (a dungeon): its aura reads absent, so nothing tells it gone, and it is not asked for
+        if (this.auras.isAuraSecret(spellId)) return true;
         // The client hides auras in combat (none at all, or some whose name and ID are secret): a buff we saw or cast is
         // trusted until it runs out. A list it shows in full is believed, in combat too: a buff the player cancelled is gone.
         if (read.isUnreadable) return this.isHiddenBuffUp(spellId, lead);
@@ -277,11 +276,6 @@ export class BuffStateService {
         if (isIconUp === false && !this.fromOthers.has(this.getBuffKey(spellId))) return false;
         if (isIconUp === true && !this.memory.isRemembered(spellId)) return true;
         return this.memory.isRemembered(spellId, lead);
-    }
-
-    /** Is a buff the client keeps secret up? Only an icon saying it is out tells it gone, and not of one someone else cast. */
-    private isSecretBuffUp(spellId: number): boolean {
-        return this.readBuffIcons(spellId) !== false || this.fromOthers.has(this.getBuffKey(spellId));
     }
 
     /**
