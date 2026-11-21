@@ -1,7 +1,7 @@
 // Written by scripts/generate-release-notes.ts from release-notes/*.md, at each build: not to be edited by hand.
 
 /** The version of the addon this build is. */
-export const ADDON_VERSION = "4.3.0";
+export const ADDON_VERSION = "4.3.1";
 
 export interface ReleaseNote {
     version: string;
@@ -15,6 +15,7 @@ export interface ReleaseNote {
 
 /** Every release, the newest first. */
 export const RELEASE_NOTES: ReleaseNote[] = [
+    { version: "4.3.1", date: "2026-11-21", hasNew: false, text: "|cffffd100Fixed|r\n\n• In a fight, a buff that falls off or runs out (Lightning Shield, a totem's buff, any of them) glows again right away, not only once the fight ends.\n\n|cffffd100Changed|r\n\n• The 4.3.0 change for buffs in a dungeon or raid is taken back while it gets a better fix: a buff the game hides from addons there (food buffs, elixirs, an Arcane Censer's) may glow while it is up again, as before 4.3.0." },
     { version: "4.3.0", date: "2026-11-19", hasNew: true, text: "|cffffd100New|r\n\n• Common Questions on the Help tab of the settings (/gb): what to do when the Cooldown Manager changes after every login, an ID from Wowhead doesn't work, the Cooldown Manager's windows don't show, or a buff isn't reminded in a dungeon.\n\n|cffffd100Fixed|r\n\n• In a dungeon or raid, a buff the game hides from addons (food buffs, elixirs, an Arcane Censer's) no longer glows while it is up. Your class buffs in the Cooldown Manager's Tracked Buffs are still reminded once they are gone." },
     { version: "4.2.0", date: "2026-11-18", hasNew: true, text: "|cffffd100New|r\n\n• Before: set how long before a buff, weapon buff or seal runs out it starts glowing, in the table's Below column on the Buffs tab (/gb). Type it as 15s, 30m or 1h; leave it empty for once it is gone. Set it on the Defaults row for the whole type, or on a row for one spell. The usual times stay the defaults: buffs once they are gone, Battle Shout 3 seconds before, weapon buffs 30 seconds, seals 1.5 seconds.\n\n|cffffd100Changed|r\n\n• A stone or oil you added as a weapon buff glows 30 seconds before it runs out too, like your class's weapon buffs (change it with its Before).\n\n|cffffd100Fixed|r\n\n• A spell added as a low reagent whose tooltip names the reagent on a new line (a mage's teleports and their Rune of Teleportation) no longer glows with the reagent in your bags." },
     { version: "4.1.1", date: "2026-11-17", hasNew: false, text: "|cffffd100Fixed|r\n\n• A weapon now holds your class's weapon buff (a poison, a shaman's imbue, a Firestone or Spellstone) and a stone or oil at once, and Glowing Bars keeps them apart: an oil glows next to your Firestone, a stone next to your poison, each until it is on.\n• A rogue's macro with a poison on one mouse button and a stone on the other glows for whichever is missing, each by its own row's look and When.\n• A weapon buff in its last seconds is asked for again; its time left was misread.\n• Proc rules (beta): a spell whose rules all have a group shows only its group rows on the Procs tab, and its own switch there no longer counts. The Proc rules tab's switch column is called Enabled, as in the other tables." },
