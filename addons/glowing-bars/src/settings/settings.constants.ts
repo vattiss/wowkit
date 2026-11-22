@@ -63,10 +63,13 @@ function createTotemSettings(): Pick<AddonSettings, "isTotemGoneEnabled" | "last
 
 /**
  * What the addon learns as the player plays (new tables each time): the buff of a group cast last, what each food gives, how
- * long each buff lasts, the utility cooldowns moved to their type.
+ * long each buff lasts, the utility cooldowns moved to their type, the buff memory kept through a /reload.
  */
-function createLearnedSettings(): Pick<AddonSettings, "lastBuffs" | "fedBuffs" | "fedItems" | "buffDurations" | "movedUtilityCooldowns"> {
-    return { lastBuffs: {}, fedBuffs: {}, fedItems: {}, buffDurations: {}, movedUtilityCooldowns: {} };
+function createLearnedSettings(): Pick<
+    AddonSettings,
+    "lastBuffs" | "fedBuffs" | "fedItems" | "buffDurations" | "movedUtilityCooldowns" | "buffMemory"
+> {
+    return { lastBuffs: {}, fedBuffs: {}, fedItems: {}, buffDurations: {}, movedUtilityCooldowns: {}, buffMemory: undefined };
 }
 
 /** The proc rules: none of the player's, none of the built-in ones switched off (new tables each time). */

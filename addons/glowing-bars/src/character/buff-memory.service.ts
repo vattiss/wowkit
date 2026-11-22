@@ -4,6 +4,7 @@
 
 import { type AuraEntry, type ClockService, type SpellsService, hasKnownExpiry, buildNameKey } from "@wowkit/wow";
 import type { BuffKnowledgeService } from "../knowledge/buff-knowledge.service";
+import type { BuffMemorySnapshot } from "./buff-memory.snapshot";
 
 /** A shapeshift form (Cat Form, Travel Form...): no end, only changes with a shapeshift. */
 const FORM_SECONDS = 1800;
@@ -155,6 +156,40 @@ export class BuffMemoryService {
             else this.recorded.delete(key);
         }
         for (const [key] of this.heldCategories) this.heldCategories.delete(key);
+    }
+
+    /** What the memory holds, as plain tables, for the saved settings (a /reload). */
+    buildSnapshot(): BuffMemorySnapshot {
+        const convertToObject = <T>(map: LuaMap<string, T>): { [key: string]: T } => {
+            const result: { [key: string]: T } = {};
+            for (const [key, value] of map) result[key] = value;
+            return result;
+        };
+        const convertToList = (set: LuaSet<string>): string[] => {
+            const result: string[] = [];
+            for (const key of set) result.push(key);
+            return result;
+        };
+        return {
+            held: convertToObject(this.heldNames),
+            categories: convertToObject(this.heldCategories),
+            castAt: convertToObject(this.castAt),
+            names: convertToObject(this.names),
+            guessed: convertToList(this.guessed),
+            unsure: convertToList(this.unsure),
+            recorded: convertToList(this.recorded),
+        };
+    }
+
+    /** Takes back what a /reload saved (see buildSnapshot), on top of an empty memory. */
+    restoreSnapshot(snapshot: BuffMemorySnapshot): void {
+        for (const [key, value] of pairs(snapshot.held)) this.heldNames.set(key as string, value);
+        for (const [key, value] of pairs(snapshot.categories)) this.heldCategories.set(key as string, value);
+        for (const [key, value] of pairs(snapshot.castAt)) this.castAt.set(key as string, value);
+        for (const [key, value] of pairs(snapshot.names)) this.names.set(key as string, value);
+        for (const key of snapshot.guessed) this.guessed.add(key);
+        for (const key of snapshot.unsure) this.unsure.add(key);
+        for (const key of snapshot.recorded) this.recorded.add(key);
     }
 
     /** The buff is known of now, under its name; `isGuessed`: cast with no known length, so its end is only guessed. */

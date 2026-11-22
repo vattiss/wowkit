@@ -13,6 +13,7 @@ import {
     learnSpell,
     playAs,
     PRIEST,
+    reloadWorld,
     WARRIOR,
     type CharacterClass,
     type Random,
@@ -137,7 +138,7 @@ function playPlayer(play: Play): void {
     }
 }
 
-/** A moment the client may start or stop hiding at, this second: a fight starting or ending, or a zone. */
+/** A moment the client may start or stop hiding at, this second: a fight starting or ending, a zone, or a /reload. */
 function playMoment(play: Play): boolean {
     const { world, random } = play;
     if (random.isChance(0.05)) {
@@ -146,6 +147,14 @@ function playMoment(play: Play): boolean {
         world.state.areAurasHidden = isInCombat && random.isChance(0.5);
         world.fire(isInCombat ? "PLAYER_REGEN_DISABLED" : "PLAYER_REGEN_ENABLED");
         note(play, isInCombat ? `fight${world.state.areAurasHidden ? " (list empty)" : ""}` : "fight over");
+        return true;
+    }
+    if (random.isChance(0.01)) {
+        // A /reload: the addon starts again with what it saved, the game as it was
+        play.world = reloadWorld(world);
+        // Started again, the addon takes a tick or two to light what is due, as at a login
+        play.shownGone = 0;
+        note(play, "reload");
         return true;
     }
     if (!random.isChance(0.02)) return false;

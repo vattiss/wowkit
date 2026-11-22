@@ -1,6 +1,7 @@
 import type { CustomSoundFolder, SettingsService, SoundKey } from "@wowkit/ui";
 import type { ProcRule } from "../glows/proc-rules.interface";
 import type { GlowAnimation, Rgb } from "@wowkit/wow";
+import type { SavedBuffMemory } from "../character/buff-memory.snapshot";
 
 /** The types of reminder. Each has a look (color, glow %, message, sound) the player can change for the type and for a spell. */
 export type ReminderType =
@@ -192,6 +193,8 @@ export interface AddonSettings {
     belowLimits: { [entry: string]: number | undefined };
     /** How long each buff lasts, as learned from its aura (by its name key): one cast where it is kept secret is followed to its end. */
     buffDurations: { [buffKey: string]: number | undefined };
+    /** The buff memory as it was at the last logout, taken back after a /reload (BuffMemorySaveService). */
+    buffMemory: SavedBuffMemory | undefined;
     /** Spells the game says are usable now (Overpower, Revenge, Execute...). */
     isProcEnabled: boolean;
     /** The procs go by the proc rules (beta), a new engine, instead of the built-in one. */

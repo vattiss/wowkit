@@ -92,7 +92,11 @@ function readRunSettings(): Record<string, unknown> {
 /** The frames of the last world: their names are globals, which the next world takes away (a frame only it made stays gone). */
 let lastFrames: FakeFrame[] = [];
 
-export function createWorld(setup: (state: ClientState) => void, savedSettings?: Record<string, unknown>): World {
+export function createWorld(
+    setup: (state: ClientState) => void,
+    savedSettings?: Record<string, unknown>,
+    options: { startAt?: number; isReload?: boolean } = {},
+): World {
     for (const frame of lastFrames) if (frame.name !== undefined) clearGlobal(frame.name);
     clearGlobal(config.savedVariables);
     if (config.accountVariables !== "") clearGlobal(config.accountVariables);
@@ -105,7 +109,7 @@ export function createWorld(setup: (state: ClientState) => void, savedSettings?:
     setup(state);
     // What the game loaded from the account's file: an account that played before
     if (state.accountSaved !== undefined && config.accountVariables !== "") defineValues({ [config.accountVariables]: state.accountSaved });
-    const clock = createClock();
+    const clock = createClock(options.startAt);
     const frames = createFrameRegistry();
     lastFrames = frames.all;
     const chat: string[] = [];
@@ -139,7 +143,7 @@ export function createWorld(setup: (state: ClientState) => void, savedSettings?:
     loadAddon();
     frames.fire("ADDON_LOADED", config.addonName, false);
     frames.fire("PLAYER_LOGIN");
-    frames.fire("PLAYER_ENTERING_WORLD", true, false);
+    frames.fire("PLAYER_ENTERING_WORLD", options.isReload !== true, options.isReload === true);
     clock.advance(1);
     // A bar addon that makes its buttons after the addon's first map of the bars
     installLateAddonButtons(state, frames);
@@ -207,4 +211,16 @@ export function createWorld(setup: (state: ClientState) => void, savedSettings?:
             config.accountVariables !== "" ? (readGlobal(config.accountVariables) as Record<string, unknown> | undefined) : undefined,
         findFrame: (matches) => frames.all.find((frame) => matches(frame)),
     };
+}
+
+/**
+ * A /reload: the addon logs out and is loaded again, with what it saved and the game as it was. The game's clock goes on
+ * from where it was (GetTime counts on through a reload).
+ */
+export function reloadWorld(world: World): World {
+    world.fire("PLAYER_LOGOUT");
+    const saved = world.getSavedSettings() ?? {};
+    const old = world.state;
+    const now = GetTime();
+    return createWorld((state) => Object.assign(state, old), saved, { startAt: now, isReload: true });
 }

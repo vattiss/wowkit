@@ -93,5 +93,6 @@ import "./before.spec";
 import "./teleport-runes.spec";
 import "./secret-auras.spec";
 import "./secret-auras-reads.spec";
+import "./secret-auras-reload.spec";
 import "./secret-auras-fuzz.spec";
 import "./tick-garbage.spec";

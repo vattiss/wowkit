@@ -17,12 +17,7 @@ import {
 import { NoticeService, SavedVariablesService, ValueCurvesService } from "@wowkit/wow";
 import { AuraWatchService } from "./character/aura-watch.service";
 import { BlockedActionService } from "./character/blocked-action.service";
-import { BuffMemoryService } from "./character/buff-memory.service";
-import { BuffStateService } from "./character/buff-state.service";
-import { HiddenBuffsService } from "./character/hidden-buffs.service";
-import { BouncedBuffsService } from "./character/bounced-buffs.service";
 import { EquipmentService } from "./character/equipment.service";
-import { IdleService } from "./character/idle.service";
 import { DefensiveExecuteService } from "./glows/defensive-execute.service";
 import { LowHealthDefenseService } from "./glows/low-health-defense.service";
 import { RosterService } from "./character/roster.service";
@@ -31,7 +26,6 @@ import { AddedSpellsService } from "./glows/added-spells.service";
 import { GlowCuesService } from "./glows/glow-cues.service";
 import { AfkRainbowService } from "./glows/afk-rainbow.service";
 import { StanceProcsService } from "./glows/stance-procs.service";
-import { BuffKnowledgeService } from "./knowledge/buff-knowledge.service";
 import { TEXTS } from "./locale/texts.constants";
 import { BarsSection } from "./options/bars.section";
 import { CooldownManagerSection } from "./options/cooldown-manager.section";
@@ -46,6 +40,9 @@ import { StyleWindowService } from "./options/style-window.service";
 import { TableCommand } from "./options/table-command";
 import { makeHealthRules, makeProcRules, makeProcRulesTab } from "./addon-proc-rules";
 import { makeWeapons } from "./addon-weapons";
+import { makeBuffs, type Buffs } from "./addon-buffs";
+
+export type { Buffs } from "./addon-buffs";
 import { ScanReport } from "./options/scan-report";
 import { WelcomeService } from "./options/welcome.service";
 import { WhatsNewService } from "./options/whats-new.service";
@@ -53,7 +50,6 @@ import { RemindersPage } from "./options/reminders.page";
 import { WeaponSection } from "./options/weapon.section";
 import { ReagentsService } from "./reagents/reagents.service";
 import { BuffReminderService } from "./reminders/buff-reminder.service";
-import { ClassBuffsService } from "./reminders/class-buffs.service";
 import { AddedRemindersService } from "./reminders/added-reminders.service";
 import { FedBuffsService } from "./reminders/fed-buffs.service";
 import { BelowLimitsService } from "./reminders/below-limits.service";
@@ -102,22 +98,6 @@ function makeTexts(addon: Addon, game: Game) {
     return { settings, locale, messages, styles };
 }
 export type Texts = ReturnType<typeof makeTexts>;
-
-/** What the addon knows about the player's buffs. */
-function makeBuffs(addon: Addon, game: Game, texts: Texts) {
-    const idle = addon.register(new IdleService(game.player));
-    const classBuffs = addon.register(new ClassBuffsService(game.player, game.spells, texts.settings));
-    const knowledge = addon.register(new BuffKnowledgeService(classBuffs, game.spells));
-    const memory = addon.register(new BuffMemoryService(game.spells, game.clock, knowledge));
-    const hidden = addon.register(new HiddenBuffsService(game.auraSecrecy, texts.settings, texts.locale, texts.messages));
-    memory.useLearnedDurations((key) => hidden.findLearnedSeconds(key));
-    const state = addon.register(
-        new BuffStateService(game.auras, game.spells, game.player, memory, knowledge, game.cooldownViewer, hidden),
-    );
-    const bounced = addon.register(new BouncedBuffsService(game.auras, game.spells, game.player));
-    return { idle, classBuffs, state, bounced };
-}
-export type Buffs = ReturnType<typeof makeBuffs>;
 
 /** What the addon reminds about. */
 function makeReminders(addon: Addon, addonName: string, game: Game, texts: Texts, buffs: Buffs) {

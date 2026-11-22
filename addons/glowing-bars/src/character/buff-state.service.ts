@@ -231,6 +231,21 @@ export class BuffStateService {
         this.memory.forget(Warlock.SoulLink);
     }
 
+    /** The answers of the buffs each caster keeps one of (by spell ID), for the saved settings (a /reload). */
+    buildPerCasterVerdicts(): { [spellId: string]: boolean } {
+        const verdicts: { [spellId: string]: boolean } = {};
+        for (const [id, isUp] of this.perCasterVerdicts) verdicts[string.format("%d", id)] = isUp;
+        return verdicts;
+    }
+
+    /** Takes back the answers a /reload saved. */
+    restorePerCasterVerdicts(verdicts: { [spellId: string]: boolean }): void {
+        for (const [id, isUp] of pairs(verdicts)) {
+            const spellId = tonumber(id);
+            if (spellId !== undefined) this.perCasterVerdicts.set(spellId, isUp);
+        }
+    }
+
     /** The spells the player added to a category's type (seals of their own): they count for the category, and last as long. */
     useAddedCategoryMembers(categoryKey: string, spellIds: number[]): void {
         this.knowledge.useAddedMembers(categoryKey, spellIds);
