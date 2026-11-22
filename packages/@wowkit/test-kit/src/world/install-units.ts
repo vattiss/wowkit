@@ -3,14 +3,14 @@
 import { POWER, findPartyMember, type ClientState, type FakePartyMember } from "./client-state";
 import { defineGlobals } from "./define";
 import { judgeOptions } from "./macro-options";
+import { SECRET_VALUE } from "./secret-value";
+
+export { SECRET_VALUE };
 
 /** Health points behind a percent (the fake game keeps percents). */
 const MAX_HEALTH = 1000;
 /** Interact distances: 3 duel (10 yards), 2 trade (11 yards), 1 inspect (28 yards). */
 const INTERACT_YARDS: { [index: number]: number | undefined } = { 1: 28, 2: 11, 3: 10 };
-
-/** A secret value of the fake game: issecretvalue knows it (addon code may only compare it with nil). */
-export const SECRET_VALUE = { isSecret: true };
 
 export function installUnits(state: ClientState): void {
     /** party1..party4 (raid1..n in a raid) are the members of the test's party, the player is everyone else. */

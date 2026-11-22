@@ -1,6 +1,7 @@
 // What the fake game currently is: the character, its spells and action bars, the auras on it, the
 // party, the bags. A test fills in the parts it needs; the install-*.ts files answer the game's API
 // from this state, so changing it in the middle of a test changes what the addon sees.
+import { createAuraSecrecy, type AuraSecrecy } from "./aura-secrecy";
 
 export interface CharacterClass {
     name: string;
@@ -32,6 +33,8 @@ export interface FakeAura {
     name: string;
     spellId: number;
     expirationTime: number;
+    /** How long it lasts in all (0: unknown, as the game gives for one without an end). */
+    duration?: number;
     sourceUnit?: string;
     /** "Magic", "Curse", "Disease", "Poison". */
     dispelName?: string;
@@ -106,6 +109,8 @@ export interface ClientState {
     trackedBuffs: {
         spellId: number;
         isActive: boolean;
+        /** The icon answers IsActive with a secret value (the game hides it from addon code). */
+        isActiveSecret?: boolean;
         unit?: string;
         isInSpellsTab?: boolean;
         isOwnBuff?: boolean;
@@ -144,6 +149,8 @@ export interface ClientState {
     reloads: number;
     /** In combat the game hides the auras: the list comes back empty. */
     areAurasHidden: boolean;
+    /** How the client hides auras from addon code beyond that: in a dungeon, a raid, a fight (see aura-secrecy.ts). */
+    auraSecrecy: AuraSecrecy;
     /** In combat the game hides the spell cooldowns: no answer. */
     areCooldownsHidden: boolean;
     /** The player is dead or a ghost. */
@@ -277,6 +284,7 @@ export function createClientState(): ClientState {
         editModeSaves: 0,
         reloads: 0,
         areAurasHidden: false,
+        auraSecrecy: createAuraSecrecy(),
         areCooldownsHidden: false,
         isPlayerDead: false,
         areUnitsSecret: false,

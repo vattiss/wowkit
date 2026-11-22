@@ -2,6 +2,7 @@
 import { findPartyMember, type ClientState, type FakeAura } from "./client-state";
 import { defineGlobals, defineNamespace, defineValues } from "./define";
 import type { FakeFrame, FrameRegistry } from "./frames";
+import { hideAuraFields, installSecrets, isAuraHidden } from "./aura-secrecy";
 
 const MAIN_BAR_BUTTONS = 12;
 const TOTEM_BAR_BUTTONS = 4;
@@ -149,7 +150,7 @@ export function installAuras(state: ClientState): void {
             spellId: aura.spellId,
             icon: 0,
             applications: aura.stacks ?? 1,
-            duration: 0,
+            duration: aura.duration ?? 0,
             expirationTime: aura.expirationTime,
             isHelpful,
             sourceUnit: aura.sourceUnit as UnitToken | undefined,
@@ -177,18 +178,45 @@ export function installAuras(state: ClientState): void {
         return has("PLAYER") ? auras.filter((aura) => aura.sourceUnit === "player") : auras;
     }
 
+    const secrecy = state.auraSecrecy;
+    installSecrets(secrecy);
+
+    /**
+     * The aura at an index of the list, as GetAuraDataByIndex gives it: a hidden one left out, kept with secret fields, or
+     * the whole read fails. Only the one asked for is made, as each call of the real game makes one.
+     */
+    function findShownAura(unit: UnitToken, index: number, filter: string | undefined): AuraData | undefined {
+        const isHelpful = filter !== "HARMFUL" && filter !== "HARMFUL|PLAYER";
+        const auras = listAurasOf(unit, filter);
+        const isHidden = (aura: FakeAura) => isHelpful && isAuraHidden(secrecy, aura.spellId);
+        if (secrecy.inList === "error" && auras.some((aura) => isHidden(aura))) error("secret aura list");
+        let shown = 0;
+        for (const aura of auras) {
+            if (isHidden(aura) && secrecy.inList === "omit") continue;
+            shown += 1;
+            if (shown !== index) continue;
+            const data = toAuraData(aura, isHelpful);
+            return isHidden(aura) ? hideAuraFields(data) : data;
+        }
+        return undefined;
+    }
+
+    /** A helpful aura asked for directly, as the client answers while it may hide it. */
+    function answerDirect(aura: FakeAura | undefined): AuraData | undefined {
+        if (aura === undefined) return undefined;
+        if (!isAuraHidden(secrecy, aura.spellId)) return toAuraData(aura, true);
+        if (secrecy.direct === "error") error("secret aura");
+        return secrecy.direct === "secretFields" ? hideAuraFields(toAuraData(aura, true)) : undefined;
+    }
+
     defineNamespace<typeof C_UnitAuras>("C_UnitAuras", {
-        GetAuraDataByIndex: (unit, index, filter) => {
-            const aura = listAurasOf(unit, filter as string | undefined)[index - 1];
-            return aura ? toAuraData(aura, filter !== "HARMFUL" && filter !== "HARMFUL|PLAYER") : undefined;
-        },
-        GetPlayerAuraBySpellID: (spellId) => {
-            const aura = listPlayerAuras().find((candidate) => candidate.spellId === spellId);
-            return aura ? toAuraData(aura, true) : undefined;
-        },
+        GetAuraDataByIndex: (unit, index, filter) => findShownAura(unit, index, filter as string | undefined),
+        GetPlayerAuraBySpellID: (spellId) => answerDirect(listPlayerAuras().find((candidate) => candidate.spellId === spellId)),
         GetAuraDataBySpellName: (unit, spellName, filter) => {
-            const aura = listAurasOf(unit, (filter as string | undefined) ?? "HELPFUL").find((candidate) => candidate.name === spellName);
-            return aura ? toAuraData(aura, filter !== "HARMFUL" && filter !== "HARMFUL|PLAYER") : undefined;
+            const wanted = (filter as string | undefined) ?? "HELPFUL";
+            const aura = listAurasOf(unit, wanted).find((candidate) => candidate.name === spellName);
+            if (wanted === "HARMFUL" || wanted === "HARMFUL|PLAYER") return aura ? toAuraData(aura, false) : undefined;
+            return answerDirect(aura);
         },
     });
 }

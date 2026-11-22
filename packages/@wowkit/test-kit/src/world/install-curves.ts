@@ -2,6 +2,7 @@
 import type { ClientState } from "./client-state";
 import { defineNamespace, defineValues, fake } from "./define";
 import { createInertObject } from "./frames";
+import { SECRET_VALUE } from "./secret-value";
 
 /** A linear curve through its points, like the client's LuaCurveObject (its methods are called with the object: method syntax). */
 function createCurve(): LuaCurveObject {
@@ -85,7 +86,8 @@ function installCooldownViewers(state: ClientState): void {
         icon.cooldownID = buff.spellId;
         icon.auraInstanceID = isInSpells && buff.isActive ? 1 : undefined;
         icon.auraDataUnit = buff.unit;
-        icon.IsActive = (_self: unknown) => (isInSpells ? true : buff.isActive);
+        icon.IsActive = (_self: unknown) =>
+            buff.isActiveSecret === true ? (SECRET_VALUE as unknown as boolean) : isInSpells ? true : buff.isActive;
         icon.isOnActualCooldown = buff.isOnCooldown;
         icon.IsVisible = (_self: unknown) => buff.isDrawn !== false;
         icon.GetEffectiveAlpha = (_self: unknown) => buff.effectiveAlpha ?? 1;

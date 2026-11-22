@@ -172,7 +172,13 @@ export function createWorld(setup: (state: ClientState) => void, savedSettings?:
         },
         fire: (event, ...args) => frames.fire(event, ...args),
         advance: (seconds) => clock.advance(seconds),
-        makeAura: (name, spellId, secondsLeft, sourceUnit) => ({ name, spellId, expirationTime: clock.getNow() + secondsLeft, sourceUnit }),
+        makeAura: (name, spellId, secondsLeft, sourceUnit) => ({
+            name,
+            spellId,
+            expirationTime: clock.getNow() + secondsLeft,
+            duration: secondsLeft,
+            sourceUnit,
+        }),
         glowsOn(button, bar = "Action") {
             return this.glowsOnFrame(`${bar}Button${button}`);
         },
