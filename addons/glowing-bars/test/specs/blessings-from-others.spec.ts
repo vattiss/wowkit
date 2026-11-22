@@ -151,3 +151,39 @@ describe("a paladin with another paladin's aura on them", () => {
         expect(createAuraPaladin(same).glowsOn(1)).toBe(0);
     });
 });
+
+describe("a paladin in a dungeon, where the game may keep the blessings secret, with another paladin's blessing on them", () => {
+    it("is still asked for their own in a fight: another's Kings is no blessing of theirs", () => {
+        const world = createPaladin([]);
+        world.state.auraSecrecy.hiddenSpells[BLESSING_OF_MIGHT.id] = true;
+        world.state.auras.push({
+            name: BLESSING_OF_KINGS.name,
+            spellId: BLESSING_OF_KINGS.id,
+            expirationTime: 99999,
+            sourceUnit: "party1",
+        });
+        world.state.auraSecrecy.isHiding = true;
+        world.state.auraSecrecy.saysRestricted = true;
+        world.state.auraSecrecy.saysSecretOthers = true;
+        world.fire("PLAYER_ENTERING_WORLD");
+        world.advance(1);
+        world.state.isInCombat = true;
+        world.fire("PLAYER_REGEN_DISABLED");
+        world.advance(1);
+        expect(world.glowsOn(1)).toBe(1);
+    });
+
+    it("is not asked for their own while it is up out of sight: another's Kings shows nothing of theirs", () => {
+        const world = createPaladin([
+            { name: BLESSING_OF_MIGHT.name, spellId: BLESSING_OF_MIGHT.id, expirationTime: 99999, sourceUnit: "player" },
+            { name: BLESSING_OF_KINGS.name, spellId: BLESSING_OF_KINGS.id, expirationTime: 99999, sourceUnit: "party1" },
+        ]);
+        world.state.auraSecrecy.hiddenSpells[BLESSING_OF_MIGHT.id] = true;
+        world.state.auraSecrecy.isHiding = true;
+        world.state.auraSecrecy.saysRestricted = true;
+        world.state.auraSecrecy.saysSecretOthers = true;
+        world.fire("PLAYER_ENTERING_WORLD");
+        world.advance(2);
+        expect(world.glowsOn(1)).toBe(0);
+    });
+});

@@ -22,6 +22,8 @@ import type { HiddenBuffsService } from "./hidden-buffs.service";
 export interface BuffRead extends AuraRead {
     /** The buff categories seen in the scan (category key -> aura). */
     categories?: LuaMap<string, AuraEntry>;
+    /** Found as another buff of its category (any aspect for an aspect), not as itself. */
+    isCategoryMember?: boolean;
 }
 
 /** A scan of the player's auras indexed for the lookups of a tick. */
@@ -101,7 +103,10 @@ export class BuffStateService {
         if (read.isFound) {
             this.noteBuffCaster(spellId, read.caster);
             if (read.spellId !== undefined) this.auraIds.set(this.getBuffKey(spellId), read.spellId);
-            this.hidden.noteSeen(spellId, this.getBuffKey(spellId), read.caster === "player" ? read.duration : undefined);
+            // Seen as itself, not as another of its category: only that tells the game shows it
+            if (read.isCategoryMember !== true) {
+                this.hidden.noteSeen(spellId, this.getBuffKey(spellId), read.caster === "player" ? read.duration : undefined);
+            }
             this.memory.remember(spellId, undefined, read.remain, false);
             return lead === 0 || !hasKnownExpiry(read.remain) || read.remain > lead;
         }
@@ -158,7 +163,7 @@ export class BuffStateService {
         const sameKeys = [spellId, ...sameIds].map((id) => this.getBuffKey(id));
         const category = this.knowledge.findCategory(this.getBuffName(spellId), spellId);
         const isUp = scan.auras.some((aura) => this.isPerCasterCounted(aura, sameKeys, category, lead));
-        if (!isUp && this.isPerCasterAbsenceDoubtful(spellId)) return this.hasAura(spellId, lead);
+        if (!isUp && this.isPerCasterAbsenceDoubtful(spellId)) return this.isOwnPerCasterUp(spellId, lead);
         this.perCasterVerdicts.set(spellId, isUp);
         return isUp;
     }
@@ -170,6 +175,17 @@ export class BuffStateService {
     private isPerCasterAbsenceDoubtful(spellId: number): boolean {
         const direct = this.auras.readPlayerAura(spellId);
         return direct !== undefined || this.hidden.isAbsenceDoubtful(spellId, this.getBuffKey(spellId));
+    }
+
+    /**
+     * The player's own buff of a kind each caster keeps one of, where the list may not show it: asked directly by its spell,
+     * else the answer of the last look the list could be believed at, or the player's cast since (see notePerCasterCast). Never
+     * another buff of its category: another paladin's Kings is no blessing of the player's.
+     */
+    private isOwnPerCasterUp(spellId: number, lead: number): boolean {
+        const direct = this.auras.readPlayerAura(spellId);
+        if (direct?.isFound === true) return lead === 0 || !hasKnownExpiry(direct.remain) || direct.remain > lead;
+        return this.perCasterVerdicts.get(spellId) ?? this.isHiddenBuffUp(spellId, lead);
     }
 
     /** One aura of the player, for hasPerCasterBuff: the same buff from anyone, or another of the player's own, still up. */
@@ -224,6 +240,8 @@ export class BuffStateService {
     noteDeath(): void {
         const wellFed = this.spells.getSpellLabel(Consumable.WellFed);
         this.memory.forgetOnDeath((name) => name === wellFed || this.knowledge.isLostOnDeath(undefined, name));
+        // A blessing or a paladin's aura goes with death too, the player's own and the others'
+        for (const [id] of this.perCasterVerdicts) this.perCasterVerdicts.set(id, false);
     }
 
     /** The buff was renewed without showing its new end (a food eaten where Well Fed may be kept secret). */
@@ -355,14 +373,15 @@ export class BuffStateService {
         const { names, ids, categories, hasHiddenAura } = this.indexAuras(scan);
         const isUnreadable = scan.isUnreadable || hasHiddenAura || (scan.auras.length === 0 && this.isEmptyListSuspicious());
         const wantCategory = this.knowledge.findCategory(wantName, spellId);
-        const aura =
+        const own =
             (wantName !== undefined ? names.get(buildNameKey(wantName)) : undefined) ??
             (resolved !== undefined ? ids.get(resolved) : undefined) ??
-            ids.get(spellId) ??
-            (wantCategory ? categories.get(wantCategory.key) : undefined);
+            ids.get(spellId);
+        const aura = own ?? (wantCategory ? categories.get(wantCategory.key) : undefined);
         if (aura) {
             const { remain, caster, duration } = aura;
-            return { isFound: true, remain, isUnreadable: false, caster, spellId: aura.spellId, duration, categories };
+            const isCategoryMember = own === undefined;
+            return { isFound: true, remain, isUnreadable: false, caster, spellId: aura.spellId, duration, categories, isCategoryMember };
         }
         return { isFound: false, remain: 0, isUnreadable, categories };
     }
