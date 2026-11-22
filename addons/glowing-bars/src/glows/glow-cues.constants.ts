@@ -58,14 +58,16 @@ export const RACIAL_COOLDOWNS: number[] = [
 /**
  * The cooldowns of between fights, a type of their own (Utility cooldown) that glows anywhere, once as each is ready. The
  * racials: Cultivation, the tauren's second herb; Cannibalize, the undead's regeneration on a corpse; Rapid Regeneration,
- * the troll's heal that any move or hit breaks; the Skyborne's Read Leyline, Skysight and Walk on Air (Wind Blessed is
- * passive). And the shaman's Astral Recall, and the Hearthstone. Only the ones the player has learned count, and the
- * Hearthstone, an item, on a bar. A profession's cooldown (a transmute) cannot go on a bar: it has nothing to glow on.
+ * the troll's heal that any move or hit breaks; the night elf's Shadowmeld; the Skyborne's Read Leyline, Skysight and Walk
+ * on Air (Wind Blessed is passive). And the shaman's Astral Recall, and the Hearthstone. Only the ones the player has
+ * learned count, and the Hearthstone, an item, on a bar. A profession's cooldown (a transmute) cannot go on a bar: it has
+ * nothing to glow on.
  */
 export const UTILITY_COOLDOWNS: number[] = [
     Racial.Cultivation,
     Racial.Cannibalize,
     Racial.RapidRegeneration,
+    Racial.Shadowmeld,
     Racial.ReadLeyline,
     Racial.Skysight,
     Racial.WalkOnAir,

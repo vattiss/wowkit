@@ -177,6 +177,8 @@ export interface AddonSettings {
     isUtilityCooldownEnabled: boolean;
     /** Have the looks the player set for them as ready cooldowns moved to their own type (UtilityLooksService)? */
     areUtilityLooksMoved: boolean;
+    /** The utility cooldowns whose ready cooldown looks and added spells were moved to their type, by spell ID (each once). */
+    movedUtilityCooldowns: { [spellId: string]: boolean | undefined };
     /** Have the switch, limit and look of each reagent's row moved to the rows of its spells (ReagentRowsService)? */
     areReagentRowsSplit: boolean;
     /** Have the look and switch of a defensive at low health moved to its own row (LowHealthRowsService)? */

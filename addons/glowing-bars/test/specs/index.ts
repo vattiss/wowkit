@@ -54,6 +54,7 @@ import "./totem-gone.spec";
 import "./totem-gone-brute.spec";
 import "./cultivation.spec";
 import "./skyborne.spec";
+import "./shadowmeld.spec";
 import "./utility-cooldowns.spec";
 import "./soul-link.spec";
 import "./welcome.spec";
