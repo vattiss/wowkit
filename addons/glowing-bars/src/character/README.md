@@ -10,6 +10,7 @@ something changed (`RefreshService`).
 | `buff-state.service.ts` | Is a buff up on the player or a party member: what the game shows (`AurasService` of `@wowkit/wow`), the icons of the Cooldown Manager while the game hides it, the buff categories, and the memory. |
 | `cooldown-manager.service.ts` | Blizzard's Cooldown Manager, as the player chose: turns it on and hides it, puts what the addon reminds about on display, and offers its icons as places to glow. |
 | `buff-memory.service.ts` | Remembers the buffs seen or cast while the client hides the auras in combat, for as long as they last. |
+| `hidden-buffs.service.ts` | Buffs the game may keep secret (a dungeon, a raid): whether a missing one proves anything, the lengths learned from the auras, and the chat note when one cannot be followed. |
 | `aura-watch.service.ts` | Auras and casts: forgets old aura reads, remembers casts. |
 | `roster.service.ts` | The party roster changed: read the party again. |
 | `blocked-action.service.ts` | The game blocked something this addon did. |

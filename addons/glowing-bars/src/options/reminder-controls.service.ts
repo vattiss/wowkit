@@ -19,6 +19,7 @@ type FeatureKey =
     | "showRaidBuffs"
     | "shouldNoteOwnOlderRankBuffs"
     | "shouldNoteOthersOlderRankBuffs"
+    | "shouldNoteHiddenBuffs"
     | "isOldRankEnabled"
     | "isLowReagentEnabled"
     | "isReadyCooldownEnabled"

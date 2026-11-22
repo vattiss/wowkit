@@ -15,6 +15,7 @@ quirks (secret values, hidden auras, protected calls, remapped IDs) into plain a
 | `spell-cast.service.ts` | The player's casts, as the `player.spell-cast` event (in combat the ID is found by name). |
 | `spell-details.service.ts`, `cooldowns.service.ts` | A spell's cast time, range, whether it helps or harms, its cost, whether it can be pressed now and the target is in its range; its cooldown and base cooldown. |
 | `auras.service.ts` | What auras the game shows: the player's aura of a spell (by ID, then by name), a unit's aura by name, or the list of a unit's buffs or debuffs (with their stacks and dispel type), with what the client hid. What it means is the addon's (Buff Reminder's `BuffStateService`). |
+| `aura-secrecy.service.ts` | Whether the game may keep a spell's aura from addon code now (`C_Secrets`: only a plain "no" counts as one), and a count of the moments it may start or stop hiding (a fight, a zone, a change in what it says). |
 | `action-bars.service.ts` | Which spell is on which button (and in which action slot), and the IDs of the spells on the bars. Maps the bars at the first login. |
 | `cooldown-viewer.service.ts` (+ `cooldown-layouts.ts`) | Blizzard's Cooldown Manager: turning it on, hiding it, what its icons say of a buff or a cooldown (up, gone, or no say), the icons of a spell, and moving entries in the saved layout. |
 | `bar-keys.service.ts` | The key a button's bar has in the settings: its number, or the stance bars, and the stance buttons. |

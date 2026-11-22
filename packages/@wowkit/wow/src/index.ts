@@ -1,6 +1,7 @@
 // The door of the wow package: every service that talks to the game, and the helpers around them.
 export * from "./action-bars.service";
 export * from "./auras.service";
+export * from "./aura-secrecy.service";
 export * from "./bags.service";
 export * from "./bar-fade.service";
 export * from "./bar-keys.service";

@@ -56,6 +56,8 @@ export class FedBuffsService {
     noteUse(cast: PlayerSpellCast): void {
         const spellId = cast.spellId;
         if (spellId === undefined) return;
+        // A new Well Fed may come of it, its end out of sight where the game keeps it secret
+        if (this.isFedSpell(spellId)) this.buffState.forgetBuffEnd(Consumable.WellFed);
         const isAdded = this.addedSpells.listAdded("missingBuff").some((id) => id === spellId || this.spells.resolve(id) === spellId);
         if (isAdded) this.used.push({ spellId, usedAt: this.clock.getCurrentTime() });
     }

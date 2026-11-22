@@ -11,6 +11,8 @@ const FORM_SECONDS = 1800;
 const CAST_SETTLE = 1;
 /** After a shapeshift, the form cast this recently is the new one. */
 const FORM_CAST_SETTLE = 1.5;
+/** A buff cast with no known length is held this long: a guess (see `guessed`). */
+const GUESS_SECONDS = 30;
 
 export class BuffMemoryService {
     /** Aura key -> the clock time when the memory runs out. */
@@ -19,12 +21,27 @@ export class BuffMemoryService {
     private readonly heldCategories = new LuaMap<string, number>();
     /** Aura or category key -> the clock time of the player's cast. */
     private readonly castAt = new LuaMap<string, number>();
+    /** The buffs (aura keys) cast with no known length: held for a guess, their end is not known. */
+    private readonly guessed = new LuaSet<string>();
+    /** The buffs (aura keys) renewed in a way that does not show their new end (a food eaten where Well Fed is kept secret). */
+    private readonly unsure = new LuaSet<string>();
+    /** The buffs (aura keys) anything is known of: seen, cast, seen gone, or lost with a death. */
+    private readonly recorded = new LuaSet<string>();
+    /** The name of each buff remembered (by aura key). */
+    private readonly names = new LuaMap<string, string>();
+    /** How long a buff lasts as learned from its aura (by aura key); none until told (see useLearnedDurations). */
+    private findLearned: (this: void, key: string) => number | undefined = () => undefined;
 
     constructor(
         private readonly spells: SpellsService,
         private readonly clock: ClockService,
         private readonly knowledge: BuffKnowledgeService,
     ) {}
+
+    /** Where to look up how long a buff lasts, as learned from its aura. */
+    useLearnedDurations(find: (this: void, key: string) => number | undefined): void {
+        this.findLearned = find;
+    }
 
     isEmpty(): boolean {
         return this.heldNames.isEmpty() && this.heldCategories.isEmpty();
@@ -39,13 +56,14 @@ export class BuffMemoryService {
         if (name === undefined || name === "") return;
         const key = buildNameKey(name);
         const category = this.knowledge.findCategory(name, spellId);
-        const seconds = category?.seconds ?? (this.knowledge.isFormKey(key) ? FORM_SECONDS : this.knowledge.getSeconds(spellId, name));
+        const known = this.findKnownSeconds(key, spellId, name, category?.seconds);
         const now = this.clock.getCurrentTime();
-        const expires = this.findExpiry(key, now, seconds, remain, isFromCast);
+        const expires = this.findExpiry(key, now, known ?? GUESS_SECONDS, remain, isFromCast);
         if (expires !== undefined) {
             this.heldNames.set(key, expires);
             if (category) this.heldCategories.set(category.key, expires);
         }
+        this.noteKnown(key, name, isFromCast && known === undefined);
         if (isFromCast) {
             this.castAt.set(key, now);
             if (category) this.castAt.set(category.key, now);
@@ -70,6 +88,9 @@ export class BuffMemoryService {
         const now = this.clock.getCurrentTime();
         if (now - (this.castAt.get(key) ?? -10) < CAST_SETTLE) return;
         this.heldNames.delete(key);
+        this.unsure.delete(key);
+        this.recorded.add(key);
+        this.guessed.delete(key);
         const category = this.knowledge.findCategory(name, spellId);
         if (category && !categoriesSeen?.has(category.key) && now - (this.castAt.get(category.key) ?? -10) >= CAST_SETTLE) {
             this.heldCategories.delete(category.key);
@@ -93,6 +114,73 @@ export class BuffMemoryService {
         for (const [key] of this.heldNames) {
             if (this.knowledge.isFormKey(key) && now - (this.castAt.get(key) ?? -10) >= FORM_CAST_SETTLE) this.heldNames.delete(key);
         }
+    }
+
+    /** Was the buff cast with no known length, so its end is only guessed? */
+    isLengthUnknown(spellId: number): boolean {
+        const key = this.findKey(spellId);
+        return key !== undefined && this.guessed.has(key);
+    }
+
+    /** Is the buff's end not known: cast with no known length, or renewed without showing its new end? */
+    isEndUnknown(spellId: number): boolean {
+        const key = this.findKey(spellId);
+        return key !== undefined && (this.guessed.has(key) || this.unsure.has(key));
+    }
+
+    /** The buff was renewed without showing its new end (a food eaten where Well Fed is kept secret). */
+    forgetEnd(spellId: number): void {
+        const key = this.findKey(spellId);
+        if (key === undefined) return;
+        this.unsure.add(key);
+        this.recorded.add(key);
+    }
+    /** Is anything known of the buff: seen, cast, seen gone, or lost with a death? */
+    hasRecord(spellId: number): boolean {
+        const key = this.findKey(spellId);
+        return key !== undefined && this.recorded.has(key);
+    }
+
+    /**
+     * The player died: a buff that falls off with death for sure is gone, and known to be; of any other (a flask stays)
+     * nothing is known any more.
+     */
+    forgetOnDeath(isLost: (name: string) => boolean): void {
+        // A buff stays held past its end, until seen gone: every buff known as up or of unknown end is here
+        for (const [key] of this.heldNames) {
+            this.heldNames.delete(key);
+            this.guessed.delete(key);
+            this.unsure.delete(key);
+            if (isLost(this.names.get(key) ?? key)) this.recorded.add(key);
+            else this.recorded.delete(key);
+        }
+        for (const [key] of this.heldCategories) this.heldCategories.delete(key);
+    }
+
+    /** The buff is known of now, under its name; `isGuessed`: cast with no known length, so its end is only guessed. */
+    private noteKnown(key: string, name: string, isGuessed: boolean): void {
+        this.names.set(key, name);
+        this.recorded.add(key);
+        this.unsure.delete(key);
+        if (isGuessed) this.guessed.add(key);
+        else this.guessed.delete(key);
+    }
+
+    private findKey(spellId: number): string | undefined {
+        const name = this.spells.getSpellLabel(spellId);
+        return name !== undefined && name !== "" ? buildNameKey(name) : undefined;
+    }
+
+    /** How long a buff lasts when known: its category's, a form's, as learned from its aura, or by the class buff list. */
+    private findKnownSeconds(
+        key: string,
+        spellId: number | undefined,
+        name: string,
+        categorySeconds: number | undefined,
+    ): number | undefined {
+        if (categorySeconds !== undefined) return categorySeconds;
+        if (this.knowledge.isFormKey(key)) return FORM_SECONDS;
+        return this.findLearned(key) ?? this.knowledge.findSeconds(spellId, name);
     }
 
     /**

@@ -18,6 +18,8 @@ export class BuffKnowledgeService {
     private readonly categoryById = new LuaMap<number, BuffCategory>();
     /** The aura keys of the shapeshift forms, in the client's language. */
     private formKeys: LuaSet<string> | undefined;
+    /** The spells the player added to a category (see useAddedMembers). */
+    private addedMembers: number[] = [];
 
     constructor(
         private readonly classBuffs: ClassBuffsService,
@@ -32,6 +34,21 @@ export class BuffKnowledgeService {
     forgetNames(): void {
         this.categoryByName = undefined;
         this.formKeys = undefined;
+    }
+
+    /**
+     * The spells the player added to a category's type (seals of their own), in place of those added before: they count for
+     * the category, and last as long.
+     */
+    useAddedMembers(categoryKey: string, spellIds: number[]): void {
+        const category = BUFF_CATEGORIES.find((candidate) => candidate.key === categoryKey);
+        if (category === undefined) return;
+        const kept = this.addedMembers.filter((id) => this.categoryById.get(id) !== category);
+        for (const id of this.addedMembers) if (!kept.includes(id)) this.categoryById.delete(id);
+        for (const id of spellIds) if (!category.members.includes(id)) this.categoryById.set(id, category);
+        this.addedMembers = [...kept, ...spellIds.filter((id) => !category.members.includes(id))];
+        // The names are worked out again when next asked
+        this.categoryByName = undefined;
     }
 
     /** The category a buff belongs to: a listed ID first, then its name in the client's language. */
@@ -53,9 +70,16 @@ export class BuffKnowledgeService {
         return this.formKeys.has(key);
     }
 
-    /** How long a seen or cast buff lasts (seconds), for buffs outside the categories. */
-    getSeconds(spellId: number | undefined, name: string): number {
-        return this.classBuffs.getBuffSeconds(spellId, name);
+    /** How long a buff outside the categories lasts (seconds), when the class buff list says; undefined when it is not known. */
+    findSeconds(spellId: number | undefined, name: string): number | undefined {
+        return this.classBuffs.findBuffSeconds(spellId, name);
+    }
+
+    /** Does the buff fall off with death for sure: a class buff, or of a category (not a tracking, which may stay on)? */
+    isLostOnDeath(spellId: number | undefined, name: string): boolean {
+        const category = this.findCategory(name, spellId);
+        if (category !== undefined) return category.key !== "missingTracking";
+        return this.classBuffs.isClassBuff(spellId, name);
     }
 
     private getCategoryNames(): LuaMap<string, BuffCategory> {
@@ -65,6 +89,10 @@ export class BuffKnowledgeService {
             for (const spellId of category.members) {
                 for (const name of this.listNames(spellId)) names.set(buildNameKey(name), category);
             }
+        }
+        for (const spellId of this.addedMembers) {
+            const category = this.categoryById.get(spellId);
+            if (category !== undefined) for (const name of this.listNames(spellId)) names.set(buildNameKey(name), category);
         }
         this.categoryByName = names;
         return names;

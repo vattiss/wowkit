@@ -127,6 +127,8 @@ export interface AddonSettings {
     shouldNoteOwnOlderRankBuffs: boolean;
     /** The same for a buff another player gave them. */
     shouldNoteOthersOlderRankBuffs: boolean;
+    /** A line in the chat when a buff is cast where the game keeps it secret, and how long it lasts is not known yet? */
+    shouldNoteHiddenBuffs: boolean;
     shouldStayQuietInTowns: boolean;
     /** Has this character seen the welcome window? */
     isWelcomeDone: boolean;
@@ -186,6 +188,8 @@ export interface AddonSettings {
     isLowStockEnabled: boolean;
     /** The limit of a row of its own ("stock:2512", "reagent:17028"), where it has one. */
     belowLimits: { [entry: string]: number | undefined };
+    /** How long each buff lasts, as learned from its aura (by its name key): one cast where it is kept secret is followed to its end. */
+    buffDurations: { [buffKey: string]: number | undefined };
     /** Spells the game says are usable now (Overpower, Revenge, Execute...). */
     isProcEnabled: boolean;
     /** The procs go by the proc rules (beta), a new engine, instead of the built-in one. */

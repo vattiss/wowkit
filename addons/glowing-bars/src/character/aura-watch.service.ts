@@ -22,6 +22,13 @@ export class AuraWatchService {
         this.refresh.requestTick();
     }
 
+    /** The player died: the buffs went with it, also those the game keeps secret (a dungeon). */
+    @OnGameEvent("PLAYER_DEAD")
+    noteDeath(): void {
+        this.auras.noteDeath();
+        this.refresh.requestTick();
+    }
+
     /** The player's pet came or went (a demon summoned or dismissed): Soul Link is asked for only with one, and cast again. */
     @OnGameEvent("UNIT_PET")
     notePetChange(unit: UnitToken): void {

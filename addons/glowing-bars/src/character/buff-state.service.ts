@@ -13,10 +13,11 @@ import {
     buildNameKey,
     hasKnownExpiry,
 } from "@wowkit/wow";
-import { Warlock, Warrior } from "@wowkit/wow-data";
+import { Consumable, Warlock, Warrior } from "@wowkit/wow-data";
 import type { BuffCategory } from "../knowledge/buff-categories.constants";
 import type { BuffKnowledgeService } from "../knowledge/buff-knowledge.service";
 import type { BuffMemoryService } from "./buff-memory.service";
+import type { HiddenBuffsService } from "./hidden-buffs.service";
 
 export interface BuffRead extends AuraRead {
     /** The buff categories seen in the scan (category key -> aura). */
@@ -67,6 +68,7 @@ export class BuffStateService {
         private readonly memory: BuffMemoryService,
         private readonly knowledge: BuffKnowledgeService,
         private readonly cooldownViewer: CooldownViewerService,
+        private readonly hidden: HiddenBuffsService,
     ) {}
 
     wipeAuraScans(): void {
@@ -77,10 +79,17 @@ export class BuffStateService {
         this.auras.wipeAuraScan(unit);
     }
 
-    /** What the game shows of a buff on the player, without the memory: asked directly, then looked for in the list. */
+    /**
+     * What the game shows of a buff on the player, without the memory: asked directly, then looked for in the list. A direct
+     * question the client refused to answer leaves "not found" unproven.
+     */
     findAura(spellId: number | undefined): BuffRead {
         if (spellId === undefined) return { isFound: false, remain: 0, isUnreadable: false };
-        return this.auras.readPlayerAura(spellId) ?? this.readFromScan(spellId);
+        const direct = this.auras.readPlayerAura(spellId);
+        if (direct?.isFound === true) return direct;
+        const scanned = this.readFromScan(spellId);
+        if (direct?.isUnreadable === true && !scanned.isFound) scanned.isUnreadable = true;
+        return scanned;
     }
 
     /**
@@ -92,12 +101,15 @@ export class BuffStateService {
         if (read.isFound) {
             this.noteBuffCaster(spellId, read.caster);
             if (read.spellId !== undefined) this.auraIds.set(this.getBuffKey(spellId), read.spellId);
+            this.hidden.noteSeen(spellId, this.getBuffKey(spellId), read.caster === "player" ? read.duration : undefined);
             this.memory.remember(spellId, undefined, read.remain, false);
             return lead === 0 || !hasKnownExpiry(read.remain) || read.remain > lead;
         }
-        // The client hides auras in combat (none at all, or some whose name and ID are secret): a buff we saw or cast is
-        // trusted until it runs out. A list it shows in full is believed, in combat too: a buff the player cancelled is gone.
-        if (read.isUnreadable) return this.isHiddenBuffUp(spellId, lead);
+        // The client hides auras in combat (none at all, or some whose name and ID are secret), or may keep this one secret
+        // (a dungeon) in a list that looks whole: a buff we saw or cast is trusted until it runs out. Otherwise a list it
+        // shows in full is believed, in combat too: a buff the player cancelled is gone.
+        if (read.isUnreadable || this.hidden.isAbsenceDoubtful(spellId, this.getBuffKey(spellId)))
+            return this.isHiddenBuffUp(spellId, lead);
         this.memory.release(spellId, read.categories);
         return false;
     }
@@ -108,7 +120,9 @@ export class BuffStateService {
         if (scan.isUnreadable || scan.auras.some((aura) => aura.isHidden || aura.name === undefined)) return undefined;
         if (scan.auras.length === 0 && this.isEmptyListSuspicious()) return undefined;
         const wantKey = buildNameKey(this.getBuffName(spellId) ?? "");
-        return scan.auras.filter((aura) => buildNameKey(aura.name!) === wantKey);
+        const found = scan.auras.filter((aura) => buildNameKey(aura.name!) === wantKey);
+        // None in a list that looks whole, where the client may keep the buff secret (a dungeon): that proves nothing
+        return found.length === 0 && this.hidden.isAbsenceDoubtful(spellId, wantKey) ? undefined : found;
     }
 
     /**
@@ -144,8 +158,18 @@ export class BuffStateService {
         const sameKeys = [spellId, ...sameIds].map((id) => this.getBuffKey(id));
         const category = this.knowledge.findCategory(this.getBuffName(spellId), spellId);
         const isUp = scan.auras.some((aura) => this.isPerCasterCounted(aura, sameKeys, category, lead));
+        if (!isUp && this.isPerCasterAbsenceDoubtful(spellId)) return this.hasAura(spellId, lead);
         this.perCasterVerdicts.set(spellId, isUp);
         return isUp;
+    }
+
+    /**
+     * Not in a list that looks whole, yet maybe up: the client answers a direct question about it with something (an aura
+     * whose fields are secret, or a refusal), or may keep it secret here. What was seen or cast then decides, as in a fight.
+     */
+    private isPerCasterAbsenceDoubtful(spellId: number): boolean {
+        const direct = this.auras.readPlayerAura(spellId);
+        return direct !== undefined || this.hidden.isAbsenceDoubtful(spellId, this.getBuffKey(spellId));
     }
 
     /** One aura of the player, for hasPerCasterBuff: the same buff from anyone, or another of the player's own, still up. */
@@ -191,6 +215,22 @@ export class BuffStateService {
         this.memory.forget(Warlock.SoulLink);
     }
 
+    /** The spells the player added to a category's type (seals of their own): they count for the category, and last as long. */
+    useAddedCategoryMembers(categoryKey: string, spellIds: number[]): void {
+        this.knowledge.useAddedMembers(categoryKey, spellIds);
+    }
+
+    /** The player died: the class buffs and Well Fed are gone for sure; of any other (a flask stays) nothing is known. */
+    noteDeath(): void {
+        const wellFed = this.spells.getSpellLabel(Consumable.WellFed);
+        this.memory.forgetOnDeath((name) => name === wellFed || this.knowledge.isLostOnDeath(undefined, name));
+    }
+
+    /** The buff was renewed without showing its new end (a food eaten where Well Fed may be kept secret). */
+    forgetBuffEnd(spellId: number): void {
+        this.memory.forgetEnd(spellId);
+    }
+
     /** A shapeshift happened. */
     noteFormChange(): void {
         this.memory.forgetForms();
@@ -215,7 +255,8 @@ export class BuffStateService {
             if (verdict === "has") return "has";
             if (verdict === "hidden") isUnreadable = true;
         }
-        return isUnreadable ? "unknown" : "missing";
+        // Where the game may keep the buff secret (a dungeon), its absence from a member's list proves nothing: their casts are not seen
+        return isUnreadable || this.hidden.isAuraSecret(spellId) ? "unknown" : "missing";
     }
 
     /**
@@ -260,7 +301,13 @@ export class BuffStateService {
         const isIconUp = this.readBuffIcons(spellId);
         if (isIconUp === false && !this.fromOthers.has(this.getBuffKey(spellId))) return false;
         if (isIconUp === true && !this.memory.isRemembered(spellId)) return true;
-        return this.memory.isRemembered(spellId, lead);
+        const isSecret = this.hidden.isAuraSecret(spellId);
+        if (isSecret && this.memory.isLengthUnknown(spellId))
+            this.hidden.noteUnfollowed(this.getBuffKey(spellId), this.getBuffName(spellId) ?? "?");
+        if (this.memory.isRemembered(spellId, lead)) return true;
+        // Its end not known (cast with no known length, renewed out of sight), or nothing known of one kept secret: not asked
+        // for, rather than while it may be up
+        return this.memory.isEndUnknown(spellId) || (isSecret && !this.memory.hasRecord(spellId));
     }
 
     /**
@@ -313,8 +360,10 @@ export class BuffStateService {
             (resolved !== undefined ? ids.get(resolved) : undefined) ??
             ids.get(spellId) ??
             (wantCategory ? categories.get(wantCategory.key) : undefined);
-        if (aura)
-            return { isFound: true, remain: aura.remain, isUnreadable: false, caster: aura.caster, spellId: aura.spellId, categories };
+        if (aura) {
+            const { remain, caster, duration } = aura;
+            return { isFound: true, remain, isUnreadable: false, caster, spellId: aura.spellId, duration, categories };
+        }
         return { isFound: false, remain: 0, isUnreadable, categories };
     }
 

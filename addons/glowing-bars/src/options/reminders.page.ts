@@ -156,6 +156,7 @@ export class RemindersPage implements OptionsPage {
         }
         this.reminderControls.addSwitch(tab, "shouldNoteOwnOlderRankBuffs", "OPT_NOTE_OWN_OLDER_RANK", "TIP_NOTE_OWN_OLDER_RANK");
         this.reminderControls.addSwitch(tab, "shouldNoteOthersOlderRankBuffs", "OPT_NOTE_OTHERS_OLDER_RANK", "TIP_NOTE_OTHERS_OLDER_RANK");
+        this.reminderControls.addSwitch(tab, "shouldNoteHiddenBuffs", "OPT_NOTE_HIDDEN_BUFFS", "TIP_NOTE_HIDDEN_BUFFS");
         this.weaponSection.addWeaponSection(tab);
     }
 

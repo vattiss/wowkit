@@ -3,6 +3,7 @@ import type { Addon } from "@wowkit/core";
 import {
     ActionBarsService,
     AurasService,
+    AuraSecrecyService,
     BagsService,
     BarFadeService,
     BarKeysService,
@@ -44,6 +45,7 @@ export function makeGame(addon: Addon, addonName: string) {
     const spellDetails = addon.register(new SpellDetailsService());
     const cooldowns = addon.register(new CooldownsService());
     const auras = addon.register(new AurasService(spells));
+    const auraSecrecy = addon.register(new AuraSecrecyService(spells));
     const cooldownViewer = addon.register(new CooldownViewerService(spells));
     const buttonRegistry = addon.register(new ButtonRegistryService());
     registerPublicApi(buttonRegistry);
@@ -68,6 +70,7 @@ export function makeGame(addon: Addon, addonName: string) {
         spellDetails,
         cooldowns,
         auras,
+        auraSecrecy,
         cooldownViewer,
         actionBars,
         barRefresh,

@@ -171,6 +171,38 @@ describe("a paladin who added a seal of Forever by its ID", () => {
     });
 });
 
+describe("a paladin who took a seal of Forever out of the table", () => {
+    const SEAL_OF_THE_DAWN: SpellDefinition = { id: 1310500, name: "Seal of the Dawn", rank: 1, icon: 135924, isHelpful: true };
+
+    it("no longer counts it as a seal: cast in a fight, Seal of Righteousness is still asked for", () => {
+        const world = createWorld(
+            (state) => {
+                playAs(state, PALADIN);
+                learnSpell(state, RIGHTEOUSNESS);
+                learnSpell(state, SEAL_OF_THE_DAWN);
+                state.bars[1] = RIGHTEOUSNESS.id;
+                state.bars[2] = SEAL_OF_THE_DAWN.id;
+            },
+            { addedSpells: [{ id: SEAL_OF_THE_DAWN.id, reminderType: "missingSeal" }] },
+        );
+        world.advance(1);
+        toggleTable();
+        const row = findLabel(world, "Seal of the Dawn")!.parent;
+        const buttons = world.frames.filter((frame) => frame.parent === row && frame.template === "UIPanelButtonTemplate");
+        const remove = buttons.find((button) => button.text === "X")!;
+        remove.scripts.OnClick!(remove);
+        expect(world.getSavedSettings()?.addedSpells).toEqual([]);
+        toggleTable();
+        world.state.isInCombat = true;
+        world.state.areAurasHidden = true;
+        world.fire("PLAYER_REGEN_DISABLED");
+        world.advance(1);
+        world.fire("UNIT_SPELLCAST_SUCCEEDED", "player", "cast-guid", SEAL_OF_THE_DAWN.id);
+        world.advance(1);
+        expect(world.glowsOn(1)).toBe(1);
+    });
+});
+
 describe("a paladin who uses Swift Judgement in a fight", () => {
     const SWIFT_JUDGEMENT: SpellDefinition = {
         id: 1310994,

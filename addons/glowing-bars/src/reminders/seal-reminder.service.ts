@@ -70,7 +70,12 @@ export class SealReminderService {
 
     /** The learned seals of the list, and the ones the player added (by their IDs). */
     private listAllSeals(): number[] {
-        this.allSeals ??= [...this.listSeals(), ...this.addedSpells.listAdded("missingSeal")];
+        if (this.allSeals === undefined) {
+            const added = this.addedSpells.listAdded("missingSeal");
+            // A seal of the player's counts for the others, and lasts as long (30 seconds), as a listed one does
+            this.buffState.useAddedCategoryMembers("missingSeal", added);
+            this.allSeals = [...this.listSeals(), ...added];
+        }
         return this.allSeals;
     }
 

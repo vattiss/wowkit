@@ -30,7 +30,12 @@ export const WINDOW_ICONS_SETTINGS = {
 const HIDDEN_WINDOWS = { trackedBuffsIcons: "hide", trackedBarsIcons: "hide", essentialIcons: "hide", utilityIcons: "hide" } as const;
 
 /** The lines the addon writes in the chat by itself: the greeting, and the notes of a buff of an older rank. */
-const CHAT_LINES = { shouldShowGreeting: true, shouldNoteOwnOlderRankBuffs: true, shouldNoteOthersOlderRankBuffs: true } as const;
+const CHAT_LINES = {
+    shouldShowGreeting: true,
+    shouldNoteOwnOlderRankBuffs: true,
+    shouldNoteOthersOlderRankBuffs: true,
+    shouldNoteHiddenBuffs: true,
+} as const;
 
 /** The tabs of the table of looks, which a saved tab has to be one of. */
 const TABLE_TAB_KEYS: TableTab[] = ["buffs", "cooldowns", "procRules", "procs", "consumables", "oldRanks", "sounds", "help"];
@@ -54,6 +59,11 @@ const COOLDOWN_SWITCHES = {
 /** The shaman's totems: whether a totem gone glows, and the last dropped in each slot (none yet). */
 function createTotemSettings(): Pick<AddonSettings, "isTotemGoneEnabled" | "lastTotems"> {
     return { isTotemGoneEnabled: true, lastTotems: {} };
+}
+
+/** What the addon learns as the player plays (new tables each time): the buff of a group cast last, what each food gives, how long each buff lasts. */
+function createLearnedSettings(): Pick<AddonSettings, "lastBuffs" | "fedBuffs" | "fedItems" | "buffDurations"> {
+    return { lastBuffs: {}, fedBuffs: {}, fedItems: {}, buffDurations: {} };
 }
 
 /** The proc rules: none of the player's, none of the built-in ones switched off (new tables each time). */
@@ -117,9 +127,7 @@ export function createDefaultSettings(): AddonSettings {
         enabledReagents: {},
         enabledRanks: {},
         enabledSpells: {},
-        lastBuffs: {},
-        fedBuffs: {},
-        fedItems: {},
+        ...createLearnedSettings(),
     };
 }
 

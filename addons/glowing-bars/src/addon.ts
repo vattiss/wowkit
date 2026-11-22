@@ -19,6 +19,7 @@ import { AuraWatchService } from "./character/aura-watch.service";
 import { BlockedActionService } from "./character/blocked-action.service";
 import { BuffMemoryService } from "./character/buff-memory.service";
 import { BuffStateService } from "./character/buff-state.service";
+import { HiddenBuffsService } from "./character/hidden-buffs.service";
 import { BouncedBuffsService } from "./character/bounced-buffs.service";
 import { EquipmentService } from "./character/equipment.service";
 import { IdleService } from "./character/idle.service";
@@ -108,7 +109,11 @@ function makeBuffs(addon: Addon, game: Game, texts: Texts) {
     const classBuffs = addon.register(new ClassBuffsService(game.player, game.spells, texts.settings));
     const knowledge = addon.register(new BuffKnowledgeService(classBuffs, game.spells));
     const memory = addon.register(new BuffMemoryService(game.spells, game.clock, knowledge));
-    const state = addon.register(new BuffStateService(game.auras, game.spells, game.player, memory, knowledge, game.cooldownViewer));
+    const hidden = addon.register(new HiddenBuffsService(game.auraSecrecy, texts.settings, texts.locale, texts.messages));
+    memory.useLearnedDurations((key) => hidden.findLearnedSeconds(key));
+    const state = addon.register(
+        new BuffStateService(game.auras, game.spells, game.player, memory, knowledge, game.cooldownViewer, hidden),
+    );
     const bounced = addon.register(new BouncedBuffsService(game.auras, game.spells, game.player));
     return { idle, classBuffs, state, bounced };
 }

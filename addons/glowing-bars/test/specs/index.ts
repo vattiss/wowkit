@@ -90,4 +90,7 @@ import "./proc-rule-own-rows.spec";
 import "./weapon-places.spec";
 import "./before.spec";
 import "./teleport-runes.spec";
+import "./secret-auras.spec";
+import "./secret-auras-reads.spec";
+import "./secret-auras-fuzz.spec";
 import "./tick-garbage.spec";

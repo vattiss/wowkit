@@ -27,17 +27,19 @@ export class ClassBuffsService {
         return buffs;
     }
 
-    /**
-     * How long a buff that was seen or cast counts as up while the client hides the auras: the `last`
-     * of its list entry (matched by ID or name), else 30 seconds.
-     */
-    getBuffSeconds(spellId: number | undefined, name: string): number {
+    /** How long a buff lasts, by the `last` of its list entry (matched by ID or name); undefined for a buff not listed with one. */
+    findBuffSeconds(spellId: number | undefined, name: string): number | undefined {
         for (const classBuff of this.getClassBuffs()) {
             if (classBuff.last !== undefined && (classBuff.id === spellId || this.spells.getSpellName(classBuff.id) === name)) {
                 return classBuff.last;
             }
         }
-        return 30;
+        return undefined;
+    }
+
+    /** Is this buff one of the player's class buffs (matched by ID or name)? */
+    isClassBuff(spellId: number | undefined, name: string): boolean {
+        return this.getClassBuffs().some((classBuff) => classBuff.id === spellId || this.spells.getSpellName(classBuff.id) === name);
     }
 
     isBuffEnabled(classBuff: ClassBuff): boolean {

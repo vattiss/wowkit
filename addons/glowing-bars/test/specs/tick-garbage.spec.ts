@@ -38,3 +38,23 @@ describe("the garbage of a tick", () => {
         expect(measureGarbagePerTick(world) < 6.3).toBe(true);
     });
 });
+
+describe("the garbage of a tick, with buffs up", () => {
+    /** Ten buffs the player added, all up: what is seen of each, each tick. */
+    const BUFFS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => ({ id: 1297800 + n, name: `Buff ${n}`, rank: 1, icon: 1, isHelpful: true }));
+
+    it("stays small for a priest with ten buffs up", () => {
+        const world = createWorld(
+            (state) => {
+                playAs(state, PRIEST);
+                BUFFS.forEach((buff, index) => {
+                    learnSpell(state, buff);
+                    state.bars[index + 1] = buff.id;
+                });
+            },
+            { addedSpells: BUFFS.map((buff) => ({ id: buff.id, reminderType: "missingBuff" as const })) },
+        );
+        for (const buff of BUFFS) world.state.auras.push(world.makeAura(buff.name, buff.id, 99999, "player"));
+        expect(measureGarbagePerTick(world) < 30).toBe(true);
+    });
+});
