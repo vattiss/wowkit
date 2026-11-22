@@ -176,22 +176,44 @@ describe("the length learned of a buff", () => {
     });
 });
 
-describe("a tracking where the game keeps it secret", () => {
+describe("a tracking, after dying", () => {
     const FIND_TREASURE: SpellDefinition = { id: 2481, name: "Find Treasure", rank: 1, icon: 135725, isHelpful: true };
 
-    it("is not asked for after dying: a tracking may stay on", () => {
+    /** A dwarf with Find Treasure on, on button 1; dead, and back with the tracking gone (it falls off with death). */
+    function createDeadAndBack(isInDungeon: boolean, isBackInFight: boolean): World {
         const world = createWorld((state) => {
             playAs(state, { name: "Paladin", token: "PALADIN", id: 2 });
             learnSpell(state, FIND_TREASURE);
             state.bars[1] = FIND_TREASURE.id;
             state.auraSecrecy.hiddenSpells[FIND_TREASURE.id] = true;
         });
-        const tracking = { name: FIND_TREASURE.name, spellId: FIND_TREASURE.id, expirationTime: 0 };
-        world.state.auras = [{ ...OTHER_AURA }, tracking];
+        world.state.auras = [{ ...OTHER_AURA }, { name: FIND_TREASURE.name, spellId: FIND_TREASURE.id, expirationTime: 0 }];
         world.advance(1);
-        enterDungeon(world);
+        if (isInDungeon) enterDungeon(world);
+        world.state.auras = [];
+        world.state.isPlayerDead = true;
         world.fire("PLAYER_DEAD");
+        world.advance(1);
+        world.state.isPlayerDead = false;
+        world.state.auras = [{ ...OTHER_AURA }];
+        if (isBackInFight) {
+            // Woken into a fight: the game hides the auras, and says they are secret, as in a fight in the open world it does
+            world.state.isInCombat = true;
+            world.state.areAurasHidden = true;
+            world.state.auraSecrecy.saysRestricted = true;
+            world.state.auraSecrecy.saysSecretOthers = true;
+            world.fire("PLAYER_REGEN_DISABLED");
+        }
+        world.fire("PLAYER_ALIVE");
         world.advance(2);
-        expect(world.glowsOn(1)).toBe(0);
+        return world;
+    }
+
+    it("is asked for when back in a fight in the open world, the auras hidden", () => {
+        expect(createDeadAndBack(false, true).glowsOn(1)).toBe(1);
+    });
+
+    it("is asked for in a dungeon, where the game keeps it secret", () => {
+        expect(createDeadAndBack(true, false).glowsOn(1)).toBe(1);
     });
 });

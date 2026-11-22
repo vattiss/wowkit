@@ -75,11 +75,9 @@ export class BuffKnowledgeService {
         return this.classBuffs.findBuffSeconds(spellId, name);
     }
 
-    /** Does the buff fall off with death for sure: a class buff, or of a category (not a tracking, which may stay on)? */
+    /** Does the buff fall off with death for sure: a class buff, or of a category (an aspect, an aura, a tracking...)? */
     isLostOnDeath(spellId: number | undefined, name: string): boolean {
-        const category = this.findCategory(name, spellId);
-        if (category !== undefined) return category.key !== "missingTracking";
-        return this.classBuffs.isClassBuff(spellId, name);
+        return this.findCategory(name, spellId) !== undefined || this.classBuffs.isClassBuff(spellId, name);
     }
 
     private getCategoryNames(): LuaMap<string, BuffCategory> {
