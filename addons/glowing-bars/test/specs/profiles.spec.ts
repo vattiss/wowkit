@@ -1,7 +1,8 @@
 // Profiles (issue #76): the settings are kept by name for the whole account, and each character uses one. A character
 // saved before profiles gets one of its own, made of what it had, so nothing changes for it; a new character starts on the
 // Default profile. What a character learns as it plays, and a few switches of its own, stay in its own saved data.
-import { createWorld, describe, expect, it, playAs, PRIEST, type World } from "@wowkit/test-kit";
+import { createWorld, describe, expect, it, learnSpell, playAs, PRIEST, type World } from "@wowkit/test-kit";
+import { findAddRowOf, setUpWarrior, toggleTable } from "./table.helpers";
 
 type Profiles = Record<string, Record<string, unknown> | undefined>;
 
@@ -109,5 +110,41 @@ describe("the account's data", () => {
         const account = world.getAccountSaved() as { profiles?: Profiles; lastVersion?: string };
         expect(account.profiles !== undefined).toBe(true);
         expect(account.lastVersion !== undefined).toBe(true);
+    });
+});
+
+describe("the spells a character added by ID", () => {
+    type Characters = Record<string, { addedSpells?: unknown[] } | undefined>;
+    const readCharacters = (world: World) => ((world.getAccountSaved() as { characters?: Characters }).characters ?? {}) as Characters;
+
+    it("move from the character's saved data into the account's, under its name, once", () => {
+        const added = [{ id: 2512, reminderType: "lowStock" }];
+        const world = createPriest({ addedSpells: added });
+        expect(readCharacters(world)["Me - Forever"]?.addedSpells).toEqual(added);
+        expect(readProfiles(world)["Me - Forever"]?.addedSpells).toBe(undefined);
+        expect(((_G as unknown as Record<string, Record<string, unknown>>).GlowingBarsCharDB ?? {}).addedSpells).toBe(undefined);
+        expect(world.getSavedSettings()?.addedSpells).toEqual(added);
+    });
+
+    it("are each character's own: another character's list is neither this one's nor changed by it", () => {
+        const theirs = [{ id: 2512, reminderType: "lowStock" }];
+        const world = createPriest({}, { characters: { "Alt - Forever": { addedSpells: theirs } } });
+        expect(world.getSavedSettings()?.addedSpells).toEqual([]);
+        expect(readCharacters(world)["Alt - Forever"]?.addedSpells).toEqual(theirs);
+    });
+
+    it("take a spell added in the table into the account's data, under this character", () => {
+        const shieldBash = { id: 72, name: "Shield Bash", rank: 1, icon: 132357, cooldownSeconds: 12, isHarmful: true };
+        const world = createWorld((state) => {
+            setUpWarrior(state);
+            learnSpell(state, shieldBash);
+        });
+        world.advance(1);
+        toggleTable();
+        const { box, add } = findAddRowOf(world);
+        box.text = "72";
+        add.scripts.OnClick!(add);
+        toggleTable();
+        expect(readCharacters(world)["Me - Forever"]?.addedSpells).toEqual([{ id: 72, reminderType: "readyCooldown" }]);
     });
 });

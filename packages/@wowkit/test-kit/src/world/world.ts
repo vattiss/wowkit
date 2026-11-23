@@ -239,13 +239,23 @@ export function reloadWorld(world: World): World {
 }
 
 /**
- * The character's saved settings, with those of the profile it uses (an addon that keeps its settings in profiles in the
- * account's data: `profiles[name]`, the character's `profileName`): the settings as one set, as the addon sees them.
+ * The character's saved settings, with those of the profile it uses and its own the account keeps (an addon that keeps its
+ * settings in profiles in the account's data: `profiles[name]`, the character's `profileName`, `characters["Name - Realm"]`):
+ * the settings as one set, as the addon sees them.
  */
 function readSavedSettings(): Record<string, unknown> | undefined {
     const character = readGlobal(config.savedVariables) as Record<string, unknown> | undefined;
     if (character === undefined || config.accountVariables === "") return character;
-    const account = readGlobal(config.accountVariables) as { profiles?: Record<string, Record<string, unknown> | undefined> } | undefined;
+    const account = readGlobal(config.accountVariables) as
+        | {
+              profiles?: Record<string, Record<string, unknown> | undefined>;
+              characters?: Record<string, Record<string, unknown> | undefined>;
+          }
+        | undefined;
     const profile = account?.profiles?.[character.profileName as string];
-    return profile === undefined ? character : { ...profile, ...character };
+    // The character's own settings the account keeps under its "Name - Realm"
+    const [name] = UnitName("player");
+    const own = account?.characters?.[`${name} - ${GetRealmName()}`];
+    if (profile === undefined && own === undefined) return character;
+    return { ...profile, ...character, ...own };
 }
