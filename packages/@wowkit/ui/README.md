@@ -7,6 +7,7 @@ reminds about. The shape of the settings and the texts are the addon's, given as
 | Service | What it does |
 |---|---|
 | `settings.service.ts` | The per-character settings, saved by the game: `get`, `change` (announces `setting.changed` on the EventBus), `getDefault`. Loads the saved values in `onAddonLoaded`, then lets the addon repair them (an optional `repair` function: a saved choice that has gone from a list, such as a sound, becomes the default again). |
+| `profiled-settings.service.ts` | Settings in profiles, shared by the characters of an account: the profiles by name in the account's saved data, each character's own settings (the keys it is given) and the name of its profile in its own. The same `get`, `change`, `getDefault` (`SettingsStore`). A character saved before profiles gets one of its own, made of what it had; a new one starts on `Default`. |
 | `locale.service.ts` | The addon's texts, `getText(key)`; a misspelled key does not compile. |
 | `messages.service.ts`, `sounds.constants.ts` | A chat line in the addon's name; the alert sounds the player can pick (`isSoundKey` tells whether a saved choice is still in the list). |
 | `greeting.service.ts` | One line in the chat at login (`onLogin`: not after a reload). |

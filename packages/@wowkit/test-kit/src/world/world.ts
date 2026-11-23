@@ -95,7 +95,7 @@ let lastFrames: FakeFrame[] = [];
 export function createWorld(
     setup: (state: ClientState) => void,
     savedSettings?: Record<string, unknown>,
-    options: { startAt?: number; isReload?: boolean } = {},
+    options: { startAt?: number; isReload?: boolean; isNewCharacter?: boolean } = {},
 ): World {
     for (const frame of lastFrames) if (frame.name !== undefined) clearGlobal(frame.name);
     clearGlobal(config.savedVariables);
@@ -104,7 +104,12 @@ export function createWorld(
     clearGlobal("WowkitNotices");
     // What the game loaded from the character's file before the addon started: a character that played before
     // The welcome window is its own spec's: in the others its scan would light the buttons
-    defineValues({ [config.savedVariables]: { isWelcomeDone: true, isCooldownChoiceSeen: true, ...readRunSettings(), ...savedSettings } });
+    // A new character has nothing saved yet
+    if (options.isNewCharacter !== true) {
+        defineValues({
+            [config.savedVariables]: { isWelcomeDone: true, isCooldownChoiceSeen: true, ...readRunSettings(), ...savedSettings },
+        });
+    }
     const state = createClientState();
     setup(state);
     // What the game loaded from the account's file: an account that played before
@@ -206,7 +211,7 @@ export function createWorld(
             const shared = readGlobal("WowkitNotices") as { frame: FakeFrame; text: FakeFrame } | undefined;
             return shared?.frame.isShown ? (shared.text.text ?? "") : "";
         },
-        getSavedSettings: () => readGlobal(config.savedVariables) as Record<string, unknown> | undefined,
+        getSavedSettings: () => readSavedSettings(),
         getAccountSaved: () =>
             config.accountVariables !== "" ? (readGlobal(config.accountVariables) as Record<string, unknown> | undefined) : undefined,
         findFrame: (matches) => frames.all.find((frame) => matches(frame)),
@@ -219,8 +224,28 @@ export function createWorld(
  */
 export function reloadWorld(world: World): World {
     world.fire("PLAYER_LOGOUT");
-    const saved = world.getSavedSettings() ?? {};
+    const saved = (readGlobal(config.savedVariables) as Record<string, unknown> | undefined) ?? {};
+    const account = world.getAccountSaved();
     const old = world.state;
     const now = GetTime();
-    return createWorld((state) => Object.assign(state, old), saved, { startAt: now, isReload: true });
+    return createWorld(
+        (state) => {
+            Object.assign(state, old);
+            state.accountSaved = account;
+        },
+        saved,
+        { startAt: now, isReload: true },
+    );
+}
+
+/**
+ * The character's saved settings, with those of the profile it uses (an addon that keeps its settings in profiles in the
+ * account's data: `profiles[name]`, the character's `profileName`): the settings as one set, as the addon sees them.
+ */
+function readSavedSettings(): Record<string, unknown> | undefined {
+    const character = readGlobal(config.savedVariables) as Record<string, unknown> | undefined;
+    if (character === undefined || config.accountVariables === "") return character;
+    const account = readGlobal(config.accountVariables) as { profiles?: Record<string, Record<string, unknown> | undefined> } | undefined;
+    const profile = account?.profiles?.[character.profileName as string];
+    return profile === undefined ? character : { ...profile, ...character };
 }

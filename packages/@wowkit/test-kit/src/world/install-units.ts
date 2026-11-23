@@ -59,6 +59,7 @@ export function installUnits(state: ClientState): void {
             return $multi(state.character.token, state.character.id);
         },
         UnitName: (unit) => $multi(unit === "target" ? (state.target?.name ?? "") : (findMember(unit)?.name ?? "Me"), ""),
+        GetRealmName: () => "Forever",
         UnitLevel: (unit) => (unit === "target" ? (state.target?.level ?? 0) : state.level),
         UnitRace: () => $multi(state.race.file, state.race.file, state.race.id),
         UnitFactionGroup: () => $multi("Alliance", "Alliance"),

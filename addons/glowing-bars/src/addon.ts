@@ -11,7 +11,7 @@ import {
     LocaleService,
     MessagesService,
     OptionsService,
-    SettingsService,
+    ProfiledSettingsService,
     WidgetsService,
 } from "@wowkit/ui";
 import { NoticeService, SavedVariablesService, ValueCurvesService } from "@wowkit/wow";
@@ -59,7 +59,7 @@ import { SealReminderService } from "./reminders/seal-reminder.service";
 import { TrackingReminderService } from "./reminders/tracking-reminder.service";
 import { PartyBuffsService } from "./reminders/party-buffs.service";
 import { WEAPON_BUFF_BY_SPELL } from "./reminders/weapon/weapon-buffs.constants";
-import { ACCOUNT_VARIABLES_NAME, createDefaultSettings, repairSettings } from "./settings/settings.constants";
+import { ACCOUNT_VARIABLES_NAME, CHARACTER_KEYS, createDefaultSettings, repairSettings } from "./settings/settings.constants";
 import type { AddonSettings } from "./settings/settings.interface";
 import { StyleService } from "./settings/style.service";
 import { ReagentRowsService } from "./reagents/reagent-rows.service";
@@ -87,7 +87,14 @@ export function startAddon(addonName: string): void {
 /** Settings, texts and messages. */
 function makeTexts(addon: Addon, game: Game) {
     const settings = addon.register(
-        new SettingsService<AddonSettings>(game.savedVariables, addon.events, createDefaultSettings, repairSettings),
+        new ProfiledSettingsService<AddonSettings>(
+            game.savedVariables,
+            new SavedVariablesService(ACCOUNT_VARIABLES_NAME),
+            addon.events,
+            createDefaultSettings,
+            CHARACTER_KEYS,
+            repairSettings,
+        ),
     );
     const locale = addon.register(new LocaleService(TEXTS));
     const messages = addon.register(new MessagesService(game.notice, locale.getText("TITLE")));

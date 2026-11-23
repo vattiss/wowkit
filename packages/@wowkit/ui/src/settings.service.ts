@@ -12,7 +12,16 @@ declare module "@wowkit/core/event-bus" {
     }
 }
 
-export class SettingsService<T extends object> implements OnAddonLoaded {
+/** What the rest of an addon needs of its settings, whether they are a character's alone or come from a profile. */
+export interface SettingsStore<T extends object> {
+    get<K extends keyof T>(key: K): T[K];
+    /** What the setting is for a player who never changed it. */
+    getDefault<K extends keyof T>(key: K): T[K];
+    /** Changes a player choice and announces it ("setting.changed"). Nested tables are replaced as a whole: pass a new table. */
+    change<K extends keyof T>(key: K, value: T[K]): void;
+}
+
+export class SettingsService<T extends object> implements OnAddonLoaded, SettingsStore<T> {
     /** The live settings. Its identity never changes: loading makes it the saved table. */
     private readonly values: T;
 

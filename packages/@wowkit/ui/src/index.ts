@@ -12,5 +12,6 @@ export * from "./locale.service";
 export * from "./messages.service";
 export * from "./options.service";
 export * from "./settings.service";
+export * from "./profiled-settings.service";
 export * from "./sounds.constants";
 export * from "./widgets.service";

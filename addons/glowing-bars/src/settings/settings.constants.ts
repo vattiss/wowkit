@@ -326,3 +326,29 @@ export function repairSettings(values: AddonSettings): void {
         );
     }
 }
+
+/**
+ * The settings each character keeps for itself; every other one is its profile's, shared by the characters on it. Its own
+ * are what it learned as it played, the state of its welcome and of its Cooldown Manager, the table's view, the spells
+ * added by ID, and the switch that turns the addon off on it. The moves of saved settings that touch them run for each
+ * character; those of a profile's settings travel with the profile.
+ */
+export const CHARACTER_KEYS: (keyof AddonSettings)[] = [
+    "isDisabled",
+    "isWelcomeDone",
+    "isCooldownChoiceSeen",
+    "isCooldownManagerSetUp",
+    "isCooldownManagerOurs",
+    "areUtilityLooksMoved",
+    "movedUtilityCooldowns",
+    "buffDurations",
+    "buffMemory",
+    "lastTotems",
+    "lastBuffs",
+    "fedBuffs",
+    "fedItems",
+    "isTableAdvanced",
+    "tableTab",
+    "shownUnlearned",
+    "addedSpells",
+];

@@ -1,9 +1,9 @@
 // The controls of the settings window, bound to the addon's settings. A control reads the setting through `get` and writes
-// it through `set` (always SettingsService.change, so whoever cares reacts to "setting.changed"). They are the game's own
+// it through `set` (always SettingsStore.change, so whoever cares reacts to "setting.changed"). They are the game's own
 // templates, each made for this window alone.
 import { connectChoiceMenu } from "./choice-menu";
 import { CONTROL_LEFT, type OptionRow, type OptionsTab } from "./options-tab";
-import type { SettingsService } from "./settings.service";
+import type { SettingsStore } from "./settings.service";
 
 const DROPDOWN_WIDTH = 240;
 const CONTROL_HEIGHT = 22;
@@ -18,7 +18,7 @@ type SwitchKey<T> = { [K in keyof T]: T[K] extends boolean ? K : never }[keyof T
 
 export class ControlsService<T extends object> {
     constructor(
-        private readonly settings: SettingsService<T>,
+        private readonly settings: SettingsStore<T>,
         /** Starts the name each control is found by, so two addons never share one. */
         private readonly variablePrefix: string,
     ) {}

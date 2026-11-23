@@ -1,4 +1,4 @@
-import type { CustomSoundFolder, SettingsService, SoundKey } from "@wowkit/ui";
+import type { CustomSoundFolder, ProfiledSettingsService, SoundKey } from "@wowkit/ui";
 import type { ProcRule } from "../glows/proc-rules.interface";
 import type { GlowAnimation, Rgb } from "@wowkit/wow";
 import type { SavedBuffMemory } from "../character/buff-memory.snapshot";
@@ -18,7 +18,7 @@ export type ReminderType =
     | "lowStock";
 
 /** The settings service of this addon: a SettingsService that knows the shape of its settings. */
-export type AddonSettingsService = SettingsService<AddonSettings>;
+export type AddonSettingsService = ProfiledSettingsService<AddonSettings>;
 
 /**
  * When a reminder may show: always, only in combat or only out of it, only with a living enemy or anyone targeted or in a
