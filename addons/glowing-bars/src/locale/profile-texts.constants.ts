@@ -1,7 +1,7 @@
 // English only: the Profiles window, which the buttons at the top left of the settings and the table open.
 export const PROFILE_TEXTS = {
     BTN_PROFILES: "Profiles",
-    PROFILES_TITLE: "Glowing Bars Profiles",
+    PROFILES_TITLE: "Glowing Bars",
     TAB_PROFILES: "Profiles",
     HDR_PROFILE: "Profile",
     PROFILE_CURRENT: "This character uses the %s profile. Characters on the same profile share its settings.",
@@ -29,4 +29,10 @@ export const PROFILE_TEXTS = {
     BTN_DELETE: "Delete",
     Q_RESET_PROFILE: "Reset the %s profile to its defaults? The interface reloads.",
     MSG_PROFILE_NAME: "Pick another name: that one is empty, too long, or taken.",
+    TAB_ADDED_SPELLS: "Added spells",
+    HDR_ADDED_SPELLS: "Spells added on your characters",
+    ADDED_SPELLS_INFO: "Each character has its own list. Add puts a spell on this character too, Delete takes it off all of them.",
+    ADDED_SPELLS_NONE: "None of your characters has added spells yet.",
+    TIP_ADDED_ON: "Added on:",
+    Q_DELETE_ADDED: "Delete %s from all your characters?",
 };

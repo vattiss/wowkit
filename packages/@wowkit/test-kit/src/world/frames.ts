@@ -1,6 +1,7 @@
 // The game's frames (windows, buttons, text). The addon creates them, shows and hides them and sets
 // scripts on them. Only what the addon does is modelled; any other method of a frame does nothing.
 import { defineValues } from "./define";
+import { addFlipbookCoords } from "./flipbooks";
 import { addFocus } from "./focus";
 
 type Script = (...args: any[]) => void;
@@ -30,6 +31,8 @@ export interface FakeFrame {
     scale: number;
     /** A check button's state. */
     isChecked: boolean;
+    /** A button's state (SetEnabled, Enable, Disable). */
+    isEnabled: boolean;
     scripts: { [script: string]: Script | undefined };
     events: { [event: string]: true | undefined };
     fontStrings: FakeFrame[];
@@ -76,6 +79,10 @@ export interface FakeFrame {
     SetText(text: string): void;
     GetText(): string | undefined;
     SetChecked(isChecked?: boolean): void;
+    SetEnabled(isEnabled?: boolean): void;
+    Enable(): void;
+    Disable(): void;
+    IsEnabled(): boolean;
     GetChecked(): boolean;
     CreateFontString(): FakeFrame;
     CreateTexture(): FakeFrame;
@@ -116,6 +123,7 @@ function createFakeFrame(init: FrameInit): FakeFrame {
         height: 36,
         scale: 1,
         isChecked: false,
+        isEnabled: true,
         scripts: {},
         events: {},
         fontStrings: [],
@@ -226,6 +234,18 @@ function createFakeFrame(init: FrameInit): FakeFrame {
         SetChecked(isChecked) {
             this.isChecked = isChecked === true;
         },
+        SetEnabled(isEnabled) {
+            this.isEnabled = isEnabled === true;
+        },
+        Enable() {
+            this.isEnabled = true;
+        },
+        Disable() {
+            this.isEnabled = false;
+        },
+        IsEnabled() {
+            return this.isEnabled;
+        },
         GetChecked() {
             return this.isChecked;
         },
@@ -264,39 +284,6 @@ export interface FrameRegistry {
     focused: FakeFrame | undefined;
     /** Delivers a game event to every frame that registered for it. */
     fire(event: string, ...args: unknown[]): void;
-}
-
-/** The flipbooks of the fake game: while stalled (a loading screen), a playing one has not reached a picture yet. */
-export const fakeFlipbooks = { isStalled: false };
-
-/**
- * The whole sheet of a flipbook until its animation runs, then one picture of it. Coordinates set by hand stay, as in the
- * game, through a new atlas too, unless it is set with `resetTexCoords`.
- */
-function addFlipbookCoords(alert: FakeFrame): void {
-    let isPlayed = false;
-    let coordsByHand: number[] | undefined;
-    const loop = alert.ProcLoop as FakeFrame & { Play(): void };
-    const flipbook = alert.ProcLoopFlipbook as FakeFrame & {
-        SetAtlas(atlas: string, useAtlasSize?: boolean, filterMode?: string, resetTexCoords?: boolean): void;
-        GetTexCoord(): LuaMultiReturn<number[]>;
-        SetTexCoord(...coords: number[]): void;
-    };
-    loop.Play = () => {
-        isPlayed = true;
-    };
-    flipbook.SetAtlas = (_atlas, _useAtlasSize, _filterMode, resetTexCoords) => {
-        isPlayed = false;
-        if (resetTexCoords === true) coordsByHand = undefined;
-    };
-    flipbook.SetTexCoord = (...coords) => {
-        coordsByHand = coords;
-    };
-    flipbook.GetTexCoord = () => {
-        if (coordsByHand !== undefined) return $multi(...coordsByHand);
-        const size = isPlayed && !fakeFlipbooks.isStalled ? 0.1 : 1;
-        return $multi(0, 0, 0, size, size, 0, size, size);
-    };
 }
 
 export function createFrameRegistry(): FrameRegistry {

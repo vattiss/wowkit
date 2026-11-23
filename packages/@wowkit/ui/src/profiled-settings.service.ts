@@ -41,6 +41,9 @@ export interface ProfiledSettingsOptions<T extends object> {
     findCharacter?: () => CharacterInfo;
 }
 
+/** What is not known of a character: empty. */
+const UNKNOWN_CHARACTER: CharacterInfo = { key: "", name: "", surname: "", realm: "", race: "", className: "", ruleset: "" };
+
 export class ProfiledSettingsService<T extends object> implements OnAddonLoaded, SettingsStore<T> {
     /** The character's saved table: its own settings. Bound to the saved data once loaded. */
     private character: Record<string, unknown> = {};
@@ -49,7 +52,7 @@ export class ProfiledSettingsService<T extends object> implements OnAddonLoaded,
     /** The account's data, and this character's own settings in it. */
     private account: AccountTable = {};
     private accountCharacter: Record<string, unknown> = {};
-    private player: CharacterInfo = { key: "", name: "", surname: "", realm: "", race: "", className: "", ruleset: "" };
+    private player: CharacterInfo = UNKNOWN_CHARACTER;
     private readonly characterKeys = new LuaSet<string>();
     private readonly accountCharacterKeys = new LuaSet<string>();
     private readonly repair: ((values: T) => void) | undefined;
@@ -191,7 +194,7 @@ export class ProfiledSettingsService<T extends object> implements OnAddonLoaded,
     }
 
     /**
-     * The characters of the account whose settings the account keeps, this one among them, by name: "Castor (Gnome Priest)".
+     * The characters of the account whose settings the account keeps, this one among them, by name: "Castor Stormlight (Gnome Priest, Normal)".
      */
     listCharacters(): { key: string; label: string }[] {
         const known: { key: string; about: CharacterInfo }[] = [];
@@ -199,7 +202,8 @@ export class ProfiledSettingsService<T extends object> implements OnAddonLoaded,
             const about = (entry as Record<string, unknown>)[ABOUT_KEY] as CharacterInfo | undefined;
             if (about !== undefined) known.push({ key: key as string, about });
         }
-        const listed = known.map(({ key, about }) => ({ key, label: describeCharacter(about) }));
+        // An entry an earlier build wrote may lack what came later (the surname, the ruleset)
+        const listed = known.map(({ key, about }) => ({ key, label: describeCharacter({ ...UNKNOWN_CHARACTER, ...about }) }));
         table.sort(listed, (a, b) => a.label < b.label);
         return listed;
     }
@@ -257,7 +261,7 @@ export class ProfiledSettingsService<T extends object> implements OnAddonLoaded,
 
     /**
      * A character saved before profiles, or whose profile is gone: what is not its own moves into a profile of its own, under
-     * the name it had, else its own: "Castor", "Castor (Gnome Priest)" where that is taken, and only then numbered.
+     * the name it had, else "Castor Stormlight (Gnome Priest, Normal)", and only then numbered.
      */
     private createOwnProfile(character: Record<string, unknown>, account: AccountTable, wantedName: string | undefined): string {
         const profiles = account.profiles!;

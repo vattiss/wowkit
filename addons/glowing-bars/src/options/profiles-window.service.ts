@@ -1,16 +1,16 @@
 // The Profiles window (issue #76), opened by the buttons at the top left of the settings and the table, or /gb profiles: the
-// profile this character uses, and what can be done with the profiles of the account. A switch, a copy or a reset takes
-// effect from the next load of the interface, as the settings are read then: those ask first, then reload it.
+// profile this character uses, and what can be done with the profiles of the account; on a tab of its own, the spells added
+// on its characters. A switch, a copy or a reset takes effect from the next load of the interface, as the settings are read
+// then: those ask first, then reload it.
 import { OnGameEvent } from "@wowkit/core";
 import { connectChoiceMenu, type MessagesService, OptionsWindow, type OptionsTab } from "@wowkit/ui";
 import type { AddonLocale } from "../locale/locale.interface";
 import type { TextKey } from "../locale/texts.constants";
 import type { AddonSettingsService } from "../settings/settings.interface";
+import type { CharacterSpellsSection } from "./character-spells.section";
 import { BASIC_WINDOW_WIDTH, WINDOW_HEIGHT } from "./style-table.constants";
 import { COMMAND } from "./table-command";
 
-/** The width of a name box, and of a dropdown. */
-const BOX_WIDTH = 160;
 const BUTTON_WIDTH = 80;
 /** Where the controls of a row start, as the settings window's do. */
 const CONTROL_LEFT = 340;
@@ -26,6 +26,7 @@ export class ProfilesWindowService {
         private readonly settings: AddonSettingsService,
         private readonly locale: AddonLocale,
         private readonly messages: MessagesService,
+        private readonly spellsSection: CharacterSpellsSection,
     ) {}
 
     /** Opens the window (built the first time); not in a fight. */
@@ -35,6 +36,7 @@ export class ProfilesWindowService {
             return;
         }
         this.window ??= this.buildWindow();
+        this.spellsSection.update();
         this.window.open();
     }
 
@@ -73,13 +75,14 @@ export class ProfilesWindowService {
             this.confirmDelete(window, tab, name),
         );
         this.addResetRow(tab, window);
+        this.spellsSection.build(window, window.addTab(readText("TAB_ADDED_SPELLS"), false));
         return window;
     }
 
     /** The profile this character uses: another one picked is switched to, asked first. */
     private addSwitchRow(tab: OptionsTab, window: OptionsWindow): void {
         const row = tab.createRow(this.locale.getText("OPT_PROFILE"), this.locale.getText("TIP_PROFILE"));
-        const button = this.createButton(row, CONTROL_LEFT, BOX_WIDTH);
+        const button = this.createButton(row, CONTROL_LEFT, findChoiceWidth(tab));
         const pick = (value?: unknown) => {
             const name = value as string;
             if (name === this.settings.getProfileName()) return;
@@ -104,7 +107,7 @@ export class ProfilesWindowService {
     /** A dropdown of the other profiles; the one picked is handed on. */
     private addProfileChoice(tab: OptionsTab, variable: string, label: TextKey, tooltip: TextKey, onPick: (name: string) => void): void {
         const row = tab.createRow(this.locale.getText(label), this.locale.getText(tooltip));
-        const button = this.createButton(row, CONTROL_LEFT, BOX_WIDTH);
+        const button = this.createButton(row, CONTROL_LEFT, findChoiceWidth(tab));
         button.SetText("...");
         const pick = (value?: unknown) => onPick(value as string);
         connectChoiceMenu(button, () =>
@@ -133,11 +136,12 @@ export class ProfilesWindowService {
     ): void {
         const row = tab.createRow(this.locale.getText(label), this.locale.getText(tooltip));
         const box = CreateFrame("EditBox", undefined, row, "InputBoxTemplate");
-        box.SetSize(BOX_WIDTH - 8, 20);
+        const boxWidth = findChoiceWidth(tab) - BUTTON_WIDTH - 6;
+        box.SetSize(boxWidth - 8, 20);
         box.SetPoint("LEFT", row, "LEFT", CONTROL_LEFT + 6, 0);
         box.SetAutoFocus(false);
         box.SetMaxLetters(MOST_NAME_LETTERS);
-        const button = this.createButton(row, CONTROL_LEFT + BOX_WIDTH + 6, BUTTON_WIDTH);
+        const button = this.createButton(row, CONTROL_LEFT + boxWidth + 6, BUTTON_WIDTH);
         button.SetText(this.locale.getText(buttonText));
         const applyName = (value?: unknown) => {
             const name = strtrim((value as string | undefined) ?? box.GetText());
@@ -218,6 +222,15 @@ export class ProfilesWindowService {
         const button = CreateFrame("Button", undefined, row, "UIPanelButtonTemplate");
         button.SetSize(width, 22);
         button.SetPoint("LEFT", row, "LEFT", left, 0);
+        // A name longer than the button is cut short with "...", not spilled over its edges
+        const label = button.GetFontString();
+        label?.SetWidth(width - 16);
+        label?.SetWordWrap(false);
         return button;
     }
+}
+
+/** A dropdown, or a name box with its button: from where the controls start to the right edge of the row. */
+function findChoiceWidth(tab: OptionsTab): number {
+    return tab.getRowWidth() - CONTROL_LEFT;
 }
