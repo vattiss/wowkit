@@ -21,6 +21,8 @@ import {
 
 /** What the window leaves free of the screen's width when it has to shrink. */
 const SCREEN_MARGIN = 40;
+/** The width of the buttons at the top, as the settings window's: they read the same in both. */
+const TOP_BUTTON_WIDTH = 100;
 /** The tabs under the title, the column headers under them, and the rows under those. */
 const TABS_TOP = 42;
 const HEADERS_TOP = 78;
@@ -196,6 +198,7 @@ export class StyleWindowService {
         createCloseButton(window);
         this.createViewButton(window);
         this.createSettingsButton(window);
+        this.createProfilesButton(window);
         this.addTabs(window);
         this.addColumnHeaders(window);
         const scroll = CreateFrame("ScrollFrame", undefined, window, "UIPanelScrollFrameTemplate");
@@ -227,7 +230,7 @@ export class StyleWindowService {
     /** To the settings window, through the addon's slash command, which is what knows it; the table closes for it. */
     private createSettingsButton(window: Frame): void {
         const button = CreateFrame("Button", undefined, window, "UIPanelButtonTemplate");
-        button.SetSize(80, 22);
+        button.SetSize(TOP_BUTTON_WIDTH, 22);
         button.SetPoint("TOPRIGHT", window, "TOPRIGHT", -34, -9);
         button.SetText(this.locale.getText("BTN_SETTINGS"));
         button.SetScript("OnClick", () => {
@@ -236,11 +239,23 @@ export class StyleWindowService {
         });
     }
 
+    /** At the top left: to the profiles window, through the slash command; the table closes for it. */
+    private createProfilesButton(window: Frame): void {
+        const button = CreateFrame("Button", undefined, window, "UIPanelButtonTemplate");
+        button.SetSize(TOP_BUTTON_WIDTH, 22);
+        button.SetPoint("TOPLEFT", window, "TOPLEFT", 12, -9);
+        button.SetText(this.locale.getText("BTN_PROFILES"));
+        button.SetScript("OnClick", () => {
+            window.Hide();
+            SlashCmdList[COMMAND]?.("profiles", undefined as never);
+        });
+    }
+
     /** Next to the close button: it leads to the other view. */
     private createViewButton(window: Frame): void {
         const button = CreateFrame("Button", undefined, window, "UIPanelButtonTemplate");
-        button.SetSize(80, 22);
-        button.SetPoint("TOPRIGHT", window, "TOPRIGHT", -118, -9);
+        button.SetSize(TOP_BUTTON_WIDTH, 22);
+        button.SetPoint("TOPRIGHT", window, "TOPRIGHT", -34 - TOP_BUTTON_WIDTH - 4, -9);
         button.SetScript("OnClick", () => this.settings.change("isTableAdvanced", !this.isAdvanced()));
         this.viewButton = button;
     }

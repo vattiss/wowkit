@@ -13,5 +13,6 @@ export * from "./messages.service";
 export * from "./options.service";
 export * from "./settings.service";
 export * from "./profiled-settings.service";
+export * from "./character-identity";
 export * from "./sounds.constants";
 export * from "./widgets.service";

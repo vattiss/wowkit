@@ -240,7 +240,7 @@ export function reloadWorld(world: World): World {
 
 /**
  * The character's saved settings, with those of the profile it uses and its own the account keeps (an addon that keeps its
- * settings in profiles in the account's data: `profiles[name]`, the character's `profileName`, `characters["Name - Realm"]`):
+ * settings in profiles in the account's data: `profiles[name]`, the character's `profileName`, `characters[GUID]`):
  * the settings as one set, as the addon sees them.
  */
 function readSavedSettings(): Record<string, unknown> | undefined {
@@ -253,9 +253,8 @@ function readSavedSettings(): Record<string, unknown> | undefined {
           }
         | undefined;
     const profile = account?.profiles?.[character.profileName as string];
-    // The character's own settings the account keeps under its "Name - Realm"
-    const [name] = UnitName("player");
-    const own = account?.characters?.[`${name} - ${GetRealmName()}`];
+    // The character's own settings the account keeps under its GUID
+    const own = account?.characters?.[UnitGUID("player") ?? ""];
     if (profile === undefined && own === undefined) return character;
     return { ...profile, ...character, ...own };
 }

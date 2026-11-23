@@ -217,6 +217,14 @@ export interface ClientState {
     itemCooldowns: { [itemId: number]: { start: number; duration: number } | undefined };
     itemNames: { [itemId: number]: string | undefined };
     level: number;
+    /** The realm's name, as GetRealmName gives it; "Forever" when not given (Forever's client may give none). */
+    realm?: string;
+    /** The player's GUID, one of its own for each character; "Player-1-00000001" when not given. */
+    playerGuid?: string;
+    /** The player's surname (Forever's second name), the second answer of UnitName; none when not given. */
+    surname?: string;
+    /** The game rules on (Forever's realm ruleset: "PvPRuleset", "RPRuleset", "HardcoreRuleset"); no C_GameRules when not given. */
+    activeGameRules?: string[];
     /** The race: its ID (4 Night Elf) and the client's race file name. */
     race: { id: number; file: string };
     target: FakeTarget | undefined;

@@ -6,6 +6,9 @@ import { findAddRowOf, setUpWarrior, toggleTable } from "./table.helpers";
 
 type Profiles = Record<string, Record<string, unknown> | undefined>;
 
+/** The test kit's player GUID: what the account keeps a character's own settings by. */
+const GUID = "Player-1-00000001";
+
 function readProfiles(world: World): Profiles {
     return ((world.getAccountSaved() as { profiles?: Profiles } | undefined)?.profiles ?? {}) as Profiles;
 }
@@ -23,23 +26,23 @@ function createPriest(saved: Record<string, unknown> = {}, accountSaved?: Record
 describe("a character saved before profiles", () => {
     it("gets a profile of its own name, made of what it had: nothing changes", () => {
         const world = createPriest({ messageSize: 150, isDisabled: true });
-        expect(world.getSavedSettings()?.profileName).toBe("Me - Forever");
-        expect(readProfiles(world)["Me - Forever"]?.messageSize).toBe(150);
+        expect(world.getSavedSettings()?.profileName).toBe("Me - Forever (Human Priest)");
+        expect(readProfiles(world)["Me - Forever (Human Priest)"]?.messageSize).toBe(150);
         expect(world.getSavedSettings()?.messageSize).toBe(150);
         expect(world.getSavedSettings()?.isDisabled).toBe(true);
     });
 
     it("keeps its own settings in its own data, not in the profile", () => {
         const world = createPriest({ messageSize: 150, isDisabled: true });
-        expect(readProfiles(world)["Me - Forever"]?.isDisabled).toBe(undefined);
+        expect(readProfiles(world)["Me - Forever (Human Priest)"]?.isDisabled).toBe(undefined);
         const character = world.getSavedSettings() as Record<string, unknown>;
         expect(character.isDisabled).toBe(true);
     });
 
-    it("takes another name when a profile of its own name is there already", () => {
-        const world = createPriest({ messageSize: 150 }, { profiles: { "Me - Forever": { messageSize: 120 } } });
-        expect(world.getSavedSettings()?.profileName).toBe("Me - Forever (2)");
-        expect(readProfiles(world)["Me - Forever"]?.messageSize).toBe(120);
+    it("takes a number when a profile of its own name is there already", () => {
+        const world = createPriest({ messageSize: 150 }, { profiles: { "Me - Forever (Human Priest)": { messageSize: 120 } } });
+        expect(world.getSavedSettings()?.profileName).toBe("Me - Forever (Human Priest 2)");
+        expect(readProfiles(world)["Me - Forever (Human Priest)"]?.messageSize).toBe(120);
         expect(world.getSavedSettings()?.messageSize).toBe(150);
     });
 });
@@ -120,8 +123,8 @@ describe("the spells a character added by ID", () => {
     it("move from the character's saved data into the account's, under its name, once", () => {
         const added = [{ id: 2512, reminderType: "lowStock" }];
         const world = createPriest({ addedSpells: added });
-        expect(readCharacters(world)["Me - Forever"]?.addedSpells).toEqual(added);
-        expect(readProfiles(world)["Me - Forever"]?.addedSpells).toBe(undefined);
+        expect(readCharacters(world)[GUID]?.addedSpells).toEqual(added);
+        expect(readProfiles(world)["Me - Forever (Human Priest)"]?.addedSpells).toBe(undefined);
         expect(((_G as unknown as Record<string, Record<string, unknown>>).GlowingBarsCharDB ?? {}).addedSpells).toBe(undefined);
         expect(world.getSavedSettings()?.addedSpells).toEqual(added);
     });
@@ -145,6 +148,140 @@ describe("the spells a character added by ID", () => {
         box.text = "72";
         add.scripts.OnClick!(add);
         toggleTable();
-        expect(readCharacters(world)["Me - Forever"]?.addedSpells).toEqual([{ id: 72, reminderType: "readyCooldown" }]);
+        expect(readCharacters(world)[GUID]?.addedSpells).toEqual([{ id: 72, reminderType: "readyCooldown" }]);
+    });
+});
+
+describe("a character of a realm the client does not name (Forever)", () => {
+    function createNoRealm(saved: Record<string, unknown>, accountSaved?: Record<string, unknown>): World {
+        const world = createWorld((state) => {
+            playAs(state, PRIEST);
+            state.realm = "";
+            state.accountSaved = accountSaved;
+        }, saved);
+        world.advance(1);
+        return world;
+    }
+
+    it("gets a profile of its name alone", () => {
+        const world = createNoRealm({ messageSize: 150 });
+        expect(world.getSavedSettings()?.profileName).toBe("Me (Human Priest)");
+        expect(readProfiles(world)["Me (Human Priest)"]?.messageSize).toBe(150);
+    });
+
+    it("takes the profile and the added spells an earlier build kept as 'Me - ' to its name", () => {
+        const added = [{ id: 2512, reminderType: "lowStock" }];
+        const world = createNoRealm(
+            { profileName: "Me - " },
+            { profiles: { "Me - ": { messageSize: 150 } }, characters: { "Me - ": { addedSpells: added } } },
+        );
+        expect(world.getSavedSettings()?.profileName).toBe("Me (Human Priest)");
+        expect(readProfiles(world)["Me (Human Priest)"]?.messageSize).toBe(150);
+        expect(readProfiles(world)["Me - "]).toBe(undefined);
+        expect(world.getSavedSettings()?.addedSpells).toEqual(added);
+    });
+});
+
+describe("characters of one name (Forever names no realm)", () => {
+    /** A character named Me of no realm, with its own GUID and what it had saved, on the account given. */
+    function login(guid: string, saved: Record<string, unknown>, accountSaved?: Record<string, unknown>): World {
+        const world = createWorld((state) => {
+            playAs(state, PRIEST);
+            state.realm = "";
+            state.playerGuid = guid;
+            state.accountSaved = accountSaved;
+        }, saved);
+        world.advance(1);
+        return world;
+    }
+
+    it("get profiles of their own: the name with the race and class, then numbered", () => {
+        const first = login("Player-1-A", { messageSize: 110 });
+        const second = login("Player-1-B", { messageSize: 120 }, first.getAccountSaved());
+        const third = login("Player-1-C", { messageSize: 130 }, second.getAccountSaved());
+        expect(third.getSavedSettings()?.profileName).toBe("Me (Human Priest 3)");
+        const profiles = readProfiles(third);
+        expect(profiles["Me (Human Priest)"]?.messageSize).toBe(110);
+        expect(profiles["Me (Human Priest 2)"]?.messageSize).toBe(120);
+        expect(profiles["Me (Human Priest 3)"]?.messageSize).toBe(130);
+    });
+
+    it("keep their added spells apart, each under its GUID", () => {
+        const first = login("Player-1-A", { addedSpells: [{ id: 2512, reminderType: "lowStock" }] });
+        const second = login("Player-1-B", { addedSpells: [{ id: 2515, reminderType: "lowStock" }] }, first.getAccountSaved());
+        const characters = (second.getAccountSaved() as { characters: Record<string, { addedSpells?: { id: number }[] }> }).characters;
+        expect(characters["Player-1-A"]?.addedSpells?.[0]?.id).toBe(2512);
+        expect(characters["Player-1-B"]?.addedSpells?.[0]?.id).toBe(2515);
+    });
+
+    it("leave what an earlier build kept by the name to the first of them to log in", () => {
+        const added = [{ id: 2512, reminderType: "lowStock" }];
+        const first = login("Player-1-A", {}, { characters: { Me: { addedSpells: added } } });
+        const second = login("Player-1-B", {}, first.getAccountSaved());
+        const characters = (second.getAccountSaved() as { characters: Record<string, { addedSpells?: unknown[] } | undefined> }).characters;
+        expect(characters["Player-1-A"]?.addedSpells).toEqual(added);
+        expect(characters["Player-1-B"]?.addedSpells).toEqual([]);
+        expect(characters.Me).toBe(undefined);
+    });
+});
+
+describe("characters with a surname (Forever)", () => {
+    function login(guid: string, surname: string, saved: Record<string, unknown>, accountSaved?: Record<string, unknown>): World {
+        const world = createWorld((state) => {
+            playAs(state, PRIEST);
+            state.realm = "";
+            state.playerGuid = guid;
+            state.surname = surname;
+            state.accountSaved = accountSaved;
+        }, saved);
+        world.advance(1);
+        return world;
+    }
+
+    it("are named by their full name: one name with two surnames is two profiles, with no number", () => {
+        const first = login("Player-1-A", "Brightwood", { messageSize: 110 });
+        const second = login("Player-1-B", "Ashvale", { messageSize: 120 }, first.getAccountSaved());
+        const profiles = readProfiles(second);
+        expect(second.getSavedSettings()?.profileName).toBe("Me Ashvale (Human Priest)");
+        expect(profiles["Me Brightwood (Human Priest)"]?.messageSize).toBe(110);
+        expect(profiles["Me Ashvale (Human Priest)"]?.messageSize).toBe(120);
+    });
+});
+
+describe("the realm's ruleset in a character's name (Forever)", () => {
+    function login(guid: string, rules: string[], saved: Record<string, unknown>, accountSaved?: Record<string, unknown>): World {
+        const world = createWorld((state) => {
+            playAs(state, PRIEST);
+            state.realm = "";
+            state.playerGuid = guid;
+            state.activeGameRules = rules;
+            state.accountSaved = accountSaved;
+        }, saved);
+        world.advance(1);
+        return world;
+    }
+
+    it("tells the same name apart by the ruleset, with no number", () => {
+        const normal = login("Player-1-A", [], { messageSize: 110 });
+        const pvp = login("Player-1-B", ["PvPRuleset"], { messageSize: 120 }, normal.getAccountSaved());
+        const profiles = readProfiles(pvp);
+        expect(pvp.getSavedSettings()?.profileName).toBe("Me (Human Priest, PvP)");
+        expect(profiles["Me (Human Priest, Normal)"]?.messageSize).toBe(110);
+        expect(profiles["Me (Human Priest, PvP)"]?.messageSize).toBe(120);
+    });
+
+    it("names Hardcore over the others, and both of PvP and RP together", () => {
+        const hardcore = login("Player-1-A", ["HardcoreRuleset", "PvPRuleset"], { messageSize: 110 });
+        const both = login("Player-1-B", ["PvPRuleset", "RPRuleset"], { messageSize: 120 }, hardcore.getAccountSaved());
+        const profiles = readProfiles(both);
+        expect(both.getSavedSettings()?.profileName).toBe("Me (Human Priest, RP PvP)");
+        expect(profiles["Me (Human Priest, Hardcore)"]?.messageSize).toBe(110);
+        expect(profiles["Me (Human Priest, RP PvP)"]?.messageSize).toBe(120);
+    });
+
+    it("numbers a taken name after the ruleset", () => {
+        const first = login("Player-1-A", [], { messageSize: 110 });
+        const second = login("Player-1-B", [], { messageSize: 120 }, first.getAccountSaved());
+        expect(second.getSavedSettings()?.profileName).toBe("Me (Human Priest, Normal 2)");
     });
 });

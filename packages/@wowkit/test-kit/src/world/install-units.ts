@@ -1,7 +1,7 @@
 // The player, the target, the pet and the party: who they are, whether they fight, rest, are alive and in range, how
 // hurt they are, what they cast.
 import { POWER, findPartyMember, type ClientState, type FakePartyMember } from "./client-state";
-import { defineGlobals } from "./define";
+import { clearGlobal, defineGlobals, defineNamespace } from "./define";
 import { judgeOptions } from "./macro-options";
 import { SECRET_VALUE } from "./secret-value";
 
@@ -13,6 +13,19 @@ const MAX_HEALTH = 1000;
 const INTERACT_YARDS: { [index: number]: number | undefined } = { 1: 28, 2: 11, 3: 10 };
 
 export function installUnits(state: ClientState): void {
+    // Forever's realm ruleset, by its game rules: only where the test gives them
+    const activeRules = state.activeGameRules;
+    if (activeRules !== undefined) {
+        defineNamespace<typeof C_GameRules>("C_GameRules", {
+            IsGameRuleActive: (rule) => {
+                const rules = (_G as unknown as { Enum: { GameRule: Record<string, number> } }).Enum.GameRule;
+                return activeRules.some((name) => rules[name] === (rule as unknown as number));
+            },
+        });
+    } else {
+        // As a client without game rules; and so one world's rules do not stay for the next
+        clearGlobal("C_GameRules");
+    }
     /** party1..party4 (raid1..n in a raid) are the members of the test's party, the player is everyone else. */
     function findMember(unit: UnitToken): FakePartyMember | undefined {
         return findPartyMember(state, unit);
@@ -58,8 +71,12 @@ export function installUnits(state: ClientState): void {
             if (member) return $multi(member.classToken, 0);
             return $multi(state.character.token, state.character.id);
         },
-        UnitName: (unit) => $multi(unit === "target" ? (state.target?.name ?? "") : (findMember(unit)?.name ?? "Me"), ""),
-        GetRealmName: () => "Forever",
+        UnitName: (unit) =>
+            $multi(
+                unit === "target" ? (state.target?.name ?? "") : (findMember(unit)?.name ?? "Me"),
+                unit === "player" ? (state.surname ?? "") : "",
+            ),
+        GetRealmName: () => state.realm ?? "Forever",
         UnitLevel: (unit) => (unit === "target" ? (state.target?.level ?? 0) : state.level),
         UnitRace: () => $multi(state.race.file, state.race.file, state.race.id),
         UnitFactionGroup: () => $multi("Alliance", "Alliance"),
@@ -81,7 +98,12 @@ export function installUnits(state: ClientState): void {
         UnitCanAttack: (_unit, other) => (other === "target" && state.target?.isEnemy === true) || isNameplate(other),
         UnitCanAssist: (_unit, other) =>
             other === "player" || (other === "target" && state.target !== undefined && state.target.isEnemy !== true),
-        UnitGUID: (unit) => (unit === "target" && state.target ? `Creature-0-0-0-0-1-${state.target.name}` : undefined),
+        UnitGUID: (unit) =>
+            unit === "player"
+                ? (state.playerGuid ?? "Player-1-00000001")
+                : unit === "target" && state.target
+                  ? `Creature-0-0-0-0-1-${state.target.name}`
+                  : undefined,
         UnitClassification: (unit) => (unit === "target" ? (state.target?.classification ?? "normal") : "normal"),
         UnitCreatureType: (unit) => {
             const target = unit === "target" ? state.target : undefined;

@@ -20,6 +20,8 @@ export class DefaultsQuestion {
     private readonly text: FontString;
     private readonly question: string;
     private onReset: ((this: void) => void) | undefined;
+    private readonly yesButton: Button;
+    private readonly resetText: string;
 
     constructor(window: Frame, name: string, texts: DefaultsQuestionTexts) {
         this.cover = CreateFrame("Frame", undefined, window);
@@ -37,10 +39,11 @@ export class DefaultsQuestion {
         this.text = box.CreateFontString(undefined, "OVERLAY", "GameFontHighlight");
         this.text.SetPoint("TOP", box, "TOP", 0, -30);
         this.text.SetWidth(BOX_WIDTH - 48);
-        this.addButton(box, texts.reset, -BUTTON_WIDTH / 2 - 6, () => {
+        this.yesButton = this.addButton(box, texts.reset, -BUTTON_WIDTH / 2 - 6, () => {
             this.cover.Hide();
             this.onReset?.();
         });
+        this.resetText = texts.reset;
         this.addButton(box, texts.cancel, BUTTON_WIDTH / 2 + 6, () => this.cover.Hide());
         this.question = texts.question;
         // The window closing, by Escape or for a fight, is a no
@@ -50,16 +53,23 @@ export class DefaultsQuestion {
 
     /** Opens the question before putting the tab of this name back; `onReset` only on Reset. */
     open(tabName: string, onReset: (this: void) => void): void {
-        this.onReset = onReset;
-        this.text.SetText(string.format(this.question, tabName));
+        this.confirm(string.format(this.question, tabName), this.resetText, onReset);
+    }
+
+    /** Asks any question first: `onYes` only on its yes button, which says `yesText` (Switch, Delete...). */
+    confirm(question: string, yesText: string, onYes: (this: void) => void): void {
+        this.onReset = onYes;
+        this.yesButton.SetText(yesText);
+        this.text.SetText(question);
         this.cover.Show();
     }
 
-    private addButton(box: Frame, text: string, x: number, onClick: (this: void) => void): void {
+    private addButton(box: Frame, text: string, x: number, onClick: (this: void) => void): Button {
         const button = CreateFrame("Button", undefined, box, "UIPanelButtonTemplate");
         button.SetSize(BUTTON_WIDTH, 22);
         button.SetPoint("BOTTOM", box, "BOTTOM", x, 20);
         button.SetText(text);
         button.SetScript("OnClick", () => onClick());
+        return button;
     }
 }

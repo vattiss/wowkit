@@ -60,6 +60,12 @@ export function installUi(frames: FrameRegistry, chat: string[]): void {
         RaidWarningFrame: frames.create("Frame", "RaidWarningFrame"),
         DEFAULT_CHAT_FRAME: createChatFrame(frames, chat),
         GameTooltip: frames.create("GameTooltip", "GameTooltip"),
+        // The game's words for a realm's ruleset
+        GDAPI_REALMTYPE_NORMAL: "Normal",
+        GDAPI_REALMTYPE_PVP: "PvP",
+        GDAPI_REALMTYPE_RP: "RP",
+        GDAPI_REALMTYPE_PVP_RP: "RP PvP",
+        GUILD_PLAYSTYLE_HARDCORE: "Hardcore",
         // Slash commands: the addon adds its handlers here
         SlashCmdList: {},
         // The frames that Escape closes
@@ -78,6 +84,7 @@ export function installUi(frames: FrameRegistry, chat: string[]): void {
             EditModeLayoutType: { Preset: 0, Account: 1, Character: 2, Override: 3 },
             EditModeCooldownViewerSetting: { VisibleSetting: 6 },
             CooldownViewerVisibleSetting: { Always: 0, InCombat: 1, Hidden: 2 },
+            GameRule: { HardcoreRuleset: 1001, PvPRuleset: 1002, RPRuleset: 1003 },
         },
     });
 

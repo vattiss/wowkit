@@ -82,6 +82,23 @@ export class OptionsWindow {
         });
     }
 
+    /** A button in the top left corner, to another window: this one closes for it. */
+    addTopLeftButton(text: string, onClick: (this: void) => void): void {
+        const button = CreateFrame("Button", undefined, this.window, "UIPanelButtonTemplate");
+        button.SetSize(100, 22);
+        button.SetPoint("TOPLEFT", this.window, "TOPLEFT", 12, -9);
+        button.SetText(text);
+        button.SetScript("OnClick", () => {
+            this.window.Hide();
+            onClick();
+        });
+    }
+
+    /** Asks first, over the window: `onYes` only on its yes button, which says `yesText`. */
+    confirm(question: string, yesText: string, onYes: (this: void) => void): void {
+        this.question.confirm(question, yesText, onYes);
+    }
+
     /** `hasDefaults`: false for a tab with nothing to put back (the notes of the versions, the help). */
     addTab(title: string, hasDefaults = true): OptionsTab {
         const tab = new OptionsTab(this.scroll, title, this.contentWidth, this.window, hasDefaults);

@@ -38,6 +38,7 @@ import { StyleRowsService } from "./options/style-rows.service";
 import { StyleTableService } from "./options/style-table.service";
 import { StyleWindowService } from "./options/style-window.service";
 import { TableCommand } from "./options/table-command";
+import { ProfilesWindowService } from "./options/profiles-window.service";
 import { makeHealthRules, makeProcRules, makeProcRulesTab } from "./addon-proc-rules";
 import { makeWeapons } from "./addon-weapons";
 import { makeBuffs, type Buffs } from "./addon-buffs";
@@ -307,5 +308,6 @@ function makeOptions(
         ),
     );
     const options = addon.register(new OptionsService(messages, "GlowingBarsOptions", page));
-    addon.register(new TableCommand(table, options, messages, locale, welcome, whatsNew));
+    const profiles = addon.register(new ProfilesWindowService(texts.settings, locale, messages));
+    addon.register(new TableCommand(table, options, messages, locale, welcome, whatsNew, profiles));
 }
