@@ -96,6 +96,7 @@ import "./secret-auras-reads.spec";
 import "./secret-auras-reload.spec";
 import "./profiles.spec";
 import "./profiles-window.spec";
+import "./profiles-fuzz.spec";
 import "./character-spells.spec";
 import "./secret-auras-fuzz.spec";
 import "./tick-garbage.spec";
