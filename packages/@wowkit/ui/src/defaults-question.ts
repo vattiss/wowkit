@@ -50,8 +50,9 @@ export class DefaultsQuestion {
         this.text.SetPoint("TOP", box, "TOP", 0, -TEXT_TOP);
         this.text.SetWidth(BOX_WIDTH - TEXT_SIDES);
         this.yesButton = this.addButton(box, texts.reset, -BUTTON_WIDTH / 2 - 6, () => {
-            this.cover.Hide();
+            // What it does first, in the click itself (a reload may need it), and only then the box closes
             this.onReset?.();
+            this.cover.Hide();
         });
         this.resetText = texts.reset;
         this.cancelButton = this.addButton(box, texts.cancel, BUTTON_WIDTH / 2 + 6, () => this.cover.Hide());

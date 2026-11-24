@@ -1,5 +1,5 @@
 // The Profiles window (issue #76): opened at the top left of the settings, or by /gb profiles. It shows
-// this character's own profile, and copies another's into it or resets it: each asks first, then reloads the interface.
+// this character's own profile, and copies another's into it or resets it: each asks first, then asks for a /reload.
 import { createWorld, describe, expect, it, playAs, PRIEST, reloadWorld, type World } from "@wowkit/test-kit";
 
 type Profiles = Record<string, Record<string, unknown> | undefined>;
@@ -27,6 +27,12 @@ function answer(world: World, text: string): void {
     button.scripts.OnClick!(button);
 }
 
+const asksForReload = (world: World) => world.chat.some((line) => line.includes("type /reload"));
+
+/** The row that reloads the interface, by its label. */
+const findReloadRow = (world: World) =>
+    world.frames.find((frame) => frame.fontStrings.some((text) => text.text === "Load the new settings"))!;
+
 const isShown = (world: World) => world.frames.find((frame) => frame.name === "GlowingBarsProfiles")?.isShown === true;
 
 describe("the Profiles window's buttons", () => {
@@ -45,6 +51,12 @@ describe("the Profiles window's buttons", () => {
         const world = openProfiles();
         const row = world.frames.find((frame) => frame.fontStrings.some((text) => text.text === "Current profile"))!;
         expect(row.fontStrings.some((text) => text.text === "Me - Forever (Human Priest)")).toBe(true);
+    });
+
+    it("shows no tab button: it has only the one tab", () => {
+        const world = openProfiles();
+        const window = world.frames.find((frame) => frame.name === "GlowingBarsProfiles")!;
+        expect(world.frames.some((frame) => frame.parent === window && frame.text === "Profiles" && frame.isShown)).toBe(false);
     });
 
     it("closes as a fight starts", () => {
@@ -75,7 +87,7 @@ describe("copying a profile", () => {
         const world = openProfiles({ Shared: {} });
         world.setOption("copyProfile", "Me - Forever (Human Priest)");
         answer(world, "Copy");
-        expect(world.state.reloads).toBe(0);
+        expect(asksForReload(world)).toBe(false);
     });
 
     it("takes another profile's settings into this one, apart from it", () => {
@@ -87,7 +99,9 @@ describe("copying a profile", () => {
         // A copy: changing it leaves the other as it was
         (profiles["Me - Forever (Human Priest)"]!.styles as Record<string, Record<string, unknown>>).missingBuff!.glowPercent = 90;
         expect((profiles.Shared!.styles as Record<string, Record<string, unknown>>).missingBuff!.glowPercent).toBe(40);
+        // A reload is tried; where Forever blocks it, the player is asked for one
         expect(world.state.reloads).toBe(1);
+        expect(asksForReload(world)).toBe(true);
     });
 });
 
@@ -97,6 +111,21 @@ describe("resetting a profile", () => {
         world.clickOption("Reset profile");
         answer(world, "Reset");
         expect(world.state.reloads).toBe(1);
+        expect(asksForReload(world)).toBe(true);
         expect(reloadWorld(world).getSavedSettings()?.messageSize).toBe(100);
+    });
+});
+
+describe("reloading after a change", () => {
+    it("is offered only once the profile was copied or reset, and reloads by its own click", () => {
+        const world = openProfiles({}, { messageSize: 150 });
+        expect(findReloadRow(world).isShown).toBe(false);
+        world.clickOption("Reset profile");
+        answer(world, "Reset");
+        const row = findReloadRow(world);
+        expect(row.isShown).toBe(true);
+        const button = world.frames.find((frame) => frame.parent === row && frame.text === "Reload")!;
+        button.scripts.OnClick!(button);
+        expect(world.state.reloads).toBe(2);
     });
 });

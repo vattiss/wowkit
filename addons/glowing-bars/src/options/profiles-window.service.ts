@@ -1,6 +1,7 @@
 // The Profiles window (issue #76), opened by the button at the top left of the settings, or /gb profiles: each character
 // has a profile of its own, which can take another's settings or the defaults. A copy or a reset takes effect from the next
-// load of the interface, as the settings are read then: each asks first, then reloads it.
+// load of the interface, as the settings are read then: each asks first, then reloads it; where Forever blocks that, a
+// Reload row of its own is there.
 import { OnGameEvent } from "@wowkit/core";
 import { connectChoiceMenu, type MessagesService, OptionsWindow, type OptionsTab } from "@wowkit/ui";
 import type { AddonLocale } from "../locale/locale.interface";
@@ -17,6 +18,9 @@ const VARIABLE_PREFIX = "GlowingBars";
 
 export class ProfilesWindowService {
     private window: OptionsWindow | undefined;
+    private tab: OptionsTab | undefined;
+    /** Was the profile copied or reset since the interface loaded, so a reload is wanted? */
+    private isReloadWaiting = false;
 
     constructor(
         private readonly settings: AddonSettingsService,
@@ -60,6 +64,8 @@ export class ProfilesWindowService {
         this.addCurrentRow(tab);
         this.addCopyRow(tab, window);
         this.addResetRow(tab, window);
+        this.addReloadRow(tab);
+        this.tab = tab;
         return window;
     }
 
@@ -84,7 +90,9 @@ export class ProfilesWindowService {
         const button = this.createButton(row, CONTROL_LEFT, findChoiceWidth(tab));
         button.SetText("...");
         const pick = (value?: unknown) =>
-            this.confirmThenReload(window, "Q_COPY_PROFILE", value as string, "BTN_COPY", () => this.settings.copyProfile(value as string));
+            this.confirmThenAskReload(window, "Q_COPY_PROFILE", value as string, "BTN_COPY", () =>
+                this.settings.copyProfile(value as string),
+            );
         connectChoiceMenu(button, () =>
             this.settings
                 .listProfileNames()
@@ -105,7 +113,7 @@ export class ProfilesWindowService {
         const button = this.createButton(row, CONTROL_LEFT, BUTTON_WIDTH);
         button.SetText(this.locale.getText("BTN_RESET_PROFILE"));
         const reset = () =>
-            this.confirmThenReload(window, "Q_RESET_PROFILE", this.settings.getProfileName(), "BTN_RESET_PROFILE", () => {
+            this.confirmThenAskReload(window, "Q_RESET_PROFILE", this.settings.getProfileName(), "BTN_RESET_PROFILE", () => {
                 this.settings.resetProfile();
                 return true;
             });
@@ -119,10 +127,30 @@ export class ProfilesWindowService {
         });
     }
 
-    /** Asks first; on yes, `act` and, when it took, a reload of the interface (the settings are read as it loads). */
-    private confirmThenReload(window: OptionsWindow, question: TextKey, name: string, yesText: TextKey, act: () => boolean): void {
+    /** Reloads the interface by a click of its own, as the Welcome tab's button does; only once there is something to load. */
+    private addReloadRow(tab: OptionsTab): void {
+        const row = tab.createRow(this.locale.getText("OPT_PROFILE_RELOAD"), this.locale.getText("TIP_PROFILE_RELOAD"));
+        const button = this.createButton(row, CONTROL_LEFT, BUTTON_WIDTH);
+        button.SetText(this.locale.getText("BTN_RELOAD"));
+        button.SetScript("OnClick", () => C_UI.Reload());
+        tab.addControl(row, {
+            variable: `${VARIABLE_PREFIX}_reloadProfile`,
+            apply: () => C_UI.Reload(),
+            setEnabled: (isEnabled) => button.SetEnabled(isEnabled),
+        }).showWhen(() => this.isReloadWaiting);
+    }
+
+    /**
+     * Asks first; on yes, `act` and, when it took, a reload (the settings are read as the interface loads). Forever has
+     * blocked that from the question's click: the Reload row shows, and the player is told, before it is tried.
+     */
+    private confirmThenAskReload(window: OptionsWindow, question: TextKey, name: string, yesText: TextKey, act: () => boolean): void {
         window.confirm(string.format(this.locale.getText(question), name), this.locale.getText(yesText), () => {
-            if (act()) C_UI.Reload();
+            if (!act()) return;
+            this.isReloadWaiting = true;
+            this.messages.say(this.locale.getText("MSG_TYPE_RELOAD"));
+            this.tab?.refresh();
+            C_UI.Reload();
         });
     }
 

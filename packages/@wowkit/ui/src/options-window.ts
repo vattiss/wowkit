@@ -10,6 +10,7 @@ const SIDE = 22;
 /** The scroll bar, on the right of the tabs' rows. */
 const SCROLL_BAR_WIDTH = 24;
 const TAB_TOP = 46;
+/** Where the rows start: under the tabs' buttons, or where those would be in a window of one tab. */
 const SCROLL_TOP = 80;
 const SCROLL_BOTTOM = 48;
 
@@ -31,8 +32,7 @@ export class OptionsWindow {
         this.window.SetSize(size.width, size.height);
         this.tabBar = new TabBar(this.window, TAB_TOP, SIDE);
         this.scroll = CreateFrame("ScrollFrame", undefined, this.window, "UIPanelScrollFrameTemplate");
-        this.scroll.SetPoint("TOPLEFT", this.window, "TOPLEFT", SIDE, -SCROLL_TOP);
-        this.scroll.SetPoint("BOTTOMRIGHT", this.window, "BOTTOMRIGHT", -SIDE - 24, SCROLL_BOTTOM);
+        this.setScrollTop(SCROLL_TOP);
         applyScrollBarTint(this.scroll);
         this.createDefaultsButton(texts.defaults);
         this.question = new DefaultsQuestion(this.window, `${name}Question`, texts);
@@ -127,9 +127,17 @@ export class OptionsWindow {
         this.selectTab(tab ?? this.current ?? this.tabs.find((each) => each.hasRows()));
     }
 
-    /** Side by side, without the tabs that have nothing on them for this character. */
+    /** Side by side, without the tabs that have nothing on them for this character; none for a window of one tab. */
     private updateTabButtons(): void {
-        this.tabBar.showTabs((index) => this.tabs[index]!.hasRows());
+        const hasTabBar = this.tabs.length > 1;
+        this.tabBar.showTabs((index) => hasTabBar && this.tabs[index]!.hasRows());
+        this.setScrollTop(hasTabBar ? SCROLL_TOP : TAB_TOP);
+    }
+
+    private setScrollTop(top: number): void {
+        this.scroll.ClearAllPoints();
+        this.scroll.SetPoint("TOPLEFT", this.window, "TOPLEFT", SIDE, -top);
+        this.scroll.SetPoint("BOTTOMRIGHT", this.window, "BOTTOMRIGHT", -SIDE - 24, SCROLL_BOTTOM);
     }
 
     private selectTab(tab: OptionsTab | undefined): void {
