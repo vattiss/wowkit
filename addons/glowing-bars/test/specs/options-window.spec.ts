@@ -188,6 +188,18 @@ describe("the old words of the slash command", () => {
             expect(footer.isShown).toBe(false);
         }
     });
+
+    it("runs the scan for /gb scan, which finds the buttons again; not for /gb welcome", () => {
+        const world = createPlayer();
+        const isScanning = () =>
+            world.frames.some((frame) => frame.fontStrings.some((text) => text.text === "Looking for your action buttons..."));
+        SlashCmdList["GLOWINGBARS"]!("welcome", undefined as never);
+        world.advance(0.1);
+        expect(isScanning()).toBe(false);
+        SlashCmdList["GLOWINGBARS"]!("scan", undefined as never);
+        world.advance(0.1);
+        expect(isScanning()).toBe(true);
+    });
 });
 
 describe("a reload in a fight", () => {

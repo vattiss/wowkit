@@ -77,6 +77,14 @@ const ELVUI_BARS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 13, 14, 15];
  */
 export const DAYLIGHT_PREFIX = "DaylightUIBar";
 
+/**
+ * ConsolePort's buttons of Forever's gamepad slots (185 on): ConsolePortGamepadBar1Slot1 to ConsolePortGamepadBar22Slot8, 8 to
+ * a bar, made as the gamepad's bindings come in, after the login. They count as no numbered bar.
+ */
+const CONSOLEPORT_PREFIX = "ConsolePortGamepadBar";
+const CONSOLEPORT_BARS = 22;
+const CONSOLEPORT_SLOTS = 8;
+
 /** The name of ElvUI's button `index` (1 to 12) of its bar `bar`. */
 function getElvUIButtonName(bar: number, index: number): string {
     return `${ELVUI_PREFIX}${bar}Button${index}`;
@@ -106,7 +114,7 @@ function findDominosNumber(name: string): number | undefined {
 
 /**
  * The names of every action button of the bar addons: Bartender4's, Dominos's, EllesmereUI's (its bars 1 to 10), ElvUI's,
- * DaylightUI's.
+ * DaylightUI's, ConsolePort's gamepad slots.
  */
 export function listAddonButtonNames(): string[] {
     const names: string[] = [];
@@ -116,6 +124,8 @@ export function listAddonButtonNames(): string[] {
         for (let i = 1; i <= 12; i++) names.push(`${ELLESMERE_PREFIX}${offset + i}`);
     for (const bar of ELVUI_BARS) for (let i = 1; i <= 12; i++) names.push(getElvUIButtonName(bar, i));
     for (let bar = 1; bar <= BARS.length; bar++) for (let i = 1; i <= 12; i++) names.push(`${DAYLIGHT_PREFIX}${bar}Button${i}`);
+    for (let bar = 1; bar <= CONSOLEPORT_BARS; bar++)
+        for (let i = 1; i <= CONSOLEPORT_SLOTS; i++) names.push(`${CONSOLEPORT_PREFIX}${bar}Slot${i}`);
     return names;
 }
 

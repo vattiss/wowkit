@@ -122,6 +122,8 @@ export class WelcomeService implements OnLogin {
 
     private describe(result: ButtonSearchResult): string {
         if (result.buttons.length === 0) return this.locale.getText("WELCOME_NO_BUTTONS");
-        return string.format(this.locale.getText("WELCOME_FOUND"), result.buttons.length, result.found.length, result.hiddenCount);
+        const found = string.format(this.locale.getText("WELCOME_FOUND"), result.buttons.length, result.found.length, result.hiddenCount);
+        // Buttons found by searching: a bar addon that makes them after the login needs the search again
+        return result.found.length > 0 ? `${found} ${this.locale.getText("WELCOME_RESCAN")}` : found;
     }
 }

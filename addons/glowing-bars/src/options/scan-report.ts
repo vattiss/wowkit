@@ -15,7 +15,16 @@ import type { Reminders } from "../tick/tick.interface";
 /** So many names of what was auto-detected go in the report. */
 const NAMES_IN_REPORT = 10;
 /** The bar addons that matter for a report. */
-const BAR_ADDONS = ["Bartender4", "Dominos", "ElvUI", "EllesmereUI", "EllesmereUIActionBars", "DaylightUI"];
+const BAR_ADDONS = [
+    "Bartender4",
+    "Dominos",
+    "ElvUI",
+    "EllesmereUI",
+    "EllesmereUIActionBars",
+    "DaylightUI",
+    "ConsolePort",
+    "ConsolePort_Bar",
+];
 
 /** What each button holds. */
 interface ButtonCounts {

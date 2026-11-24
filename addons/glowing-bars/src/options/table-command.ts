@@ -1,5 +1,6 @@
 // The slash command: /gb and /gb table open the table of looks, /gb settings the settings window, /gb profiles the
-// profiles. The old words of older release notes open their tab: /gb changelog What's New, /gb welcome and /gb scan Welcome.
+// profiles, /gb scan the Welcome tab and its scan (buttons of a bar addon made after the login are found then). The old
+// words of older release notes open their tab: /gb changelog What's New, /gb welcome Welcome.
 import { OnGameEvent, type OnFirstLogin } from "@wowkit/core";
 import type { MessagesService, OptionsService } from "@wowkit/ui";
 import type { AddonLocale } from "../locale/locale.interface";
@@ -33,9 +34,16 @@ export class TableCommand implements OnFirstLogin {
             if (word === "settings") this.options.open();
             else if (word === "profiles") this.profiles.open();
             else if (word === "changelog") this.options.open(this.whatsNew.getTab());
-            else if (word === "welcome" || word === "scan") this.options.open(this.welcome.getTab());
+            else if (word === "welcome") this.options.open(this.welcome.getTab());
+            else if (word === "scan") this.openScan();
             else this.table.toggle();
         };
+    }
+
+    /** The Welcome tab, and its scan, which looks for the buttons again; not in a fight, when the window does not open. */
+    private openScan(): void {
+        this.options.open(this.welcome.getTab());
+        if (!InCombatLockdown()) this.welcome.scan();
     }
 
     /** A fight starts: the table and its message window close. */
