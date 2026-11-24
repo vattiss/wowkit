@@ -50,6 +50,10 @@ export function installItems(state: ClientState, sounds: number[]): void {
         GetItemCount: (item) => state.bags[(type(item) === "string" ? state.itemIds[item as string] : (item as number)) ?? 0] ?? 0,
         GetItemNameByID: (item) => state.itemNames[item as number],
         GetItemIconByID: () => undefined,
+        // Only noted: the test says when the data comes in (GET_ITEM_INFO_RECEIVED)
+        RequestLoadItemDataByID: (item) => {
+            state.itemLoadRequests.push(item as number);
+        },
     });
 
     defineGlobals({

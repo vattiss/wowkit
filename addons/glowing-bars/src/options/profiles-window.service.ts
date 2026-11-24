@@ -40,6 +40,12 @@ export class ProfilesWindowService {
         this.window.open();
     }
 
+    /** An item's data came in: the Added spells tab names it, where it was waiting for it. */
+    @OnGameEvent("GET_ITEM_INFO_RECEIVED")
+    refreshItemNames(itemId: number): void {
+        if (this.window?.isShown() === true) this.spellsSection.refreshNames(itemId);
+    }
+
     /** A fight starts: the window closes. */
     @OnGameEvent("PLAYER_REGEN_DISABLED")
     hideForCombat(): void {

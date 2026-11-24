@@ -6,19 +6,32 @@ const SHIELD_BASH = { id: 72, name: "Shield Bash", rank: 1, icon: 132357, cooldo
 const BASH_ADDED = { id: 72, reminderType: "readyCooldown" };
 const ARROWS_ADDED = { id: 2512, reminderType: "lowStock" };
 
-type Characters = Record<string, { addedSpells?: unknown[] } | undefined>;
+type Characters = Record<string, { addedSpells?: unknown[]; fedItems?: Record<string, number> } | undefined>;
 
-/** A character of its own GUID, with what it had added, on the account given; it logs in. */
-function login(guid: string, addedSpells: unknown[], accountSaved?: Record<string, unknown>): World {
+/**
+ * A character of its own GUID, with what it had added (and saved besides), on the account given; it logs in. The client
+ * knows the arrows' and the steak's names, but for those of `loadingItems`.
+ */
+function login(
+    guid: string,
+    addedSpells: unknown[],
+    accountSaved?: Record<string, unknown>,
+    saved: Record<string, unknown> = {},
+    loadingItems: number[] = [],
+): World {
     const world = createWorld(
         (state) => {
             playAs(state, PRIEST);
             learnSpell(state, SHIELD_BASH);
-            state.itemNames[2512] = "Rough Arrow";
+            if (!loadingItems.includes(2512)) state.itemNames[2512] = "Rough Arrow";
+            state.spells[18233] = { id: 18233, name: "Nutritious Food", rank: 1, icon: 1 };
+            if (!loadingItems.includes(13935)) state.itemNames[13935] = "Tender Wolf Steak";
             state.playerGuid = guid;
+            // The first one's surname lists it after the second, so the order of the list cannot name a spell by its adder
+            if (guid === "Player-1-A") state.surname = "Stormlight";
             state.accountSaved = accountSaved;
         },
-        { addedSpells },
+        { ...saved, addedSpells },
     );
     world.advance(1);
     return world;
@@ -41,7 +54,8 @@ function listRows(world: World): string[] {
 }
 
 function findRows(world: World): FakeFrame[] {
-    const isSpellLabel = (text: string | undefined) => ["(Ready cooldown)", "(Low stock)"].some((type) => text?.endsWith(type) === true);
+    const isSpellLabel = (text: string | undefined) =>
+        ["(Ready cooldown)", "(Low stock)", "(Missing buff)"].some((type) => text?.endsWith(type) === true);
     return world.frames.filter((frame) => frame.isShown && isSpellLabel(frame.fontStrings[0]?.text));
 }
 
@@ -75,6 +89,86 @@ describe("the spells added on the account's characters", () => {
         SlashCmdList.GLOWINGBARS!("profiles", undefined as never);
         world.advance(1);
         expect(listRows(world).length).toBe(1);
+    });
+
+    it("names a food by its item, as the table does, not by the spell all foods share", () => {
+        const world = createWorld(
+            (state) => {
+                playAs(state, PRIEST);
+                state.spells[18233] = { id: 18233, name: "Nutritious Food", rank: 1, icon: 1 };
+                state.itemUseSpells[13935] = 18233;
+                state.itemNames[13935] = "Tender Wolf Steak";
+                state.barItems[1] = 13935;
+                state.bags[13935] = 5;
+            },
+            { addedSpells: [{ id: 18233, reminderType: "missingBuff" }] },
+        );
+        world.advance(1);
+        SlashCmdList.GLOWINGBARS!("profiles", undefined as never);
+        world.advance(1);
+        expect(listRows(world).some((label) => label.includes("Tender Wolf Steak (Missing buff)"))).toBe(true);
+    });
+
+    it("names a food another character added by the item that character ate", () => {
+        const food = { id: 18233, reminderType: "missingBuff" };
+        const first = login("Player-1-A", [food], undefined, { fedItems: { "18233": 13935 } });
+        const world = login("Player-1-B", [], first.getAccountSaved());
+        SlashCmdList.GLOWINGBARS!("profiles", undefined as never);
+        world.advance(1);
+        const rows = listRows(world);
+        expect(rows.length).toBe(1);
+        expect(rows[0]!.endsWith(" Tender Wolf Steak (Missing buff)")).toBe(true);
+    });
+
+    it("still names a food another character added by its item once this one adds it too", () => {
+        const food = { id: 18233, reminderType: "missingBuff" };
+        const first = login("Player-1-A", [food], undefined, { fedItems: { "18233": 13935 } });
+        const world = login("Player-1-B", [], first.getAccountSaved());
+        SlashCmdList.GLOWINGBARS!("profiles", undefined as never);
+        world.advance(1);
+        click(findButton(world, "Tender Wolf Steak", "Add"));
+        expect(listRows(world)[0]!.endsWith(" Tender Wolf Steak (Missing buff)")).toBe(true);
+    });
+
+    it("gives this character the item of a food it adds, for its own table", () => {
+        const food = { id: 18233, reminderType: "missingBuff" };
+        const first = login("Player-1-A", [food], undefined, { fedItems: { "18233": 13935 } });
+        const world = login("Player-1-B", [], first.getAccountSaved(), { fedItems: { "2828": 2862 } });
+        SlashCmdList.GLOWINGBARS!("profiles", undefined as never);
+        world.advance(1);
+        click(findButton(world, "Tender Wolf Steak", "Add"));
+        expect(readCharacters(world)["Player-1-B"]?.fedItems).toEqual({ "18233": 13935, "2828": 2862 });
+    });
+
+    it("names an item the client had not loaded once its data comes in", () => {
+        const first = login("Player-1-A", [ARROWS_ADDED]);
+        const world = login("Player-1-B", [], first.getAccountSaved(), {}, [2512]);
+        SlashCmdList.GLOWINGBARS!("profiles", undefined as never);
+        world.advance(1);
+        expect(listRows(world)).toEqual(["#2512 (Low stock)"]);
+        world.state.itemNames[2512] = "Rough Arrow";
+        world.fire("GET_ITEM_INFO_RECEIVED", 2512, true);
+        expect(listRows(world)).toEqual(["Rough Arrow (Low stock)"]);
+    });
+
+    it("asks the client for an item once, so its answer does not ask again", () => {
+        const first = login("Player-1-A", [ARROWS_ADDED]);
+        const world = login("Player-1-B", [], first.getAccountSaved(), {}, [2512]);
+        SlashCmdList.GLOWINGBARS!("profiles", undefined as never);
+        world.advance(1);
+        world.fire("GET_ITEM_INFO_RECEIVED", 2512, false);
+        world.fire("GET_ITEM_INFO_RECEIVED", 2512, false);
+        expect(world.state.itemLoadRequests).toEqual([2512]);
+    });
+
+    it("names this character's own food by its item once the client loads it", () => {
+        const food = { id: 18233, reminderType: "missingBuff" };
+        const world = login("Player-1-A", [food], undefined, { fedItems: { "18233": 13935 } }, [13935]);
+        SlashCmdList.GLOWINGBARS!("profiles", undefined as never);
+        world.advance(1);
+        world.state.itemNames[13935] = "Tender Wolf Steak";
+        world.fire("GET_ITEM_INFO_RECEIVED", 13935, true);
+        expect(listRows(world)[0]!.endsWith(" Tender Wolf Steak (Missing buff)")).toBe(true);
     });
 
     it("adds a spell on this character only", () => {

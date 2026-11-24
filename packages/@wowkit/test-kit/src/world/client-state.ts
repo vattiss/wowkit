@@ -216,6 +216,8 @@ export interface ClientState {
     /** The cooldowns of the items (a trinket's), by item ID: when they started and how long they are. */
     itemCooldowns: { [itemId: number]: { start: number; duration: number } | undefined };
     itemNames: { [itemId: number]: string | undefined };
+    /** The items the addon asked the client to load, in order (C_Item.RequestLoadItemDataByID). */
+    itemLoadRequests: number[];
     level: number;
     /** The realm's name, as GetRealmName gives it; "Forever" when not given (Forever's client may give none). */
     realm?: string;
@@ -327,6 +329,7 @@ export function createClientState(): ClientState {
         itemUseSpells: {},
         itemCooldowns: {},
         itemNames: {},
+        itemLoadRequests: [],
         level: 60,
         race: { id: 1, file: "Human" },
         target: undefined,

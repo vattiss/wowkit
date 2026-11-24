@@ -346,7 +346,6 @@ export const CHARACTER_KEYS: (keyof AddonSettings)[] = [
     "lastTotems",
     "lastBuffs",
     "fedBuffs",
-    "fedItems",
     "isTableAdvanced",
     "tableTab",
     "shownUnlearned",
@@ -354,6 +353,7 @@ export const CHARACTER_KEYS: (keyof AddonSettings)[] = [
 
 /**
  * The settings each character keeps for itself in the account's data, under its name, so any character can see them: the
- * spells it added by ID (the list of every character's on the Profiles page).
+ * spells it added by ID (the list of every character's on the Profiles page), and the item of each food, drink or weapon
+ * buff it saw on its bars (that list names them by it).
  */
-export const ACCOUNT_CHARACTER_KEYS: (keyof AddonSettings)[] = ["addedSpells"];
+export const ACCOUNT_CHARACTER_KEYS: (keyof AddonSettings)[] = ["addedSpells", "fedItems"];

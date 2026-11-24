@@ -309,7 +309,7 @@ function makeOptions(
         ),
     );
     const options = addon.register(new OptionsService(messages, "GlowingBarsOptions", page));
-    const characterSpells = new CharacterSpellsSection(texts.settings, locale, game.spells, game.bags);
+    const characterSpells = new CharacterSpellsSection(texts.settings, locale, game.spells, game.bags, reminders.fedBuffs);
     const profiles = addon.register(new ProfilesWindowService(texts.settings, locale, messages, characterSpells));
     addon.register(new TableCommand(table, options, messages, locale, welcome, whatsNew, profiles));
 }
