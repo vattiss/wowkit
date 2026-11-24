@@ -114,6 +114,15 @@ describe("the Added spells window's own button", () => {
         // On the left: set in from the left edge, not back from the right one
         expect((button.anchorX ?? 0) > 0).toBe(true);
     });
+
+    it("leaves the table open when it was opened meanwhile", () => {
+        const world = openOnSecond();
+        toggleTable();
+        const window = world.frames.find((frame) => frame.name === "GlowingBarsAddedSpells")!;
+        click(world.frames.find((frame) => frame.parent === window && frame.text === "Open Table")!);
+        world.advance(1);
+        expect(world.frames.find((frame) => frame.name === "GlowingBarsLooks")?.isShown).toBe(true);
+    });
 });
 
 describe("the spells added on the account's characters", () => {
@@ -257,6 +266,22 @@ describe("the spells added on the account's characters", () => {
         expect(words.includes("Me Stormlight")).toBe(true);
         // The heading, an empty line, and the two characters
         expect(words.split("\n").length).toBe(4);
+    });
+
+    it("names at most 15 characters, and counts the rest", () => {
+        const characters: Characters = {};
+        for (let n = 1; n <= 17; n++) {
+            const about = { name: `Alt${n}`, surname: "", realm: "", race: "Human", className: "Priest", ruleset: "" };
+            characters[`Player-1-${n}`] = { about, addedSpells: [BASH_ADDED] } as Characters[string];
+        }
+        const world = login("Player-1-B", [], { characters });
+        openAddedSpells(world);
+        world.advance(1);
+        click(findButton(world, "Shield Bash", "Characters"));
+        const lines = findQuestionBox(world).fontStrings[0]!.text!.split("\n");
+        // The heading, an empty line, 15 characters and the count
+        expect(lines.length).toBe(18);
+        expect(lines[17]).toBe("...and 2 more");
     });
 
     it("deletes a spell from every character from there", () => {

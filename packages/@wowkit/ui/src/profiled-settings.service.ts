@@ -11,8 +11,6 @@ import type { SavedVariablesService } from "@wowkit/wow";
 import type { SettingsStore } from "./settings.service";
 import { describeCharacter, findPlayer, pickProfileName, type CharacterInfo } from "./character-identity";
 
-/** The profile an earlier build started a new character on, shared: a character on it gets one of its own, made of it. */
-const SHARED_DEFAULT_PROFILE = "Default";
 /** Where a character's entry in the account's data says who it is (name, realm, race, class). */
 const ABOUT_KEY = "about";
 
@@ -31,7 +29,7 @@ interface CharacterTable {
 export interface ProfiledSettingsOptions<T extends object> {
     /** The keys that are each character's own, kept in its saved data. */
     characterKeys: readonly (keyof T)[];
-    /** The keys that are each character's own, kept in the account's data under its name, for every character to see. */
+    /** The keys that are each character's own, kept in the account's data under its GUID, for every character to see. */
     accountCharacterKeys?: readonly (keyof T)[];
     /** Puts right what a saved value got wrong, once the values are loaded (on the settings as one set). */
     repair?: (values: T) => void;
@@ -80,9 +78,9 @@ export class ProfiledSettingsService<T extends object> implements OnAddonLoaded,
         const character: CharacterTable & Record<string, unknown> = saved ?? {};
         this.player = this.findCharacter();
         const oldName = character.profileName;
-        // No profile yet (new, or saved before profiles), the shared one of an earlier build, or its own gone: one of its own
-        const isOwn = oldName !== undefined && oldName !== SHARED_DEFAULT_PROFILE && account.profiles[oldName] !== undefined;
-        const profileName = isOwn ? oldName : this.createOwnProfile(character, account, oldName);
+        // No profile yet (new, or saved before profiles), or its own gone: one of its own
+        const isOwn = oldName !== undefined && account.profiles[oldName] !== undefined;
+        const profileName = isOwn ? oldName : this.createOwnProfile(character, account);
         character.profileName = profileName;
         this.account = account;
         this.accountCharacter = account.characters[this.player.key] ??= {};
@@ -189,14 +187,13 @@ export class ProfiledSettingsService<T extends object> implements OnAddonLoaded,
     }
 
     /**
-     * The character's own profile, "Castor Stormlight (Gnome Priest, Normal)", numbered where taken: a copy of the shared one
-     * it was on, if any, and what it holds that is not its own (saved before profiles) moved in.
+     * The character's own profile, "Castor Stormlight (Gnome Priest, Normal)", numbered where taken: what it holds that is not its
+     * own (saved before profiles) moved in.
      */
-    private createOwnProfile(character: Record<string, unknown>, account: AccountTable, oldName: string | undefined): string {
+    private createOwnProfile(character: Record<string, unknown>, account: AccountTable): string {
         const profiles = account.profiles!;
         const name = pickProfileName((taken) => profiles[taken] !== undefined, this.player);
-        const shared = oldName !== undefined ? profiles[oldName] : undefined;
-        const profile = (shared !== undefined ? copyValue(shared) : {}) as Record<string, unknown>;
+        const profile: Record<string, unknown> = {};
         for (const [key, value] of pairs(character)) {
             if (this.isOwnKey(key as string)) continue;
             profile[key as string] = value;

@@ -1,4 +1,4 @@
-// The Added spells tab of the Profiles window (issue #76): the spells added on any character of the account. Each character
+// The Added spells window's list (issue #76): the spells added on any character of the account. Each character
 // keeps its own list: Add and Remove change this character's; a spell no character has any more leaves the tab. Characters
 // shows which ones have it, and deletes it from all of them. The rows are made as the list grows, and hidden while shorter.
 import type { OptionsTab, OptionsWindow } from "@wowkit/ui";
@@ -14,6 +14,8 @@ const BUTTON_WIDTH = 80;
 /** Where the buttons of a row start, as the other rows' controls do. */
 const CONTROL_LEFT = 340;
 const ICON_SIZE = 16;
+/** The most characters the Characters box names; the rest are counted, so the box fits on the screen. */
+const MOST_LISTED = 15;
 
 /** One spell of the list, and where it is. */
 interface CharacterSpell {
@@ -157,7 +159,10 @@ export class CharacterSpellsSection {
     private showCharacters(index: number): void {
         const entry = this.entries[index];
         if (entry === undefined) return;
-        const question = `${string.format(this.readText("ADDED_ON"), entry.name)}\n\n${entry.characters.join("\n")}`;
+        const listed = entry.characters.slice(0, MOST_LISTED);
+        const unlisted = entry.characters.length - listed.length;
+        if (unlisted > 0) listed.push(string.format(this.readText("ADDED_ON_MORE"), unlisted));
+        const question = `${string.format(this.readText("ADDED_ON"), entry.name)}\n\n${listed.join("\n")}`;
         this.window?.confirm(question, this.readText("BTN_DELETE_ALL"), () => this.deleteEverywhere(entry.spell));
     }
 

@@ -67,7 +67,7 @@ export class DefaultsQuestion {
         this.confirm(string.format(this.question, tabName), this.resetText, onReset);
     }
 
-    /** Asks any question first: `onYes` only on its yes button, which says `yesText` (Switch, Delete...). */
+    /** Asks any question first: `onYes` only on its yes button, which says `yesText` (Copy, Reset...). */
     confirm(question: string, yesText: string, onYes: (this: void) => void): void {
         this.onReset = onYes;
         this.yesButton.SetText(yesText);

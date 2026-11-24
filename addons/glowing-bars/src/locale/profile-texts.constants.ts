@@ -25,6 +25,7 @@ export const PROFILE_TEXTS = {
     BTN_REMOVE: "Remove",
     BTN_CHARACTERS: "Characters",
     ADDED_ON: "%s is added on:",
+    ADDED_ON_MORE: "...and %d more",
     BTN_DELETE_ALL: "Delete from all characters",
     Q_REMOVE_LAST: "No other character has %s, so it leaves the list. Remove it?",
 };

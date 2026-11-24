@@ -57,16 +57,6 @@ describe("a new character", () => {
     });
 });
 
-describe("a character an earlier build put on the shared Default profile", () => {
-    it("gets one of its own, a copy of it, and leaves it as it was", () => {
-        const world = createPriest({ profileName: "Default" }, { profiles: { Default: { messageSize: 150 } } });
-        expect(world.getSavedSettings()?.profileName).toBe("Me - Forever (Human Priest)");
-        expect(world.getSavedSettings()?.messageSize).toBe(150);
-        world.setOption("messageSize", 120);
-        expect(readProfiles(world).Default?.messageSize).toBe(150);
-    });
-});
-
 describe("a character on its own profile", () => {
     it("keeps it at its next login, under the name it got", () => {
         const world = createPriest({ profileName: "Mine" }, { profiles: { Mine: { messageSize: 150 } } });

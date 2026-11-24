@@ -5,7 +5,7 @@ import { type MessagesService, OptionsWindow } from "@wowkit/ui";
 import type { AddonLocale } from "../locale/locale.interface";
 import type { TextKey } from "../locale/texts.constants";
 import type { CharacterSpellsSection } from "./character-spells.section";
-import { BASIC_WINDOW_WIDTH, WINDOW_HEIGHT } from "./style-table.constants";
+import { BASIC_WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_NAME } from "./style-table.constants";
 import { COMMAND } from "./table-command";
 
 export class AddedSpellsWindowService {
@@ -53,7 +53,11 @@ export class AddedSpellsWindowService {
             },
             { width: BASIC_WINDOW_WIDTH, height: WINDOW_HEIGHT },
         );
-        window.addTopLeftButton(readText("BTN_OPEN_TABLE"), () => SlashCmdList[COMMAND]?.("", undefined as never));
+        window.addTopLeftButton(readText("BTN_OPEN_TABLE"), () => {
+            // The command opens or closes the table: one opened meanwhile (/gb) stays open
+            const table = (_G as unknown as Record<string, Frame | undefined>)[WINDOW_NAME];
+            if (table?.IsShown() !== true) SlashCmdList[COMMAND]?.("", undefined as never);
+        });
         this.spellsSection.build(window, window.addTab(readText("TAB_ADDED_SPELLS"), false));
         return window;
     }

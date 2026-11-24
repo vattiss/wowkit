@@ -328,10 +328,10 @@ export function repairSettings(values: AddonSettings): void {
 }
 
 /**
- * The settings each character keeps for itself; every other one is its profile's, shared by the characters on it. Its own
+ * The settings each character keeps apart from its profile: a copy of another's profile or a reset leaves them. Its own
  * are what it learned as it played, the state of its welcome and of its Cooldown Manager, the table's view, and the
  * switch that turns the addon off on it. The moves of saved settings that touch them run for each
- * character; those of a profile's settings travel with the profile.
+ * character; those of a profile's settings travel with the profile, into a copy too.
  */
 export const CHARACTER_KEYS: (keyof AddonSettings)[] = [
     "isDisabled",
@@ -352,8 +352,8 @@ export const CHARACTER_KEYS: (keyof AddonSettings)[] = [
 ];
 
 /**
- * The settings each character keeps for itself in the account's data, under its name, so any character can see them: the
- * spells it added by ID (the list of every character's on the Profiles page), and the item of each food, drink or weapon
+ * The settings each character keeps for itself in the account's data, under its GUID, so any character can see them: the
+ * spells it added by ID (the Added spells window lists every character's), and the item of each food, drink or weapon
  * buff it saw on its bars (that list names them by it).
  */
 export const ACCOUNT_CHARACTER_KEYS: (keyof AddonSettings)[] = ["addedSpells", "fedItems"];
