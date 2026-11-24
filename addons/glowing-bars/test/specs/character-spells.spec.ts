@@ -1,6 +1,7 @@
-// The Added spells tab of the Profiles window (issue #76): every spell added on a character of the account, once. Add puts
-// one on this character too; Delete, asked first, takes it off every character.
+// The Added spells window (issue #76): every spell added on a character of the account, once. Add and
+// Remove change this character's list; Characters shows which ones have it, and deletes it from all of them.
 import { createWorld, describe, expect, it, learnSpell, playAs, PRIEST, type FakeFrame, type World } from "@wowkit/test-kit";
+import { toggleTable } from "./table.helpers";
 
 const SHIELD_BASH = { id: 72, name: "Shield Bash", rank: 1, icon: 132357, cooldownSeconds: 12, isHarmful: true };
 const BASH_ADDED = { id: 72, reminderType: "readyCooldown" };
@@ -37,11 +38,18 @@ function login(
     return world;
 }
 
-/** The first character added Shield Bash and arrows, the second (playing) nothing; the Profiles window open. */
+/** Opens the Added spells window by the button at the top left of the table. */
+function openAddedSpells(world: World): void {
+    toggleTable();
+    const table = world.frames.find((frame) => frame.name === "GlowingBarsLooks")!;
+    click(world.frames.find((frame) => frame.parent === table && frame.text === "Added spells")!);
+}
+
+/** The first character added Shield Bash and arrows, the second (playing) nothing; the Added spells window open. */
 function openOnSecond(secondAdded: unknown[] = []): World {
     const first = login("Player-1-A", [BASH_ADDED, ARROWS_ADDED]);
     const world = login("Player-1-B", secondAdded, first.getAccountSaved());
-    SlashCmdList.GLOWINGBARS!("profiles", undefined as never);
+    openAddedSpells(world);
     world.advance(1);
     return world;
 }
@@ -69,10 +77,44 @@ function click(button: FakeFrame): void {
     button.scripts.OnClick!(button);
 }
 
+function findQuestionBox(world: World): FakeFrame {
+    return world.frames.find((frame) => frame.name === "GlowingBarsAddedSpellsQuestion")!;
+}
+
 function answer(world: World, text: string): void {
-    const box = world.frames.find((frame) => frame.name === "GlowingBarsProfilesQuestion")!;
+    const box = findQuestionBox(world);
     click(world.frames.find((frame) => frame.parent === box && frame.text === text)!);
 }
+
+/** Is the window asking something? */
+const isAsking = (world: World) => findQuestionBox(world).parent?.isShown === true;
+
+describe("the Added spells window", () => {
+    it("is opened from the top left of the table, which closes for it; not by a command", () => {
+        const world = login("Player-1-A", [BASH_ADDED]);
+        openAddedSpells(world);
+        world.advance(1);
+        expect(world.frames.find((frame) => frame.name === "GlowingBarsAddedSpells")?.isShown).toBe(true);
+        expect(world.frames.find((frame) => frame.name === "GlowingBarsLooks")?.isShown).toBe(false);
+        expect(listRows(world).length).toBe(1);
+        world.frames.find((frame) => frame.name === "GlowingBarsAddedSpells")!.isShown = false;
+        SlashCmdList.GLOWINGBARS!("spells", undefined as never);
+        expect(world.frames.find((frame) => frame.name === "GlowingBarsAddedSpells")?.isShown).toBe(false);
+    });
+});
+
+describe("the Added spells window's own button", () => {
+    it("opens the table again from its top left", () => {
+        const world = openOnSecond();
+        const window = world.frames.find((frame) => frame.name === "GlowingBarsAddedSpells")!;
+        const button = world.frames.find((frame) => frame.parent === window && frame.text === "Open Table")!;
+        click(button);
+        world.advance(1);
+        expect(world.frames.find((frame) => frame.name === "GlowingBarsLooks")?.isShown).toBe(true);
+        // On the left: set in from the left edge, not back from the right one
+        expect((button.anchorX ?? 0) > 0).toBe(true);
+    });
+});
 
 describe("the spells added on the account's characters", () => {
     it("lists each spell once, with its type, whichever character added it", () => {
@@ -86,7 +128,7 @@ describe("the spells added on the account's characters", () => {
     it("lists the spells of a character an earlier build kept, without its surname or ruleset", () => {
         const about = { name: "Old", realm: "", race: "Human", className: "Priest" };
         const world = login("Player-1-B", [], { characters: { "Player-1-A": { about, addedSpells: [BASH_ADDED] } } });
-        SlashCmdList.GLOWINGBARS!("profiles", undefined as never);
+        openAddedSpells(world);
         world.advance(1);
         expect(listRows(world).length).toBe(1);
     });
@@ -104,7 +146,7 @@ describe("the spells added on the account's characters", () => {
             { addedSpells: [{ id: 18233, reminderType: "missingBuff" }] },
         );
         world.advance(1);
-        SlashCmdList.GLOWINGBARS!("profiles", undefined as never);
+        openAddedSpells(world);
         world.advance(1);
         expect(listRows(world).some((label) => label.includes("Tender Wolf Steak (Missing buff)"))).toBe(true);
     });
@@ -113,7 +155,7 @@ describe("the spells added on the account's characters", () => {
         const food = { id: 18233, reminderType: "missingBuff" };
         const first = login("Player-1-A", [food], undefined, { fedItems: { "18233": 13935 } });
         const world = login("Player-1-B", [], first.getAccountSaved());
-        SlashCmdList.GLOWINGBARS!("profiles", undefined as never);
+        openAddedSpells(world);
         world.advance(1);
         const rows = listRows(world);
         expect(rows.length).toBe(1);
@@ -124,7 +166,7 @@ describe("the spells added on the account's characters", () => {
         const food = { id: 18233, reminderType: "missingBuff" };
         const first = login("Player-1-A", [food], undefined, { fedItems: { "18233": 13935 } });
         const world = login("Player-1-B", [], first.getAccountSaved());
-        SlashCmdList.GLOWINGBARS!("profiles", undefined as never);
+        openAddedSpells(world);
         world.advance(1);
         click(findButton(world, "Tender Wolf Steak", "Add"));
         expect(listRows(world)[0]!.endsWith(" Tender Wolf Steak (Missing buff)")).toBe(true);
@@ -134,7 +176,7 @@ describe("the spells added on the account's characters", () => {
         const food = { id: 18233, reminderType: "missingBuff" };
         const first = login("Player-1-A", [food], undefined, { fedItems: { "18233": 13935 } });
         const world = login("Player-1-B", [], first.getAccountSaved(), { fedItems: { "2828": 2862 } });
-        SlashCmdList.GLOWINGBARS!("profiles", undefined as never);
+        openAddedSpells(world);
         world.advance(1);
         click(findButton(world, "Tender Wolf Steak", "Add"));
         expect(readCharacters(world)["Player-1-B"]?.fedItems).toEqual({ "18233": 13935, "2828": 2862 });
@@ -143,7 +185,7 @@ describe("the spells added on the account's characters", () => {
     it("names an item the client had not loaded once its data comes in", () => {
         const first = login("Player-1-A", [ARROWS_ADDED]);
         const world = login("Player-1-B", [], first.getAccountSaved(), {}, [2512]);
-        SlashCmdList.GLOWINGBARS!("profiles", undefined as never);
+        openAddedSpells(world);
         world.advance(1);
         expect(listRows(world)).toEqual(["#2512 (Low stock)"]);
         world.state.itemNames[2512] = "Rough Arrow";
@@ -154,7 +196,7 @@ describe("the spells added on the account's characters", () => {
     it("asks the client for an item once, so its answer does not ask again", () => {
         const first = login("Player-1-A", [ARROWS_ADDED]);
         const world = login("Player-1-B", [], first.getAccountSaved(), {}, [2512]);
-        SlashCmdList.GLOWINGBARS!("profiles", undefined as never);
+        openAddedSpells(world);
         world.advance(1);
         world.fire("GET_ITEM_INFO_RECEIVED", 2512, false);
         world.fire("GET_ITEM_INFO_RECEIVED", 2512, false);
@@ -164,7 +206,7 @@ describe("the spells added on the account's characters", () => {
     it("names this character's own food by its item once the client loads it", () => {
         const food = { id: 18233, reminderType: "missingBuff" };
         const world = login("Player-1-A", [food], undefined, { fedItems: { "18233": 13935 } }, [13935]);
-        SlashCmdList.GLOWINGBARS!("profiles", undefined as never);
+        openAddedSpells(world);
         world.advance(1);
         world.state.itemNames[13935] = "Tender Wolf Steak";
         world.fire("GET_ITEM_INFO_RECEIVED", 13935, true);
@@ -180,25 +222,56 @@ describe("the spells added on the account's characters", () => {
         expect(world.getSavedSettings()?.addedSpells).toEqual([BASH_ADDED]);
     });
 
-    it("cannot add a spell this character has already", () => {
+    it("offers Remove for a spell this character has, Add for one it has not", () => {
         const world = openOnSecond([BASH_ADDED]);
-        expect(findButton(world, "Shield Bash", "Add").isEnabled).toBe(false);
-        expect(findButton(world, "Rough Arrow", "Add").isEnabled).toBe(true);
+        expect(findButton(world, "Shield Bash", "Remove") !== undefined).toBe(true);
+        expect(findButton(world, "Rough Arrow", "Add") !== undefined).toBe(true);
     });
 
-    it("deletes a spell from every character, asked first", () => {
+    it("removes a spell from this character only, and keeps its row while another has it", () => {
+        const world = openOnSecond([BASH_ADDED, ARROWS_ADDED]);
+        click(findButton(world, "Shield Bash", "Remove"));
+        expect(isAsking(world)).toBe(false);
+        const characters = readCharacters(world);
+        expect(characters["Player-1-B"]?.addedSpells).toEqual([ARROWS_ADDED]);
+        expect(characters["Player-1-A"]?.addedSpells).toEqual([BASH_ADDED, ARROWS_ADDED]);
+        expect(findButton(world, "Shield Bash", "Add") !== undefined).toBe(true);
+    });
+
+    it("asks before removing a spell no other character has, and its row leaves", () => {
+        const world = login("Player-1-A", [BASH_ADDED]);
+        openAddedSpells(world);
+        world.advance(1);
+        click(findButton(world, "Shield Bash", "Remove"));
+        expect(readCharacters(world)["Player-1-A"]?.addedSpells).toEqual([BASH_ADDED]);
+        answer(world, "Remove");
+        expect(readCharacters(world)["Player-1-A"]?.addedSpells).toEqual([]);
+        expect(listRows(world)).toEqual([]);
+    });
+
+    it("shows which characters have a spell", () => {
         const world = openOnSecond([BASH_ADDED]);
-        click(findButton(world, "Shield Bash", "Delete"));
-        answer(world, "Delete");
+        click(findButton(world, "Shield Bash", "Characters"));
+        const words = findQuestionBox(world).fontStrings[0]!.text!;
+        expect(words.includes("Shield Bash is added on:")).toBe(true);
+        expect(words.includes("Me Stormlight")).toBe(true);
+        // The heading, an empty line, and the two characters
+        expect(words.split("\n").length).toBe(4);
+    });
+
+    it("deletes a spell from every character from there", () => {
+        const world = openOnSecond([BASH_ADDED]);
+        click(findButton(world, "Shield Bash", "Characters"));
+        answer(world, "Delete from all characters");
         const characters = readCharacters(world);
         expect(characters["Player-1-A"]?.addedSpells).toEqual([ARROWS_ADDED]);
         expect(characters["Player-1-B"]?.addedSpells).toEqual([]);
         expect(listRows(world).length).toBe(1);
     });
 
-    it("deletes nothing when the answer is no", () => {
+    it("deletes nothing when that is cancelled", () => {
         const world = openOnSecond([BASH_ADDED]);
-        click(findButton(world, "Shield Bash", "Delete"));
+        click(findButton(world, "Shield Bash", "Characters"));
         answer(world, "Cancel");
         expect(readCharacters(world)["Player-1-A"]?.addedSpells).toEqual([BASH_ADDED, ARROWS_ADDED]);
         expect(listRows(world).length).toBe(2);

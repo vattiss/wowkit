@@ -1,6 +1,6 @@
-// Profiles (issue #76): the settings are kept by name for the whole account, and each character uses one. A character
-// saved before profiles gets one of its own, made of what it had, so nothing changes for it; a new character starts on the
-// Default profile. What a character learns as it plays, and a few switches of its own, stay in its own saved data.
+// Profiles (issue #76): the settings are kept by name for the whole account, one profile for each character. A character
+// saved before profiles gets its own made of what it had, so nothing changes for it; a new character starts with the
+// defaults. What a character learns as it plays, and a few switches of its own, stay in its own saved data.
 import { createWorld, describe, expect, it, learnSpell, playAs, PRIEST, type World } from "@wowkit/test-kit";
 import { findAddRowOf, setUpWarrior, toggleTable } from "./table.helpers";
 
@@ -48,36 +48,35 @@ describe("a character saved before profiles", () => {
 });
 
 describe("a new character", () => {
-    it("starts on the Default profile, with the defaults", () => {
+    it("gets a profile of its own name, with the defaults", () => {
         const world = createWorld((state) => playAs(state, PRIEST), undefined, { isNewCharacter: true });
         world.advance(1);
-        expect(world.getSavedSettings()?.profileName).toBe("Default");
-        expect(readProfiles(world).Default !== undefined).toBe(true);
+        expect(world.getSavedSettings()?.profileName).toBe("Me - Forever (Human Priest)");
+        expect(readProfiles(world)["Me - Forever (Human Priest)"] !== undefined).toBe(true);
         expect(world.getSavedSettings()?.messageSize).toBe(100);
     });
 });
 
-describe("two characters on one profile", () => {
-    it("share a change: one made on either is the other's too", () => {
-        const account = { profiles: { Shared: { messageSize: 150 } } };
-        const first = createPriest({ profileName: "Shared" }, account);
-        expect(first.getSavedSettings()?.messageSize).toBe(150);
-        first.setOption("messageSize", 120);
-        const second = createPriest({ profileName: "Shared" }, first.getAccountSaved());
-        expect(second.getSavedSettings()?.messageSize).toBe(120);
+describe("a character an earlier build put on the shared Default profile", () => {
+    it("gets one of its own, a copy of it, and leaves it as it was", () => {
+        const world = createPriest({ profileName: "Default" }, { profiles: { Default: { messageSize: 150 } } });
+        expect(world.getSavedSettings()?.profileName).toBe("Me - Forever (Human Priest)");
+        expect(world.getSavedSettings()?.messageSize).toBe(150);
+        world.setOption("messageSize", 120);
+        expect(readProfiles(world).Default?.messageSize).toBe(150);
     });
+});
 
-    it("keep each their own switch that turns the addon off", () => {
-        const account = { profiles: { Shared: {} } };
-        const first = createPriest({ profileName: "Shared", isDisabled: true }, account);
-        expect(first.getSavedSettings()?.isDisabled).toBe(true);
-        const second = createPriest({ profileName: "Shared" }, first.getAccountSaved());
-        expect(second.getSavedSettings()?.isDisabled).toBe(false);
+describe("a character on its own profile", () => {
+    it("keeps it at its next login, under the name it got", () => {
+        const world = createPriest({ profileName: "Mine" }, { profiles: { Mine: { messageSize: 150 } } });
+        expect(world.getSavedSettings()?.profileName).toBe("Mine");
+        expect(world.getSavedSettings()?.messageSize).toBe(150);
     });
 });
 
 describe("a character whose profile is gone", () => {
-    it("goes back to the Default profile when it holds nothing of a profile's", () => {
+    it("gets one of its own again, with the defaults, when it holds nothing of a profile's", () => {
         // Its saved data as it is, without the settings a test run may add to every character
         const world = createWorld(
             (state) => {
@@ -89,13 +88,14 @@ describe("a character whose profile is gone", () => {
             { isNewCharacter: true },
         );
         world.advance(1);
-        expect(world.getSavedSettings()?.profileName).toBe("Default");
+        expect(world.getSavedSettings()?.profileName).toBe("Me - Forever (Human Priest)");
+        expect(world.getSavedSettings()?.messageSize).toBe(100);
     });
 
-    it("gets one again, under its old name, from the settings it still holds", () => {
+    it("gets one of its own again from the settings it still holds", () => {
         const world = createPriest({ profileName: "Raid", messageSize: 150 }, { profiles: {} });
-        expect(world.getSavedSettings()?.profileName).toBe("Raid");
-        expect(readProfiles(world).Raid?.messageSize).toBe(150);
+        expect(world.getSavedSettings()?.profileName).toBe("Me - Forever (Human Priest)");
+        expect(readProfiles(world)["Me - Forever (Human Priest)"]?.messageSize).toBe(150);
     });
 });
 
@@ -168,18 +168,6 @@ describe("a character of a realm the client does not name (Forever)", () => {
         expect(world.getSavedSettings()?.profileName).toBe("Me (Human Priest)");
         expect(readProfiles(world)["Me (Human Priest)"]?.messageSize).toBe(150);
     });
-
-    it("takes the profile and the added spells an earlier build kept as 'Me - ' to its name", () => {
-        const added = [{ id: 2512, reminderType: "lowStock" }];
-        const world = createNoRealm(
-            { profileName: "Me - " },
-            { profiles: { "Me - ": { messageSize: 150 } }, characters: { "Me - ": { addedSpells: added } } },
-        );
-        expect(world.getSavedSettings()?.profileName).toBe("Me (Human Priest)");
-        expect(readProfiles(world)["Me (Human Priest)"]?.messageSize).toBe(150);
-        expect(readProfiles(world)["Me - "]).toBe(undefined);
-        expect(world.getSavedSettings()?.addedSpells).toEqual(added);
-    });
 });
 
 describe("characters of one name (Forever names no realm)", () => {
@@ -212,16 +200,6 @@ describe("characters of one name (Forever names no realm)", () => {
         const characters = (second.getAccountSaved() as { characters: Record<string, { addedSpells?: { id: number }[] }> }).characters;
         expect(characters["Player-1-A"]?.addedSpells?.[0]?.id).toBe(2512);
         expect(characters["Player-1-B"]?.addedSpells?.[0]?.id).toBe(2515);
-    });
-
-    it("leave what an earlier build kept by the name to the first of them to log in", () => {
-        const added = [{ id: 2512, reminderType: "lowStock" }];
-        const first = login("Player-1-A", {}, { characters: { Me: { addedSpells: added } } });
-        const second = login("Player-1-B", {}, first.getAccountSaved());
-        const characters = (second.getAccountSaved() as { characters: Record<string, { addedSpells?: unknown[] } | undefined> }).characters;
-        expect(characters["Player-1-A"]?.addedSpells).toEqual(added);
-        expect(characters["Player-1-B"]?.addedSpells).toEqual([]);
-        expect(characters.Me).toBe(undefined);
     });
 });
 

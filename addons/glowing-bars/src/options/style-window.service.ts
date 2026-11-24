@@ -1,5 +1,6 @@
 // The frame of the table of looks: the classic dialog border, the title, the close button, the column headers and the
 // scroll area. The rows are the table's.
+import type { AddedSpellsWindowService } from "./added-spells-window.service";
 import { COMMAND } from "./table-command";
 import { applyScrollBarTint, connectEscape, createFrameWithBorder, createCloseButton, TabBar, updateScrollBar } from "@wowkit/ui";
 import type { AddonLocale } from "../locale/locale.interface";
@@ -66,6 +67,7 @@ export class StyleWindowService {
     constructor(
         private readonly locale: AddonLocale,
         private readonly settings: AddonSettingsService,
+        private readonly addedSpells: AddedSpellsWindowService,
     ) {}
 
     /** Does the table show every column, not only the ones everybody needs? */
@@ -198,7 +200,7 @@ export class StyleWindowService {
         createCloseButton(window);
         this.createViewButton(window);
         this.createSettingsButton(window);
-        this.createProfilesButton(window);
+        this.createAddedSpellsButton(window);
         this.addTabs(window);
         this.addColumnHeaders(window);
         const scroll = CreateFrame("ScrollFrame", undefined, window, "UIPanelScrollFrameTemplate");
@@ -239,15 +241,15 @@ export class StyleWindowService {
         });
     }
 
-    /** At the top left: to the profiles window, through the slash command; the table closes for it. */
-    private createProfilesButton(window: Frame): void {
+    /** At the top left: to the window of the added spells; the table closes for it. */
+    private createAddedSpellsButton(window: Frame): void {
         const button = CreateFrame("Button", undefined, window, "UIPanelButtonTemplate");
         button.SetSize(TOP_BUTTON_WIDTH, 22);
         button.SetPoint("TOPLEFT", window, "TOPLEFT", 12, -9);
-        button.SetText(this.locale.getText("BTN_PROFILES"));
+        button.SetText(this.locale.getText("BTN_ADDED_SPELLS"));
         button.SetScript("OnClick", () => {
             window.Hide();
-            SlashCmdList[COMMAND]?.("profiles", undefined as never);
+            this.addedSpells.open();
         });
     }
 

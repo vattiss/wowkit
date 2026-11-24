@@ -86,8 +86,7 @@ function findRuleset(): string {
 }
 
 /** A name for a character's own profile no other profile has: its name with its race and class, numbered where taken. */
-export function pickProfileName(isTaken: (name: string) => boolean, info: CharacterInfo, wantedName?: string): string {
-    if (wantedName !== undefined && !isTaken(wantedName)) return wantedName;
+export function pickProfileName(isTaken: (name: string) => boolean, info: CharacterInfo): string {
     const described = describeCharacter(info);
     if (!isTaken(described)) return described;
     const plain = buildCharacterName(info);
@@ -96,9 +95,4 @@ export function pickProfileName(isTaken: (name: string) => boolean, info: Charac
         const numbered = kind !== "" ? `${plain} (${kind} ${n})` : `${plain} (${n})`;
         if (!isTaken(numbered)) return numbered;
     }
-}
-
-/** The names an earlier build kept a character's settings by, before the GUID: "Castor - Realm", "Castor - ", "Castor". */
-export function listOldKeys(info: CharacterInfo): string[] {
-    return [`${info.name} - ${info.realm}`, `${info.name} - `, info.name];
 }

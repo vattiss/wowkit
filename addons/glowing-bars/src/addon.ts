@@ -40,6 +40,7 @@ import { StyleWindowService } from "./options/style-window.service";
 import { TableCommand } from "./options/table-command";
 import { CharacterSpellsSection } from "./options/character-spells.section";
 import { ProfilesWindowService } from "./options/profiles-window.service";
+import { AddedSpellsWindowService } from "./options/added-spells-window.service";
 import { makeHealthRules, makeProcRules, makeProcRulesTab } from "./addon-proc-rules";
 import { makeWeapons } from "./addon-weapons";
 import { makeBuffs, type Buffs } from "./addon-buffs";
@@ -248,7 +249,9 @@ function makeTable(addon: Addon, addonName: string, game: Game, texts: Texts, bu
         ),
     );
     const choices = addon.register(new StyleChoicesService(locale, styles, messages, texts.settings));
-    const windows = addon.register(new StyleWindowService(locale, texts.settings));
+    const characterSpells = new CharacterSpellsSection(texts.settings, locale, game.spells, game.bags, reminders.fedBuffs);
+    const addedSpells = addon.register(new AddedSpellsWindowService(locale, messages, characterSpells));
+    const windows = addon.register(new StyleWindowService(locale, texts.settings, addedSpells));
     const switches = addon.register(new EnabledService(game.spells, buffs.classBuffs, texts.settings));
     addon.register(new ReagentRowsService(texts.settings, styles, reminders.reagents));
     const tableNotice = addon.register(new NoticeService(`${addonName}-table`));
@@ -309,7 +312,6 @@ function makeOptions(
         ),
     );
     const options = addon.register(new OptionsService(messages, "GlowingBarsOptions", page));
-    const characterSpells = new CharacterSpellsSection(texts.settings, locale, game.spells, game.bags, reminders.fedBuffs);
-    const profiles = addon.register(new ProfilesWindowService(texts.settings, locale, messages, characterSpells));
+    const profiles = addon.register(new ProfilesWindowService(texts.settings, locale, messages));
     addon.register(new TableCommand(table, options, messages, locale, welcome, whatsNew, profiles));
 }

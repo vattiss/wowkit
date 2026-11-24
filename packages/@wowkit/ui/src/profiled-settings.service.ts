@@ -1,31 +1,29 @@
-// Settings kept in profiles, shared by the characters of an account: the account's saved data (## SavedVariables) holds the
-// profiles by name, each character's (## SavedVariablesPerCharacter) the name of the one it uses and what is its own alone
-// (what it learned as it played). Some of a character's own are kept in the account's data instead, under its name, so
-// every character of the account can see them (the spells it added). A character saved before profiles were known gets a
-// profile of its own, made of what it had, so nothing changes for it; a new character starts on the default profile.
+// Settings kept in profiles, one for each character of an account: the account's saved data (## SavedVariables) holds the
+// profiles by name, so a character can copy another's; each character's (## SavedVariablesPerCharacter) the name of its
+// own and what is its own alone besides (what it learned as it played). Some of a character's own are kept in the account's
+// data instead, under its GUID, so every character of the account can see them (the spells it added). A character saved
+// before profiles gets its profile made of what it had, so nothing changes for it; a new one starts with the defaults.
 //
 // The rest of the addon sees one set of settings (SettingsStore): get and change go to the profile or to the character by
 // the key.
 import type { EventBus, OnAddonLoaded } from "@wowkit/core";
 import type { SavedVariablesService } from "@wowkit/wow";
 import type { SettingsStore } from "./settings.service";
-import { describeCharacter, findPlayer, listOldKeys, pickProfileName, type CharacterInfo } from "./character-identity";
+import { describeCharacter, findPlayer, pickProfileName, type CharacterInfo } from "./character-identity";
 
-/** The profile a new character starts on. */
-export const DEFAULT_PROFILE = "Default";
+/** The profile an earlier build started a new character on, shared: a character on it gets one of its own, made of it. */
+const SHARED_DEFAULT_PROFILE = "Default";
 /** Where a character's entry in the account's data says who it is (name, realm, race, class). */
 const ABOUT_KEY = "about";
 
 /** What the account keeps of the profiles and the characters, beside whatever else the addon keeps there. */
 interface AccountTable {
     profiles?: { [name: string]: Record<string, unknown> | undefined };
-    /** Each character's settings that every character may see, by "Name - Realm". */
-    characters?: { [name: string]: Record<string, unknown> | undefined };
-    /** A profile renamed: its old name -> its new one, so a character not logged in since finds it. */
-    renamedProfiles?: { [oldName: string]: string | undefined };
+    /** Each character's settings that every character may see, by its GUID. */
+    characters?: { [key: string]: Record<string, unknown> | undefined };
 }
 
-/** What a character keeps: the name of its profile, and the settings of its own. */
+/** What a character keeps: the name of its own profile, and the settings of its own besides. */
 interface CharacterTable {
     profileName?: string;
 }
@@ -81,14 +79,11 @@ export class ProfiledSettingsService<T extends object> implements OnAddonLoaded,
         const saved = this.characterVariables.loadTable<CharacterTable & Record<string, unknown>>();
         const character: CharacterTable & Record<string, unknown> = saved ?? {};
         this.player = this.findCharacter();
-        this.takeOldEntries(account, character);
-        character.profileName = findRenamed(account, character.profileName);
-        // No profile yet (saved before profiles), or its profile is gone: what it holds of a profile's becomes one of its own
-        if (character.profileName === undefined || account.profiles[character.profileName] === undefined) {
-            character.profileName = this.hasProfileSettings(character)
-                ? this.createOwnProfile(character, account, character.profileName)
-                : DEFAULT_PROFILE;
-        }
+        const oldName = character.profileName;
+        // No profile yet (new, or saved before profiles), the shared one of an earlier build, or its own gone: one of its own
+        const isOwn = oldName !== undefined && oldName !== SHARED_DEFAULT_PROFILE && account.profiles[oldName] !== undefined;
+        const profileName = isOwn ? oldName : this.createOwnProfile(character, account, oldName);
+        character.profileName = profileName;
         this.account = account;
         this.accountCharacter = account.characters[this.player.key] ??= {};
         // Who it is, for the list of every character's added spells
@@ -96,7 +91,7 @@ export class ProfiledSettingsService<T extends object> implements OnAddonLoaded,
         this.accountCharacter[ABOUT_KEY] = { name, surname, realm, race, className, ruleset };
         this.saveInAccount(character);
         this.character = character;
-        this.profile = account.profiles[character.profileName] ??= {};
+        this.profile = account.profiles[profileName] ??= {};
         this.fillAndRepair();
         this.characterVariables.bindTable(character);
     }
@@ -122,21 +117,6 @@ export class ProfiledSettingsService<T extends object> implements OnAddonLoaded,
         return names;
     }
 
-    /** Makes an empty profile (the defaults) of this name; false when the name is taken or empty. */
-    createProfile(name: string): boolean {
-        const profiles = this.account.profiles!;
-        if (!isProfileName(name) || profiles[name] !== undefined) return false;
-        profiles[name] = {};
-        return true;
-    }
-
-    /** This character uses that profile from the next load of the interface on (its settings are read as it loads). */
-    useProfile(name: string): boolean {
-        if (this.account.profiles?.[name] === undefined) return false;
-        (this.character as CharacterTable).profileName = name;
-        return true;
-    }
-
     /** The settings of that profile replace this one's, from the next load of the interface on. */
     copyProfile(from: string): boolean {
         const source = this.account.profiles?.[from];
@@ -144,29 +124,6 @@ export class ProfiledSettingsService<T extends object> implements OnAddonLoaded,
         for (const [key] of pairs(this.profile)) this.profile[key as string] = undefined;
         for (const [key, value] of pairs(source)) this.profile[key as string] = copyValue(value);
         this.fillProfileDefaults();
-        return true;
-    }
-
-    /** Renames this character's profile; the characters on it that log in later follow the new name. */
-    changeProfileName(newName: string): boolean {
-        const profiles = this.account.profiles!;
-        const oldName = this.getProfileName();
-        if (!isProfileName(newName) || profiles[newName] !== undefined) return false;
-        profiles[newName] = profiles[oldName];
-        profiles[oldName] = undefined;
-        (this.character as CharacterTable).profileName = newName;
-        const renamed = (this.account.renamedProfiles ??= {});
-        // A name used again later is a profile of its own, not the renamed one
-        renamed[newName] = undefined;
-        renamed[oldName] = newName;
-        return true;
-    }
-
-    /** Deletes a profile other than this character's; a character on it gets the Default profile when it logs in. */
-    deleteProfile(name: string): boolean {
-        const profiles = this.account.profiles!;
-        if (name === this.getProfileName() || profiles[name] === undefined) return false;
-        profiles[name] = undefined;
         return true;
     }
 
@@ -185,7 +142,7 @@ export class ProfiledSettingsService<T extends object> implements OnAddonLoaded,
 
     /** The name of the profile this character uses. */
     getProfileName(): string {
-        return (this.character as CharacterTable).profileName ?? DEFAULT_PROFILE;
+        return (this.character as CharacterTable).profileName ?? "";
     }
 
     /** This character's key (its GUID), as listCharacters gives it. */
@@ -226,47 +183,20 @@ export class ProfiledSettingsService<T extends object> implements OnAddonLoaded,
         return this.characterKeys.has(key as string) ? this.character : this.profile;
     }
 
-    /**
-     * An earlier build kept a character's settings in the account's data by its name ("Castor - Realm", "Castor - " where the
-     * client named no realm, "Castor"): the first character of that name to log in takes them to its GUID. Its own profile
-     * named "Castor - " is "Castor" now, where that is free.
-     */
-    private takeOldEntries(account: AccountTable, character: CharacterTable): void {
-        const characters = account.characters!;
-        for (const oldKey of listOldKeys(this.player)) {
-            if (characters[oldKey] === undefined) continue;
-            characters[this.player.key] ??= characters[oldKey];
-            characters[oldKey] = undefined;
-        }
-        const profiles = account.profiles!;
-        const oldName = `${this.player.name} - `;
-        const name = describeCharacter(this.player);
-        if (character.profileName === oldName && profiles[oldName] !== undefined && profiles[name] === undefined) {
-            profiles[name] = profiles[oldName];
-            profiles[oldName] = undefined;
-            character.profileName = name;
-        }
-    }
-
     /** Is the key a character's own, wherever it is kept? Who the character is (in the account's data) is no setting. */
     private isOwnKey(key: string): boolean {
         return this.characterKeys.has(key) || this.accountCharacterKeys.has(key) || key === "profileName" || key === ABOUT_KEY;
     }
 
-    /** Does the character's table hold settings of a profile's (saved before profiles, or a profile gone)? */
-    private hasProfileSettings(character: Record<string, unknown>): boolean {
-        for (const [key] of pairs(character)) if (!this.isOwnKey(key as string)) return true;
-        return false;
-    }
-
     /**
-     * A character saved before profiles, or whose profile is gone: what is not its own moves into a profile of its own, under
-     * the name it had, else "Castor Stormlight (Gnome Priest, Normal)", and only then numbered.
+     * The character's own profile, "Castor Stormlight (Gnome Priest, Normal)", numbered where taken: a copy of the shared one
+     * it was on, if any, and what it holds that is not its own (saved before profiles) moved in.
      */
-    private createOwnProfile(character: Record<string, unknown>, account: AccountTable, wantedName: string | undefined): string {
+    private createOwnProfile(character: Record<string, unknown>, account: AccountTable, oldName: string | undefined): string {
         const profiles = account.profiles!;
-        const name = pickProfileName((taken) => profiles[taken] !== undefined, this.player, wantedName);
-        const profile: Record<string, unknown> = {};
+        const name = pickProfileName((taken) => profiles[taken] !== undefined, this.player);
+        const shared = oldName !== undefined ? profiles[oldName] : undefined;
+        const profile = (shared !== undefined ? copyValue(shared) : {}) as Record<string, unknown>;
         for (const [key, value] of pairs(character)) {
             if (this.isOwnKey(key as string)) continue;
             profile[key as string] = value;
@@ -304,26 +234,6 @@ export class ProfiledSettingsService<T extends object> implements OnAddonLoaded,
         for (const [key] of pairs(values)) keys.add(key as string);
         for (const key of keys) this.findTable(key as keyof T)[key] = values[key];
     }
-}
-
-/** The longest a profile's name may be. */
-const MOST_NAME_LETTERS = 40;
-
-/** Can this be a profile's name: some letters, not too many? */
-function isProfileName(name: string): boolean {
-    const trimmed = string.match(name, "^%s*(.-)%s*$")[0] ?? "";
-    return trimmed === name && name !== "" && name.length <= MOST_NAME_LETTERS;
-}
-
-/** A profile's name, following its renames (at most a few, against a loop). */
-function findRenamed(account: AccountTable, name: string | undefined): string | undefined {
-    let current = name;
-    for (let step = 0; step < 10 && current !== undefined && account.profiles?.[current] === undefined; step++) {
-        const next = account.renamedProfiles?.[current];
-        if (next === undefined) break;
-        current = next;
-    }
-    return current;
 }
 
 /** A copy of a saved value, its tables too: a profile copied is changed apart from the one it came from. */

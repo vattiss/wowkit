@@ -1,6 +1,6 @@
-// The Added spells tab of the Profiles window (issue #76): the spells added on any character of the account, and on which
-// ones (on hover). Each character keeps its own list: Add puts a spell on this character too; Delete, asked first, takes it
-// off every character. The rows are made as the list grows, and hidden while it is shorter.
+// The Added spells tab of the Profiles window (issue #76): the spells added on any character of the account. Each character
+// keeps its own list: Add and Remove change this character's; a spell no character has any more leaves the tab. Characters
+// shows which ones have it, and deletes it from all of them. The rows are made as the list grows, and hidden while shorter.
 import type { OptionsTab, OptionsWindow } from "@wowkit/ui";
 import type { BagsService, SpellsService } from "@wowkit/wow";
 import type { AddonLocale } from "../locale/locale.interface";
@@ -23,6 +23,8 @@ interface CharacterSpell {
     label: string;
     /** The characters it is on, by name. */
     characters: string[];
+    /** Is it on this character's list? */
+    isOwn: boolean;
     /** Can it be added on this character: not there already (nor the same spell or item as another type)? */
     canAdd: boolean;
 }
@@ -67,7 +69,8 @@ export class CharacterSpellsSection {
                 const key = `${spell.reminderType}:${spell.id}`;
                 let entry = byKey.get(key);
                 if (entry === undefined) {
-                    entry = this.describe(spell, !own.some((ownSpell) => isSameSpell(ownSpell, spell)));
+                    const isOwn = own.some((ownSpell) => isSameEntry(ownSpell, spell));
+                    entry = this.describe(spell, isOwn, !own.some((ownSpell) => isSameSpell(ownSpell, spell)));
                     byKey.set(key, entry);
                     entries.push(entry);
                 }
@@ -79,13 +82,13 @@ export class CharacterSpellsSection {
         return entries;
     }
 
-    private describe(spell: AddedSpell, canAdd: boolean): CharacterSpell {
+    private describe(spell: AddedSpell, isOwn: boolean, canAdd: boolean): CharacterSpell {
         const look = this.findLook(spell);
         const name = look.name ?? `#${spell.id}`;
         const icon = look.iconId;
         const picture = icon !== undefined ? `|T${icon}:${ICON_SIZE}|t ` : "";
         const label = `${picture}${name} (${this.readText(TYPE_TEXTS[spell.reminderType])})`;
-        return { spell, name, label, characters: [], canAdd };
+        return { spell, name, label, characters: [], isOwn, canAdd };
     }
 
     /**
@@ -131,39 +134,61 @@ export class CharacterSpellsSection {
         const tab = this.tab!;
         const row = tab.createRow("", undefined);
         const label = tab.findLabel(row);
-        row.EnableMouse(true);
-        row.SetScript("OnEnter", () => this.showCharacters(row, index));
-        row.SetScript("OnLeave", () => GameTooltip.Hide());
-        const add = this.createButton(row, CONTROL_LEFT, "BTN_ADD", () => this.addOnThisCharacter(index));
-        const remove = this.createButton(row, CONTROL_LEFT + BUTTON_WIDTH + 6, "BTN_DELETE", () => this.confirmDelete(index));
+        const toggle = this.createButton(row, CONTROL_LEFT, "BTN_ADD", () => this.toggleOnThisCharacter(index));
+        const characters = this.createButton(row, CONTROL_LEFT + BUTTON_WIDTH + 6, "BTN_CHARACTERS", () => this.showCharacters(index));
         tab.addControl(row, {
-            // A test's click: "delete", else Add
-            apply: (value) => (value === "delete" ? this.confirmDelete(index) : this.addOnThisCharacter(index)),
+            // A test's click: "characters", else Add or Remove
+            apply: (value) => (value === "characters" ? this.showCharacters(index) : this.toggleOnThisCharacter(index)),
             refresh: () => {
                 const entry = this.entries[index];
                 if (entry === undefined) return;
                 label?.SetText(entry.label);
-                if (!entry.canAdd) add.SetEnabled(false);
+                toggle.SetText(this.readText(entry.isOwn ? "BTN_REMOVE" : "BTN_ADD"));
+                toggle.SetEnabled(entry.isOwn || entry.canAdd);
             },
             setEnabled: (isEnabled) => {
-                add.SetEnabled(isEnabled);
-                remove.SetEnabled(isEnabled);
+                toggle.SetEnabled(isEnabled);
+                characters.SetEnabled(isEnabled);
             },
         }).showWhen(() => index < this.entries.length);
     }
 
-    private showCharacters(row: Frame, index: number): void {
+    /** Which characters have it, and a button that deletes it from all of them. */
+    private showCharacters(index: number): void {
         const entry = this.entries[index];
         if (entry === undefined) return;
-        GameTooltip.SetOwner(row, "ANCHOR_RIGHT");
-        GameTooltip.SetText(this.readText("TIP_ADDED_ON"), 1, 1, 1, 1, true);
-        for (const character of entry.characters) GameTooltip.AddLine(character);
-        GameTooltip.Show();
+        const question = `${string.format(this.readText("ADDED_ON"), entry.name)}\n\n${entry.characters.join("\n")}`;
+        this.window?.confirm(question, this.readText("BTN_DELETE_ALL"), () => this.deleteEverywhere(entry.spell));
     }
 
-    private addOnThisCharacter(index: number): void {
+    private toggleOnThisCharacter(index: number): void {
         const entry = this.entries[index];
-        if (entry === undefined || !entry.canAdd) return;
+        if (entry === undefined) return;
+        if (!entry.isOwn) {
+            this.addOnThisCharacter(entry);
+            return;
+        }
+        // The last character's leaves the tab, so it cannot be added back here: asked first
+        if (entry.characters.length > 1) this.removeFromThisCharacter(entry.spell);
+        else {
+            const question = string.format(this.readText("Q_REMOVE_LAST"), entry.name);
+            this.window?.confirm(question, this.readText("BTN_REMOVE"), () => this.removeFromThisCharacter(entry.spell));
+        }
+    }
+
+    private removeFromThisCharacter(spell: AddedSpell): void {
+        const thisKey = this.settings.getCharacterKey();
+        const own = this.settings.getOfCharacter(thisKey, "addedSpells") ?? [];
+        this.settings.changeOfCharacter(
+            thisKey,
+            "addedSpells",
+            own.filter((ownSpell) => !isSameEntry(ownSpell, spell)),
+        );
+        this.refresh();
+    }
+
+    private addOnThisCharacter(entry: CharacterSpell): void {
+        if (!entry.canAdd) return;
         const thisKey = this.settings.getCharacterKey();
         const own = this.settings.getOfCharacter(thisKey, "addedSpells") ?? [];
         // Its item comes along, so this character's table names it so too until its own bars show another
@@ -175,18 +200,13 @@ export class CharacterSpellsSection {
         this.refresh();
     }
 
-    private confirmDelete(index: number): void {
-        const entry = this.entries[index];
-        if (entry === undefined) return;
-        const question = string.format(this.readText("Q_DELETE_ADDED"), entry.name);
-        this.window?.confirm(question, this.readText("BTN_DELETE"), () => {
-            for (const character of this.settings.listCharacters()) {
-                const spells = this.settings.getOfCharacter(character.key, "addedSpells") ?? [];
-                const kept = spells.filter((spell) => spell.id !== entry.spell.id || spell.reminderType !== entry.spell.reminderType);
-                if (kept.length !== spells.length) this.settings.changeOfCharacter(character.key, "addedSpells", kept);
-            }
-            this.refresh();
-        });
+    private deleteEverywhere(deleted: AddedSpell): void {
+        for (const character of this.settings.listCharacters()) {
+            const spells = this.settings.getOfCharacter(character.key, "addedSpells") ?? [];
+            const kept = spells.filter((spell) => !isSameEntry(spell, deleted));
+            if (kept.length !== spells.length) this.settings.changeOfCharacter(character.key, "addedSpells", kept);
+        }
+        this.refresh();
     }
 
     /** An item's data came in: the list is named again where it was one this asked for. */
@@ -211,6 +231,11 @@ export class CharacterSpellsSection {
     private readText(key: TextKey): string {
         return this.locale.getText(key);
     }
+}
+
+/** The same entry of a list: the ID and the type. */
+function isSameEntry(a: AddedSpell, b: AddedSpell): boolean {
+    return a.id === b.id && a.reminderType === b.reminderType;
 }
 
 /** The same spell, or the same item: a character keeps an ID once, apart from an item (low stock) of the same number. */
