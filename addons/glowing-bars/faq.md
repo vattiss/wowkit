@@ -13,7 +13,3 @@ Forever's IDs can differ. Turn on Show spell and item IDs in tooltips on the Gen
 ### The Cooldown Manager's windows don't show.
 
 On the Cooldown Manager tab, set the window to Show (e.g. Essential Cooldowns Icons), or press Repair Hidden Windows.
-
-### My bar addon's buttons stop glowing after a login.
-
-Type /gb scan: it finds your buttons again. If that's needed after every login, please report it with the scan's text, so the addon can find them by itself: the top of the Help tab says how.

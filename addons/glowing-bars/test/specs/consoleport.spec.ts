@@ -122,7 +122,9 @@ describe("a bar addon's button of no known name, made after the login", () => {
         const world = login();
         world.advance(SEARCH_GAP + 5);
         world.fire("UPDATE_BINDINGS");
-        SlashCmdList.GLOWINGBARS!("scan", undefined as never);
+        // The Welcome tab's Scan button
+        const scan = world.frames.find((frame) => frame.frameType === "Button" && frame.text === "Scan")!;
+        scan.scripts.OnClick!(scan);
         world.advance(0.5);
         makeUnknownButton("SomeBarButton1");
         world.advance(5);

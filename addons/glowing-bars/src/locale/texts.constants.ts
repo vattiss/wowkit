@@ -228,11 +228,10 @@ export const TEXTS = {
     WELCOME_TEXT:
         "It makes your action buttons glow when something needs doing. Its settings are in this window, and the look of each reminder is in the table you open with /gb.",
     WELCOME_REPORT_TIP: "If nothing lit up or no buttons were found, copy this and open the Help tab: it says what to do next.",
-    WELCOME_TIP: "Tip: /gb opens the table of reminders, /gb settings opens this window, /gb scan finds your buttons again.",
+    WELCOME_TIP: "Tip: /gb opens the table of reminders, /gb settings opens this window.",
     WELCOME_AFK_RAINBOW: "Rainbow when AFK (similar to the scan, but slower)",
     WELCOME_SCANNING: "Looking for your action buttons...",
     WELCOME_FOUND: "Found %d buttons, %d of them detected automatically, and %d more that are hidden now.",
-    WELCOME_RESCAN: "If those stop glowing after a login or reload, type /gb scan.",
     WELCOME_NO_BUTTONS: "No action buttons found: your bars can't be seen. Please report it with the text below.",
     BTN_SCAN: "Scan",
     BTN_SELECT: "Select",
