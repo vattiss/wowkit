@@ -120,6 +120,7 @@ export class FindRemindersService {
         const isMissingBuffEnabled = this.settings.get("isMissingBuffEnabled");
         const missingBuffs = isMissingBuffEnabled ? this.buffReminder.findMissingBuffs() : this.noMissingBuffs;
         found.partySuggestions = isMissingBuffEnabled ? this.partyBuffs.findPartyBuffSuggestions() : this.noReminders.partySuggestions;
+        found.isInRaid = this.partyBuffs.isInRaid();
         found.buffsToCast = this.findBuffsToCast(missingBuffs.glow, found.partySuggestions);
         // A buff of the list can also have been added by hand
         if (isMissingBuffEnabled)

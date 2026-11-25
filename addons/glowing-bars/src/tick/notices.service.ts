@@ -214,7 +214,10 @@ export class NoticesService {
                     ? string.format(this.locale.getText("NOTICE_PARTY_COUNT"), spellName, count)
                     : string.format(this.locale.getText("NOTICE_PARTY"), spellName, names);
             const parts = suggestion.names.map((name) => `party:${suggestion.spellId}:${name}`);
-            this.addNamedLine(lines, suggestion.spellId, parts, text);
+            // Its own switch, the party's or the raid's, not the table's: the button glows for them too, and this says why
+            if (this.settings.get(reminders.isInRaid === true ? "showRaidBuffMessage" : "showPartyBuffMessage")) {
+                this.addNamedLine(lines, suggestion.spellId, parts, text, true);
+            }
         }
         return lines;
     }
@@ -282,9 +285,10 @@ export class NoticesService {
     }
 
     /** A line that names what it is about, in the buff color of the spell. */
-    private addNamedLine(lines: Line[], spellId: number, parts: string[], text: string): void {
+    /** A line in the color and timing of the spell's Missing buff look; `isAlwaysOn`: whatever its Message says. */
+    private addNamedLine(lines: Line[], spellId: number, parts: string[], text: string, isAlwaysOn = false): void {
         const style = this.styles.getStyle("missingBuff", spellId);
-        if (style.isMessageOn) {
+        if (isAlwaysOn || style.isMessageOn) {
             lines.push({ words: text, parts, color: style.messageColor ?? style.color, showFor: findShowFor(style), repeat: style.repeat });
         }
     }

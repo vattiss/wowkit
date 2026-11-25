@@ -52,6 +52,11 @@ export class PartyBuffsService {
     ) {}
 
     /** What to cast on whom; empty in combat, or when the feature is off (for a party, or for a raid). */
+    /** Was the player in a raid, not a party, when the members were last looked at? */
+    isInRaid(): boolean {
+        return this.wasInRaid === true;
+    }
+
     findPartyBuffSuggestions(): PartySuggestion[] {
         const isInRaid = this.party.isInRaid();
         // Before the switches: the blessings of a raid are forgotten on leaving it, with the switch of the new place off too

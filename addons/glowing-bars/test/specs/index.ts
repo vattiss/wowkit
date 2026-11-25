@@ -98,6 +98,7 @@ import "./profiles.spec";
 import "./profiles-window.spec";
 import "./profiles-fuzz.spec";
 import "./consoleport.spec";
+import "./party-message.spec";
 import "./character-spells.spec";
 import "./secret-auras-fuzz.spec";
 import "./tick-garbage.spec";

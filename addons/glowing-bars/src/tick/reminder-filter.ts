@@ -60,6 +60,7 @@ const getStockKey = (stock: { key: number }) => stock.key;
 /** `target` becomes the reminders of `reminders` that `isShown` keeps. */
 export function filterReminders(target: Reminders, reminders: Reminders, isShown: IsShown): Reminders {
     target.isInTown = reminders.isInTown;
+    target.isInRaid = reminders.isInRaid;
     copyShown(target.buffsToCast, reminders.buffsToCast, "missingBuff", getOwnId, isShown);
     copyShown(target.buffsNotOnBars, reminders.buffsNotOnBars, "missingBuff", getOwnId, isShown);
     copyShown(target.partySuggestions, reminders.partySuggestions, "missingBuff", getSuggestionId, isShown);

@@ -154,8 +154,10 @@ export class RemindersPage implements OptionsPage {
             const hasGroupVersion = this.classBuffs.getClassBuffs().some((classBuff) => classBuff.party?.groupIds !== undefined);
             this.reminderControls.addSwitch(tab, "showPartyBuffs", "OPT_PARTY_BUFFS", "TIP_PARTY_BUFFS");
             if (hasGroupVersion) this.reminderControls.addGroupMin(tab, "partyGroupFrom", "TIP_PARTY_GROUP_MIN", "showPartyBuffs");
+            this.reminderControls.addMessageSwitch(tab, "showPartyBuffMessage", "showPartyBuffs");
             this.reminderControls.addSwitch(tab, "showRaidBuffs", "OPT_RAID_BUFFS", "TIP_RAID_BUFFS");
             if (hasGroupVersion) this.reminderControls.addGroupMin(tab, "raidGroupFrom", "TIP_RAID_GROUP_MIN", "showRaidBuffs");
+            this.reminderControls.addMessageSwitch(tab, "showRaidBuffMessage", "showRaidBuffs");
         }
         this.reminderControls.addSwitch(tab, "shouldNoteOwnOlderRankBuffs", "OPT_NOTE_OWN_OLDER_RANK", "TIP_NOTE_OWN_OLDER_RANK");
         this.reminderControls.addSwitch(tab, "shouldNoteOthersOlderRankBuffs", "OPT_NOTE_OTHERS_OLDER_RANK", "TIP_NOTE_OTHERS_OLDER_RANK");

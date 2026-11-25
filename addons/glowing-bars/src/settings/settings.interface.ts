@@ -164,6 +164,9 @@ export interface AddonSettings {
     showPartyBuffs: boolean;
     /** Raid members missing the player's buffs. */
     showRaidBuffs: boolean;
+    /** Does a message list the members missing the player's buff, in a party or a raid, whatever the table's Message says? */
+    showPartyBuffMessage: boolean;
+    showRaidBuffMessage: boolean;
     /**
      * The group version (Prayer of Fortitude, a Greater Blessing) is asked for from this many missing the buff, the player
      * counted (1 to 5): in a party, and in a raid. A Greater Blessing counts the members of its class.

@@ -126,6 +126,8 @@ export const TEXTS = {
     OPT_RAID_BUFFS: "Raid members missing your buffs",
     TIP_RAID_BUFFS: "Out of combat, raid members in range who miss your buff make its button glow.",
     OPT_GROUP_FROM: "Group version from",
+    OPT_GROUP_BUFF_MESSAGE: "Message: who's missing it",
+    TIP_GROUP_BUFF_MESSAGE: "A message lists who's missing your buff, whatever the table's Message column says. Default: on.",
     TIP_PARTY_GROUP_MIN:
         "In a party, how many missing a buff make its group version glow instead, like Prayer of Fortitude. It needs its reagent.",
     TIP_RAID_GROUP_MIN:

@@ -17,6 +17,8 @@ type FeatureKey =
     | "isWeaponBuffEnabled"
     | "showPartyBuffs"
     | "showRaidBuffs"
+    | "showPartyBuffMessage"
+    | "showRaidBuffMessage"
     | "shouldNoteOwnOlderRankBuffs"
     | "shouldNoteOthersOlderRankBuffs"
     | "shouldNoteHiddenBuffs"
@@ -39,6 +41,17 @@ export class ReminderControlsService {
     /** A switch of a feature, on or off by default as the settings say. */
     addSwitch(tab: OptionsTab, key: FeatureKey, label: TextKey, tooltip: TextKey): OptionRow {
         return this.controls.addSwitchCheckbox(tab, key, this.locale.getText(label), this.locale.getText(tooltip));
+    }
+
+    /** Whether a message lists who is missing the buff, under the switch of the party or the raid buffs, greyed out while it is off. */
+    addMessageSwitch(
+        tab: OptionsTab,
+        key: "showPartyBuffMessage" | "showRaidBuffMessage",
+        parentKey: "showPartyBuffs" | "showRaidBuffs",
+    ): void {
+        this.addSwitch(tab, key, "OPT_GROUP_BUFF_MESSAGE", "TIP_GROUP_BUFF_MESSAGE")
+            .enableWhen(() => this.settings.get(parentKey))
+            .setIndented();
     }
 
     /**

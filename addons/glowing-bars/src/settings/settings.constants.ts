@@ -45,6 +45,16 @@ function createTableView(): Pick<AddonSettings, "isTableAdvanced" | "tableTab" |
     return { isTableAdvanced: false, tableTab: "buffs", shownUnlearned: {} };
 }
 
+/** The members missing the player's buffs, in a party and in a raid: watched, told of, and from how many the group version. */
+const PARTY_SETTINGS = {
+    showPartyBuffs: true,
+    showRaidBuffs: true,
+    showPartyBuffMessage: true,
+    showRaidBuffMessage: true,
+    partyGroupFrom: 2,
+    raidGroupFrom: 1,
+};
+
 /** The cooldowns and procs that glow as they are ready: all on; the looks of the utility cooldowns not moved yet. */
 const COOLDOWN_SWITCHES = {
     isReadyCooldownEnabled: true,
@@ -104,10 +114,7 @@ export function createDefaultSettings(): AddonSettings {
         isMessageSizePulseOn: false,
         messagePulseSpeed: 100,
         isOneLinePerType: false,
-        showPartyBuffs: true,
-        showRaidBuffs: true,
-        partyGroupFrom: 2,
-        raidGroupFrom: 1,
+        ...PARTY_SETTINGS,
         isOldRankEnabled: true,
         isLowReagentEnabled: true,
         ...COOLDOWN_SWITCHES,

@@ -37,6 +37,8 @@ export interface Reminders {
     reagentSpells: number[];
     /** In a town or an inn: only there a reminder whose When is "alert in town" says so, and repeats. */
     isInTown?: boolean;
+    /** In a raid, not a party: the message of the members missing a buff follows the raid's switch. */
+    isInRaid?: boolean;
     /** Important cooldowns that are ready and on a button: their buttons glow. */
     readyCooldowns: number[];
     /** The same, due but on no button now (a page of a bar not shown): their glow time waits for them. */
