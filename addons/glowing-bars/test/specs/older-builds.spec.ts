@@ -36,6 +36,13 @@ describe("a build from before profiles, after this one", () => {
         expect(saved.messageSize).toBe(150);
         expect(saved.addedSpells).toEqual([BASH_ADDED]);
     });
+
+    it("finds a setting changed at the logout after the copy was made (an onLogout hook comes after it)", () => {
+        const world = login({});
+        const saved = logOut(world);
+        world.setOption("showTooltipIds", true);
+        expect(saved.showTooltipIds).toBe(true);
+    });
 });
 
 describe("this build again, after an older one", () => {

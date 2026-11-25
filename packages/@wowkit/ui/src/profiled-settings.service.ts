@@ -58,6 +58,8 @@ export class ProfiledSettingsService<T extends object> implements OnAddonLoaded,
     private readonly accountCharacterKeys = new LuaSet<string>();
     private readonly repair: ((values: T) => void) | undefined;
     private readonly findCharacter: () => CharacterInfo;
+    /** Was the copy for older builds left at the logout? A setting changed after it goes into it too. */
+    private hasLeftCopy = false;
 
     constructor(
         private readonly characterVariables: SavedVariablesService,
@@ -110,6 +112,7 @@ export class ProfiledSettingsService<T extends object> implements OnAddonLoaded,
 
     change<K extends keyof T>(key: K, value: T[K]): void {
         this.findTable(key)[key as string] = value;
+        this.updateCopy(key as string, value);
         this.bus.emit("setting.changed", key as string);
     }
 
@@ -179,7 +182,9 @@ export class ProfiledSettingsService<T extends object> implements OnAddonLoaded,
         const entry = this.account.characters?.[characterKey];
         if (entry === undefined) return;
         entry[key as string] = value;
-        if (characterKey === this.player.key) this.bus.emit("setting.changed", key as string);
+        if (characterKey !== this.player.key) return;
+        this.updateCopy(key as string, value);
+        this.bus.emit("setting.changed", key as string);
     }
 
     private findTable(key: keyof T): Record<string, unknown> {
@@ -213,13 +218,20 @@ export class ProfiledSettingsService<T extends object> implements OnAddonLoaded,
     }
 
     /**
-     * The logout, after the addon's own work at it: a copy of the profile's settings, and of the character's own the account
-     * keeps, in the character's data, where an older build reads them.
+     * The logout: a copy of the profile's settings, and of the character's own the account keeps, in the character's data,
+     * where an older build reads them. It may come before the addon's other work at the logout (its onLogout hooks): what
+     * they change goes into the copy as well (updateCopy).
      */
     @OnGameEvent("PLAYER_LOGOUT")
     writeCopyForOlderBuilds(): void {
+        this.hasLeftCopy = true;
         for (const [key, value] of pairs(this.profile)) if (!this.isOwnKey(key as string)) this.character[key as string] = copyValue(value);
         for (const key of this.accountCharacterKeys) this.character[key] = copyValue(this.accountCharacter[key]);
+    }
+
+    /** A setting changed once the copy for older builds was left: the copy has it too (a character's own is there already). */
+    private updateCopy(key: string, value: unknown): void {
+        if (this.hasLeftCopy && !this.characterKeys.has(key)) this.character[key] = copyValue(value);
     }
 
     /** What a character saved of its own that the account keeps now moves there (once: what the account has stays). */
