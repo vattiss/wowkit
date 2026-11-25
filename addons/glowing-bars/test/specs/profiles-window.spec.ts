@@ -129,3 +129,51 @@ describe("reloading after a change", () => {
         expect(world.state.reloads).toBe(2);
     });
 });
+
+describe("deleting a profile", () => {
+    const ALT_GUID = "Player-1-00000002";
+    const ALT_ABOUT = { name: "Alt", surname: "", realm: "Forever", race: "Gnome", className: "Mage", ruleset: "" };
+
+    /** A priest whose account holds the profile of a deleted character, Alt, and its entry with a spell it added. */
+    function openWithAlt(): World {
+        const world = createWorld((state) => {
+            playAs(state, PRIEST);
+            state.accountSaved = {
+                profiles: { Alt: { messageSize: 150 } },
+                characters: {
+                    [ALT_GUID]: { profileName: "Alt", about: ALT_ABOUT, addedSpells: [{ id: 72, reminderType: "readyCooldown" }] },
+                },
+            };
+        });
+        world.advance(1);
+        openProfilesWindow(world);
+        return world;
+    }
+
+    const readCharacters = (world: World) => (world.getAccountSaved() as { characters: Record<string, unknown> }).characters;
+
+    it("deletes another character's profile, asked first, with no reload; its added spells stay", () => {
+        const world = openWithAlt();
+        world.setOption("deleteProfile", "Alt");
+        answer(world, "Delete");
+        expect(readAccount(world).profiles!.Alt).toBe(undefined);
+        expect(readCharacters(world)[ALT_GUID] !== undefined).toBe(true);
+        expect(readAccount(world).profiles!["Me - Forever (Human Priest)"] !== undefined).toBe(true);
+        expect(world.state.reloads).toBe(0);
+    });
+
+    it("keeps it when that is cancelled", () => {
+        const world = openWithAlt();
+        world.setOption("deleteProfile", "Alt");
+        answer(world, "Cancel");
+        expect(readAccount(world).profiles!.Alt?.messageSize).toBe(150);
+        expect(readCharacters(world)[ALT_GUID] !== undefined).toBe(true);
+    });
+
+    it("never deletes this character's own profile", () => {
+        const world = openWithAlt();
+        world.setOption("deleteProfile", "Me - Forever (Human Priest)");
+        answer(world, "Delete");
+        expect(readAccount(world).profiles!["Me - Forever (Human Priest)"] !== undefined).toBe(true);
+    });
+});

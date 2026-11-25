@@ -18,6 +18,8 @@ import { describeCharacter, findPlayer, pickProfileName, type CharacterInfo } fr
 
 /** Where a character's entry in the account's data says who it is (name, realm, race, class). */
 const ABOUT_KEY = "about";
+/** Where a character's data names its profile. */
+const PROFILE_KEY = "profileName";
 
 /** What the account keeps of the profiles and the characters, beside whatever else the addon keeps there. */
 interface AccountTable {
@@ -124,6 +126,17 @@ export class ProfiledSettingsService<T extends object> implements OnAddonLoaded,
         return names;
     }
 
+    /**
+     * Deletes another character's profile (one deleted in the game, which the addon cannot tell). Not this character's own.
+     * Its added spells stay. Should that character log in again, it gets its settings back from the copy in its own data.
+     */
+    deleteProfile(name: string): boolean {
+        const profiles = this.account.profiles;
+        if (profiles?.[name] === undefined || name === this.getProfileName()) return false;
+        profiles[name] = undefined;
+        return true;
+    }
+
     /** The settings of that profile replace this one's, from the next load of the interface on. */
     copyProfile(from: string): boolean {
         const source = this.account.profiles?.[from];
@@ -194,7 +207,7 @@ export class ProfiledSettingsService<T extends object> implements OnAddonLoaded,
 
     /** Is the key a character's own, wherever it is kept? Who the character is (in the account's data) is no setting. */
     private isOwnKey(key: string): boolean {
-        return this.characterKeys.has(key) || this.accountCharacterKeys.has(key) || key === "profileName" || key === ABOUT_KEY;
+        return this.characterKeys.has(key) || this.accountCharacterKeys.has(key) || key === PROFILE_KEY || key === ABOUT_KEY;
     }
 
     /** The character's own profile, "Castor Stormlight (Gnome Priest, Normal)", numbered where taken: empty, filled as it loads. */
@@ -253,7 +266,7 @@ export class ProfiledSettingsService<T extends object> implements OnAddonLoaded,
         for (const [key] of pairs(values)) keys.add(key as string);
         for (const source of [this.profile, this.character, this.accountCharacter]) {
             for (const [key, value] of pairs(source)) {
-                if (key === "profileName" || key === ABOUT_KEY) continue;
+                if (key === PROFILE_KEY || key === ABOUT_KEY) continue;
                 values[key as string] = value;
                 keys.add(key as string);
             }

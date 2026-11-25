@@ -158,6 +158,20 @@ function checkSettings(world: World, expected: Table, started: Case["account"], 
 }
 
 /** A copy from another profile, or a reset, in the Profiles window: what the character should have after the reload. */
+/** Another character's profile deleted in the Profiles window, if there is one: its name. */
+function deleteOther(world: World, random: Random): string | undefined {
+    const ownName = readCharacter().profileName as string;
+    const others = Object.keys(readAccount(world).profiles).filter((name) => name !== ownName);
+    if (others.length === 0) return undefined;
+    const name = random.pickOne(others);
+    openProfilesWindow(world);
+    world.setOption("deleteProfile", name);
+    const box = world.frames.find((frame) => frame.name === "GlowingBarsProfilesQuestion")!;
+    const button = world.frames.find((frame) => frame.parent === box && frame.text === "Delete")!;
+    button.scripts.OnClick!(button);
+    return name;
+}
+
 function copyOrReset(world: World, random: Random, expected: Table): Table {
     const ownName = readCharacter().profileName as string;
     const others = Object.keys(readAccount(world).profiles).filter((name) => name !== ownName);
@@ -222,6 +236,11 @@ function playCase(seed: number): string | undefined {
         const beforeCopy = copyDeep(readAccount(world));
         world = reloadWorld(world);
         checkSettings(world, after, beforeCopy, profileName as string, "copy or reset");
+        const beforeDelete = copyDeep(readAccount(world));
+        const deleted = deleteOther(world, random);
+        if (deleted !== undefined) beforeDelete.profiles[deleted] = undefined as never;
+        check(deleted === undefined || readAccount(world).profiles[deleted] === undefined, `delete: "${deleted}" is still there`);
+        checkSettings(world, after, beforeDelete, profileName as string, "delete");
     });
     if (isDone) return undefined;
     return `seed ${seed} (${testCase.kind}): ${tostring(failure)}`;

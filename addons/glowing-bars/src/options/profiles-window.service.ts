@@ -64,6 +64,7 @@ export class ProfilesWindowService {
         this.addCurrentRow(tab);
         this.addCopyRow(tab, window);
         this.addResetRow(tab, window);
+        this.addDeleteRow(tab, window);
         this.addReloadRow(tab);
         this.tab = tab;
         return window;
@@ -125,6 +126,34 @@ export class ProfilesWindowService {
             setEnabled: (isEnabled) => button.SetEnabled(isEnabled),
             reset: () => undefined,
         });
+    }
+
+    /** A dropdown of the other characters' profiles: the one picked is deleted, asked first (no reload: this one stays as it is). */
+    private addDeleteRow(tab: OptionsTab, window: OptionsWindow): void {
+        const row = tab.createRow(this.locale.getText("OPT_DELETE_PROFILE"), this.locale.getText("TIP_DELETE_PROFILE"));
+        const button = this.createButton(row, CONTROL_LEFT, findChoiceWidth(tab));
+        button.SetText("...");
+        const pick = (value?: unknown) => {
+            const name = value as string;
+            window.confirm(string.format(this.locale.getText("Q_DELETE_PROFILE"), name), this.locale.getText("BTN_DELETE"), () => {
+                if (this.settings.deleteProfile(name)) tab.refresh();
+            });
+        };
+        connectChoiceMenu(button, () =>
+            this.listOtherProfiles().map((name) => ({ label: name, isChosen: () => false, choose: () => pick(name) })),
+        );
+        tab.addControl(row, {
+            variable: `${VARIABLE_PREFIX}_deleteProfile`,
+            apply: pick,
+            refresh: () => button.SetEnabled(this.listOtherProfiles().length > 0),
+            setEnabled: (isEnabled) => button.SetEnabled(isEnabled),
+            reset: () => undefined,
+        });
+    }
+
+    /** The profiles of the account but this character's own. */
+    private listOtherProfiles(): string[] {
+        return this.settings.listProfileNames().filter((name) => name !== this.settings.getProfileName());
     }
 
     /** Reloads the interface by a click of its own, as the Welcome tab's button does; only once there is something to load. */
