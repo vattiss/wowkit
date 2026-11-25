@@ -1,7 +1,8 @@
 // What a circling glow does on a round button (Forever's gamepad bars, another addon's round buttons), where it cannot
-// circle: breathe, or stand still. How each glow moves is the table's (its Animation column).
+// circle: breathe, or stand still; and whether ConsolePort's crossbar buttons count as round (only where it is loaded). How
+// each glow moves is the table's (its Animation column).
 
-import type { GlowAnimation } from "@wowkit/wow";
+import { attemptMulti, type GlowAnimation } from "@wowkit/wow";
 import type { AddonLocale } from "../locale/locale.interface";
 import type { TextKey } from "../locale/texts.constants";
 import type { AddonSettings, AddonSettingsService } from "../settings/settings.interface";
@@ -55,5 +56,22 @@ export class AnimationSection {
             () => styles.map((style): [string, string] => [style, this.locale.getText(ROUND_TEXTS[style] ?? ANIMATION_TEXTS[style])]),
             false,
         );
+        this.controls
+            .addCheckbox(
+                tab,
+                "consolePortRound",
+                this.locale.getText("OPT_CONSOLEPORT_ROUND"),
+                this.locale.getText("TIP_CONSOLEPORT_ROUND"),
+                false,
+                () => this.settings.get("areConsolePortButtonsRound"),
+                (isChecked) => this.settings.change("areConsolePortButtonsRound", isChecked),
+            )
+            .showWhen(() => isConsolePortBarLoaded());
     }
+}
+
+/** Is ConsolePort's crossbar (its Action Bar module) loaded? */
+function isConsolePortBarLoaded(): boolean {
+    const [didRead, isLoaded] = attemptMulti(() => C_AddOns.IsAddOnLoaded("ConsolePort_Bar"));
+    return didRead && isLoaded === true;
 }

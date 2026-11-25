@@ -93,6 +93,7 @@ export function createDefaultSettings(): AddonSettings {
         isCooldownManagerSetUp: false,
         isCooldownManagerOurs: false,
         roundAnimation: "breathing",
+        areConsolePortButtonsRound: false,
         isMissingBuffEnabled: true,
         isWeaponBuffEnabled: true,
         messageSize: 100,

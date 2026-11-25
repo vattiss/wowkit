@@ -182,10 +182,11 @@ export class ActionBarsService implements OnFirstLogin {
 
     /**
      * The shape of a button: the one it was registered with (another addon's), else the one it says itself (the gamepad
-     * bars of Forever keep it in `activeButtonShape`); undefined for the others, which are square.
+     * bars of Forever keep it in `activeButtonShape`), else round by its name where an addon says so; undefined for the
+     * others, which are square.
      */
     getButtonShape(button: ActionButton): ButtonShape | undefined {
-        return this.registry.findShape(button) ?? (button as { activeButtonShape?: ButtonShape }).activeButtonShape;
+        return this.registry.findShape(button, (button as { activeButtonShape?: ButtonShape }).activeButtonShape);
     }
 
     /** The buttons a spell sits on: by ID, resolved ID and name; by its (rarely shared) icon only when none is found so. */

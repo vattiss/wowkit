@@ -19,7 +19,7 @@ quirks (secret values, hidden auras, protected calls, remapped IDs) into plain a
 | `action-bars.service.ts` | Which spell is on which button (and in which action slot), and the IDs of the spells on the bars. Maps the bars at the first login. |
 | `cooldown-viewer.service.ts` (+ `cooldown-layouts.ts`) | Blizzard's Cooldown Manager: turning it on, hiding it, what its icons say of a buff or a cooldown (up, gone, or no say), the icons of a spell, and moving entries in the saved layout. |
 | `bar-keys.service.ts` | The key a button's bar has in the settings: its number, or the stance bars, and the stance buttons. |
-| `bar-fade.service.ts`, `button-search.service.ts`, `button-registry.service.ts` | Bars faded until they glow; the action buttons of bar addons nobody listed (searched for at the login and as the key bindings change); the buttons other addons registered, and other places a spell counts as being. |
+| `bar-fade.service.ts`, `button-search.service.ts`, `button-registry.service.ts` | Bars faded until they glow; the action buttons of bar addons nobody listed (searched for at the login and as the key bindings change); the buttons other addons registered (and the names an addon counts as round), and other places a spell counts as being. |
 | `library-buttons.ts` | The buttons LibActionButton-1.0 made, for the bar addons that name theirs as they go (ConsolePort's crossbar): mapped with the bars. |
 | `totems.service.ts` | The totem in each totem slot, and the totems the player put into the totem bar. |
 | `spell-refresh.service.ts`, `bar-refresh.service.ts` | Keep the spell lookups and the map of the bars fresh: after a learn, a level-up or a bar change they wait for things to settle, then refresh once (`spells.refreshed`, `bars.mapped`). |

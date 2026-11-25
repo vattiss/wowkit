@@ -198,6 +198,12 @@ export class GlowService {
             this.overlays.set(button, byKey);
         }
         let entry = byKey.get(key);
+        // The button's shape changed (an addon's setting, ConsolePort's round buttons): its glow is made again for it
+        if (entry !== undefined && (entry.isRing === true) !== this.isRoundButton(button)) {
+            entry.frame.Hide();
+            if (entry.breathe !== undefined) this.pulses.delete(entry.breathe);
+            entry = undefined;
+        }
         if (!entry) {
             entry = this.createOverlay(button, animation);
             byKey.set(key, entry);

@@ -17,9 +17,9 @@ function setUp(state: Parameters<Parameters<typeof createWorld>[0]>[0]): void {
     state.bars[GAMEPAD_SLOT] = FORTITUDE.id;
 }
 
-/** A priest missing Fortitude, which is on the first gamepad slot only; logged in. */
-function login(): World {
-    const world = createWorld(setUp);
+/** A priest missing Fortitude, which is on the first gamepad slot only, with these settings; logged in. */
+function login(saved?: Record<string, unknown>): World {
+    const world = createWorld(setUp, saved);
     world.advance(5);
     return world;
 }
@@ -129,5 +129,68 @@ describe("a bar addon's button of no known name, made after the login", () => {
         world.fire("PLAYER_REGEN_ENABLED");
         world.advance(5);
         expect(world.glowsOnFrame("SomeBarButton1")).toBe(1);
+    });
+});
+
+describe("the round glow on ConsolePort's crossbar buttons", () => {
+    /** Is Blizzard's square spell alert lit on the button (the missing buff circles: a round button breathes instead)? */
+    function hasSquareAlert(world: World, name: string): boolean {
+        const button = world.findFrame((frame) => frame.name === name);
+        return world.frames.some(
+            (frame) => frame.parent === button && frame.template === "ActionButtonSpellAlertTemplate" && frame.isShown,
+        );
+    }
+
+    /** Whether the crossbar's button, and another addon's of the library, have the square alert, with the setting so. */
+    function readSquareAlerts(isRound: boolean): [crossbar: boolean, other: boolean] | undefined {
+        const world = login({ areConsolePortButtonsRound: isRound });
+        return readWithLibrary([makeButton("CPB_PADDUP_"), makeButton("OtherBarButton1")], () => {
+            world.advance(5);
+            return [hasSquareAlert(world, "CPB_PADDUP_"), hasSquareAlert(world, "OtherBarButton1")];
+        });
+    }
+
+    it("is there once the player turns it on: another addon's buttons stay square", () => {
+        expect(readSquareAlerts(true)).toEqual([false, true]);
+    });
+
+    it("is not there by default", () => {
+        expect(readSquareAlerts(false)).toEqual([true, true]);
+    });
+
+    it("turns on as the box is ticked, with no reload", () => {
+        const world = createWorld((state) => {
+            setUp(state);
+            state.loadedAddons.ConsolePort_Bar = true;
+        });
+        world.advance(5);
+        const alerts = readWithLibrary([makeButton("CPB_PADDUP_")], () => {
+            world.advance(5);
+            const before = hasSquareAlert(world, "CPB_PADDUP_");
+            world.setOption("consolePortRound", true);
+            world.advance(2);
+            return [before, hasSquareAlert(world, "CPB_PADDUP_")];
+        });
+        expect(alerts).toEqual([true, false]);
+    });
+
+    it("is offered only where ConsolePort's crossbar is loaded", () => {
+        const isOffered = (isLoaded: boolean) => {
+            const world = createWorld((state) => {
+                setUp(state);
+                state.loadedAddons.ConsolePort_Bar = isLoaded;
+            });
+            world.advance(1);
+            world.openOptions();
+            world.advance(1);
+            const general = world.frames.find((frame) => frame.frameType === "Button" && frame.text === "General")!;
+            general.scripts.OnClick!(general);
+            const row = world.frames.find(
+                (frame) => (frame as unknown as { optionLabel?: string }).optionLabel === "Round glow on ConsolePort's buttons (alpha)",
+            )!;
+            return row.isShown;
+        };
+        expect(isOffered(true)).toBe(true);
+        expect(isOffered(false)).toBe(false);
     });
 });

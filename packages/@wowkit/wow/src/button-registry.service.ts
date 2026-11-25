@@ -1,12 +1,15 @@
 // The buttons other addons registered (a UI addon with bars of its own, through an addon's API): action buttons, with the
 // bar each counts as, and stance buttons, with the stance each stands for. The bars are mapped with them
 // (ActionBarsService), and the faded bars fade them (BarFadeService). A button may say its shape, and its glow takes it
-// (GlowService).
+// (GlowService); the buttons whose names start so count as round where they say none (an addon's choice).
+import { attempt } from "./utils/protected-call.utils";
 
 /** The shape of a button, named as the gamepad bars of Forever name theirs (their `activeButtonShape`). */
 export type ButtonShape = "Circle" | "Square";
 
 export class ButtonRegistryService {
+    /** The starts of the names of buttons that count as round where nothing else says their shape (an addon's choice). */
+    private roundPrefixes: string[] = [];
     /** The action buttons, with the bar each counts as: 1 to 8, or 0 for none. */
     private readonly bars = new LuaMap<ActionButton, number>();
     /** The stance buttons, with the stance each stands for. */
@@ -30,9 +33,23 @@ export class ButtonRegistryService {
         this.setShape(button, shape);
     }
 
-    /** The shape a registered button said it has; undefined when it said none, or was not registered. */
-    findShape(button: ActionButton): ButtonShape | undefined {
-        return this.shapes.get(button);
+    /** The buttons whose names start with one of these count as round, where they say no shape of their own; none for []. */
+    useRoundPrefixes(prefixes: string[]): void {
+        this.roundPrefixes = prefixes;
+    }
+
+    /**
+     * The shape a registered button said it has, else the one the button says itself (`ownShape`), else round by its name;
+     * undefined when none says.
+     */
+    findShape(button: ActionButton, ownShape?: ButtonShape): ButtonShape | undefined {
+        return this.shapes.get(button) ?? ownShape ?? (this.isRoundByName(button) ? "Circle" : undefined);
+    }
+
+    private isRoundByName(button: ActionButton): boolean {
+        if (this.roundPrefixes.length === 0) return false;
+        const name = attempt(() => button.GetName());
+        return type(name) === "string" && this.roundPrefixes.some((prefix) => string.sub(name!, 1, prefix.length) === prefix);
     }
 
     private setShape(button: ActionButton, shape: ButtonShape | undefined): void {

@@ -156,6 +156,8 @@ export interface AddonSettings {
     shouldGlowOnEveryMacroSpell: boolean;
     /** What a circling glow does on a round button (Forever's gamepad bars, another addon's), where it cannot circle. */
     roundAnimation: GlowAnimation;
+    /** Do ConsolePort's crossbar buttons get the round glow, as the round buttons do? */
+    areConsolePortButtonsRound: boolean;
     isMissingBuffEnabled: boolean;
     isWeaponBuffEnabled: boolean;
     /** Party members missing the player's buffs. */

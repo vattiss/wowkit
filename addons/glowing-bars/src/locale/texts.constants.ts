@@ -149,6 +149,8 @@ export const TEXTS = {
         "Put your sounds in a folder in AddOns, next to this addon, named custom1, custom2 and so on (.ogg or .mp3). Enter the folder and how many sounds there are: the addon can't look into the folder, so it knows only the number you type.",
     OPT_ROUND_ANIMATION: "Circling on round buttons (alpha)",
     TIP_ROUND_ANIMATION: "Round buttons can't have a circling glow. Where a row's Animation is Circling, they do this instead.",
+    OPT_CONSOLEPORT_ROUND: "Round glow on ConsolePort's buttons (alpha)",
+    TIP_CONSOLEPORT_ROUND: "ConsolePort's crossbar buttons get the round glow, as Forever's gamepad bars do. Default: off.",
     ANIMATION_CIRCLING: "Circling (ants)",
     ANIMATION_CLEAN: "Circling (clean)",
     ANIMATION_CIRCLING_CLASSIC: "Circling (classic)",

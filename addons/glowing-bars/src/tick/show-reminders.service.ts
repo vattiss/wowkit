@@ -48,6 +48,7 @@ const SETTINGS_OF_THE_LOOK: string[] = [
     "idOverrides",
     "addedSpells",
     "roundAnimation",
+    "areConsolePortButtonsRound",
     "shouldGlowOnMacros",
     "shouldGlowOnEveryMacroSpell",
     "cooldownManagerAccess",
