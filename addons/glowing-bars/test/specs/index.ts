@@ -100,6 +100,7 @@ import "./profiles-fuzz.spec";
 import "./consoleport.spec";
 import "./party-message.spec";
 import "./older-builds.spec";
+import "./poisons-fuzz.spec";
 import "./character-spells.spec";
 import "./secret-auras-fuzz.spec";
 import "./tick-garbage.spec";

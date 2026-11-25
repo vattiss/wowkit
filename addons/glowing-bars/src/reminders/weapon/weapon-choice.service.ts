@@ -74,33 +74,48 @@ export class WeaponChoiceService {
         if (enchantId !== undefined) this.noteWeaponBuffPut(WEAPON_BUFF_BY_ENCHANT.get(enchantId), isOffhand);
     }
 
-    /** The automatic pick: the one last put on the hand, else the main talent tree's, else the best already learned. */
+    /**
+     * The automatic pick: the one last put on the hand, else the main talent tree's, else the best already learned. Of the
+     * buffs put on with an item, one in the bags only (on no button, so nothing of it glows) only when none is on a button,
+     * unless it is the one last put on.
+     */
     findAutomaticWeaponBuff(isOffhand: boolean): PickedWeaponBuff | undefined {
+        return this.pickAutomatically(isOffhand, false) ?? this.pickAutomatically(isOffhand, true);
+    }
+
+    private pickAutomatically(isOffhand: boolean, isBagsCounted: boolean): PickedWeaponBuff | undefined {
         const choices = this.getWeaponChoices();
-        const preferred = this.findPreferredWeaponBuff(choices, isOffhand);
+        const preferred = this.findPreferredWeaponBuff(choices, isOffhand, isBagsCounted);
         if (preferred) return preferred;
         const token = this.player.getClassToken();
         const order = token !== undefined ? (isOffhand ? OFFHAND_PRIORITY : WEAPON_PRIORITY)[token] : undefined;
         for (const key of order ?? []) {
-            const found = this.createPickedWeaponBuff(choices.find((choice) => choice.key === key));
+            const found = this.createPickedWeaponBuff(
+                choices.find((choice) => choice.key === key),
+                isBagsCounted,
+            );
             if (found) return found;
         }
         for (const entry of choices) {
-            const found = this.createPickedWeaponBuff(entry);
+            const found = this.createPickedWeaponBuff(entry, isBagsCounted);
             if (found) return found;
         }
         return undefined;
     }
 
     /** The weapon buff last put on the hand, else the main talent tree's; undefined when neither can be picked. */
-    private findPreferredWeaponBuff(choices: WeaponBuff[], isOffhand: boolean): PickedWeaponBuff | undefined {
+    private findPreferredWeaponBuff(choices: WeaponBuff[], isOffhand: boolean, isBagsCounted: boolean): PickedWeaponBuff | undefined {
         const last = this.settings.get("lastBuffs")[getLastWeaponKey(isOffhand)];
+        // The one the player put on last, in the bags only too: they use it (another on a button would ask to replace it)
         const lastPick = this.createPickedWeaponBuff(choices.find((choice) => choice.id === last));
         if (lastPick) return lastPick;
         const token = this.player.getClassToken();
         const tree = this.player.findMainTalentTree();
         const talentKey = token !== undefined && tree !== undefined ? TALENT_WEAPON_BUFFS[token]?.[tree] : undefined;
-        return this.createPickedWeaponBuff(choices.find((choice) => choice.key === talentKey));
+        return this.createPickedWeaponBuff(
+            choices.find((choice) => choice.key === talentKey),
+            isBagsCounted,
+        );
     }
 
     /** The player's pick if it is learned, otherwise the automatic one. */
@@ -150,9 +165,9 @@ export class WeaponChoiceService {
     /**
      * What glows of a buff put on with an item: the highest rank on the bars that the player has some of (as the spell
      * the item casts); with none in the bags, the spell that makes the item (a warlock's stone) if it can be cast now, else the highest rank on
-     * the bars; undefined with neither on the bars.
+     * the bars; with neither on the bars, the highest rank in the bags where `isBagsCounted`.
      */
-    private findItemRank(entry: WeaponBuff, items: { item: number; spell: number }[]): number | undefined {
+    private findItemRank(entry: WeaponBuff, items: { item: number; spell: number }[], isBagsCounted: boolean): number | undefined {
         const onBars = items.filter(({ spell }) => this.actionBars.isOnBars(spell));
         const owned = onBars.filter(({ item }) => this.bags.getItemCount(item) > 0);
         if (owned.length > 0) return owned[owned.length - 1]!.spell;
@@ -160,12 +175,15 @@ export class WeaponChoiceService {
         // A stone that cannot be made now (no Soul Shard) is no reminder: nothing of it glows
         if (maker !== undefined && this.spells.isCastable(maker) === false) return undefined;
         if (maker !== undefined && (onBars.length === 0 || this.actionBars.isOnBars(maker))) return maker;
-        return onBars[onBars.length - 1]?.spell;
+        if (onBars.length > 0 || !isBagsCounted) return onBars[onBars.length - 1]?.spell;
+        // None on the bars: the highest in the bags still counts (a rogue's poison bought, not put on a button yet)
+        const inBags = items.filter(({ item }) => this.bags.getItemCount(item) > 0);
+        return inBags[inBags.length - 1]?.spell;
     }
 
     /** The rank to cast of this weapon buff: of an item, the one on the bars; else the highest learned. */
-    private findUsableId(entry: WeaponBuff | undefined): number | undefined {
-        return entry?.items !== undefined ? this.findItemRank(entry, entry.items) : this.findLearnedId(entry);
+    private findUsableId(entry: WeaponBuff | undefined, isBagsCounted = true): number | undefined {
+        return entry?.items !== undefined ? this.findItemRank(entry, entry.items, isBagsCounted) : this.findLearnedId(entry);
     }
 
     /** The highest learned rank of this weapon buff. */
@@ -191,9 +209,10 @@ export class WeaponChoiceService {
     }
 
     /** A weapon buff switched off in the table is never picked: the next one takes its place. */
-    private createPickedWeaponBuff(entry: WeaponBuff | undefined): PickedWeaponBuff | undefined {
+    /** `isBagsCounted`: a buff put on with an item counts when it is in the bags only, on no button. */
+    private createPickedWeaponBuff(entry: WeaponBuff | undefined, isBagsCounted = true): PickedWeaponBuff | undefined {
         if (entry !== undefined && this.settings.get("enabledSpells")[string.format("%d", entry.id)] === false) return undefined;
-        const spellId = this.findUsableId(entry);
+        const spellId = this.findUsableId(entry, isBagsCounted);
         return entry && spellId !== undefined ? { entry, spellId } : undefined;
     }
 

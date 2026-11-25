@@ -186,4 +186,38 @@ describe("a rogue with the poison items on the bars, as in the game", () => {
     it("sees no glow with no poison on the bars", () => {
         expect(createRogueWorld([], []).glowsOn(11)).toBe(0);
     });
+
+    it("keeps the glow on a poison on a button, not on one in the bags only, on the automatic pick", () => {
+        const world = createWorld((state) => {
+            playAs(state, ROGUE);
+            // Deadly Poison on button 11, Instant Poison VI (first on the main hand's list) in the bags only
+            state.spells[2823] = { id: 2823, name: "Deadly Poison", rank: 1, icon: 132290, isHelpful: true };
+            state.itemUseSpells[2892] = 2823;
+            state.barItems[11] = 2892;
+            state.bags[2892] = 5;
+            const instant = INSTANT[5]!;
+            state.spells[instant.spell] = { id: instant.spell, name: instant.name, rank: 1, icon: 132273, isHelpful: true };
+            state.itemUseSpells[instant.item] = instant.spell;
+            state.bags[instant.item] = 5;
+            state.equippedItems[MAIN_HAND] = 1234;
+        });
+        world.advance(2);
+        expect(world.glowsOn(11)).toBe(1);
+    });
+
+    it("is reminded of a poison it has in the bags only, on no button", () => {
+        const world = createWorld(
+            (state) => {
+                playAs(state, ROGUE);
+                const poison = INSTANT[5]!;
+                state.spells[poison.spell] = { id: poison.spell, name: poison.name, rank: 1, icon: 132273, isHelpful: true };
+                state.itemUseSpells[poison.item] = poison.spell;
+                state.bags[poison.item] = 5;
+                state.equippedItems[MAIN_HAND] = 1234;
+            },
+            { styles: { weaponBuff: { isMessageOn: true } } },
+        );
+        world.advance(2);
+        expect(world.notice()).toContain("Weapon buff");
+    });
 });
