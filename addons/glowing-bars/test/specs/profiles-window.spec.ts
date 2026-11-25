@@ -1,6 +1,7 @@
-// The Profiles window (issue #76): opened at the top left of the settings, or by /gb profiles. It shows
+// The Profiles window (issue #76): opened at the top left of the settings. It shows
 // this character's own profile, and copies another's into it or resets it: each asks first, then asks for a /reload.
 import { createWorld, describe, expect, it, playAs, PRIEST, reloadWorld, type World } from "@wowkit/test-kit";
+import { openProfilesWindow } from "./profiles.helpers";
 
 type Profiles = Record<string, Record<string, unknown> | undefined>;
 
@@ -15,8 +16,7 @@ function openProfiles(otherProfiles: Profiles = {}, saved: Record<string, unknow
         state.accountSaved = { profiles: { ...otherProfiles } };
     }, saved);
     world.advance(1);
-    SlashCmdList.GLOWINGBARS!("profiles", undefined as never);
-    world.advance(1);
+    openProfilesWindow(world);
     return world;
 }
 

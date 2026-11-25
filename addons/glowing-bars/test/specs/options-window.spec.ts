@@ -166,26 +166,17 @@ describe("the button of Blizzard's Cooldown Manager", () => {
     });
 });
 
-describe("the old words of the slash command", () => {
-    it("opens What's New for /gb changelog, and Welcome for /gb welcome and /gb scan", () => {
+describe("the slash command", () => {
+    it("opens the table for any word but settings, the old ones of older release notes too", () => {
         const world = createPlayer();
-        const footer = world.frames.find(
-            (frame) => (frame as unknown as { optionVariable?: string }).optionVariable?.endsWith("_showWhatsNew") === true,
-        )!;
-        const scan = world.frames.find(
-            (frame) => (frame as unknown as { optionLabel?: string }).optionLabel === "Check that Glowing Bars finds your buttons",
-        )!;
-        SlashCmdList["GLOWINGBARS"]!("changelog", undefined as never);
-        world.advance(0.1);
-        expect(footer.isShown).toBe(true);
-        expect(scan.parent!.isShown).toBe(false);
-        for (const word of ["welcome", "scan"]) {
-            SlashCmdList["GLOWINGBARS"]!("changelog", undefined as never);
-            world.advance(0.1);
+        const isTableShown = () => world.frames.find((frame) => frame.name === "GlowingBarsLooks")?.isShown === true;
+        for (const word of ["", "table", "changelog", "welcome", "scan", "profiles"]) {
             SlashCmdList["GLOWINGBARS"]!(word, undefined as never);
             world.advance(0.1);
-            expect(scan.parent!.isShown).toBe(true);
-            expect(footer.isShown).toBe(false);
+            expect(isTableShown()).toBe(true);
+            SlashCmdList["GLOWINGBARS"]!(word, undefined as never);
+            world.advance(0.1);
+            expect(isTableShown()).toBe(false);
         }
     });
 });

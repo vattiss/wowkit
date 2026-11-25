@@ -294,6 +294,7 @@ function makeOptions(
     const { buttonSearch, glow, clock, player } = game;
     const report = new ScanReport(game.actionBars, game.spells, player, () => finder.findReminders());
     const welcome = addon.register(new WelcomeService(buttonSearch, glow, clock, player, locale, settings, whatsNew, report));
+    const profiles = addon.register(new ProfilesWindowService(texts.settings, locale, messages));
     const page = addon.register(
         new RemindersPage(
             locale,
@@ -309,9 +310,9 @@ function makeOptions(
             animationSection,
             whatsNew,
             welcome,
+            profiles,
         ),
     );
     const options = addon.register(new OptionsService(messages, "GlowingBarsOptions", page));
-    const profiles = addon.register(new ProfilesWindowService(texts.settings, locale, messages));
-    addon.register(new TableCommand(table, options, messages, locale, welcome, whatsNew, profiles));
+    addon.register(new TableCommand(table, options, messages, locale));
 }

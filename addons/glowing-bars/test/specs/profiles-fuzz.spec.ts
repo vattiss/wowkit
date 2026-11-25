@@ -4,6 +4,7 @@
 // that a reload keeps them and that nothing else changes; then a copy or a reset, and a reload. Each case is played from its
 // seed: a failure names it, to be played again.
 import { createRandom, createWorld, describe, expect, it, playAs, PRIEST, reloadWorld, type Random, type World } from "@wowkit/test-kit";
+import { openProfilesWindow } from "./profiles.helpers";
 
 type Table = Record<string, unknown>;
 type Kind = "new" | "beforeProfiles" | "own" | "gone";
@@ -160,8 +161,7 @@ function checkSettings(world: World, expected: Table, started: Case["account"], 
 function copyOrReset(world: World, random: Random, expected: Table): Table {
     const ownName = readCharacter().profileName as string;
     const others = Object.keys(readAccount(world).profiles).filter((name) => name !== ownName);
-    SlashCmdList.GLOWINGBARS!("profiles", undefined as never);
-    world.advance(1);
+    openProfilesWindow(world);
     const after: Table = { ...expected };
     const isCopy = others.length > 0 && random.isChance(0.7);
     const sourceName = isCopy ? random.pickOne(others) : undefined;

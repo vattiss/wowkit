@@ -14,7 +14,7 @@ import type { WhatsNewService } from "./whats-new.service";
 import type { ReminderControlsService } from "./reminder-controls.service";
 import type { WeaponSection } from "./weapon.section";
 import { buildWelcomeTab } from "./welcome-tab";
-import { COMMAND } from "./table-command";
+import type { ProfilesWindowService } from "./profiles-window.service";
 import { FAQS } from "./faq.generated";
 import { BASIC_WINDOW_WIDTH, WINDOW_HEIGHT } from "./style-table.constants";
 
@@ -50,6 +50,7 @@ export class RemindersPage implements OptionsPage {
         private readonly animationSection: AnimationSection,
         private readonly whatsNew: WhatsNewService,
         private readonly welcome: WelcomeService,
+        private readonly profiles: ProfilesWindowService,
     ) {}
 
     getTexts(): OptionsTexts {
@@ -69,8 +70,7 @@ export class RemindersPage implements OptionsPage {
 
     buildPage(window: OptionsWindow): void {
         window.addTopButton(this.locale.getText("BTN_OPEN_TABLE"), () => this.table.toggle());
-        // Through the slash command, which is what knows the profiles window
-        window.addTopLeftButton(this.locale.getText("BTN_PROFILES"), () => SlashCmdList[COMMAND]?.("profiles", undefined as never));
+        window.addTopLeftButton(this.locale.getText("BTN_PROFILES"), () => this.profiles.open());
         const welcomeTab = window.addTab(this.locale.getText("TAB_WELCOME"), false);
         buildWelcomeTab(welcomeTab, {
             locale: this.locale,

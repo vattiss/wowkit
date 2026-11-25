@@ -1,4 +1,4 @@
-// The Profiles window (issue #76), opened by the button at the top left of the settings, or /gb profiles: each character
+// The Profiles window (issue #76), opened by the button at the top left of the settings: each character
 // has a profile of its own, which can take another's settings or the defaults. A copy or a reset takes effect from the next
 // load of the interface, as the settings are read then: each asks first, then reloads it; where Forever blocks that, a
 // Reload row of its own is there.
