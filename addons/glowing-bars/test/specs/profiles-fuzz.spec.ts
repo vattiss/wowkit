@@ -175,6 +175,25 @@ function copyOrReset(world: World, random: Random, expected: Table): Table {
     return after;
 }
 
+/**
+ * An older build in between: the logout leaves the settings where it reads them, it changes one there, and this build
+ * logs in again. What the character should have then.
+ */
+function goBackAndForth(world: World, random: Random, expected: Table): { world: World; expected: Table } {
+    world.fire("PLAYER_LOGOUT");
+    const saved = copyDeep(readCharacter());
+    const account = readAccount(world);
+    const key = random.pickOne(PROFILE_KEYS);
+    const value = key === "isOneLinePerType" ? random.isChance(0.5) : 50 + random.pickIndex(150);
+    saved[key] = value;
+    const again = createWorld((state) => {
+        playAs(state, PRIEST);
+        state.accountSaved = account;
+    }, saved);
+    again.advance(1);
+    return { world: again, expected: { ...expected, [key]: value } };
+}
+
 function playCase(seed: number): string | undefined {
     const random = createRandom(seed);
     const testCase = makeCase(random);
@@ -196,7 +215,10 @@ function playCase(seed: number): string | undefined {
         world = reloadWorld(world);
         check(readCharacter().profileName === profileName, "reload: another profile");
         checkSettings(world, testCase.expected, started, changed, "reload");
-        const after = copyOrReset(world, random, testCase.expected);
+        const older = goBackAndForth(world, random, testCase.expected);
+        world = older.world;
+        checkSettings(world, older.expected, started, profileName as string, "older build");
+        const after = copyOrReset(world, random, older.expected);
         const beforeCopy = copyDeep(readAccount(world));
         world = reloadWorld(world);
         checkSettings(world, after, beforeCopy, profileName as string, "copy or reset");

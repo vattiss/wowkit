@@ -4,9 +4,14 @@
 // data instead, under its GUID, so every character of the account can see them (the spells it added). A character saved
 // before profiles gets its profile made of what it had, so nothing changes for it; a new one starts with the defaults.
 //
+// An older build reads only the character's data: each logout leaves a copy of the profile's settings there, and of its own
+// the account keeps, as an older build kept them. At the next login the copy goes back into the profile, winning: it is the
+// profile as it was, or what an older build changed meanwhile. Not into the account's: another character may have changed
+// those (an added spell deleted from all of them).
+//
 // The rest of the addon sees one set of settings (SettingsStore): get and change go to the profile or to the character by
 // the key.
-import type { EventBus, OnAddonLoaded } from "@wowkit/core";
+import { OnGameEvent, type EventBus, type OnAddonLoaded } from "@wowkit/core";
 import type { SavedVariablesService } from "@wowkit/wow";
 import type { SettingsStore } from "./settings.service";
 import { describeCharacter, findPlayer, pickProfileName, type CharacterInfo } from "./character-identity";
@@ -80,7 +85,7 @@ export class ProfiledSettingsService<T extends object> implements OnAddonLoaded,
         const oldName = character.profileName;
         // No profile yet (new, or saved before profiles), or its own gone: one of its own
         const isOwn = oldName !== undefined && account.profiles[oldName] !== undefined;
-        const profileName = isOwn ? oldName : this.createOwnProfile(character, account);
+        const profileName = isOwn ? oldName : this.createOwnProfile(account);
         character.profileName = profileName;
         this.account = account;
         this.accountCharacter = account.characters[this.player.key] ??= {};
@@ -90,6 +95,7 @@ export class ProfiledSettingsService<T extends object> implements OnAddonLoaded,
         this.saveInAccount(character);
         this.character = character;
         this.profile = account.profiles[profileName] ??= {};
+        this.takeIntoProfile(character);
         this.fillAndRepair();
         this.characterVariables.bindTable(character);
     }
@@ -186,21 +192,34 @@ export class ProfiledSettingsService<T extends object> implements OnAddonLoaded,
         return this.characterKeys.has(key) || this.accountCharacterKeys.has(key) || key === "profileName" || key === ABOUT_KEY;
     }
 
-    /**
-     * The character's own profile, "Castor Stormlight (Gnome Priest, Normal)", numbered where taken: what it holds that is not its
-     * own (saved before profiles) moved in.
-     */
-    private createOwnProfile(character: Record<string, unknown>, account: AccountTable): string {
+    /** The character's own profile, "Castor Stormlight (Gnome Priest, Normal)", numbered where taken: empty, filled as it loads. */
+    private createOwnProfile(account: AccountTable): string {
         const profiles = account.profiles!;
         const name = pickProfileName((taken) => profiles[taken] !== undefined, this.player);
-        const profile: Record<string, unknown> = {};
+        profiles[name] = {};
+        return name;
+    }
+
+    /**
+     * What the character holds that is no setting of its own goes into its profile: all it had, saved before profiles, or
+     * the copy the last logout left for an older build (which may have changed it).
+     */
+    private takeIntoProfile(character: Record<string, unknown>): void {
         for (const [key, value] of pairs(character)) {
             if (this.isOwnKey(key as string)) continue;
-            profile[key as string] = value;
+            this.profile[key as string] = value;
             character[key as string] = undefined;
         }
-        profiles[name] = profile;
-        return name;
+    }
+
+    /**
+     * The logout, after the addon's own work at it: a copy of the profile's settings, and of the character's own the account
+     * keeps, in the character's data, where an older build reads them.
+     */
+    @OnGameEvent("PLAYER_LOGOUT")
+    writeCopyForOlderBuilds(): void {
+        for (const [key, value] of pairs(this.profile)) if (!this.isOwnKey(key as string)) this.character[key as string] = copyValue(value);
+        for (const key of this.accountCharacterKeys) this.character[key] = copyValue(this.accountCharacter[key]);
     }
 
     /** What a character saved of its own that the account keeps now moves there (once: what the account has stays). */
