@@ -79,9 +79,13 @@ export class ButtonSearchService implements OnFirstLogin {
         if (this.isSearchWaiting) this.scheduleSearch();
     }
 
-    /** The search the key bindings asked for; one going on asks again as it ends, a fight as it ends. */
+    /**
+     * The search the key bindings asked for; one going on asks again as it ends, a fight as it ends. One that ended since
+     * it was asked for (the login's, a scan) leaves it waiting out the gap.
+     */
     private runWaitingSearch(): void {
         if (!this.isSearchWaiting || this.searchCount > 0 || attempt(InCombatLockdown) === true) return;
+        if (GetTime() - this.lastSearchAt < SEARCH_GAP) return this.scheduleSearch();
         this.isSearchWaiting = false;
         this.findButtons(() => undefined);
     }

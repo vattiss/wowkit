@@ -118,6 +118,19 @@ describe("a bar addon's button of no known name, made after the login", () => {
         expect(world.glowsOnFrame("SomeBarButton2")).toBe(1);
     });
 
+    it("is not searched for again right after a search that ended meanwhile (a scan)", () => {
+        const world = login();
+        world.advance(SEARCH_GAP + 5);
+        world.fire("UPDATE_BINDINGS");
+        SlashCmdList.GLOWINGBARS!("scan", undefined as never);
+        world.advance(0.5);
+        makeUnknownButton("SomeBarButton1");
+        world.advance(5);
+        expect(world.glowsOnFrame("SomeBarButton1")).toBe(0);
+        world.advance(SEARCH_GAP);
+        expect(world.glowsOnFrame("SomeBarButton1")).toBe(1);
+    });
+
     it("is searched for once a fight is over, not in it", () => {
         const world = login();
         makeUnknownButton("SomeBarButton1");
