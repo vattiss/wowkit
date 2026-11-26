@@ -7,6 +7,7 @@ import { type SpellBookService, isJunkSpellName } from "./spell-book.service";
 import { attempt, attemptMulti, tryCall } from "./utils/protected-call.utils";
 import { getReadable, isReadable } from "./utils/secret-value.utils";
 import { SPELL_NAME_HINT } from "@wowkit/wow-data";
+import { isSameName } from "./utils/spell-name.utils";
 
 declare module "@wowkit/core/event-bus" {
     interface AppEvents {
@@ -215,7 +216,7 @@ export class SpellsService implements OnFirstLogin {
         if (!info) return undefined;
         const id = getReadable(info.spellID);
         const got = getReadable(info.name);
-        if (id !== undefined && (got === undefined || got === name) && !isJunkSpellName(got ?? name)) return id;
+        if (id !== undefined && (got === undefined || isSameName(got, name)) && !isJunkSpellName(got ?? name)) return id;
         return undefined;
     }
 

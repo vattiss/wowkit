@@ -3,7 +3,8 @@
 // see counts, on a bar that glows: a rank 1 on a hidden bar would only bring a message with nothing to look at. Reading every spell on the bars
 // is the costliest part of a tick and its answer changes only with the bars or the spells, so it is kept until then.
 import { OnEvent } from "@wowkit/core";
-import type { ActionBarsService, BarKeysService, SpellsService } from "@wowkit/wow";
+import { type ActionBarsService, type BarKeysService, type SpellsService, buildNameKey } from "@wowkit/wow";
+import { isRankSwitchedOff } from "../settings/rank-switches";
 import type { AddonSettingsService } from "../settings/settings.interface";
 
 export interface OutdatedRank {
@@ -49,7 +50,7 @@ export class OutdatedRanksService {
         if (this.found.length === 0) return outdated;
         const enabledRanks = this.settings.get("enabledRanks");
         for (const entry of this.found) {
-            if (enabledRanks[entry.name] === false) continue;
+            if (isRankSwitchedOff(enabledRanks, entry.name)) continue;
             let shown: { id: number; rank: number } | undefined;
             for (const onBar of entry.onBars) if (onBar.rank > (shown?.rank ?? -1) && this.isOnGlowingButton(onBar.id)) shown = onBar;
             if (shown !== undefined && shown.rank < entry.best)
@@ -69,17 +70,19 @@ export class OutdatedRanksService {
 
     /** The names on the bars, outside macros, with a rank there below the highest learned one. */
     private readRanksOnBars(): RanksOnBars[] {
-        const byName = new LuaMap<string, { id: number; rank: number }[]>();
+        // By the name's key: the ranks of a name the client writes two ways are one spell's; the first name found is shown
+        const byName = new LuaMap<string, { name: string; onBars: { id: number; rank: number }[] }>();
         for (const id of this.actionBars.listSpellIdsOnBars()) {
             const name = this.spells.getSpellName(id);
             const rank = name !== undefined && name !== "" ? this.spells.getSpellRank(id) : undefined;
             if (name === undefined || rank === undefined || this.actionBars.isInMacro(name)) continue;
-            const list = byName.get(name) ?? [];
-            list.push({ id, rank });
-            byName.set(name, list);
+            const key = buildNameKey(name);
+            const group = byName.get(key) ?? { name, onBars: [] };
+            group.onBars.push({ id, rank });
+            byName.set(key, group);
         }
         const found: RanksOnBars[] = [];
-        for (const [name, onBars] of byName) {
+        for (const [, { name, onBars }] of byName) {
             const best = this.spells.getHighestRank(onBars[0]!.id);
             if (best !== undefined && onBars.some((onBar) => onBar.rank < best)) found.push({ name, best, onBars });
         }

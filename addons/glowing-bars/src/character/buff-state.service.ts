@@ -12,6 +12,7 @@ import {
     isReadable,
     buildNameKey,
     hasKnownExpiry,
+    isSameName,
 } from "@wowkit/wow";
 import { Consumable, Warlock, Warrior } from "@wowkit/wow-data";
 import type { BuffCategory } from "../knowledge/buff-categories.constants";
@@ -203,7 +204,7 @@ export class BuffStateService {
         this.fromOthers.delete(this.getBuffKey(spellId));
         this.auraIds.set(this.getBuffKey(spellId), spellId);
         this.notePerCasterCast(spellId);
-        if (this.spells.getSpellName(spellId) === this.spells.getSpellName(Warrior.ShieldBlock))
+        if (isSameName(this.spells.getSpellName(spellId), this.spells.getSpellName(Warrior.ShieldBlock)))
             this.shieldBlockCharges = SHIELD_BLOCK_CHARGES;
     }
 
@@ -302,7 +303,9 @@ export class BuffStateService {
             const auraKey = buildNameKey(aura.name);
             for (const [key, spellIds] of buffs) {
                 if (
-                    spellIds.some((id) => this.getBuffName(id) === aura.name || buildNameKey(this.spells.getHintName(id) ?? "") === auraKey)
+                    spellIds.some(
+                        (id) => isSameName(this.getBuffName(id), aura.name) || buildNameKey(this.spells.getHintName(id) ?? "") === auraKey,
+                    )
                 )
                     return key;
             }

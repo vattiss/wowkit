@@ -4,7 +4,7 @@
 
 import { OnEvent } from "@wowkit/core";
 import type { BuffStateService, OlderRankBuff } from "../character/buff-state.service";
-import type { ActionBarsService, PlayerService, PlayerSpellCast, SpellsService } from "@wowkit/wow";
+import { type ActionBarsService, type PlayerService, type PlayerSpellCast, type SpellsService, isSameName } from "@wowkit/wow";
 import type { AddonSettingsService } from "../settings/settings.interface";
 import type { StyleService } from "../settings/style.service";
 import type { ClassBuff } from "./class-buff.interface";
@@ -125,7 +125,8 @@ export class BuffReminderService {
                     classBuff.categoryMembers !== undefined &&
                     classBuff.party?.isPerClass !== true &&
                     [classBuff.id, ...(classBuff.party?.groupIds ?? [])].some(
-                        (buffId) => (this.spells.resolve(buffId) ?? buffId) === id || this.spells.getSpellName(buffId) === castName,
+                        (buffId) =>
+                            (this.spells.resolve(buffId) ?? buffId) === id || isSameName(this.spells.getSpellName(buffId), castName),
                     ),
             );
         if (castBuff !== undefined) this.noteGroupBuff(castBuff);

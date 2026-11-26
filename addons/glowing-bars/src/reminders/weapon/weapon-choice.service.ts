@@ -1,9 +1,17 @@
 // Which weapon buff the player should keep up: the player's pick if learned; else, of the learned ones, the one last put
 // on that hand (kept per character), the main talent tree's, or the best. A buff put on with an item (a rogue poison, a warlock stone) glows on the item while the player has
 // some of it, else on the spell that makes it (a warlock's), else on the item.
-import { OnEvent, contains } from "@wowkit/core";
+import { OnEvent } from "@wowkit/core";
 import type { AddonSettingsService } from "../../settings/settings.interface";
-import type { ActionBarsService, BagsService, PlayerService, SpellsService } from "@wowkit/wow";
+import {
+    type ActionBarsService,
+    type BagsService,
+    type PlayerService,
+    type SpellsService,
+    buildNameKey,
+    isSameName,
+    doesTextName,
+} from "@wowkit/wow";
 import type { PickedWeaponBuff } from "../reminders.interface";
 import type { WeaponBuff } from "./weapon-buff.interface";
 import {
@@ -136,22 +144,23 @@ export class WeaponChoiceService {
             const entry = WEAPON_BUFF_BY_SPELL.get(spellId);
             if (entry) return entry;
             const name = this.spells.getSpellName(spellId);
-            const selected = name !== undefined && this.getWeaponNameSet().has(name) ? this.findSelectedWeaponBuff()?.entry : undefined;
+            const selected =
+                name !== undefined && this.getWeaponNameSet().has(buildNameKey(name)) ? this.findSelectedWeaponBuff()?.entry : undefined;
             if (selected) return selected;
         }
         if (castName !== undefined) return this.getWeaponChoices().find((choice) => this.doesMatchName(choice, castName));
         return undefined;
     }
 
-    /** Lowercase texts that show the buff in a weapon tooltip. */
+    /** The keys of the texts that show the buff in a weapon tooltip (see doesTextName). */
     getWeaponMatchTokens(entry: WeaponBuff): string[] {
         const cached = this.tokenCache.get(entry);
         if (cached) return cached;
         const tokens: string[] = [];
         const add = (token: string | undefined) => {
             if (token === undefined || token === "") return;
-            const key = string.lower(token);
-            if (!tokens.includes(key)) tokens.push(key);
+            const key = buildNameKey(token);
+            if (key !== "" && !tokens.includes(key)) tokens.push(key);
         };
         for (const token of entry.match) add(token);
         for (const id of [entry.id, ...(entry.ranks ?? [])]) {
@@ -197,7 +206,7 @@ export class WeaponChoiceService {
         // the name decides (rogue poisons carry their name)
         if (
             this.spells.isLearned(entry.id) &&
-            (entry.name === undefined || this.spells.getSpellName(this.spells.resolve(entry.id) ?? entry.id) === entry.name)
+            (entry.name === undefined || isSameName(this.spells.getSpellName(this.spells.resolve(entry.id) ?? entry.id), entry.name))
         ) {
             return entry.id;
         }
@@ -222,19 +231,15 @@ export class WeaponChoiceService {
         for (const [, list] of pairs(WEAPON_BUFFS)) {
             for (const entry of list ?? []) {
                 const name = this.spells.getSpellName(entry.id);
-                if (name !== undefined) this.weaponNames.add(name);
-                if (entry.name !== undefined) this.weaponNames.add(entry.name);
+                if (name !== undefined) this.weaponNames.add(buildNameKey(name));
+                if (entry.name !== undefined) this.weaponNames.add(buildNameKey(entry.name));
             }
         }
         return this.weaponNames;
     }
 
     private doesMatchName(entry: WeaponBuff, name: string): boolean {
-        const lower = string.lower(name);
-        if (entry.match.some((token) => token !== "" && contains(lower, token))) return true;
-        return [entry.id, ...(entry.ranks ?? [])].some((id) => {
-            const spell = this.spells.getSpellName(id);
-            return spell !== undefined && string.lower(spell) === lower;
-        });
+        if (entry.match.some((token) => doesTextName(name, token))) return true;
+        return [entry.id, ...(entry.ranks ?? [])].some((id) => isSameName(this.spells.getSpellName(id), name));
     }
 }

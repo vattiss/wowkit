@@ -1,8 +1,8 @@
 // Reagents of the group buffs: whether a spell needs one, whether there is one in the bags, and
 // which are running low. Whether a spell needs a reagent is read from its tooltip, so a client
 // that dropped the reagent cost never nags about it.
-import { OnEvent, contains } from "@wowkit/core";
-import type { BagsService, SpellsService } from "@wowkit/wow";
+import { OnEvent } from "@wowkit/core";
+import { type BagsService, type SpellsService, isSameName, doesTextName } from "@wowkit/wow";
 import type { BelowLimitsService } from "../reminders/below-limits.service";
 import type { Reagent, ReagentStock } from "./reagent.interface";
 import { REAGENTS } from "./reagents.constants";
@@ -58,7 +58,7 @@ export class ReagentsService {
      */
     findListId(reagent: Reagent, spellId: number): number {
         const name = this.spells.getSpellName(spellId);
-        return reagent.spells.find((id) => id === spellId || (name !== undefined && this.spells.getSpellName(id) === name)) ?? spellId;
+        return reagent.spells.find((id) => id === spellId || isSameName(this.spells.getSpellName(id), name)) ?? spellId;
     }
 
     /** The rows of a reagent's spells (their list IDs), each once, in list order. */
@@ -122,7 +122,7 @@ export class ReagentsService {
         const name = this.spells.getSpellName(spellId);
         if (name === undefined) return false;
         return REAGENTS.slice(index + 1).some((later) =>
-            later.spells.some((id) => this.spells.isLearned(id) && this.spells.getSpellName(id) === name),
+            later.spells.some((id) => this.spells.isLearned(id) && isSameName(this.spells.getSpellName(id), name)),
         );
     }
 
@@ -140,8 +140,8 @@ export class ReagentsService {
         const texts = this.spells.getSpellTooltipTexts(this.spells.resolve(spellId) ?? spellId);
         // No tooltip: assume the classic cost
         if (texts === undefined) return true;
-        const reagentName = string.lower(this.getReagentName(reagent));
-        const isNeeded = texts.some((text) => contains(string.lower(text), reagentName));
+        const reagentName = this.getReagentName(reagent);
+        const isNeeded = texts.some((text) => doesTextName(text, reagentName));
         // Before the client has loaded the item's name, the English one proves nothing on another client: it is looked at again
         if (this.bags.getItemName(reagent.itemId) !== undefined) this.tooltipNeedsReagent.set(spellId, isNeeded);
         return isNeeded;

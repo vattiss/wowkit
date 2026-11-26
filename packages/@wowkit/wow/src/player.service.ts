@@ -6,6 +6,7 @@ import { Consumable } from "@wowkit/wow-data";
 import { attempt, attemptMulti, isAnsweredTrue, tryCall } from "./utils/protected-call.utils";
 import { getReadable, isReadable } from "./utils/secret-value.utils";
 import { MAIN_HAND_SLOT, OFF_HAND_SLOT, RANGED_SLOT } from "./wow.constants";
+import { buildNameKey } from "./utils/spell-name.utils";
 
 /** A point in the world: yards on the map, and the map's ID. */
 export interface WorldPosition {
@@ -254,7 +255,7 @@ export class PlayerService {
             const aura = attempt(C_UnitAuras.GetAuraDataByIndex, "player", i, "HELPFUL");
             if (!aura) return false;
             const name = getReadable(aura.name);
-            if (name !== undefined && this.getEatingNames().has(string.lower(name))) return true;
+            if (name !== undefined && this.getEatingNames().has(buildNameKey(name))) return true;
         }
         return false;
     }
@@ -279,9 +280,9 @@ export class PlayerService {
             [Consumable.NutritiousDrink, "nutritious drink"],
         ] as const) {
             // The English name too, for a client that does not name the spell
-            names.add(english);
+            names.add(buildNameKey(english));
             const name = getReadable(attempt(C_Spell.GetSpellInfo, spellId)?.name);
-            if (name !== undefined && name !== "") names.add(string.lower(name));
+            if (name !== undefined && name !== "") names.add(buildNameKey(name));
         }
         this.eatingNames = names;
         return names;

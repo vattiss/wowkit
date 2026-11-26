@@ -5,7 +5,7 @@
 // belongs to one type of it: a buff that also has ranks keeps the quiet yellow of its old rank when the player colors the buff.
 import { OnEvent } from "@wowkit/core";
 import { ProcGroupRows } from "./proc-group-rows";
-import type { Rgb, SpellsService } from "@wowkit/wow";
+import { type Rgb, type SpellsService, isSameName } from "@wowkit/wow";
 import { SPELL_STYLE_DEFAULTS, STYLE_DEFAULTS } from "./settings.constants";
 import type { AddonSettingsService, MessageTextChoice, ReminderType, Style, StyleOverride } from "./settings.interface";
 
@@ -177,7 +177,7 @@ export class StyleService {
         if (defaults === undefined || spellId === undefined) return {};
         for (const [id, look] of pairs(defaults)) {
             const name = this.spells.getSpellName(spellId);
-            if (id === spellId || (name !== undefined && this.spells.getSpellName(id as number) === name)) return look ?? {};
+            if (id === spellId || isSameName(this.spells.getSpellName(id as number), name)) return look ?? {};
         }
         return {};
     }

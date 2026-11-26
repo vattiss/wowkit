@@ -32,11 +32,16 @@ describe("the chat note's switch in the settings", () => {
 });
 
 describe("the length learned of a buff, kept", () => {
+    it("is kept from an older build's key (with spaces), by the name's key now", () => {
+        const world = createPlayer(WARD, { saved: { buffDurations: { "magical awareness": 90 } } });
+        expect((world.getSavedSettings()?.buffDurations as Record<string, number> | undefined)?.magicalawareness).toBe(90);
+    });
+
     it("is saved with the character's settings", () => {
         const world = createPlayer(WARD);
         putOn(world, WARD, 120);
         world.advance(1);
-        expect((world.getSavedSettings()?.buffDurations as Record<string, number> | undefined)?.["magical awareness"]).toBe(120);
+        expect((world.getSavedSettings()?.buffDurations as Record<string, number> | undefined)?.magicalawareness).toBe(120);
     });
 });
 

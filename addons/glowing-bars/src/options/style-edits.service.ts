@@ -1,7 +1,7 @@
 // The parts of the table of looks that change which spells there are: the Spell ID box of a cooldown or proc row (to fix
 // the ID the addon uses for it), and the row at the end that adds a spell by its ID. Like the table, it may call the game.
 import { connectChoiceMenu } from "@wowkit/ui";
-import type { NoticeService, Rgb } from "@wowkit/wow";
+import { type NoticeService, type Rgb, isSameName } from "@wowkit/wow";
 import type { AddedSpellsService } from "../glows/added-spells.service";
 import type { EnabledService } from "../settings/enabled.service";
 import type { AddonLocale } from "../locale/locale.interface";
@@ -290,7 +290,7 @@ export class StyleEditsService {
                 (row) =>
                     row.reminderType !== "oldRank" &&
                     row.spellId !== undefined &&
-                    (isSharingName ? row.spellId === spellId : this.styles.getSpellKey(row.spellId) === name) &&
+                    (isSharingName ? row.spellId === spellId : isSameName(this.styles.getSpellKey(row.spellId), name)) &&
                     !this.isSameSpellRow(row, except),
             );
     }

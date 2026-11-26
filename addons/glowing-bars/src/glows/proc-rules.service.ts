@@ -3,7 +3,15 @@
 // holds decides, a glowing one winning over a keeping-dark one of the same number (see proc-rules.interface.ts). The
 // conditions only the game knows (health) are left to their own services.
 import { OnEvent } from "@wowkit/core";
-import type { AurasService, CooldownViewerService, PlayerService, SpellDetailsService, SpellsService, UnitsService } from "@wowkit/wow";
+import {
+    type AurasService,
+    type CooldownViewerService,
+    type PlayerService,
+    type SpellDetailsService,
+    type SpellsService,
+    type UnitsService,
+    buildNameKey,
+} from "@wowkit/wow";
 import type { AddonSettingsService } from "../settings/settings.interface";
 import { BUILT_IN_PROC_RULES } from "./proc-rules.constants";
 import {
@@ -183,15 +191,16 @@ export class ProcRulesService {
             const byName = new LuaMap<string, BuiltInProcRule[]>();
             for (const rule of this.listRules()) {
                 const name = this.spells.getSpellLabel(rule.spellId) ?? string.format("%d", rule.spellId);
-                const list = byName.get(name) ?? [];
-                byName.set(name, list);
+                // By the name's key, so every rank (however the client writes it) is one; the switch keeps the name
+                const list = byName.get(buildNameKey(name)) ?? [];
+                byName.set(buildNameKey(name), list);
                 const switchKey = rule.group !== undefined ? buildGroupSwitchKey(name, rule.group) : undefined;
                 list.push({ ...rule, switchKey });
             }
             for (const [, list] of byName) list.sort((a, b) => a.priority - b.priority);
             this.rulesByName = byName;
         }
-        return this.rulesByName.get(this.spells.getSpellLabel(spellId) ?? string.format("%d", spellId));
+        return this.rulesByName.get(buildNameKey(this.spells.getSpellLabel(spellId) ?? string.format("%d", spellId)));
     }
 
     private isUsable(spellId: number): boolean {

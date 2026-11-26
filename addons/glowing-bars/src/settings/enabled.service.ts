@@ -5,6 +5,7 @@ import type { SpellsService } from "@wowkit/wow";
 import { buildGroupSwitchKey } from "../glows/proc-rules.interface";
 import type { StyleRow } from "../options/style-rows.service";
 import type { ClassBuffsService } from "../reminders/class-buffs.service";
+import { changeRankSwitch, isRankSwitchedOff } from "./rank-switches";
 import type { AddonSettingsService, ReminderType } from "./settings.interface";
 
 /** The setting that switches a type of reminder on. */
@@ -39,7 +40,7 @@ export class EnabledService {
         if (spellId === undefined) return this.settings.get(TYPE_SWITCHES[row.reminderType]);
         const classBuff = this.findClassBuff(row);
         if (classBuff !== undefined) return this.classBuffs.isBuffEnabled(classBuff);
-        if (row.reminderType === "oldRank") return this.settings.get("enabledRanks")[this.getName(spellId)] !== false;
+        if (row.reminderType === "oldRank") return !isRankSwitchedOff(this.settings.get("enabledRanks"), this.getName(spellId));
         return this.settings.get("enabledSpells")[this.getGlowKey(row, spellId)] !== false;
     }
 
@@ -49,7 +50,12 @@ export class EnabledService {
         if (spellId === undefined) return this.settings.change(TYPE_SWITCHES[row.reminderType], isEnabled);
         const classBuff = this.findClassBuff(row);
         if (classBuff !== undefined) return this.classBuffs.setBuffEnabled(classBuff, isEnabled);
-        if (row.reminderType === "oldRank") return this.changeEntry("enabledRanks", this.getName(spellId), isEnabled ? undefined : false);
+        if (row.reminderType === "oldRank") {
+            return this.settings.change(
+                "enabledRanks",
+                changeRankSwitch(this.settings.get("enabledRanks"), this.getName(spellId), isEnabled),
+            );
+        }
         this.changeEntry("enabledSpells", this.getGlowKey(row, spellId), isEnabled ? undefined : false);
     }
 
@@ -71,7 +77,7 @@ export class EnabledService {
         return this.spells.getSpellName(spellId) ?? string.format("%d", spellId);
     }
 
-    private changeEntry<V>(key: "enabledRanks" | "enabledSpells", entry: string, newValue: V | undefined): void {
+    private changeEntry<V>(key: "enabledSpells", entry: string, newValue: V | undefined): void {
         const copy = { ...this.settings.get(key) } as { [entry: string]: boolean | undefined };
         copy[entry] = newValue as boolean | undefined;
         this.settings.change(key, copy as never);

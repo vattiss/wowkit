@@ -102,6 +102,7 @@ import "./party-message.spec";
 import "./older-builds.spec";
 import "./poisons-fuzz.spec";
 import "./spec-switch.spec";
+import "./name-spellings.spec";
 import "./character-spells.spec";
 import "./secret-auras-fuzz.spec";
 import "./tick-garbage.spec";

@@ -2,7 +2,7 @@
 // one blessing, one armor) the player wants: the one cast last, else the main talent tree's, else the first.
 
 import type { AddonSettingsService } from "../settings/settings.interface";
-import type { PlayerService, SpellsService } from "@wowkit/wow";
+import { type PlayerService, type SpellsService, isSameName } from "@wowkit/wow";
 import type { ClassBuff } from "./class-buff.interface";
 import { BUFF_LISTS, TALENT_BUFFS } from "./class-buffs.constants";
 
@@ -30,7 +30,7 @@ export class ClassBuffsService {
     /** How long a buff lasts, by the `last` of its list entry (matched by ID or name); undefined for a buff not listed with one. */
     findBuffSeconds(spellId: number | undefined, name: string): number | undefined {
         for (const classBuff of this.getClassBuffs()) {
-            if (classBuff.last !== undefined && (classBuff.id === spellId || this.spells.getSpellName(classBuff.id) === name)) {
+            if (classBuff.last !== undefined && (classBuff.id === spellId || isSameName(this.spells.getSpellName(classBuff.id), name))) {
                 return classBuff.last;
             }
         }
@@ -39,7 +39,9 @@ export class ClassBuffsService {
 
     /** Is this buff one of the player's class buffs (matched by ID or name)? */
     isClassBuff(spellId: number | undefined, name: string): boolean {
-        return this.getClassBuffs().some((classBuff) => classBuff.id === spellId || this.spells.getSpellName(classBuff.id) === name);
+        return this.getClassBuffs().some(
+            (classBuff) => classBuff.id === spellId || isSameName(this.spells.getSpellName(classBuff.id), name),
+        );
     }
 
     isBuffEnabled(classBuff: ClassBuff): boolean {

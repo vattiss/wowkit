@@ -284,7 +284,7 @@ export class ActionBarsService implements OnFirstLogin {
 
     /** Does a macro on the bars cast this spell? Which rank it casts cannot be told from the ID found for its name. */
     isInMacro(name: string): boolean {
-        return this.macroSpellNames.has(name);
+        return this.macroSpellNames.has(buildButtonKey(name) ?? name);
     }
 
     private getReadableSpellName(spellId: number | undefined): string | undefined {
@@ -332,7 +332,7 @@ export class ActionBarsService implements OnFirstLogin {
     private addMacroSpells(macro: number | string, button: ActionButton): void {
         const found = readMacroSpells(macro, this.isEveryMacroSpell);
         for (const name of found.names) {
-            this.macroSpellNames.set(name, true);
+            this.macroSpellNames.set(buildButtonKey(name) ?? name, true);
             this.addSpellName(name, button);
         }
         for (const spellId of found.spellIds) this.addSpell(spellId, button);
@@ -384,7 +384,7 @@ export class ActionBarsService implements OnFirstLogin {
         if (!this.isToken(subType, "spell")) return $multi("macro", findMacroOfAction(slot, subType, actionId));
         const spellId = getReadableId(actionId);
         const name = this.getReadableSpellName(spellId);
-        if (name !== undefined) this.macroSpellNames.set(name, true);
+        if (name !== undefined) this.macroSpellNames.set(buildButtonKey(name) ?? name, true);
         return $multi("spell", spellId);
     }
 

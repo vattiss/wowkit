@@ -4,7 +4,7 @@
 // the first one, the one the main talent tree wants, else the first on the bars. A seal switched off in the table or not
 // on the bars is skipped.
 import { OnEvent } from "@wowkit/core";
-import type { ActionBarsService, PlayerService, PlayerSpellCast, SpellsService } from "@wowkit/wow";
+import { type ActionBarsService, type PlayerService, type PlayerSpellCast, type SpellsService, isSameName } from "@wowkit/wow";
 import { Paladin } from "@wowkit/wow-data";
 import type { BuffStateService } from "../character/buff-state.service";
 import type { AddedSpellsService } from "../glows/added-spells.service";
@@ -92,7 +92,7 @@ export class SealReminderService {
         const castName = this.spells.getSpellName(id);
         // A higher rank than the list's ID by its name
         const listId = this.listAllSeals().find(
-            (sealId) => (this.spells.resolve(sealId) ?? sealId) === id || this.spells.getSpellName(sealId) === castName,
+            (sealId) => (this.spells.resolve(sealId) ?? sealId) === id || isSameName(this.spells.getSpellName(sealId), castName),
         );
         const lastBuffs = this.settings.get("lastBuffs");
         if (listId !== undefined && lastBuffs[LAST_SEAL_KEY] !== listId) {
@@ -127,7 +127,7 @@ export class SealReminderService {
         const seals = this.listAllSeals();
         const read = this.buffState.findAura(this.spells.resolve(seals[0]!) ?? seals[0]);
         const upName = read.isFound && read.spellId !== undefined ? this.spells.getSpellName(read.spellId) : undefined;
-        const up = upName !== undefined ? seals.find((listId) => this.spells.getSpellName(listId) === upName) : undefined;
+        const up = upName !== undefined ? seals.find((listId) => isSameName(this.spells.getSpellName(listId), upName)) : undefined;
         const seal = up ?? this.settings.get("lastBuffs")[LAST_SEAL_KEY];
         return seal !== undefined ? (this.styles?.findBefore("missingSeal", seal) ?? SEAL_LEAD) : SEAL_LEAD;
     }

@@ -18,7 +18,7 @@ import type { WeaponReminderService } from "../reminders/weapon/weapon-reminder.
 import type { AddonSettingsService, CooldownType } from "../settings/settings.interface";
 import type { IdleService } from "../character/idle.service";
 import { OnEvent, OnGameEvent } from "@wowkit/core";
-import type { ActionBarsService, ClockService, PlayerService, SpellsService } from "@wowkit/wow";
+import { type ActionBarsService, type ClockService, type PlayerService, type SpellsService, isSameName } from "@wowkit/wow";
 import type { LowReagent } from "../reagents/reagent.interface";
 import type { Reminders } from "./tick.interface";
 import { createEmptyReminders } from "./reminder-filter";
@@ -149,7 +149,7 @@ export class FindRemindersService {
         if (!this.settings.get("isLowReagentEnabled")) return [];
         const enabledSpells = this.settings.get("enabledSpells");
         const listed: LowReagent[] = this.reagents.findLowReagents((listId) => enabledSpells[string.format("%d", listId)] !== false);
-        const added = this.addedReminders.findLowReagents().filter((stock) => !listed.some((other) => other.name === stock.name));
+        const added = this.addedReminders.findLowReagents().filter((stock) => !listed.some((other) => isSameName(other.name, stock.name)));
         return [...listed, ...added];
     }
 

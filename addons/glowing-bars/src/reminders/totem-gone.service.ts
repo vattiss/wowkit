@@ -4,7 +4,16 @@
 // out of combat, else Blizzard's totem frame, which sees the slots the game hides in a fight. A slot that had the player's
 // totem and has none now lost it, unless Totemic Recall took them back. Which totem it was, the player's casts tell.
 import { OnEvent } from "@wowkit/core";
-import type { ActionBarsService, ClockService, PlayerService, PlayerSpellCast, SpellsService, TotemsService } from "@wowkit/wow";
+import {
+    type ActionBarsService,
+    type ClockService,
+    type PlayerService,
+    type PlayerSpellCast,
+    type SpellsService,
+    type TotemsService,
+    isSameName,
+    buildNameKey,
+} from "@wowkit/wow";
 import { Shaman } from "@wowkit/wow-data";
 import type { AddonSettingsService } from "../settings/settings.interface";
 import { TOTEM_CALLS, TOTEM_ELEMENTS, TOTEM_SLOT_OF } from "./totems.constants";
@@ -60,11 +69,11 @@ export class TotemGoneService {
         if (cast.spellId === undefined) return;
         const now = this.clock.getCurrentTime();
         const name = this.spells.getSpellName(cast.spellId);
-        if (name === this.spells.getSpellName(Shaman.TotemicRecall)) {
+        if (isSameName(name, this.spells.getSpellName(Shaman.TotemicRecall))) {
             this.recallAt = now;
             return;
         }
-        const isCall = TOTEM_CALLS.some((id) => this.spells.getSpellName(id) === name);
+        const isCall = TOTEM_CALLS.some((id) => isSameName(this.spells.getSpellName(id), name));
         for (const spellId of isCall ? this.totems.listTotemBarSpells() : [cast.spellId]) {
             const state = this.slots.get(this.findSlot(spellId) ?? 0);
             if (state === undefined) continue;
@@ -135,11 +144,12 @@ export class TotemGoneService {
             }
             for (const [id, slot] of TOTEM_SLOT_OF) this.addSlotName(id, slot);
         }
-        return this.slotByName.get(name);
+        return this.slotByName.get(buildNameKey(name));
     }
 
     private addSlotName(spellId: number, slot: number): void {
         const name = this.spells.getSpellName(spellId);
-        if (name !== undefined && !this.slotByName!.has(name)) this.slotByName!.set(name, slot);
+        const key = name !== undefined ? buildNameKey(name) : undefined;
+        if (key !== undefined && !this.slotByName!.has(key)) this.slotByName!.set(key, slot);
     }
 }

@@ -1,7 +1,7 @@
 // The rows of the table of looks: the types of reminder (their default look), and the spells of the player's class that
 // can have a look of their own: the buffs, the weapon buffs, the seals, the gathering trackings, the cooldowns, the procs, the group buffs with a reagent, and
 // every spell of the book that has ranks. Plain lists; the window draws them.
-import { type PlayerService, type SpellsService, getItemButtonKey, readItemLook } from "@wowkit/wow";
+import { type PlayerService, type SpellsService, buildNameKey, getItemButtonKey, readItemLook } from "@wowkit/wow";
 import { Warrior } from "@wowkit/wow-data";
 import type { AddedSpellsService } from "../glows/added-spells.service";
 import type { GlowCuesService } from "../glows/glow-cues.service";
@@ -170,10 +170,12 @@ export class StyleRowsService {
             const look = this.readLook(reminderType, spellId, name, extra.isAdded === true);
             // A spell the player added has a row of its own even when a list has it as another type: it glows on its own too. As
             // the same type, the list's row is the one (a spell added before it was built in): it has no delete button
-            const key = this.findRowKey(reminderType, name, look.key, extra.isAdded === true, suffix);
-            if (keys.has(key) || (extra.isAdded === true && keys.has(`${reminderType}:${name}`))) return;
+            // Rows are told apart by the name's key: a name the client writes two ways is one row
+            const nameKey = buildNameKey(name);
+            const key = this.findRowKey(reminderType, nameKey, look.key, extra.isAdded === true, suffix);
+            if (keys.has(key) || (extra.isAdded === true && keys.has(`${reminderType}:${nameKey}`))) return;
             keys.add(key);
-            if (extra.isAdded !== true) keys.add(`${reminderType}:${name}`);
+            if (extra.isAdded !== true) keys.add(`${reminderType}:${nameKey}`);
             rows.push({
                 reminderType,
                 spellId,

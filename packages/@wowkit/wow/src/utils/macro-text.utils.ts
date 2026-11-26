@@ -1,10 +1,10 @@
 // What the text of a macro names, and which macro an action slot holds. A macro with #showtooltip or #show is for the spell
 // it shows: its other lines are helpers, unless the player wants every spell. A clause counts unless it is for another
 // stance or form (see judgeClause).
-import { trimText } from "@wowkit/core";
 import { judgeClause } from "./macro-conditions.utils";
 import { attempt, attemptMulti } from "./protected-call.utils";
 import { getReadable, getReadableId, isReadable } from "./secret-value.utils";
+import { buildNameKey } from "./spell-name.utils";
 
 /** The commands that cast or use what they name, in the words of the game's own list of commands (SLASH_CAST1...). */
 const CAST_COMMANDS = ["CAST", "USE", "CASTSEQUENCE", "CASTRANDOM", "USERANDOM"];
@@ -162,10 +162,9 @@ function findMacroShowing(spellId: number | undefined): number | undefined {
     return found;
 }
 
-/** The form button names are matched in: lowercase, a trailing "(...)" removed, trimmed; undefined when nothing is left. */
+/** The form button names are matched in: the name's key (see buildNameKey); undefined when nothing is left. */
 export function buildButtonKey(name: string): string | undefined {
-    const [stripped] = string.gsub(name, "%s*%([^)]*%)%s*$", "");
-    const key = trimText(string.lower(stripped));
+    const key = buildNameKey(name);
     return key !== "" ? key : undefined;
 }
 

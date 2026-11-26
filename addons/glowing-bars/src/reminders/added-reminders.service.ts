@@ -13,6 +13,7 @@ import {
     OFF_HAND_SLOT,
     findItemUseSpell,
     isOutOfItem,
+    isSameName,
 } from "@wowkit/wow";
 import type { BuffStateService } from "../character/buff-state.service";
 import type { AddedSpellsService } from "../glows/added-spells.service";
@@ -125,7 +126,7 @@ export class AddedRemindersService {
             if (spellId === undefined || name === undefined || enabledSpells[string.format("%d", id)] === false) continue;
             const count = this.bags.getItemCountByName(name);
             const isLow = this.reagents.isLow(count, findReagentRowEntry(id));
-            if (isLow && !low.some((other) => other.name === name)) low.push({ spellId, name, count });
+            if (isLow && !low.some((other) => isSameName(other.name, name))) low.push({ spellId, name, count });
         }
         return low;
     }

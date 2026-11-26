@@ -181,15 +181,18 @@ export class BuffMemoryService {
         };
     }
 
-    /** Takes back what a /reload saved (see buildSnapshot), on top of an empty memory. */
+    /**
+     * Takes back what a /reload saved (see buildSnapshot), on top of an empty memory. The names by their key as it is now: an
+     * older build saved them by another (with spaces).
+     */
     restoreSnapshot(snapshot: BuffMemorySnapshot): void {
-        for (const [key, value] of pairs(snapshot.held)) this.heldNames.set(key as string, value);
+        for (const [key, value] of pairs(snapshot.held)) this.heldNames.set(buildNameKey(key as string), value);
         for (const [key, value] of pairs(snapshot.categories)) this.heldCategories.set(key as string, value);
-        for (const [key, value] of pairs(snapshot.castAt)) this.castAt.set(key as string, value);
-        for (const [key, value] of pairs(snapshot.names)) this.names.set(key as string, value);
-        for (const key of snapshot.guessed) this.guessed.add(key);
-        for (const key of snapshot.unsure) this.unsure.add(key);
-        for (const key of snapshot.recorded) this.recorded.add(key);
+        for (const [key, value] of pairs(snapshot.castAt)) this.castAt.set(buildNameKey(key as string), value);
+        for (const [key, value] of pairs(snapshot.names)) this.names.set(buildNameKey(key as string), value);
+        for (const key of snapshot.guessed) this.guessed.add(buildNameKey(key));
+        for (const key of snapshot.unsure) this.unsure.add(buildNameKey(key));
+        for (const key of snapshot.recorded) this.recorded.add(buildNameKey(key));
     }
 
     /** The buff is known of now, under its name; `isGuessed`: cast with no known length, so its end is only guessed. */

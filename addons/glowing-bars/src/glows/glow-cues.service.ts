@@ -3,14 +3,15 @@
 // it glows then is its glow time (a few seconds by default: one that waits for the right moment should not glow all the
 // while).
 import { OnEvent, OnGameEvent } from "@wowkit/core";
-import type {
-    ActionBarsService,
-    AurasService,
-    PlayerService,
-    SpellDetailsService,
-    SpellsService,
-    CooldownViewerService,
-    UnitsService,
+import {
+    type ActionBarsService,
+    type AurasService,
+    type PlayerService,
+    type SpellDetailsService,
+    type SpellsService,
+    type CooldownViewerService,
+    type UnitsService,
+    isSameName,
 } from "@wowkit/wow";
 import type { AddonSettingsService, AddableType, CooldownType } from "../settings/settings.interface";
 import { COOLDOWN_TYPES } from "../settings/settings.constants";
@@ -185,9 +186,9 @@ export class GlowCuesService {
 
     private isProcUp(id: number): boolean {
         const name = this.spells.getSpellLabel(id);
-        const creatureTypes = TARGET_TYPE_CUES.find(([listId]) => this.spells.getSpellLabel(listId) === name)?.[1];
+        const creatureTypes = TARGET_TYPE_CUES.find(([listId]) => isSameName(this.spells.getSpellLabel(listId), name))?.[1];
         if (creatureTypes !== undefined && !this.isTargetOfType(id, creatureTypes)) return false;
-        const spellProc = this.listSpellProcs().find((proc) => this.spells.getSpellLabel(proc.id) === name);
+        const spellProc = this.listSpellProcs().find((proc) => isSameName(this.spells.getSpellLabel(proc.id), name));
         if (spellProc !== undefined) return this.isAnyBuffUp(spellProc.auras) || this.isSignShowing(id, spellProc);
         return this.spellDetails.readUsability(id).isUsable === true || this.stanceProcs.isOpen(id);
     }

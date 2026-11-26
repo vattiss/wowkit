@@ -1,9 +1,9 @@
 // Weapon enchants (temporary enchants and imbues) and weapon tooltips.
 
-import { contains } from "@wowkit/core";
 import { tryCall } from "./utils/protected-call.utils";
 import { isReadable, getReadable } from "./utils/secret-value.utils";
 import { MAIN_HAND_SLOT, NO_EXPIRY, OFF_HAND_SLOT } from "./wow.constants";
+import { doesTextName } from "./utils/spell-name.utils";
 
 /**
  * The two places of a weapon's enchants on Forever, held at once: an imbue (a class's: a rogue's poisons, a shaman's weapon
@@ -35,12 +35,12 @@ export class WeaponEnchantsService {
         this.tooltipCache = undefined;
     }
 
-    /** Does a weapon tooltip mention any of the (lowercase) tokens? */
+    /** Does a weapon tooltip mention any of the tokens, however either writes it (see doesTextName)? */
     hasWeaponTooltipText(tokens: string[]): boolean {
         if (tokens.length === 0) return false;
         for (const text of this.getWeaponTooltipTexts()) {
             for (const token of tokens) {
-                if (token !== "" && contains(text, token)) return true;
+                if (doesTextName(text, token)) return true;
             }
         }
         return false;

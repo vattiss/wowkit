@@ -2,6 +2,7 @@
 // them. Each step looks only at the old names and takes them away, so settings that are already new pass through untouched.
 // Besides the names, a new default that has to reach the players of before is put on here once (the glow of the ready
 // cooldowns at the start of a fight), with a saved mark so a player who changes it again keeps their choice.
+import { buildNameKey } from "@wowkit/wow";
 import type { AddonSettings } from "./settings.interface";
 
 /** A saved table, read by its names: old ones are not in the types of today. */
@@ -149,6 +150,7 @@ function forgetFightStartSwitch(values: SavedTable): void {
 /** Brings settings saved under the old names to the new ones; the saved values were already laid over the defaults. */
 export function convertOldSettings(settings: AddonSettings): void {
     const values = settings as unknown as SavedTable;
+    convertBuffDurationKeys(settings);
     for (const [oldName, newName] of pairs(RENAMED_SETTINGS)) {
         if (values[oldName] === undefined) continue;
         values[newName] = values[oldName];
@@ -164,4 +166,16 @@ export function convertOldSettings(settings: AddonSettings): void {
     convertAddedSpells(values);
     convertToLooks(values);
     forgetFightStartSwitch(values);
+}
+
+/**
+ * The lengths learned of buffs are kept by the key of the buff's name (buildNameKey): one an older build saved by another key
+ * ("magical awareness") moves to it ("magicalawareness"), so it is not learned again.
+ */
+function convertBuffDurationKeys(settings: AddonSettings): void {
+    const durations = settings.buffDurations as { [key: string]: number } | undefined;
+    if (durations === undefined) return;
+    const rekeyed: { [key: string]: number } = {};
+    for (const [key, seconds] of pairs(durations)) rekeyed[buildNameKey(key as string)] = seconds;
+    settings.buffDurations = rekeyed;
 }

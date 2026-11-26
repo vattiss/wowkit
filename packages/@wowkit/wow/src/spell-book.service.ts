@@ -4,8 +4,9 @@
 // Performance rules learned on the Forever client: never walk the whole spellbook on
 // SPELLS_CHANGED or quest turn-in (it froze the client); build the index a few skill lines per
 // frame, and at most once every few seconds.
-import { type EventBus, contains, trimText } from "@wowkit/core";
+import { type EventBus, contains } from "@wowkit/core";
 import { attempt, attemptMulti } from "./utils/protected-call.utils";
+import { buildNameKey } from "./utils/spell-name.utils";
 import { getReadable } from "./utils/secret-value.utils";
 
 declare module "@wowkit/core/event-bus" {
@@ -50,7 +51,8 @@ export class SpellBookService {
 
     /** The first spellbook ID of a spell name (undefined before the index is built). */
     findSpellIdByName(name: string): number | undefined {
-        return this.entries?.byName.get(this.buildSpellBookKey(name));
+        const key = this.buildSpellBookKey(name);
+        return key !== "" ? this.entries?.byName.get(key) : undefined;
     }
 
     /** One spell ID of each spell name in the book (the first one found); empty before the index is built. */
@@ -62,7 +64,8 @@ export class SpellBookService {
 
     /** Every learned rank of a spell name. */
     getRanksByName(name: string): number[] {
-        return this.entries?.ranks.get(this.buildSpellBookKey(name)) ?? [];
+        const key = this.buildSpellBookKey(name);
+        return key !== "" ? (this.entries?.ranks.get(key) ?? []) : [];
     }
 
     /** Drops the index; a running build is abandoned. */
@@ -101,8 +104,9 @@ export class SpellBookService {
         const readSlot = (slot: number) => {
             for (const bank of this.listBanks()) {
                 const [name, id] = this.readBookItem(slot, bank);
-                if (id !== undefined && name !== undefined && name !== "" && !isJunkSpellName(name)) {
-                    const key = this.buildSpellBookKey(name);
+                const key = name !== undefined ? this.buildSpellBookKey(name) : "";
+                // A name of no letter is kept by none: every such name would be one
+                if (id !== undefined && key !== "" && !isJunkSpellName(name)) {
                     const ranks = entries.ranks.get(key);
                     if (ranks) ranks.push(id);
                     else entries.ranks.set(key, [id]);
@@ -164,10 +168,8 @@ export class SpellBookService {
      * The form spellbook names are grouped in: lowercase, every "(...)" and "Rank N" removed, single-spaced, so every
      * rank of a spell shares one key. "Smite  Rank 3" -> "smite"
      */
+    /** Names are kept by their key (see buildNameKey): a name the client writes two ways is one. */
     private buildSpellBookKey(name: string): string {
-        let [key] = string.gsub(string.lower(name), "%s*%([^%)]*%)", "");
-        [key] = string.gsub(key, "%s*rank%s*%d+", "");
-        [key] = string.gsub(key, "%s+", " ");
-        return trimText(key);
+        return buildNameKey(name);
     }
 }
