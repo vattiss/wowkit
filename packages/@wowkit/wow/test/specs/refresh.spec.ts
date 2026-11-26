@@ -33,9 +33,16 @@ class StubBars {
 /** What SpellRefreshService asks of the spells. */
 class StubSpells {
     clears = 0;
+    /** The clears that dropped the spellbook too, and the rebuilds of it. */
+    fullClears = 0;
+    rebuilds = 0;
     learned: (number | undefined)[] = [];
-    invalidateSpells(): void {
+    invalidateSpells(shouldDropSpellBook: boolean): void {
         this.clears += 1;
+        if (shouldDropSpellBook) this.fullClears += 1;
+    }
+    rebuildSpellBook(): void {
+        this.rebuilds += 1;
     }
     noteLearnedSpell(spellId: number | undefined): void {
         this.learned.push(spellId);
@@ -115,12 +122,33 @@ describe("the spell lookups", () => {
 
     it("are cleared once after a burst of level-ups and learned spells, and announced", () => {
         game.frames.fire("PLAYER_LEVEL_UP");
-        game.frames.fire("PLAYER_TALENT_UPDATE");
+        game.frames.fire("LEARNED_SPELL_IN_SKILL_LINE", 1243);
         game.clock.advance(0.3);
         expect(spells.clears).toBe(0);
         game.clock.advance(0.5);
         expect(spells.clears).toBe(1);
+        expect(spells.fullClears).toBe(0);
         expect(announced).toBe(1);
+    });
+
+    it("are made again in full, the spellbook too, once a burst of talent changes settles", () => {
+        for (const event of ["ACTIVE_TALENT_GROUP_CHANGED", "PLAYER_TALENT_UPDATE", "CHARACTER_POINTS_CHANGED"]) game.frames.fire(event);
+        game.clock.advance(0.8);
+        expect(spells.fullClears).toBe(0);
+        game.clock.advance(0.5);
+        expect(spells.fullClears).toBe(1);
+        expect(spells.rebuilds).toBe(1);
+        expect(announced).toBe(1);
+    });
+
+    it("are made again in full at most once in a while, a change meanwhile at the end of the wait", () => {
+        game.frames.fire("PLAYER_TALENT_UPDATE");
+        game.clock.advance(1.2);
+        game.frames.fire("PLAYER_TALENT_UPDATE");
+        game.clock.advance(1.2);
+        expect(spells.fullClears).toBe(1);
+        game.clock.advance(4);
+        expect(spells.fullClears).toBe(2);
     });
 
     it("note a learned spell at once, and clear the lookups after it", () => {
