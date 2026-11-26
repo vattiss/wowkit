@@ -4,7 +4,8 @@ import { learnSpell, playAs, WARRIOR, type ClientState, type FakeFrame, type Spe
 export const RECKLESSNESS: SpellDefinition = {
     id: 1719,
     name: "Recklessness",
-    rank: 1,
+    // One rank: no rank in its subtext, so no Old ranks row
+    rank: 0,
     icon: 132109,
     cooldownSeconds: 300,
     isHelpful: true,

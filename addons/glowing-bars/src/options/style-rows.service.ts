@@ -170,7 +170,7 @@ export class StyleRowsService {
             const look = this.readLook(reminderType, spellId, name, extra.isAdded === true);
             // A spell the player added has a row of its own even when a list has it as another type: it glows on its own too. As
             // the same type, the list's row is the one (a spell added before it was built in): it has no delete button
-            const key = extra.isAdded === true ? `${reminderType}:${look.key}` : suffix !== undefined ? `${name}|${suffix}` : name;
+            const key = this.findRowKey(reminderType, name, look.key, extra.isAdded === true, suffix);
             if (keys.has(key) || (extra.isAdded === true && keys.has(`${reminderType}:${name}`))) return;
             keys.add(key);
             if (extra.isAdded !== true) keys.add(`${reminderType}:${name}`);
@@ -208,6 +208,17 @@ export class StyleRowsService {
         this.addClassRows(rows);
         rows.sort((a, b) => this.compareRows(a, b));
         return rows;
+    }
+
+    /**
+     * What tells a row apart from the others: the spell's name, a spell listed once whatever its type. An added spell and an
+     * old rank have rows of their own beside it: the old rank is watched apart (its own switch, by name, on its own tab), so
+     * a spell with a proc or a cooldown row (a warlock's Shadow Bolt) still has its old rank row.
+     */
+    private findRowKey(reminderType: ReminderType, name: string, lookKey: string, isAdded: boolean, suffix: string | undefined): string {
+        if (isAdded) return `${reminderType}:${lookKey}`;
+        if (reminderType === "oldRank") return `oldRank:${name}`;
+        return suffix !== undefined ? `${name}|${suffix}` : name;
     }
 
     /** A defensive at low health: a row of its own ("Templar's Bulwark (low health)"), beside the one a proc rule may give the spell. */

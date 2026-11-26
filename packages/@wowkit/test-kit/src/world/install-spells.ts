@@ -50,9 +50,10 @@ export function installSpells(state: ClientState): void {
             if (spell === undefined || (type(idOrName) === "string" && state.knownSpells[spell.id] !== true)) return undefined;
             return toSpellInfo(spell);
         },
+        // A spell of one rank (rank 0) has no rank in its subtext, as in the game
         GetSpellSubtext: (idOrName) => {
             const spell = findSpell(idOrName);
-            return spell ? `Rank ${spell.rank}` : undefined;
+            return spell !== undefined && spell.rank > 0 ? `Rank ${spell.rank}` : undefined;
         },
         GetOverrideSpell: (idOrName) => (type(idOrName) === "number" ? (idOrName as number) : 0),
         IsSpellInRange: (idOrName, unit) => {

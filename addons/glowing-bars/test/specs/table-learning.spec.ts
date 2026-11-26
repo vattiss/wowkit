@@ -14,7 +14,7 @@ import {
     type FakeFrame,
     type World,
 } from "@wowkit/test-kit";
-import { RECKLESSNESS, findAddRowOf, findLabelOnTab, showTab, toggleTable } from "./table.helpers";
+import { RECKLESSNESS, findAddRowOf, findLabelOnTab, showTab, switchInTable, toggleTable } from "./table.helpers";
 
 type FocusBox = FakeFrame & { SetFocus(): void; ClearFocus(): void };
 
@@ -63,5 +63,39 @@ describe("the open table, as a priest learns a spell of ranks new to the book", 
         world.advance(1);
         showTab(world, "Old ranks");
         expect(findLabelOnTab(world, "Smite")).toBeDefined();
+    });
+});
+
+describe("a warlock's Shadow Bolt at an old rank, which has a proc row too", () => {
+    const WARLOCK = { name: "Warlock", token: "WARLOCK", id: 9 };
+    const SHADOW_BOLT_RANK_1 = { id: 686, name: "Shadow Bolt", rank: 1, icon: 136197, isHarmful: true };
+    const SHADOW_BOLT_RANK_2 = { id: 695, name: "Shadow Bolt", rank: 2, icon: 136197, isHarmful: true };
+
+    function createWarlock(): World {
+        const world = createWorld((state) => {
+            playAs(state, WARLOCK);
+            for (const spell of [SHADOW_BOLT_RANK_1, SHADOW_BOLT_RANK_2]) learnSpell(state, spell);
+            state.bars[1] = SHADOW_BOLT_RANK_1.id;
+        });
+        world.advance(3);
+        return world;
+    }
+
+    it("is listed on the Old ranks tab, beside its proc row", () => {
+        const world = createWarlock();
+        toggleTable();
+        showTab(world, "Old ranks");
+        expect(findLabelOnTab(world, "Shadow Bolt")).toBeDefined();
+    });
+
+    it("glows no more for its old rank once switched off on the Old ranks tab", () => {
+        const world = createWarlock();
+        // The old rank's glow is the quiet one, at half opacity
+        expect(world.glowAlphasOn(1)).toContain(0.5);
+        toggleTable();
+        showTab(world, "Old ranks");
+        switchInTable(world, "Shadow Bolt", false);
+        world.advance(2);
+        expect(world.glowAlphasOn(1).includes(0.5)).toBe(false);
     });
 });
