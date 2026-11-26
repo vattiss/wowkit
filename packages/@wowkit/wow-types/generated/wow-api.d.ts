@@ -1,6 +1,6 @@
 // GENERATED FILE - do not edit. Regenerate with "pnpm gen:types".
 // Global functions and C_* namespaces.
-// Source: https://github.com/Gethe/wow-ui-source.git (forever @ bebcb6bf30), game version 1.60.1.70938
+// Source: https://github.com/Gethe/wow-ui-source.git (forever @ d9c22e32cb), game version 1.60.1.71139
 
 /** @noSelfInFile */
 
@@ -1394,6 +1394,7 @@ declare namespace C_BattleNet {
     function IsBattleNetFriendsListEnabled(): boolean;
     function IsBattleNetFriendsListSupported(): boolean;
     function IsFriendTagSupportedForCurrentGameType(friendTag: Enum.BattleNetFriendTag): boolean;
+    function IsGameAccountOnSameRealm(id: number): boolean;
     /** @remarks Has restrictions: may fail or be blocked depending on game state. */
     function SearchFriends(searchInfo: AuroraFriendsSearchInfo): number[];
     function SendGameData(gameAccountID: number, prefix: string, data: string): Enum.SendAddonMessageResult;
@@ -4284,6 +4285,7 @@ declare namespace C_Mail {
     function CanCheckInbox(): LuaMultiReturn<[canCheckInbox: boolean, secondsUntilAllowed: number]>;
     function GetCraftingOrderMailInfo(inboxIndex: number): CraftingOrderMailInfo | undefined;
     function HasInboxMoney(inboxIndex: number): boolean;
+    function IsCODEnabled(): boolean;
     function IsCommandPending(): boolean;
     function SetOpeningAll(openingAll: boolean): void;
 }
@@ -7106,6 +7108,7 @@ declare namespace Constants {
     }
     namespace EncodingLimits {
         const EncodingDecompressSizeLimit: 104857600;
+        const EncodingDeserializeSizeLimit: 104857600;
         const EncodingStackSizeLimit: 100;
     }
     namespace EncounterTimelineEventConstants {

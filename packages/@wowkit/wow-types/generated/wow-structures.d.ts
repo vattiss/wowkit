@@ -1,6 +1,6 @@
 // GENERATED FILE - do not edit. Regenerate with "pnpm gen:types".
 // Structures and callback types.
-// Source: https://github.com/Gethe/wow-ui-source.git (forever @ bebcb6bf30), game version 1.60.1.70938
+// Source: https://github.com/Gethe/wow-ui-source.git (forever @ d9c22e32cb), game version 1.60.1.71139
 
 /** @noSelfInFile */
 
@@ -729,6 +729,7 @@ interface BNetGameAccountInfo {
     realmName?: string;
     realmDisplayName?: string;
     realmID?: number;
+    hasRealmInfo: boolean;
     factionName?: string;
     raceName?: string;
     classID?: number;
