@@ -27,6 +27,7 @@ export const TABLE_TEXTS = {
     TYPE_WEAPON_BUFF: "Weapon buff",
     TYPE_MISSING_SEAL: "Missing seal",
     TYPE_MISSING_TRACKING: "Missing tracking",
+    TYPE_MISSING_DEBUFF: "Missing debuff",
     TYPE_TOTEM_GONE: "Totem gone",
     TYPE_READY_COOLDOWN: "Ready cooldown",
     TYPE_UTILITY_COOLDOWN: "Utility cooldown",

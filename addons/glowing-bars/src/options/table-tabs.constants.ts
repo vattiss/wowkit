@@ -11,7 +11,11 @@ export interface TableTabInfo {
 }
 
 export const TABLE_TABS: TableTabInfo[] = [
-    { key: "buffs", text: "TAB_TABLE_BUFFS", types: ["missingBuff", "weaponBuff", "missingSeal", "missingTracking", "totemGone"] },
+    {
+        key: "buffs",
+        text: "TAB_TABLE_BUFFS",
+        types: ["missingBuff", "weaponBuff", "missingSeal", "missingTracking", "missingDebuff", "totemGone"],
+    },
     { key: "cooldowns", text: "TAB_TABLE_COOLDOWNS", types: ["readyCooldown", "utilityCooldown"] },
     { key: "procRules", text: "TAB_TABLE_PROC_RULES", types: [] },
     { key: "procs", text: "TAB_TABLE_PROCS", types: ["proc"] },

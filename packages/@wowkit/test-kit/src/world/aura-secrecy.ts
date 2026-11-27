@@ -10,8 +10,9 @@ export type SecretsAnswer = boolean | "secret" | "error";
 export interface AuraSecrecy {
     /** The client hides the auras of `hiddenSpells` now (the truth, whatever C_Secrets says). */
     isHiding: boolean;
-    /** The spells whose auras it hides while hiding. */
+    /** The spells whose auras it hides while hiding: their buffs, and their debuffs too when `hidesDebuffs` (a target's in a fight). */
     hiddenSpells: { [spellId: number]: true | undefined };
+    hidesDebuffs: boolean;
     /** A hidden aura in GetAuraDataByIndex: left out, kept with its name, ID, time and caster secret, or the read fails. */
     inList: "omit" | "secretFields" | "error";
     /** A hidden aura asked for directly (GetPlayerAuraBySpellID, GetAuraDataBySpellName): no answer, secret fields, or the call fails. */
@@ -29,6 +30,7 @@ export function createAuraSecrecy(): AuraSecrecy {
     return {
         isHiding: false,
         hiddenSpells: {},
+        hidesDebuffs: false,
         inList: "omit",
         direct: "nil",
         saysRestricted: false,

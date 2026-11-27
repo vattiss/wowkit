@@ -188,7 +188,7 @@ export function installAuras(state: ClientState): void {
     function findShownAura(unit: UnitToken, index: number, filter: string | undefined): AuraData | undefined {
         const isHelpful = filter !== "HARMFUL" && filter !== "HARMFUL|PLAYER";
         const auras = listAurasOf(unit, filter);
-        const isHidden = (aura: FakeAura) => isHelpful && isAuraHidden(secrecy, aura.spellId);
+        const isHidden = (aura: FakeAura) => (isHelpful || secrecy.hidesDebuffs) && isAuraHidden(secrecy, aura.spellId);
         if (secrecy.inList === "error" && auras.some((aura) => isHidden(aura))) error("secret aura list");
         let shown = 0;
         for (const aura of auras) {

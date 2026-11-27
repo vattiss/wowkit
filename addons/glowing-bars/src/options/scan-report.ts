@@ -108,6 +108,7 @@ export class ScanReport {
             ["weapon", (found.weaponSpell !== undefined ? 1 : 0) + found.addedWeaponSpells.length],
             ["seals", found.seals.length],
             ["trackings", found.trackings.length],
+            ["debuffs", found.debuffs.length],
             ["cooldowns", found.readyCooldowns.length + found.utilityCooldowns.length],
             ["procs", found.procs.length],
             ["old ranks", found.outdatedRanks.length],

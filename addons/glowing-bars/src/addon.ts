@@ -3,7 +3,7 @@
 // function reach at most 60 outer names, and one function naming every service would reach more.
 import { makeGame, type Game } from "./game-services";
 import { makeCooldownManager } from "./addon-manager";
-import { makeTotemGone } from "./addon-totems";
+import { addStageReminders, type StageReminders } from "./addon-stages";
 import { Addon } from "@wowkit/core";
 import {
     ControlsService,
@@ -45,7 +45,6 @@ import { makeHealthRules, makeProcRules, makeProcRulesTab } from "./addon-proc-r
 import { makeWeapons } from "./addon-weapons";
 import { makeBuffs, type Buffs } from "./addon-buffs";
 
-export type { Buffs } from "./addon-buffs";
 import { ScanReport } from "./options/scan-report";
 import { WelcomeService } from "./options/welcome.service";
 import { WhatsNewService } from "./options/whats-new.service";
@@ -86,7 +85,7 @@ export function startAddon(addonName: string): void {
     const game = makeGame(addon, addonName);
     const texts = makeTexts(addon, game);
     const buffs = makeBuffs(addon, game, texts);
-    const reminders = { ...makeReminders(addon, addonName, game, texts, buffs), totemGone: makeTotemGone(addon, game, texts) };
+    const reminders = addStageReminders(addon, game, texts, makeReminders(addon, addonName, game, texts, buffs));
     makeCooldownManager(addon, game, texts, buffs, reminders);
     const finder = makeTick(addon, addonName, game, texts, buffs, reminders);
     makeOptions(addon, addonName, game, texts, buffs, reminders, finder);
@@ -170,7 +169,7 @@ function makeReminders(addon: Addon, addonName: string, game: Game, texts: Texts
         ...{ procRules, procEdits },
     };
 }
-export type Reminders = ReturnType<typeof makeReminders> & { totemGone: ReturnType<typeof makeTotemGone> };
+export type Reminders = ReturnType<typeof makeReminders> & StageReminders;
 
 /** The tick: find what is due, show it, look again sooner when something changed; and what happens to the player. */
 function makeTick(addon: Addon, addonName: string, game: Game, texts: Texts, buffs: Buffs, reminders: Reminders) {
@@ -191,6 +190,7 @@ function makeTick(addon: Addon, addonName: string, game: Game, texts: Texts, buf
             reminders.added,
             reminders.seal,
             reminders.tracking,
+            reminders.debuffs,
             reminders.totemGone,
             settings,
             game.clock,

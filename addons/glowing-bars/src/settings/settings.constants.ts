@@ -73,13 +73,21 @@ function createTotemSettings(): Pick<AddonSettings, "isTotemGoneEnabled" | "last
 
 /**
  * What the addon learns as the player plays (new tables each time): the buff of a group cast last, what each food gives, how
- * long each buff lasts, the utility cooldowns moved to their type, the buff memory kept through a /reload.
+ * long each buff and debuff lasts, the utility cooldowns moved to their type, the buff memory kept through a /reload.
  */
 function createLearnedSettings(): Pick<
     AddonSettings,
-    "lastBuffs" | "fedBuffs" | "fedItems" | "buffDurations" | "movedUtilityCooldowns" | "buffMemory"
+    "lastBuffs" | "fedBuffs" | "fedItems" | "buffDurations" | "debuffDurations" | "movedUtilityCooldowns" | "buffMemory"
 > {
-    return { lastBuffs: {}, fedBuffs: {}, fedItems: {}, buffDurations: {}, movedUtilityCooldowns: {}, buffMemory: undefined };
+    return {
+        lastBuffs: {},
+        fedBuffs: {},
+        fedItems: {},
+        buffDurations: {},
+        debuffDurations: {},
+        movedUtilityCooldowns: {},
+        buffMemory: undefined,
+    };
 }
 
 /** The proc rules: none of the player's, none of the built-in ones switched off (new tables each time). */
@@ -125,6 +133,7 @@ export function createDefaultSettings(): AddonSettings {
         belowLimits: {},
         isMissingSealEnabled: true,
         isMissingTrackingEnabled: true,
+        isMissingDebuffEnabled: true,
         ...createTotemSettings(),
         styles: {},
         spellStyles: {},
@@ -158,6 +167,8 @@ export function listWhenChoices(reminderType: ReminderType): When[] {
     if (COOLDOWN_TYPES.includes(reminderType as CooldownType)) {
         return [...READY_WHENS, "enemyTargeted", "allyTargeted", "anyTargeted"];
     }
+    // A debuff goes on an enemy: with an ally targeted it never glows
+    if (reminderType === "missingDebuff") return ["always", "inCombat", "outOfCombat", "enemyTargeted", "anyTargeted"];
     const choices: When[] = ["always", "inCombat", "outOfCombat", "enemyTargeted", "allyTargeted", "anyTargeted"];
     return reminderType === "lowReagent" || reminderType === "lowStock" ? [...choices, "townAlert"] : choices;
 }
@@ -207,6 +218,7 @@ export const ADDABLE_TYPES: AddableType[] = [
     "lowStock",
     "missingSeal",
     "missingTracking",
+    "missingDebuff",
 ];
 
 /** The types in the order the tables list them. */
@@ -215,6 +227,7 @@ export const TYPE_ORDER: ReminderType[] = [
     "weaponBuff",
     "missingSeal",
     "missingTracking",
+    "missingDebuff",
     "totemGone",
     "lowReagent",
     "lowStock",
@@ -318,6 +331,7 @@ export function repairSettings(values: AddonSettings): void {
     values.customSoundFolders = repairSoundFolders(values.customSoundFolders, defaults.customSoundFolders);
     values.procRules = repairProcRules(values.procRules);
     if (type(values.disabledProcRules) !== "table") values.disabledProcRules = {};
+    if (type(values.debuffDurations) !== "table") values.debuffDurations = {};
     // The old switch of a Greater Blessing for one member of a class in a party is a party group version from one
     const old = values as { showGreaterForOne?: boolean };
     if (old.showGreaterForOne === true) values.partyGroupFrom = 1;
@@ -350,6 +364,7 @@ export const CHARACTER_KEYS: (keyof AddonSettings)[] = [
     "areUtilityLooksMoved",
     "movedUtilityCooldowns",
     "buffDurations",
+    "debuffDurations",
     "buffMemory",
     "lastTotems",
     "lastBuffs",

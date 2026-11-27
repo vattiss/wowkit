@@ -14,6 +14,7 @@ const TYPE_SWITCHES = {
     weaponBuff: "isWeaponBuffEnabled",
     missingSeal: "isMissingSealEnabled",
     missingTracking: "isMissingTrackingEnabled",
+    missingDebuff: "isMissingDebuffEnabled",
     totemGone: "isTotemGoneEnabled",
     lowReagent: "isLowReagentEnabled",
     readyCooldown: "isReadyCooldownEnabled",

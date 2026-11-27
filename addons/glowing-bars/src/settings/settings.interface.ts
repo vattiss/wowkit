@@ -9,6 +9,7 @@ export type ReminderType =
     | "weaponBuff"
     | "missingSeal"
     | "missingTracking"
+    | "missingDebuff"
     | "totemGone"
     | "readyCooldown"
     | "utilityCooldown"
@@ -68,7 +69,7 @@ export interface Style {
     /** Seconds the message stays; 0: as long as the button glows; none: the usual time (NOTICE_SECONDS). */
     messageShowFor?: number;
     /**
-     * Seconds before a buff, weapon buff or seal runs out that its reminder comes; 0: once it is gone. Other types have none.
+     * Seconds before a buff, weapon buff, seal or debuff runs out that its reminder comes; 0: once it is gone. Other types have none.
      */
     before?: number;
 }
@@ -79,6 +80,7 @@ export type AddableType =
     | "weaponBuff"
     | "missingSeal"
     | "missingTracking"
+    | "missingDebuff"
     | "lowReagent"
     | "readyCooldown"
     | "utilityCooldown"
@@ -212,6 +214,10 @@ export interface AddonSettings {
     isMissingSealEnabled: boolean;
     /** A miner or a herbalist with no tracking on. */
     isMissingTrackingEnabled: boolean;
+    /** A debuff of the player's, added by its ID, missing on the target in a fight (Serpent Sting, Hunter's Mark). */
+    isMissingDebuffEnabled: boolean;
+    /** How long each debuff of the player's lasts, as learned from its aura on a target (by its name key). */
+    debuffDurations: { [debuffKey: string]: number | undefined };
     /** A shaman's totem that is gone (killed, run out): the one dropped last in its element glows. */
     isTotemGoneEnabled: boolean;
     /** The totem the shaman dropped last in each slot (1 fire, 2 earth, 3 water, 4 air), kept across logins. */
