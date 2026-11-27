@@ -73,14 +73,14 @@ export const STYLE_DEFAULTS: { [key in ReminderType]: Style } = {
         glowTime: 0,
         animation: "circling",
     },
-    // A poisonous green, apart from the procs' red: a debuff goes on the enemy, and only matters in a fight
+    // A shadowy purple, apart from the buffs and the procs: a debuff goes on the enemy, so it shows with one targeted
     missingDebuff: {
-        color: [0.35, 0.9, 0.2],
+        color: [0.65, 0.3, 1],
         glowPercent: 100,
         isMessageOn: false,
         sound: "none",
         repeat: 0,
-        when: "inCombat",
+        when: "enemyTargeted",
         glowTime: 0,
         animation: "circling",
         before: 0,

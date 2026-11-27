@@ -15,7 +15,7 @@ import {
     isSameName,
 } from "@wowkit/wow";
 import type { AddedSpellsService } from "../glows/added-spells.service";
-import { DEBUFF_SECONDS } from "../reminders/debuffs.constants";
+import { DEBUFF_SECONDS, listDebuffs } from "../reminders/debuffs.constants";
 import type { AddonSettingsService } from "../settings/settings.interface";
 
 /** The end of a debuff whose length is not known: it counts until the target changes. */
@@ -46,13 +46,13 @@ export class DebuffMemoryService {
     @OnEvent("player.spell-cast")
     noteCast(cast: PlayerSpellCast): void {
         const spellId = cast.spellId;
-        if (spellId === undefined || !this.player.hasEnemyTarget()) return;
+        if (spellId === undefined || !this.settings.get("shouldUseDebuffs") || !this.player.hasEnemyTarget()) return;
         const name = this.spells.getSpellName(spellId) ?? cast.spellName;
         if (name === undefined || name === "") return;
-        const isAdded = this.addedSpells
-            .listAdded("missingDebuff")
-            .some((id) => id === spellId || isSameName(this.spells.getSpellName(id), name));
-        if (!isAdded) return;
+        const isListed = listDebuffs(this.player.getClassToken(), this.addedSpells).some(
+            (debuff) => debuff.spellId === spellId || isSameName(this.spells.getSpellName(debuff.spellId), name),
+        );
+        if (!isListed) return;
         const key = buildNameKey(name);
         const seconds = this.findSeconds(key, name);
         this.changeEnd(key, seconds === undefined ? UNTIL_TARGET_CHANGES : this.clock.getCurrentTime() + seconds);

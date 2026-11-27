@@ -15,6 +15,8 @@ import { ProcRulesAddRow } from "./options/proc-rules-add-row";
 import { ProcRulesTab } from "./options/proc-rules-tab";
 import { ProcRuleRows } from "./options/proc-rule-rows";
 import type { StyleWindowService } from "./options/style-window.service";
+import type { BetaTabs } from "./options/style-table.service";
+import { DebuffsSwitch } from "./options/debuffs-switch";
 
 /** The engine of the proc rules (beta), the looks of their groups' rows while it is on, and the changes of the table. */
 export function makeProcRules(
@@ -33,12 +35,13 @@ export function makeProcRules(
     return { procRules, procEdits };
 }
 
-/** The Proc rules tab of the table, with the row that adds a rule. */
-export function makeProcRulesTab(game: Game, texts: Texts, procEdits: ProcRulesEditsService, windows: StyleWindowService): ProcRulesTab {
+/** The tabs of the beta features: the Proc rules tab, with the row that adds a rule, and the switch over the Debuffs tab. */
+export function makeProcRulesTab(game: Game, texts: Texts, procEdits: ProcRulesEditsService, windows: StyleWindowService): BetaTabs {
     const { locale, settings, messages } = texts;
     const addRow = new ProcRulesAddRow(locale, game.spells, procEdits, messages, game.cooldownViewer, settings);
     const rows = new ProcRuleRows(locale, game.spells, settings, procEdits, game.cooldownViewer);
-    return new ProcRulesTab(locale, game.spells, settings, procEdits, windows, addRow, rows);
+    const procRules = new ProcRulesTab(locale, game.spells, settings, procEdits, windows, addRow, rows);
+    return { procRules, debuffs: new DebuffsSwitch(locale, settings) };
 }
 
 /**

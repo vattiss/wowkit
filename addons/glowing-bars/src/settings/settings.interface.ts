@@ -88,7 +88,7 @@ export type AddableType =
     | "lowStock";
 
 /** The tabs of the table of looks (TABLE_TABS). */
-export type TableTab = "buffs" | "cooldowns" | "procRules" | "procs" | "consumables" | "oldRanks" | "sounds" | "help";
+export type TableTab = "buffs" | "debuffs" | "cooldowns" | "procRules" | "procs" | "consumables" | "oldRanks" | "sounds" | "help";
 
 /** The types of a cooldown that glows as it is ready: the ones of a fight, and the ones of between fights (a herb, a fall). */
 export type CooldownType = "readyCooldown" | "utilityCooldown";
@@ -206,6 +206,8 @@ export interface AddonSettings {
     isProcEnabled: boolean;
     /** The procs go by the proc rules (beta), a new engine, instead of the built-in one. */
     shouldUseProcRules: boolean;
+    /** The debuffs on the enemy targeted are reminded of (beta): the switch of the Debuffs tab. */
+    shouldUseDebuffs: boolean;
     /** The proc rules the player added. */
     procRules: ProcRule[];
     /** The built-in proc rules the player switched off, by their key ("20271:targetType:6"). */

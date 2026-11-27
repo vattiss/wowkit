@@ -14,8 +14,9 @@ export const TABLE_TABS: TableTabInfo[] = [
     {
         key: "buffs",
         text: "TAB_TABLE_BUFFS",
-        types: ["missingBuff", "weaponBuff", "missingSeal", "missingTracking", "missingDebuff", "totemGone"],
+        types: ["missingBuff", "weaponBuff", "missingSeal", "missingTracking", "totemGone"],
     },
+    { key: "debuffs", text: "TAB_TABLE_DEBUFFS", types: ["missingDebuff"] },
     { key: "cooldowns", text: "TAB_TABLE_COOLDOWNS", types: ["readyCooldown", "utilityCooldown"] },
     { key: "procRules", text: "TAB_TABLE_PROC_RULES", types: [] },
     { key: "procs", text: "TAB_TABLE_PROCS", types: ["proc"] },

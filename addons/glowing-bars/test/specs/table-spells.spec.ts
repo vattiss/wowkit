@@ -70,7 +70,7 @@ describe("the spells of the table, fixed and added by the player", () => {
                 .join(", ");
         expect(listTypes("Cooldowns")).toBe("Ready cooldown, Utility cooldown");
         expect(listTypes("Procs")).toBe("Proc");
-        expect(listTypes("Buffs")).toBe("Missing buff, Weapon buff, Missing seal, Missing tracking, Missing debuff");
+        expect(listTypes("Buffs")).toBe("Missing buff, Weapon buff, Missing seal, Missing tracking");
         const { reminderType: kind } = findAddRow("Buffs");
         world.pickFromMenu(kind, "Missing tracking");
         expect(kind.text).toBe("Missing tracking");

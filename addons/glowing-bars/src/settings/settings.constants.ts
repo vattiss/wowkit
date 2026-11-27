@@ -61,6 +61,7 @@ const COOLDOWN_SWITCHES = {
     isUtilityCooldownEnabled: true,
     isProcEnabled: true,
     shouldUseProcRules: false,
+    shouldUseDebuffs: false,
     areUtilityLooksMoved: false,
     areReagentRowsSplit: false,
     areLowHealthRowsMoved: false,

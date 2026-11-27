@@ -40,6 +40,7 @@ function makeDebuffs(addon: Addon, game: Game, texts: Texts, addedSpells: AddedS
             clock,
             texts.settings,
             memory,
+            game.spellDetails,
         ),
     );
     // How long before a debuff runs out it is asked for: its row's Before

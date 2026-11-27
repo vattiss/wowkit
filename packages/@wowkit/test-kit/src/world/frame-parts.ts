@@ -36,7 +36,10 @@ export function addRegions(frame: FakeFrame, createTexture: CreateTexture): void
         CreateMaskTexture(): FakeFrame;
     };
     parts.GetRegions = () => {
-        const flipbooks = [frame.ProcStartFlipbook, frame.ProcLoopFlipbook, frame.ProcAltGlow].filter((part) => part !== undefined);
+        // Read raw: the frame answers any other field with a method that does nothing
+        const flipbooks = (["ProcStartFlipbook", "ProcLoopFlipbook", "ProcAltGlow"] as const)
+            .map((key) => rawget(frame, key) as FakeFrame | undefined)
+            .filter((part) => part !== undefined);
         return $multi(...frame.textures, ...flipbooks, ...frame.fontStrings);
     };
     parts.IsObjectType = (kind) => frame.frameType === kind;

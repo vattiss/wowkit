@@ -1,6 +1,7 @@
 // Whether a row of the table of looks is on: a type of reminder as a whole, or one spell of it. Each type keeps its switches
 // where it always did (the buff list, the ranks, the cooldowns, procs and reagent spells); this answers for any row in one way, so the
 // table can show and change them in one column.
+import { buildDebuffSwitchKey } from "../reminders/debuffs.constants";
 import type { SpellsService } from "@wowkit/wow";
 import { buildGroupSwitchKey } from "../glows/proc-rules.interface";
 import type { StyleRow } from "../options/style-rows.service";
@@ -71,6 +72,8 @@ export class EnabledService {
         if (row.group !== undefined && row.sharesIdOf !== undefined) {
             return buildGroupSwitchKey(this.spells.getSpellLabel(row.sharesIdOf) ?? string.format("%d", row.sharesIdOf), row.group);
         }
+        // A debuff has a switch of its own: its spell may be a proc of the rules too (Shadow Word: Pain)
+        if (row.reminderType === "missingDebuff") return buildDebuffSwitchKey(row.listId ?? spellId);
         return string.format("%d", row.listId ?? spellId);
     }
 

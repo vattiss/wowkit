@@ -1,6 +1,11 @@
 // English only: the words of the table of looks: its tabs, the choices of its When column, and the types of reminder.
 export const TABLE_TEXTS = {
     TAB_TABLE_BUFFS: "Buffs",
+    TAB_TABLE_DEBUFFS: "Debuffs",
+    OPT_USE_DEBUFFS: "Use debuff reminders (beta)",
+    TIP_DEBUFFS_OFF: "Switch on Use debuff reminders (beta) to change the debuffs.",
+    INFO_USE_DEBUFFS:
+        "Glows when the enemy you target lacks your debuff, or it is about to run out, and you can cast it. In a fight it is worked out from your casts. Debuffs on you are not covered.",
     TAB_TABLE_COOLDOWNS: "Cooldowns",
     TAB_TABLE_PROCS: "Procs",
     TAB_TABLE_CONSUMABLES: "Consumables",

@@ -13,7 +13,7 @@ export const HELP_TEXTS = {
     HELP_WHERE_TRACKING: "A tracking spell the lists lack",
     HELP_WHERE_TRACKING_HOW: "Buffs tab, Missing tracking, by its Spell ID.",
     HELP_WHERE_DEBUFF: "A debuff to keep on your enemy (Serpent Sting, Hunter's Mark)",
-    HELP_WHERE_DEBUFF_HOW: "Buffs tab, Missing debuff, by its Spell ID.",
+    HELP_WHERE_DEBUFF_HOW: "Debuffs tab (beta): switch on Use debuff reminders, then add its Spell ID.",
     HELP_WHERE_TRINKETS: "Trinkets, or a cooldown of yours the lists lack",
     HELP_WHERE_TRINKETS_HOW: "Cooldowns tab, Ready cooldown, by the trinket's Use spell ID (a spell's own ID).",
     HELP_WHERE_TRAVEL: "A hearthstone, or another cooldown of between fights",

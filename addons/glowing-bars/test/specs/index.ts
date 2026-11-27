@@ -9,6 +9,7 @@ import "./warrior.spec";
 import "./druid.spec";
 import "./hunter.spec";
 import "./missing-debuff.spec";
+import "./debuffs-tab.spec";
 import "./shaman.spec";
 import "./rogue.spec";
 import "./rogue-macros.spec";

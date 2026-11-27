@@ -5,6 +5,7 @@ import { type PlayerService, type SpellsService, buildNameKey, getItemButtonKey,
 import { Warrior } from "@wowkit/wow-data";
 import type { AddedSpellsService } from "../glows/added-spells.service";
 import type { GlowCuesService } from "../glows/glow-cues.service";
+import { listClassDebuffs } from "../reminders/debuffs.constants";
 import { findGlowOnlyGroup, HEALTH_KINDS, HIDDEN_KINDS } from "../glows/proc-rules.interface";
 import type { ProcRulesService } from "../glows/proc-rules.service";
 import type { AddonLocale } from "../locale/locale.interface";
@@ -189,10 +190,7 @@ export class StyleRowsService {
         const addListed = (reminderType: ReminderType, listId: number | undefined, suffix?: string) => {
             if (listId !== undefined) add(reminderType, this.addedSpells.getEffectiveId(listId), { listId }, suffix);
         };
-        for (const classBuff of this.classBuffs.getClassBuffs()) addListed("missingBuff", classBuff.id);
-        for (const entry of this.weaponChoice.getWeaponChoices()) addListed("weaponBuff", entry.id);
-        for (const id of this.sealReminder.listTableSeals()) addListed("missingSeal", id);
-        for (const id of this.trackingReminder.listTrackings()) addListed("missingTracking", id);
+        for (const [reminderType, ids] of this.listListedIds()) for (const id of ids) addListed(reminderType, id);
         for (const reminderType of ["readyCooldown", "utilityCooldown", "proc"] as const) {
             // A proc of the rules whose rules all have a group: the rows of its groups alone
             const ids = this.glowCues.listBuiltInIds(reminderType).filter((id) => reminderType !== "proc" || this.procRules.hasOwnRow(id));
@@ -213,14 +211,26 @@ export class StyleRowsService {
         return rows;
     }
 
+    /** The spells of the lists of the buffs and debuffs, by type: the class's buffs, weapon buffs, seals, trackings, debuffs. */
+    private listListedIds(): [ReminderType, number[]][] {
+        return [
+            ["missingBuff", this.classBuffs.getClassBuffs().map((classBuff) => classBuff.id)],
+            ["weaponBuff", this.weaponChoice.getWeaponChoices().map((entry) => entry.id)],
+            ["missingSeal", this.sealReminder.listTableSeals()],
+            ["missingTracking", this.trackingReminder.listTrackings()],
+            ["missingDebuff", listClassDebuffs(this.player.getClassToken())],
+        ];
+    }
+
     /**
      * What tells a row apart from the others: the spell's name, a spell listed once whatever its type. An added spell and an
      * old rank have rows of their own beside it: the old rank is watched apart (its own switch, by name, on its own tab), so
-     * a spell with a proc or a cooldown row (a warlock's Shadow Bolt) still has its old rank row.
+     * a spell with a proc or a cooldown row (a warlock's Shadow Bolt) still has its old rank row. So has a debuff, which is
+     * watched on the enemy (its own switch too): a priest's Shadow Word: Pain may have a proc rule as well.
      */
     private findRowKey(reminderType: ReminderType, name: string, lookKey: string, isAdded: boolean, suffix: string | undefined): string {
         if (isAdded) return `${reminderType}:${lookKey}`;
-        if (reminderType === "oldRank") return `oldRank:${name}`;
+        if (reminderType === "oldRank" || reminderType === "missingDebuff") return `${reminderType}:${name}`;
         return suffix !== undefined ? `${name}|${suffix}` : name;
     }
 

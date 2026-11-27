@@ -29,11 +29,18 @@ import { TakenOverNotice } from "./taken-over-notice";
 import { TableHelp } from "./table-help";
 import { hasBefore } from "./before-time";
 import type { ProcRulesTab } from "./proc-rules-tab";
+import type { DebuffsSwitch } from "./debuffs-switch";
 
 /** The words beside the switch of the spells not learned yet. */
 const UNLEARNED_LABEL_WIDTH = 130;
 /** How often a redraw for newly learned spells looks again whether the player still types in a box, in seconds. */
 const TYPING_RECHECK = 1;
+
+/** The parts of the tabs of the beta features: the Proc rules tab, and the switch over the Debuffs tab. */
+export interface BetaTabs {
+    procRules: ProcRulesTab;
+    debuffs: DebuffsSwitch;
+}
 
 export class StyleTableService {
     private window: Frame | undefined;
@@ -60,6 +67,8 @@ export class StyleTableService {
     private readonly takenOver: TakenOverNotice;
     /** The help on the columns, on its own tab. */
     private readonly help: TableHelp;
+    private readonly procRulesTab: ProcRulesTab;
+    private readonly debuffsSwitch: DebuffsSwitch;
 
     constructor(
         private readonly locale: AddonLocale,
@@ -69,8 +78,10 @@ export class StyleTableService {
         private readonly choices: StyleChoicesService,
         private readonly windows: StyleWindowService,
         private readonly edits: StyleEditsService,
-        private readonly procRulesTab: ProcRulesTab,
+        betaTabs: BetaTabs,
     ) {
+        this.procRulesTab = betaTabs.procRules;
+        this.debuffsSwitch = betaTabs.debuffs;
         this.rowWidgets = new StyleRowWidgets(locale, styles, choices, windows, edits);
         this.takenOver = new TakenOverNotice(locale);
         this.help = new TableHelp(locale, choices);
@@ -170,7 +181,10 @@ export class StyleTableService {
                           tab,
                           typeRows.filter((row) => isInTab(row)),
                           spellRows.filter((row) => isInTab(row)),
+                          // The Debuffs tab (beta) under its switch
+                          tab.key === "debuffs" ? this.debuffsSwitch.draw(content, 0, this.contentLeft, this.tableWidth) : 0,
                       );
+        if (tab.key === "debuffs") this.debuffsSwitch.applyFade(content, y);
         for (let i = this.usedHeaders; i < this.headers.length; i++) this.headers[i]!.Hide();
         for (let i = this.usedWidgets; i < this.widgets.length; i++) this.widgets[i]!.frame.Hide();
         content.SetHeight(math.max(10, y));
@@ -182,8 +196,8 @@ export class StyleTableService {
      * A tab of types: their rows, their spells' rows, and the row that adds a spell of these types (if any can be added). A
      * list with no rows has no header either: a tab this character has nothing on yet shows only the add row.
      */
-    private drawTypeTab(content: Frame, tab: TableTabInfo, typeRows: StyleRow[], spellRows: StyleRow[]): number {
-        let y = typeRows.length > 0 ? this.drawSection(content, "HDR_TABLE_DEFAULTS", typeRows, 0) : 0;
+    private drawTypeTab(content: Frame, tab: TableTabInfo, typeRows: StyleRow[], spellRows: StyleRow[], top: number): number {
+        let y = typeRows.length > 0 ? this.drawSection(content, "HDR_TABLE_DEFAULTS", typeRows, top) : top;
         // The spells of the lists not learned yet only when the tab is asked to list them, the switch only where there are
         // some; a spell the player added is always listed
         const isHideable = (row: StyleRow) => row.isLearned === false && row.isAdded !== true;
@@ -200,8 +214,8 @@ export class StyleTableService {
             this.tableWidth,
             takenOver.map((row) => row.label),
         );
-        // On the Procs tab always, as on the Proc rules tab beside it
-        const hasSwitch = hasUnlearned || tab.key === "procs";
+        // On the Procs tab always, as on the Proc rules tab beside it; on the Debuffs tab always too
+        const hasSwitch = hasUnlearned || tab.key === "procs" || tab.key === "debuffs";
         this.showUnlearnedSwitch(content, hasSwitch ? { tab, top: y, isChecked: isUnlearnedShown } : undefined);
         if (shownRows.length > 0 || hasUnlearned) y = this.drawSection(content, "HDR_TABLE_SPELLS", shownRows, y);
         const addTypes = ADDABLE_TYPES.filter((reminderType) => tab.types.includes(reminderType));
@@ -252,6 +266,7 @@ export class StyleTableService {
         this.windows.hideCustomSounds();
         this.help.hide();
         this.procRulesTab.hide();
+        this.debuffsSwitch.hide();
         this.takenOver.hide();
         this.addRow?.Hide();
         this.edits.useAddHeader(undefined);
