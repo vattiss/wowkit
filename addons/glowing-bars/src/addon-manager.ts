@@ -1,6 +1,7 @@
 // Putting the addon together, the stage of Blizzard's Cooldown Manager (see addon.ts): a file of its own, as addon.ts is full.
 import type { Addon } from "@wowkit/core";
-import type { Buffs, Reminders, Texts } from "./addon";
+import type { Reminders, Texts } from "./addon";
+import type { Buffs } from "./addon-buffs";
 import { CooldownManagerService } from "./character/cooldown-manager.service";
 import type { Game } from "./game-services";
 

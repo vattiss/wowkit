@@ -10,6 +10,7 @@ export interface GlowType {
         | "isWeaponBuffEnabled"
         | "isMissingSealEnabled"
         | "isMissingTrackingEnabled"
+        | "isMissingDebuffEnabled"
         | "isTotemGoneEnabled"
         | "isReadyCooldownEnabled"
         | "isUtilityCooldownEnabled"
@@ -54,6 +55,12 @@ export const TYPES: GlowType[] = [
         isOnSetting: "isMissingTrackingEnabled",
         isOnIcons: true,
         collectSpells: (reminders, spells) => pushAll(spells, reminders.trackings),
+    },
+    {
+        category: "missingDebuff",
+        isOnSetting: "isMissingDebuffEnabled",
+        isOnIcons: true,
+        collectSpells: (reminders, spells) => pushAll(spells, reminders.debuffs),
     },
     {
         category: "totemGone",

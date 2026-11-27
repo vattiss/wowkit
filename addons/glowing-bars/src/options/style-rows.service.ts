@@ -50,6 +50,7 @@ export const TYPE_TEXTS: { [reminderType in ReminderType]: TextKey } = {
     weaponBuff: "TYPE_WEAPON_BUFF",
     missingSeal: "TYPE_MISSING_SEAL",
     missingTracking: "TYPE_MISSING_TRACKING",
+    missingDebuff: "TYPE_MISSING_DEBUFF",
     totemGone: "TYPE_TOTEM_GONE",
     readyCooldown: "TYPE_READY_COOLDOWN",
     utilityCooldown: "TYPE_UTILITY_COOLDOWN",

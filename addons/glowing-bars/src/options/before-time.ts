@@ -1,9 +1,9 @@
-// The Before of a row in the table: how long before a buff, weapon buff or seal runs out it is asked for. Typed with its
+// The Before of a row in the table: how long before a buff, weapon buff, seal or debuff runs out it is asked for. Typed with its
 // units (15s, 30m, 1h, 1h30m, 1.5s; a number alone is seconds) and shown back in the largest whole ones.
 import type { ReminderType } from "../settings/settings.interface";
 
 /** The types that run out with a time left: the others (a totem gone, a tracking) have no Before. */
-const BEFORE_TYPES: ReminderType[] = ["missingBuff", "weaponBuff", "missingSeal"];
+const BEFORE_TYPES: ReminderType[] = ["missingBuff", "weaponBuff", "missingSeal", "missingDebuff"];
 
 const UNIT_SECONDS: { [letter: string]: number } = { h: 3600, m: 60, s: 1 };
 

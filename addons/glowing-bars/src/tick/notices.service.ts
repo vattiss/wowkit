@@ -191,6 +191,7 @@ export class NoticesService {
         this.addTypeLines(lines, "weaponBuff", this.listWeaponIds(reminders), "TEXT_WEAPON");
         this.addTypeLines(lines, "missingSeal", reminders.seals, "TEXT_SEAL");
         this.addTypeLines(lines, "missingTracking", reminders.trackings, "TEXT_TRACKING");
+        this.addTypeLines(lines, "missingDebuff", reminders.debuffs, "TEXT_DEBUFF");
         this.addTypeLines(lines, "totemGone", reminders.totemsGone, "TEXT_TOTEM_GONE");
         this.addTypeLines(lines, "readyCooldown", reminders.readyCooldowns, "TEXT_COOLDOWN");
         this.addTypeLines(lines, "utilityCooldown", reminders.utilityCooldowns, "TEXT_COOLDOWN");

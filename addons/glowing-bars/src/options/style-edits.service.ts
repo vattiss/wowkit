@@ -34,6 +34,7 @@ const ADD_TIPS: { [reminderType in AddableType]: TextKey } = {
     lowStock: "TIP_ADD_LOW_STOCK",
     missingSeal: "TIP_ADD_MISSING_SEAL",
     missingTracking: "TIP_ADD_MISSING_TRACKING",
+    missingDebuff: "TIP_ADD_MISSING_DEBUFF",
 };
 
 export class StyleEditsService {

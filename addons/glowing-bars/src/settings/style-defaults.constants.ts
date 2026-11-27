@@ -73,6 +73,18 @@ export const STYLE_DEFAULTS: { [key in ReminderType]: Style } = {
         glowTime: 0,
         animation: "circling",
     },
+    // A poisonous green, apart from the procs' red: a debuff goes on the enemy, and only matters in a fight
+    missingDebuff: {
+        color: [0.35, 0.9, 0.2],
+        glowPercent: 100,
+        isMessageOn: false,
+        sound: "none",
+        repeat: 0,
+        when: "inCombat",
+        glowTime: 0,
+        animation: "circling",
+        before: 0,
+    },
     // A short note as a totem goes, wherever the player is; each element has a colour of its own (its row)
     totemGone: {
         color: [1, 0.75, 0.35],
