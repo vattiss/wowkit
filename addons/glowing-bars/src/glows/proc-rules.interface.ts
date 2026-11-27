@@ -12,6 +12,8 @@ import type { AddonSettingsService } from "../settings/settings.interface";
  * - afterBlock / afterDodge / afterParry: the player blocked, dodged or parried in the last few seconds
  * - targetDodged: the target dodged the warrior (Forever's combo point)
  * - free / instant: the spell costs nothing, or casts at once, now
+ * - inRange: the game says the target is in the spell's range (Feral Charge out of its dead zone); no target, or no answer
+ *   from the game, is out of range, so it never glows by a guess
  * - targetHealth / myHealth: the target's or the player's health is at or below `value` percent (only the game knows: a glow
  *   it fades, see the services of the low health)
  */
@@ -25,6 +27,7 @@ export type ProcConditionKind =
     | "targetDodged"
     | "free"
     | "instant"
+    | "inRange"
     | "targetHealth"
     | "myHealth";
 
@@ -39,6 +42,7 @@ export const PROC_CONDITION_KINDS: ProcConditionKind[] = [
     "targetDodged",
     "free",
     "instant",
+    "inRange",
     "targetHealth",
     "myHealth",
 ];

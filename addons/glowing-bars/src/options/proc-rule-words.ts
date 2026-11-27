@@ -17,6 +17,7 @@ const KIND_TEXTS: { [kind in ProcConditionKind]: TextKey } = {
     targetDodged: "COND_TARGET_DODGED",
     free: "COND_FREE",
     instant: "COND_INSTANT",
+    inRange: "COND_IN_RANGE",
     targetHealth: "COND_TARGET_HEALTH",
     myHealth: "COND_MY_HEALTH",
 };
@@ -50,6 +51,7 @@ export const CONDITION_CHOICES: ConditionChoice[] = [
     { kind: "targetDodged" },
     { kind: "free" },
     { kind: "instant" },
+    { kind: "inRange" },
     { kind: "targetHealth" },
     { kind: "myHealth" },
 ];

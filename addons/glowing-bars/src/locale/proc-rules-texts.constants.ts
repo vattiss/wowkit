@@ -30,6 +30,7 @@ export const PROC_RULES_TEXTS = {
     COND_TARGET_DODGED: "Target dodged (warriors)",
     COND_FREE: "Free now",
     COND_INSTANT: "Instant now",
+    COND_IN_RANGE: "In range",
     COND_TARGET_HEALTH: "Target health below",
     COND_MY_HEALTH: "My health below",
     CREATURE_BEAST: "Beast",
@@ -48,6 +49,7 @@ export const PROC_RULES_TEXTS = {
     CDM_BY_HAND: "by hand",
     CDM_UNLEARNED: "not learned",
     CDM_NONE: "no CDM",
+    TIP_RULE_IN_RANGE: "Glows while the game says the target is in the spell's range. No target, or no answer: no glow.",
     TIP_RULE_BUFF: "Out of a fight the addon reads the buff itself. In a fight the game hides it: the Cooldown Manager tells it.",
     TIP_CDM_TRACKED: "Its icon is in the Cooldown Manager: it works in a fight.",
     TIP_CDM_RELOAD: "It goes into the Cooldown Manager's Tracked Buffs out of a fight: /reload then, for it to work in a fight.",
@@ -74,6 +76,9 @@ export const PROC_RULES_TEXTS = {
     HELP_RULES_FIGHT: "Buff up",
     HELP_RULES_FIGHT_HOW:
         "out of a fight the addon reads the buff itself. In a fight the game hides it: the Cooldown Manager tells it, else your own cast is remembered. The CDM column says where it stands: CDM, /reload, by hand, not learned, or no CDM.",
+    HELP_RULES_RANGE: "In range",
+    HELP_RULES_RANGE_HOW:
+        "the game says the target is in the spell's range (Feral Charge out of its dead zone). No target, or no answer: no glow.",
     HELP_RULES_HEALTH: "Target health below, My health below",
     HELP_RULES_HEALTH_HOW:
         "only the game knows the health: the glow fades in below the percent, with no sound, repeat or glow time, and Glow only. It always has a row of its own on the Procs tab.",

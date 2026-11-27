@@ -63,6 +63,8 @@ export class ProcRulesService {
             targetDodged: () => this.stanceProcs.hasTargetDodged(),
             free: (spellId) => this.spellDetails.isFreeNow(spellId),
             instant: (spellId) => this.spellDetails.isInstantNow(spellId),
+            // Only a yes counts: the game gives no answer without a target, or for a spell it cannot range
+            inRange: (spellId) => this.spellDetails.isInRange(spellId, "target") === true,
         };
     }
 

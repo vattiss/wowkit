@@ -18,7 +18,7 @@ export const HELP_TEXTS = {
     HELP_WHERE_TRAVEL_HOW: "Cooldowns tab, Utility cooldown, by the Use spell ID (a spell's own ID).",
     HELP_WHERE_PROC: "A spell the game makes usable for a while",
     HELP_WHERE_PROC_HOW: "Procs tab, Proc, by its Spell ID.",
-    HELP_WHERE_PROC_RULE: "A spell lit by a buff, a target's creature type, or a block, dodge or parry",
+    HELP_WHERE_PROC_RULE: "A spell lit by a buff, a target's creature type or range, or a block, dodge or parry",
     HELP_WHERE_PROC_RULE_HOW:
         "Proc rules tab (beta): switch on Use advanced proc rules, then add its Spell ID with a condition. Its look is on the Procs tab.",
     HELP_WHERE_REAGENT: "A spell that uses a reagent",

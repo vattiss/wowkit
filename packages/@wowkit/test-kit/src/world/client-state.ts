@@ -18,6 +18,8 @@ export interface SpellDefinition {
     castTimeMs?: number;
     /** Yards; 0 is a melee spell. Not given: no range (a self-cast). */
     maxRange?: number;
+    /** Yards; nearer than this the spell is out of range (Feral Charge's dead zone). Not given: 0. */
+    minRange?: number;
     /** Cast on enemies. */
     isHarmful?: boolean;
     /** Cast on friends. */

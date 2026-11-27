@@ -182,10 +182,11 @@ export class ProcRuleRows {
         row.isOn.SetScript("OnEnter", () => {
             if (row.entry?.ownIndex === undefined) this.showTip(row.isOn, "TIP_RULE_BUILT_IN");
         });
-        // A buff rule: how the buff is told, and where it stands with the Cooldown Manager
+        // A buff rule: how the buff is told, and where it stands with the Cooldown Manager; a range rule: what counts as in range
         row.frame.EnableMouse(true);
         row.frame.SetScript("OnEnter", () => {
             const rule = row.entry?.rule;
+            if (rule?.kind === "inRange") return this.showTip(row.frame, "TIP_RULE_IN_RANGE");
             if (rule?.kind !== "buff" || rule.value === undefined) return;
             this.showTip(row.frame, "TIP_RULE_BUFF");
             const status = findCdmStatus(rule.value, this.spells, this.viewer, this.settings);

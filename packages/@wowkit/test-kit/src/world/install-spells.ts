@@ -12,7 +12,7 @@ export function installSpells(state: ClientState): void {
             iconID: spell.icon,
             originalIconID: spell.icon,
             castTime: spell.castTimeMs ?? 0,
-            minRange: 0,
+            minRange: spell.minRange ?? 0,
             maxRange: spell.maxRange ?? 0,
             spellID: spell.id,
         };
@@ -29,10 +29,13 @@ export function installSpells(state: ClientState): void {
         return best;
     }
 
-    /** Is the target within the spell's range? Undefined for a spell without a range or without a target. */
+    /**
+     * Is the target within the spell's range, and not nearer than its minimum (a dead zone)? Undefined for a spell without a
+     * range or without a target.
+     */
     function isTargetInRange(spell: SpellDefinition | undefined): boolean | undefined {
         if (spell?.maxRange === undefined || state.target === undefined) return undefined;
-        return state.target.yards <= math.max(spell.maxRange, MELEE_YARDS);
+        return state.target.yards >= (spell.minRange ?? 0) && state.target.yards <= math.max(spell.maxRange, MELEE_YARDS);
     }
 
     /** The spellbook lists the learned spells, sorted by ID. */
