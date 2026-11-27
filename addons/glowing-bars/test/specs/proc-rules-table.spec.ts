@@ -150,6 +150,18 @@ describe("a rule of the player's in the Proc rules tab", () => {
         expect(world.getSavedSettings()!.procRules).toEqual([]);
         expect(findLabel(world, "Holy Strike (shield)")).toBeUndefined();
     });
+
+    it("clears its group when the box is emptied, and is switched back on after off", () => {
+        const world = createPaladin();
+        addRule(world, `${HOLY_STRIKE.id}`, "Buff up", `${HOLY_SHIELD}`, "shield");
+        const saved = () => (world.getSavedSettings()!.procRules as { group?: string; isOff?: boolean }[])[0]!;
+        enter(findRule(world, "Buff up: Holy Shield").group, "");
+        expect(saved().group).toBeUndefined();
+        click(findRule(world, "Buff up: Holy Shield").isOn, false);
+        expect(saved().isOff).toBe(true);
+        click(findRule(world, "Buff up: Holy Shield").isOn, true);
+        expect(saved().isOff).toBeUndefined();
+    });
 });
 
 describe("the switches of the Procs and Proc rules tabs", () => {

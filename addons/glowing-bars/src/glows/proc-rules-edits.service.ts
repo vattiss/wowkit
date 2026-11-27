@@ -6,6 +6,9 @@ import type { AddonSettingsService } from "../settings/settings.interface";
 import { BUILT_IN_PROC_RULES } from "./proc-rules.constants";
 import { buildProcRuleKey, type BuiltInProcRule, type ProcRule } from "./proc-rules.interface";
 
+/** The fields of a rule of the player's that the table changes. */
+export type ChangeableKey = "priority" | "result" | "group" | "isOff";
+
 export class ProcRulesEditsService {
     constructor(
         private readonly settings: AddonSettingsService,
@@ -37,8 +40,17 @@ export class ProcRulesEditsService {
     }
 
     /** Changes the player's rule at `index`: its priority, result, group, or whether it is on. */
-    changeRule(index: number, change: Partial<Pick<ProcRule, "priority" | "result" | "group" | "isOff">>): void {
-        const rules = this.listOwn().map((rule, at) => (at === index ? { ...rule, ...change } : rule));
+    /**
+     * One field of a rule of the player's. Set by name: in Lua a field merged in as nil is no field at all, so a merge could
+     * never clear the group, nor switch a rule back on.
+     */
+    changeRule<Key extends ChangeableKey>(index: number, key: Key, value: ProcRule[Key]): void {
+        const rules = this.listOwn().map((rule, at) => {
+            if (at !== index) return rule;
+            const changed = { ...rule };
+            changed[key] = value;
+            return changed;
+        });
         this.settings.change("procRules", rules);
     }
 

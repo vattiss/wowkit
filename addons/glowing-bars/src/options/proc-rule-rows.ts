@@ -7,7 +7,7 @@ import type { AddonLocale } from "../locale/locale.interface";
 import type { TextKey } from "../locale/texts.constants";
 import type { AddonSettingsService } from "../settings/settings.interface";
 import { findGlowOnlyGroup, HIDDEN_KINDS, type ProcRule } from "../glows/proc-rules.interface";
-import type { ProcRulesEditsService } from "../glows/proc-rules-edits.service";
+import type { ChangeableKey, ProcRulesEditsService } from "../glows/proc-rules-edits.service";
 import { describeCondition } from "./proc-rule-words";
 import { CDM_TEXTS, findCdmStatus } from "./proc-rule-cdm";
 
@@ -105,9 +105,9 @@ export class ProcRuleRows {
     }
 
     /** The rules are changed only while they are on (the controls are disabled too, this keeps it so for any click). */
-    private changeOwn(row: RuleWidgets, change: Parameters<ProcRulesEditsService["changeRule"]>[1]): void {
+    private changeOwn<Key extends ChangeableKey>(row: RuleWidgets, key: Key, value: ProcRule[Key]): void {
         const index = row.entry?.ownIndex;
-        if (index !== undefined && this.settings.get("shouldUseProcRules")) this.edits.changeRule(index, change);
+        if (index !== undefined && this.settings.get("shouldUseProcRules")) this.edits.changeRule(index, key, value);
     }
 
     private create(parent: Frame): RuleWidgets {
@@ -146,14 +146,14 @@ export class ProcRuleRows {
     private connectEdits(row: RuleWidgets): void {
         const applyPriority = () => {
             const priority = tonumber(row.priority.GetText());
-            if (priority !== undefined && priority >= 1 && priority !== row.entry?.rule.priority) this.changeOwn(row, { priority });
+            if (priority !== undefined && priority >= 1 && priority !== row.entry?.rule.priority) this.changeOwn(row, "priority", priority);
             row.priority.ClearFocus();
         };
         row.priority.SetScript("OnEnterPressed", applyPriority);
         row.priority.SetScript("OnEditFocusLost", applyPriority);
         const applyGroup = () => {
             const group = strtrim(row.group.GetText() ?? "");
-            if (group !== (row.entry?.rule.group ?? "")) this.changeOwn(row, { group: group !== "" ? group : undefined });
+            if (group !== (row.entry?.rule.group ?? "")) this.changeOwn(row, "group", group !== "" ? group : undefined);
             row.group.ClearFocus();
         };
         row.group.SetScript("OnEnterPressed", applyGroup);
@@ -163,7 +163,7 @@ export class ProcRuleRows {
             (["glow", "noGlow"] as const).map((result) => ({
                 label: this.locale.getText(result === "glow" ? "RULE_GLOW" : "RULE_NO_GLOW"),
                 isChosen: () => row.entry?.rule.result === result,
-                choose: () => this.changeOwn(row, { result }),
+                choose: () => this.changeOwn(row, "result", result),
             })),
         );
         row.isOn.SetScript("OnClick", () => this.applyRuleSwitch(row));
@@ -202,7 +202,7 @@ export class ProcRuleRows {
         const entry = row.entry;
         if (entry === undefined || !this.settings.get("shouldUseProcRules")) return;
         const isOn = row.isOn.GetChecked();
-        if (entry.ownIndex !== undefined) this.edits.changeRule(entry.ownIndex, { isOff: isOn ? undefined : true });
+        if (entry.ownIndex !== undefined) this.edits.changeRule(entry.ownIndex, "isOff", isOn ? undefined : true);
         else this.edits.setBuiltInOn(entry.rule, isOn);
     }
 
