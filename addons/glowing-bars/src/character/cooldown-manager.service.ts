@@ -21,6 +21,8 @@ import type { TrackingReminderService } from "../reminders/tracking-reminder.ser
 import { WINDOW_ICONS_SETTINGS } from "../settings/settings.constants";
 import type { AddonSettingsService } from "../settings/settings.interface";
 
+/** The windows of the buffs, where a buff's own icon is. */
+const BUFF_WINDOWS: CooldownWindow[] = ["trackedBuffs", "trackedBars"];
 /** After login or a new spec Blizzard is still loading its layouts. */
 const TRACK_DELAY = 5;
 /** How often the windows kept out of sight are looked after. */
@@ -59,7 +61,7 @@ export class CooldownManagerService implements OnLogin, OnLogout {
         this.chooseDefaults();
         this.buttons.useOtherPlaces((spellId) => this.hasGlowIcon(spellId));
         this.glow.useExtraTargets(
-            (spellId) => this.listGlowIcons(spellId),
+            (spellId, isOnBuffIcons) => this.listGlowIcons(spellId, isOnBuffIcons),
             () => {
                 const windows = this.listGlowWindows();
                 return windows.length > 0 ? this.viewer.getIconsKey(windows) : "";
@@ -91,6 +93,18 @@ export class CooldownManagerService implements OnLogin, OnLogout {
         return this.glowWindows;
     }
 
+    /**
+     * The windows a glow on a buff's own icon goes on: those that glow, and the buffs' windows whatever their switch, but one
+     * kept out of sight; none while the addon leaves the manager alone.
+     */
+    private listBuffGlowWindows(): CooldownWindow[] {
+        const windows = this.listGlowWindows();
+        if (this.settings.get("cooldownManagerAccess") === "off") return windows;
+        const hidden = this.listHiddenWindows();
+        const buffWindows = BUFF_WINDOWS.filter((window) => !windows.includes(window) && !hidden.includes(window));
+        return buffWindows.length > 0 ? [...windows, ...buffWindows] : windows;
+    }
+
     /** The windows worked out are kept while the settings, and whether another addon runs the manager, stay the same. */
     private checkWindowsKept(): void {
         const isRunByOther = this.viewer.isRunByOtherAddon();
@@ -112,8 +126,8 @@ export class CooldownManagerService implements OnLogin, OnLogout {
         return name !== undefined && this.viewer.hasDrawnIcon(name, windows);
     }
 
-    private listGlowIcons(spellId: number): ActionButton[] {
-        const windows = this.listGlowWindows();
+    private listGlowIcons(spellId: number, isOnBuffIcons: boolean): ActionButton[] {
+        const windows = isOnBuffIcons ? this.listBuffGlowWindows() : this.listGlowWindows();
         const name = windows.length > 0 ? this.spells.getSpellName(spellId) : undefined;
         return name !== undefined ? this.viewer.findIconsOf(name, windows) : [];
     }

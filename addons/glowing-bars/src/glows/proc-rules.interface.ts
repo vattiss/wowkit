@@ -16,6 +16,8 @@ import type { AddonSettingsService } from "../settings/settings.interface";
  *   from the game, is out of range, so it never glows by a guess
  * - targetHealth / myHealth: the target's or the player's health is at or below `value` percent (only the game knows: a glow
  *   it fades, see the services of the low health)
+ * - buffStacks: a buff (`value`) is on the player with at least `stacks` stacks; in a fight its icon in the Cooldown Manager
+ *   tells, and the game alone compares the number (see StackRulesService)
  */
 export type ProcConditionKind =
     | "usable"
@@ -29,7 +31,8 @@ export type ProcConditionKind =
     | "instant"
     | "inRange"
     | "targetHealth"
-    | "myHealth";
+    | "myHealth"
+    | "buffStacks";
 
 /** Every kind, for the ones read back from the saved settings. */
 export const PROC_CONDITION_KINDS: ProcConditionKind[] = [
@@ -45,6 +48,7 @@ export const PROC_CONDITION_KINDS: ProcConditionKind[] = [
     "inRange",
     "targetHealth",
     "myHealth",
+    "buffStacks",
 ];
 
 export type ProcRuleResult = "glow" | "noGlow";
@@ -54,6 +58,8 @@ export interface ProcRule {
     kind: ProcConditionKind;
     /** The buff's spell ID, the creature type's ID, or the health percent, for the kinds that take one. */
     value?: number;
+    /** The stacks a buffStacks rule's buff needs, at least. */
+    stacks?: number;
     result: ProcRuleResult;
     /** 1 is asked first; rules of the same number count equally. */
     priority: number;
@@ -76,15 +82,30 @@ export interface BuiltInProcRule extends ProcRule {
     switchKey?: string;
 }
 
-/** The kinds whose answer only the game knows (a glow it fades): the engine of the ticks leaves them to their own services. */
-export const HIDDEN_KINDS: ProcConditionKind[] = ["targetHealth", "myHealth"];
+/**
+ * The kinds whose answer only the game may know (a glow it fades, or one it lets through): the engine of the ticks leaves
+ * them to their own services, and their glow can only light, with no sound, repeat or glow time.
+ */
+export const HIDDEN_KINDS: ProcConditionKind[] = ["targetHealth", "myHealth", "buffStacks"];
+
+/** The kinds on the health: their value is a percent. */
+export const HEALTH_KINDS: ProcConditionKind[] = ["targetHealth", "myHealth"];
 
 /** The kinds that take a value, and the ones that take none. */
-export const VALUE_KINDS: ProcConditionKind[] = ["buff", "targetType", "targetHealth", "myHealth"];
+export const VALUE_KINDS: ProcConditionKind[] = ["buff", "targetType", "targetHealth", "myHealth", "buffStacks"];
 
-/** The group of a rule of the player's on the health: always one (its glow can do less than the spell's row), by default its condition. */
-export function findHealthGroup(rule: ProcRule): string {
+/** The stacks a rule needs: at least 1. */
+export function findRuleStacks(rule: ProcRule): number {
+    return math.max(1, math.floor(rule.stacks ?? 1));
+}
+
+/**
+ * The group of a rule of a hidden kind: always one (its glow can do less than the spell's row), by default its condition
+ * ("my health below 35%", "3 stacks").
+ */
+export function findGlowOnlyGroup(rule: ProcRule): string {
     if (rule.group !== undefined && rule.group !== "") return rule.group;
+    if (rule.kind === "buffStacks") return string.format("%d stacks", findRuleStacks(rule));
     return string.format("%s below %d%%", rule.kind === "myHealth" ? "my health" : "target health", rule.value ?? 0);
 }
 
@@ -116,6 +137,7 @@ export function repairProcRules(rules: unknown): ProcRule[] {
             spellId: tonumber(rule.spellId)!,
             kind: rule.kind,
             value: tonumber(rule.value),
+            stacks: rule.kind === "buffStacks" ? tonumber(rule.stacks) : undefined,
             result: rule.result === "noGlow" ? "noGlow" : "glow",
             priority: math.max(1, math.floor(tonumber(rule.priority) ?? 1)),
             group: type(rule.group) === "string" && rule.group !== "" ? rule.group : undefined,

@@ -4,7 +4,7 @@ import type { SpellsService } from "@wowkit/wow";
 import type { AddonLocale } from "../locale/locale.interface";
 import type { TextKey } from "../locale/texts.constants";
 import { CREATURE_TYPES } from "../glows/proc-rules.constants";
-import type { ProcConditionKind, ProcRule } from "../glows/proc-rules.interface";
+import { findRuleStacks, type ProcConditionKind, type ProcRule } from "../glows/proc-rules.interface";
 
 /** The words of each kind; a creature type's are "Target: <type>". */
 const KIND_TEXTS: { [kind in ProcConditionKind]: TextKey } = {
@@ -20,6 +20,7 @@ const KIND_TEXTS: { [kind in ProcConditionKind]: TextKey } = {
     inRange: "COND_IN_RANGE",
     targetHealth: "COND_TARGET_HEALTH",
     myHealth: "COND_MY_HEALTH",
+    buffStacks: "COND_BUFF_STACKS",
 };
 
 /** The creature types a rule can ask for, in the order of the list, with their words. */
@@ -54,6 +55,7 @@ export const CONDITION_CHOICES: ConditionChoice[] = [
     { kind: "inRange" },
     { kind: "targetHealth" },
     { kind: "myHealth" },
+    { kind: "buffStacks" },
 ];
 
 /** The words of a condition of the add row's list. */
@@ -63,14 +65,13 @@ export function describeChoice(choice: ConditionChoice, locale: AddonLocale): st
     return string.format(locale.getText("COND_TARGET"), creature !== undefined ? locale.getText(creature) : "?");
 }
 
-/** What a rule's condition says: its kind, with its buff, creature type or percent. */
+/** What a rule's condition says: its kind, with its buff (and stacks), creature type or percent. */
 export function describeCondition(rule: ProcRule, locale: AddonLocale, spells: SpellsService): string {
     if (rule.kind === "targetType") return describeChoice({ kind: rule.kind, creatureType: rule.value }, locale);
     const words = locale.getText(KIND_TEXTS[rule.kind]);
-    if (rule.kind === "buff") {
-        const buff = rule.value !== undefined ? (spells.getSpellLabel(rule.value) ?? string.format("%d", rule.value)) : "?";
-        return `${words}: ${buff}`;
-    }
+    const buff = rule.value !== undefined ? (spells.getSpellLabel(rule.value) ?? string.format("%d", rule.value)) : "?";
+    if (rule.kind === "buff") return `${words}: ${buff}`;
+    if (rule.kind === "buffStacks") return string.format("%s: %s, %d", words, buff, findRuleStacks(rule));
     if (rule.kind === "targetHealth" || rule.kind === "myHealth") return string.format("%s %d%%", words, rule.value ?? 0);
     return words;
 }

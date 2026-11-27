@@ -5,7 +5,7 @@ import { type PlayerService, type SpellsService, buildNameKey, getItemButtonKey,
 import { Warrior } from "@wowkit/wow-data";
 import type { AddedSpellsService } from "../glows/added-spells.service";
 import type { GlowCuesService } from "../glows/glow-cues.service";
-import { findHealthGroup, HIDDEN_KINDS } from "../glows/proc-rules.interface";
+import { findGlowOnlyGroup, HEALTH_KINDS, HIDDEN_KINDS } from "../glows/proc-rules.interface";
 import type { ProcRulesService } from "../glows/proc-rules.service";
 import type { AddonLocale } from "../locale/locale.interface";
 import type { TextKey } from "../locale/texts.constants";
@@ -256,12 +256,13 @@ export class StyleRowsService {
     private listGroupRows(): StyleRow[] {
         if (!this.procRules.isOn()) return [];
         const rows: StyleRow[] = [];
-        // The addon's rules on the health have rows of their own already; the player's glow faded, as theirs do
+        // The addon's rules on the health have rows of their own already; the player's glow faded, as theirs do. A rule of a
+        // hidden kind can only light: its row has nothing that needs to know when the glow starts
         const healthRules = this.procRules.listOwnHealthRules();
         for (const rule of [...this.procRules.listRules(), ...healthRules]) {
-            const isHealth = HIDDEN_KINDS.includes(rule.kind);
-            if (isHealth && !healthRules.includes(rule)) continue;
-            const group = isHealth ? findHealthGroup(rule) : rule.group;
+            if (HEALTH_KINDS.includes(rule.kind) && !healthRules.includes(rule)) continue;
+            const isHidden = HIDDEN_KINDS.includes(rule.kind);
+            const group = isHidden ? findGlowOnlyGroup(rule) : rule.group;
             if (group === undefined) continue;
             const rowId = this.styles.findGroupRowId(rule.spellId, group);
             if (rows.some((row) => row.spellId === rowId)) continue;
@@ -274,7 +275,7 @@ export class StyleRowsService {
                 sharesIdOf: rule.spellId,
                 isGroupRow: true,
                 group,
-                isFadeOnly: isHealth,
+                isFadeOnly: isHidden,
             });
         }
         return rows;

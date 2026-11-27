@@ -88,6 +88,7 @@ import "./cache-live.spec";
 import "./proc-rules.spec";
 import "./proc-rules-table.spec";
 import "./proc-rules-health.spec";
+import "./proc-rules-stacks.spec";
 import "./proc-rules-range.spec";
 import "./proc-rule-own-rows.spec";
 import "./weapon-places.spec";

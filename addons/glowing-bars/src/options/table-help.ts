@@ -39,6 +39,7 @@ const RULES_HELP: [label: TextKey, help: TextKey][] = [
     ["HELP_RULES_FIGHT", "HELP_RULES_FIGHT_HOW"],
     ["HELP_RULES_RANGE", "HELP_RULES_RANGE_HOW"],
     ["HELP_RULES_HEALTH", "HELP_RULES_HEALTH_HOW"],
+    ["HELP_RULES_STACKS", "HELP_RULES_STACKS_HOW"],
 ];
 
 /** The columns explained, in the order of the table: their header's words and the help on them. */

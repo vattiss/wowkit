@@ -235,6 +235,8 @@ interface CooldownViewerItem extends Frame {
     cooldownID?: number;
     auraInstanceID?: number;
     auraDataUnit?: string;
+    /** The aura the icon shows, as Blizzard last read it: its stacks (applications) may be secret, or the whole table. */
+    auraDataCached?: { applications?: number };
     wasSetFromAura?: boolean;
     IsActive(): boolean;
     /** The icons of the Spells tab only: on its own cooldown, the global cooldown ignored. */

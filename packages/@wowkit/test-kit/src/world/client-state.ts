@@ -123,6 +123,10 @@ export interface ClientState {
         isDrawn?: boolean;
         /** A bar in Tracked Bars, not an icon in Tracked Buffs. */
         isBar?: boolean;
+        /** The stacks of the aura the icon keeps (a plain number, or a secret one: see createSecretNumber). */
+        applications?: number;
+        /** The aura the icon keeps is all secret: nothing of it can be read. */
+        isAuraDataSecret?: boolean;
     }[];
     /** The spells linked to an entry of the Cooldown Manager, by its cooldown ID. */
     linkedSpells: { [cooldownId: number]: number[] | undefined };

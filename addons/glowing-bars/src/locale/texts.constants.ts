@@ -238,7 +238,7 @@ export const TEXTS = {
     WELCOME_PRESS_COPY: "Now press Ctrl+C",
     OPT_AFK_RAINBOW: "Rainbow when AFK",
     TIP_AFK_RAINBOW: "While you are AFK, your action buttons light up in rainbow colors, on every bar at once. Default: off.",
-    TIP_FADE_ONLY: "The game hides the target's health, so the addon can't tell when this glow starts: it can't play a sound or time it.",
+    TIP_FADE_ONLY: "The game hides what this glow goes by, so the addon can't tell when it starts: it can't play a sound or time it.",
     TIP_ADD_READY_COOLDOWN: "A cooldown to use in a fight: a spell, or a trinket. Enter its Spell ID (a trinket's Use spell ID).",
     TIP_ADD_UTILITY_COOLDOWN:
         "A cooldown of between fights: a spell, or an item like a hearthstone. Enter its Spell ID (an item's Use spell ID).",

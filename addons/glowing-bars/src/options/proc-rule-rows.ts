@@ -6,7 +6,7 @@ import type { CooldownViewerService, SpellsService } from "@wowkit/wow";
 import type { AddonLocale } from "../locale/locale.interface";
 import type { TextKey } from "../locale/texts.constants";
 import type { AddonSettingsService } from "../settings/settings.interface";
-import { findHealthGroup, HIDDEN_KINDS, type ProcRule } from "../glows/proc-rules.interface";
+import { findGlowOnlyGroup, HIDDEN_KINDS, type ProcRule } from "../glows/proc-rules.interface";
 import type { ProcRulesEditsService } from "../glows/proc-rules-edits.service";
 import { describeCondition } from "./proc-rule-words";
 import { CDM_TEXTS, findCdmStatus } from "./proc-rule-cdm";
@@ -67,14 +67,14 @@ export class ProcRuleRows {
         row.frame.SetPoint("TOPLEFT", parent, "TOPLEFT", 0, -top);
         const { rule } = entry;
         const isOwn = entry.ownIndex !== undefined;
-        const isHealth = HIDDEN_KINDS.includes(rule.kind);
-        this.fillWords(row, rule, isHealth && isOwn);
+        const isHidden = HIDDEN_KINDS.includes(rule.kind);
+        this.fillWords(row, rule, isHidden && isOwn);
         row.isOn.SetChecked(isOwn ? rule.isOff !== true : this.edits.isBuiltInOn(rule));
         row.builtIn.SetShown(!isOwn);
         row.remove.SetShown(isOwn);
         // The addon's rules are switched off and on only, a rule on the health can only light; nothing while the rules are off
         for (const control of [row.priority, row.group, row.remove]) this.setEnabled(control, isOn && isOwn);
-        this.setEnabled(row.result, isOn && isOwn && !isHealth);
+        this.setEnabled(row.result, isOn && isOwn && !isHidden);
         this.setEnabled(row.isOn, isOn);
         row.frame.Show();
     }
@@ -83,18 +83,18 @@ export class ProcRuleRows {
     private fillWords(row: RuleWidgets, rule: ProcRule, hasHint: boolean): void {
         row.priority.SetText(string.format("%d", rule.priority));
         row.condition.SetText(describeCondition(rule, this.locale, this.spells));
-        const hasId = (rule.kind === "buff" || rule.kind === "targetType") && rule.value !== undefined;
+        const hasId = (isBuffKind(rule) || rule.kind === "targetType") && rule.value !== undefined;
         row.id.SetText(hasId ? string.format("%d", rule.value!) : "");
         row.cdm.SetText(this.describeCdm(rule));
         row.result.SetText(this.locale.getText(rule.result === "noGlow" ? "RULE_NO_GLOW" : "RULE_GLOW"));
         row.group.SetText(rule.group ?? "");
-        row.groupHint.SetText(hasHint ? findHealthGroup(rule) : "");
+        row.groupHint.SetText(hasHint ? findGlowOnlyGroup(rule) : "");
         row.groupHint.SetShown(hasHint && (rule.group ?? "") === "");
     }
 
     /** Where a buff rule's buff stands with the Cooldown Manager, in its color; nothing for another rule. */
     private describeCdm(rule: ProcRule): string {
-        if (rule.kind !== "buff" || rule.value === undefined) return "";
+        if (!isBuffKind(rule) || rule.value === undefined) return "";
         const texts = CDM_TEXTS[findCdmStatus(rule.value, this.spells, this.viewer, this.settings)];
         return `${texts.color}${this.locale.getText(texts.label)}|r`;
     }
@@ -174,21 +174,22 @@ export class ProcRuleRows {
     }
 
     private connectTips(row: RuleWidgets): void {
-        const isHealth = () => row.entry !== undefined && HIDDEN_KINDS.includes(row.entry.rule.kind);
-        row.group.SetScript("OnEnter", () => this.showTip(row.group, isHealth() ? "TIP_RULE_HEALTH_GROUP" : "TIP_RULE_GROUP"));
+        const isHidden = () => row.entry !== undefined && HIDDEN_KINDS.includes(row.entry.rule.kind);
+        row.group.SetScript("OnEnter", () => this.showTip(row.group, isHidden() ? "TIP_RULE_HEALTH_GROUP" : "TIP_RULE_GROUP"));
         row.result.SetScript("OnEnter", () => {
-            if (isHealth()) this.showTip(row.result, "TIP_RULE_HEALTH_RESULT");
+            if (isHidden()) this.showTip(row.result, "TIP_RULE_HEALTH_RESULT");
         });
         row.isOn.SetScript("OnEnter", () => {
             if (row.entry?.ownIndex === undefined) this.showTip(row.isOn, "TIP_RULE_BUILT_IN");
         });
-        // A buff rule: how the buff is told, and where it stands with the Cooldown Manager; a range rule: what counts as in range
+        // A rule on a buff (or its stacks): how it is told, and where it stands with the Cooldown Manager; a range rule: what
+        // counts as in range
         row.frame.EnableMouse(true);
         row.frame.SetScript("OnEnter", () => {
             const rule = row.entry?.rule;
             if (rule?.kind === "inRange") return this.showTip(row.frame, "TIP_RULE_IN_RANGE");
-            if (rule?.kind !== "buff" || rule.value === undefined) return;
-            this.showTip(row.frame, "TIP_RULE_BUFF");
+            if (rule === undefined || !isBuffKind(rule) || rule.value === undefined) return;
+            this.showTip(row.frame, rule.kind === "buffStacks" ? "TIP_RULE_STACKS" : "TIP_RULE_BUFF");
             const status = findCdmStatus(rule.value, this.spells, this.viewer, this.settings);
             GameTooltip.AddLine(this.locale.getText(CDM_TEXTS[status].tip), 1, 0.82, 0, true);
             GameTooltip.Show();
@@ -228,4 +229,9 @@ export class ProcRuleRows {
         box.SetScript("OnEscapePressed", () => box.ClearFocus());
         return box;
     }
+}
+
+/** A rule whose value is a buff: up, or at stacks. */
+function isBuffKind(rule: ProcRule): boolean {
+    return rule.kind === "buff" || rule.kind === "buffStacks";
 }

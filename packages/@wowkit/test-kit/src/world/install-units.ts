@@ -3,7 +3,7 @@
 import { POWER, findPartyMember, type ClientState, type FakePartyMember } from "./client-state";
 import { clearGlobal, defineGlobals, defineNamespace } from "./define";
 import { judgeOptions } from "./macro-options";
-import { SECRET_VALUE } from "./secret-value";
+import { isSecretValue, SECRET_VALUE } from "./secret-value";
 
 export { SECRET_VALUE };
 
@@ -171,7 +171,7 @@ export function installUnits(state: ClientState): void {
         }) as unknown as typeof UnitCastingInfo,
         UnitChannelInfo: (() => $multi()) as unknown as typeof UnitChannelInfo,
         // The game's secret values: this fake game hides only UnitIsUnit's answer (areUnitsSecret); other hidden reads come back empty
-        issecretvalue: (value: unknown) => value === SECRET_VALUE,
+        issecretvalue: (value: unknown) => isSecretValue(value),
         canaccessvalue: () => true,
     });
 }

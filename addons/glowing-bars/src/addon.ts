@@ -218,7 +218,7 @@ function makeTick(addon: Addon, addonName: string, game: Game, texts: Texts, buf
     const glowParts = [player, spells, actionBars, glow, notice, curves, styles, settings, locale, buffs.idle, game.barKeys] as const;
     addon.register(new DefensiveExecuteService(...glowParts));
     addon.register(new LowHealthDefenseService(...glowParts, reminders.glowCues));
-    makeHealthRules(addon, reminders.procRules, reminders.glowCues, glowParts);
+    makeHealthRules(addon, reminders.procRules, reminders.glowCues, glowParts, game.cooldownViewer);
     const refresh = addon.register(new RefreshService(tick, shower, buffs.state, game.clock, game.barRefresh));
     addon.register(new DisplayService(shower, tick));
     addon.register(new EquipmentService(refresh, game.player, game.weaponEnchants, reminders.weapon));

@@ -6,7 +6,7 @@ import type { AddonSettingsService } from "../settings/settings.interface";
 import { CDM_TEXTS, findCdmStatus } from "./proc-rule-cdm";
 import type { AddonLocale } from "../locale/locale.interface";
 import type { TextKey } from "../locale/texts.constants";
-import { HIDDEN_KINDS, type ProcRuleResult } from "../glows/proc-rules.interface";
+import { HEALTH_KINDS, HIDDEN_KINDS, type ProcRuleResult } from "../glows/proc-rules.interface";
 import type { ProcRulesEditsService } from "../glows/proc-rules-edits.service";
 import { CONDITION_CHOICES, describeChoice, type ConditionChoice } from "./proc-rule-words";
 
@@ -20,7 +20,7 @@ export class ProcRulesAddRow {
     private frame: Frame | undefined;
     private choice: ConditionChoice = CONDITION_CHOICES[0]!;
     private result: ProcRuleResult = "glow";
-    private parts: { spell: EditBox; buff: EditBox; buffLabel: FontString; priority: EditBox; group: EditBox } | undefined;
+    private parts: { spell: EditBox; buff: EditBox; stacks: EditBox; buffLabel: FontString; priority: EditBox; group: EditBox } | undefined;
     private controls: (Button | EditBox)[] = [];
     private showChoices: () => void = () => undefined;
     private isOn = false;
@@ -65,26 +65,17 @@ export class ProcRulesAddRow {
         priority.SetMaxLetters(1);
         priority.SetText("1");
         const group = this.createBox(frame, AT.group + 6, rowTop, 100, false);
-        this.parts = { spell, buff, buffLabel, priority, group };
+        // Beside the buff's box, made last: the boxes before it keep their order
+        const stacks = this.createBox(frame, AT.buff + 54, rowTop, 22, true);
+        stacks.SetMaxLetters(2);
+        this.parts = { spell, buff, stacks, buffLabel, priority, group };
         const conditionButton = this.createButton(frame, AT.condition, rowTop, 160);
         const resultButton = this.createButton(frame, AT.result, rowTop, 96);
         const addButton = this.createButton(frame, AT.add, rowTop, 70);
         addButton.SetText(this.locale.getText("BTN_ADD"));
         addButton.SetScript("OnClick", () => this.addRule());
-        this.controls = [spell, buff, priority, group, conditionButton, resultButton, addButton];
-        this.showChoices = () => {
-            // A rule on the health lights its spell only: the game hides the health, nothing can keep it dark
-            const isHealth = HIDDEN_KINDS.includes(this.choice.kind);
-            if (isHealth) this.result = "glow";
-            conditionButton.SetText(describeChoice(this.choice, this.locale));
-            resultButton.SetText(this.locale.getText(RESULT_TEXTS[this.result]));
-            const isBuff = this.choice.kind === "buff";
-            buff.SetShown(isBuff || isHealth);
-            buffLabel.SetShown(isBuff || isHealth);
-            buffLabel.SetText(this.locale.getText(isHealth ? "LABEL_RULE_PERCENT" : "LABEL_RULE_BUFF"));
-            if (isHealth) resultButton.Disable();
-            else if (this.isOn) resultButton.Enable();
-        };
+        this.controls = [spell, buff, stacks, priority, group, conditionButton, resultButton, addButton];
+        this.showChoices = () => this.applyChoice(conditionButton, resultButton);
         resultButton.SetScript("OnEnter", () => {
             if (!HIDDEN_KINDS.includes(this.choice.kind)) return;
             GameTooltip.SetOwner(resultButton, "ANCHOR_RIGHT");
@@ -95,6 +86,27 @@ export class ProcRulesAddRow {
         this.connectMenus(conditionButton, resultButton);
         this.showChoices();
         return frame;
+    }
+
+    /** The row as the condition chosen has it: the boxes it takes, and the result (a hidden kind's glow can only light). */
+    private applyChoice(conditionButton: Button, resultButton: Button): void {
+        const { buff, stacks, buffLabel } = this.parts!;
+        const kind = this.choice.kind;
+        // The game hides what such a rule asks: nothing can keep its spell dark
+        const isHidden = HIDDEN_KINDS.includes(kind);
+        if (isHidden) this.result = "glow";
+        conditionButton.SetText(describeChoice(this.choice, this.locale));
+        resultButton.SetText(this.locale.getText(RESULT_TEXTS[this.result]));
+        const isHealth = HEALTH_KINDS.includes(kind);
+        const isStacks = kind === "buffStacks";
+        const hasValue = kind === "buff" || isHealth || isStacks;
+        buff.SetShown(hasValue);
+        buff.SetWidth(isStacks ? 44 : 70);
+        stacks.SetShown(isStacks);
+        buffLabel.SetShown(hasValue);
+        buffLabel.SetText(this.locale.getText(isHealth ? "LABEL_RULE_PERCENT" : isStacks ? "LABEL_RULE_STACKS" : "LABEL_RULE_BUFF"));
+        if (isHidden) resultButton.Disable();
+        else if (this.isOn) resultButton.Enable();
     }
 
     /** The words over the row: its header, and the name of each part; returns the one over the buff, which changes. */
@@ -143,6 +155,8 @@ export class ProcRulesAddRow {
         }
         const value = this.readValue(parts.buff.GetText());
         if (value === false) return;
+        const stacks = this.readStacks(parts.stacks.GetText());
+        if (stacks === false) return;
         // A rule on the health with no group still has a row of its own, named by its condition: no name is saved for it
         const group = strtrim(parts.group.GetText() ?? "");
         const priority = math.max(1, math.min(9, tonumber(parts.priority.GetText()) ?? 1));
@@ -150,19 +164,22 @@ export class ProcRulesAddRow {
             spellId,
             kind: this.choice.kind,
             value,
+            stacks,
             result: this.result,
             priority,
             group: group !== "" ? group : undefined,
         });
-        if (this.choice.kind === "buff" && value !== undefined) this.sayCdmStatus(value);
-        parts.spell.SetText("");
-        parts.buff.SetText("");
-        parts.group.SetText("");
-        for (const box of [parts.spell, parts.buff, parts.group, parts.priority]) box.ClearFocus();
+        if (value !== undefined) this.sayCdmStatus(value);
+        for (const box of [parts.spell, parts.buff, parts.stacks, parts.group]) box.SetText("");
+        for (const box of [parts.spell, parts.buff, parts.stacks, parts.group, parts.priority]) box.ClearFocus();
     }
 
-    /** Where a new buff rule's buff stands with the Cooldown Manager, which alone tells it in a fight: what to do, if anything. */
+    /**
+     * Where a new rule's buff (up, or at stacks) stands with the Cooldown Manager, which alone tells it in a fight: what to do,
+     * if anything. Nothing for a rule of another kind.
+     */
     private sayCdmStatus(buffId: number): void {
+        if (this.choice.kind !== "buff" && this.choice.kind !== "buffStacks") return;
         const status = findCdmStatus(buffId, this.spells, this.viewer, this.settings);
         const name = this.spells.getSpellLabel(buffId) ?? string.format("%d", buffId);
         this.messages.say(`${name}: ${this.locale.getText(CDM_TEXTS[status].tip)}`);
@@ -172,16 +189,25 @@ export class ProcRulesAddRow {
     private readValue(typed: string): number | undefined | false {
         const kind = this.choice.kind;
         const number = tonumber(typed);
-        if (HIDDEN_KINDS.includes(kind)) {
+        if (HEALTH_KINDS.includes(kind)) {
             if (number !== undefined && number >= 1 && number <= 99) return math.floor(number);
             this.messages.say(this.locale.getText("MSG_RULE_NO_PERCENT"));
             return false;
         }
-        if (kind !== "buff") return this.choice.creatureType;
+        if (kind !== "buff" && kind !== "buffStacks") return this.choice.creatureType;
         if (number === undefined) this.messages.say(this.locale.getText("MSG_RULE_NO_BUFF"));
         else if (this.spells.getSpellInfo(number) === undefined)
             this.messages.say(string.format(this.locale.getText("MSG_UNKNOWN_SPELL"), number));
         else return number;
+        return false;
+    }
+
+    /** The stacks typed, 1 to 99, for a rule on a buff's stacks (none for another); false when wrong (the chat says why). */
+    private readStacks(typed: string): number | undefined | false {
+        if (this.choice.kind !== "buffStacks") return undefined;
+        const number = tonumber(typed);
+        if (number !== undefined && number >= 1 && number <= 99) return math.floor(number);
+        this.messages.say(this.locale.getText("MSG_RULE_NO_STACKS"));
         return false;
     }
 

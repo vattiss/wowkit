@@ -3,6 +3,7 @@
 import { defineValues } from "./define";
 import { addFlipbookCoords } from "./flipbooks";
 import { addFocus } from "./focus";
+import { addRegions, addStatusBar, addTextureParts } from "./frame-parts";
 
 type Script = (...args: any[]) => void;
 
@@ -42,6 +43,13 @@ export interface FakeFrame {
     /** A texture's look: gray or not, and the color it is tinted with. */
     isDesaturated?: boolean;
     vertexColor?: number[];
+    /** The masks on a texture (AddMaskTexture). */
+    masks?: FakeFrame[];
+    /** A status bar's range and value (a plain number, or a secret one: see createSecretNumber), and its fill. */
+    barMin?: number;
+    barMax?: number;
+    barValue?: unknown;
+    fill?: FakeFrame;
     // The parts of the spell-alert glow template
     ProcStartAnim?: FakeFrame;
     ProcLoop?: FakeFrame;
@@ -255,26 +263,19 @@ function createFakeFrame(init: FrameInit): FakeFrame {
             return fontString;
         },
         CreateTexture() {
-            const texture = createFakeFrame({ frameType: "Texture", parent: this });
-            const parts = texture as FakeFrame & {
-                SetTexture(file: string): void;
-                SetDesaturated(isDesaturated: boolean): void;
-                SetVertexColor(...color: number[]): void;
-            };
-            parts.SetTexture = (file) => {
-                texture.file = file;
-            };
-            parts.SetDesaturated = (isDesaturated) => {
-                texture.isDesaturated = isDesaturated;
-            };
-            parts.SetVertexColor = (...color) => {
-                texture.vertexColor = color;
-            };
+            const texture = createFakeTexture(this);
             this.textures.push(texture);
             return texture;
         },
     };
+    addRegions(frame, createFakeTexture);
+    if (init.frameType === "StatusBar") addStatusBar(frame, createFakeTexture);
     return setmetatable(frame, unmodelledMethods);
+}
+
+/** A texture of the frame: the file it was given, its look, and its masks. */
+function createFakeTexture(parent: FakeFrame, frameType = "Texture"): FakeFrame {
+    return addTextureParts(createFakeFrame({ frameType, parent }));
 }
 
 export interface FrameRegistry {
@@ -296,9 +297,9 @@ export function createFrameRegistry(): FrameRegistry {
             if (template === "ActionButtonSpellAlertTemplate") {
                 frame.ProcStartAnim = createFakeFrame({ frameType: "AnimationGroup" });
                 frame.ProcLoop = createFakeFrame({ frameType: "AnimationGroup" });
-                frame.ProcAltGlow = createFakeFrame({ frameType: "Texture" });
-                frame.ProcStartFlipbook = createFakeFrame({ frameType: "Texture" });
-                frame.ProcLoopFlipbook = createFakeFrame({ frameType: "Texture" });
+                frame.ProcAltGlow = createFakeTexture(frame);
+                frame.ProcStartFlipbook = createFakeTexture(frame);
+                frame.ProcLoopFlipbook = createFakeTexture(frame);
                 addFlipbookCoords(frame);
             }
             // Its children, as the game lists them (a frame is a child of the frame it was made in)

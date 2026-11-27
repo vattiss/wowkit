@@ -2,7 +2,7 @@
 import type { ClientState } from "./client-state";
 import { defineNamespace, defineValues, fake } from "./define";
 import { createInertObject } from "./frames";
-import { SECRET_VALUE } from "./secret-value";
+import { isSecretValue, SECRET_VALUE } from "./secret-value";
 
 /** A linear curve through its points, like the client's LuaCurveObject (its methods are called with the object: method syntax). */
 function createCurve(): LuaCurveObject {
@@ -86,6 +86,7 @@ function installCooldownViewers(state: ClientState): void {
         icon.cooldownID = buff.spellId;
         icon.auraInstanceID = isInSpells && buff.isActive ? 1 : undefined;
         icon.auraDataUnit = buff.unit;
+        addKeptAura(icon, buff);
         icon.IsActive = (_self: unknown) =>
             buff.isActiveSecret === true ? (SECRET_VALUE as unknown as boolean) : isInSpells ? true : buff.isActive;
         icon.isOnActualCooldown = buff.isOnCooldown;
@@ -183,4 +184,13 @@ export function installCurves(state: ClientState): void {
     defineNamespace<typeof C_StableInfo>("C_StableInfo", {
         GetStablePetInfo: () => (state.pet !== undefined ? fake<PetInfo>({}) : undefined),
     });
+}
+
+/** A buff of stacks: the aura Blizzard keeps on its icon, its ID secret with them in a fight. */
+function addKeptAura(icon: Record<string, unknown>, buff: ClientState["trackedBuffs"][number]): void {
+    if (buff.applications === undefined && buff.isAuraDataSecret !== true) return;
+    const isHidden = buff.isAuraDataSecret === true || isSecretValue(buff.applications);
+    icon.auraInstanceID = buff.isActive ? (isHidden ? SECRET_VALUE : 1) : undefined;
+    const cached = buff.isAuraDataSecret === true ? SECRET_VALUE : { applications: buff.applications };
+    icon.auraDataCached = buff.isActive ? cached : undefined;
 }

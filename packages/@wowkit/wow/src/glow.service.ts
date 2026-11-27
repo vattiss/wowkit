@@ -31,21 +31,9 @@ import { createStillFades } from "./utils/glow-fade.utils";
 import type { ActionBarsService } from "./action-bars.service";
 import { attempt, tryCall } from "./utils/protected-call.utils";
 import { getReadable } from "./utils/secret-value.utils";
-import type { HiddenAlpha } from "./value-curves.service";
+import type { ButtonGlow, Rgb } from "./utils/button-glow.interface";
 
-/** A color as red, green and blue between 0 and 1. */
-export type Rgb = [r: number, g: number, b: number];
-
-export interface ButtonGlow {
-    /** Glows the buttons of these spells in the color; an empty list clears. */
-    show: (this: void, spellIds: number[], color: Rgb) => void;
-    clear: (this: void) => void;
-    /**
-     * The opacity of the glowing buttons: a curve result the client computed from a hidden value (see
-     * ValueCurvesService), or a number; undefined is the glow's own opacity again.
-     */
-    setAlpha: (this: void, alpha: HiddenAlpha | number | undefined) => void;
-}
+export type { ButtonGlow, Rgb } from "./utils/button-glow.interface";
 
 export { isBreathing, isCircling, isStill, type GlowAnimation };
 
@@ -63,8 +51,11 @@ export class GlowService {
     private readonly holders = new GlowHolders();
     /** The breathing of the glows that show (round, or square and breathing): they restart together, in step. */
     private readonly pulses = new LuaSet<AnimationGroup>();
-    /** Other frames a spell can glow on (icons of the Cooldown Manager), and a text that changes when they do. */
-    private findExtraTargets: ((this: void, spellId: number) => ActionButton[]) | undefined;
+    /**
+     * Other frames a spell can glow on (icons of the Cooldown Manager), with those of the buffs' windows or not, and a text
+     * that changes when they do.
+     */
+    private findExtraTargets: ((this: void, spellId: number, isOnBuffIcons: boolean) => ActionButton[]) | undefined;
     private getExtraKey: ((this: void) => string) | undefined;
     /** Those frames: their glow is beside them, as they are not the addon's to add children to. */
     private readonly extraTargets = new LuaSet<ActionButton>();
@@ -79,7 +70,7 @@ export class GlowService {
     }
 
     /** Lets spells glow on more than their action buttons. */
-    useExtraTargets(find: (this: void, spellId: number) => ActionButton[], getKey: (this: void) => string): void {
+    useExtraTargets(find: (this: void, spellId: number, isOnBuffIcons: boolean) => ActionButton[], getKey: (this: void) => string): void {
         this.findExtraTargets = find;
         this.getExtraKey = getKey;
     }
@@ -94,12 +85,15 @@ export class GlowService {
      * overlays. `isButtonShown` leaves buttons out (a bar the player does not want to glow); it is asked each time the glow
      * is shown.
      */
-    /** `hasExtraTargets`: the glow goes on the extra targets too (the Cooldown Manager's icons). */
+    /**
+     * `extraTargets`: the glow goes on the extra targets too (the Cooldown Manager's icons); "buffIcons": on the icons of the
+     * buffs' windows as well, whether those glow or not (a buff's own icon, Unsealed Wrath at its stacks).
+     */
     createButtonGlow(
         glowKey: string,
         animation: GlowAnimation,
         isButtonShown?: (this: void, button: ActionButton) => boolean,
-        hasExtraTargets = true,
+        extraTargets: boolean | "buffIcons" = true,
     ): ButtonGlow {
         const glowing = new LuaSet<ActionButton>();
         let last: string | undefined;
@@ -118,6 +112,9 @@ export class GlowService {
                 const value = (alpha ?? GLOW_ALPHA) as number;
                 for (const button of glowing) this.overlays.get(button)?.get(glowKey)?.frame.SetAlpha(value);
             },
+            applyToFrames: (visit) => {
+                for (const button of glowing) visit(this.overlays.get(button)!.get(glowKey)!.frame);
+            },
             show: (spellIds, color) => {
                 if (spellIds.length === 0) return clearGlow();
                 // The color is part of the key: the same spell may glow in another color (a heal that turns urgent)
@@ -125,7 +122,9 @@ export class GlowService {
                 const buttons = spellIds
                     .flatMap((spellId) => this.actionBars.findButtonsOf(spellId))
                     .filter((button) => isButtonShown === undefined || isButtonShown(button));
-                for (const target of hasExtraTargets ? spellIds.flatMap((spellId) => this.findExtraTargets?.(spellId) ?? []) : []) {
+                const targets =
+                    extraTargets === false ? [] : spellIds.flatMap((id) => this.findExtraTargets?.(id, extraTargets === "buffIcons") ?? []);
+                for (const target of targets) {
                     this.extraTargets.add(target);
                     if (!buttons.includes(target)) buttons.push(target);
                 }

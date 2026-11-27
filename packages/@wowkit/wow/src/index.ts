@@ -24,6 +24,8 @@ export * from "./utils/item-button.utils";
 export * from "./utils/secret-value.utils";
 export * from "./utils/combat-event.utils";
 export * from "./utils/spell-name.utils";
+export * from "./utils/glow-gate.utils";
+export { readPlayerAuraStacks, type BuffStacks } from "./utils/buff-stacks.utils";
 export * from "./saved-variables.service";
 export * from "./spell-book.service";
 export * from "./spell-cast.service";

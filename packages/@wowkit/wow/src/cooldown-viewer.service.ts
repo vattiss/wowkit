@@ -15,6 +15,8 @@ import {
 import type { SpellsService } from "./spells.service";
 import { attempt } from "./utils/protected-call.utils";
 import { getReadable } from "./utils/secret-value.utils";
+import { readItemStacks, type BuffStacks } from "./utils/buff-stacks.utils";
+import { listAuraIds, listEntrySpells, noteState } from "./utils/cooldown-entry.utils";
 
 const ENABLED_CVAR = "cooldownViewerEnabled";
 /** An addon that runs the Cooldown Manager itself, turns it on and handles its windows and their icons. */
@@ -157,6 +159,22 @@ export class CooldownViewerService {
             }
         }
         return icons;
+    }
+
+    /** The stacks of a buff by its icons in Tracked Buffs and Tracked Bars, shown or not; undefined while none tells. */
+    readBuffStacks(spellName: string): BuffStacks | undefined {
+        if (!this.isUsingIcons) return undefined;
+        for (const name of BUFF_VIEWERS) {
+            const viewer = this.getViewer(name);
+            if (viewer === undefined || !this.isRunning(viewer)) continue;
+            for (const item of this.listItems(viewer)) {
+                const cooldownId = getReadable(item.cooldownID);
+                if (cooldownId === undefined || this.findEntry(cooldownId)?.names.includes(spellName) !== true) continue;
+                const stacks = readItemStacks(item);
+                if (stacks !== undefined) return stacks;
+            }
+        }
+        return undefined;
     }
 
     /** Is an icon of this spell or buff drawn now? One of a buff that is down is not, with Hide When Inactive on. */
@@ -382,29 +400,4 @@ export class CooldownViewerService {
         for (const item of viewer.itemFramePool.EnumerateActive()) items.push(item);
         return items;
     }
-}
-
-/** One icon that is up settles it; one that is out says so only until another says up. */
-function noteState<Key extends AnyNotNil>(states: LuaMap<Key, boolean>, keys: Key[], isUp: boolean): void {
-    for (const key of keys) if (isUp || !states.has(key)) states.set(key, isUp);
-}
-
-/** An entry's spell, its override, then the spells linked to it. */
-function listEntrySpells(info: CooldownViewerCooldown): number[] {
-    // Pushed one by one, its own spell first: a nil in the middle of a Lua list would hide what comes after it
-    const ids: number[] = [];
-    if (info.spellID !== undefined) ids.push(info.spellID);
-    if (info.overrideSpellID !== undefined) ids.push(info.overrideSpellID);
-    ids.push(...(info.linkedSpellIDs ?? []));
-    return ids;
-}
-
-/** What Blizzard takes an aura by, exactly: the entry's spells and its tooltip's spell, as far as the game shows them. */
-function listAuraIds(info: CooldownViewerCooldown, spells: number[]): number[] {
-    const auraIds: number[] = [];
-    for (const id of [...spells, info.overrideTooltipSpellID]) {
-        const readable = getReadable(id);
-        if (readable !== undefined && !auraIds.includes(readable)) auraIds.push(readable);
-    }
-    return auraIds;
 }

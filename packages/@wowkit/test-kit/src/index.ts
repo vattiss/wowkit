@@ -11,4 +11,6 @@ export { GAMEPAD_BAR, TOTEM_BAR_FIRST_SLOT } from "./world/install-bars-and-aura
 export type { FakeColorPicker } from "./world/install-ui";
 export { fakeFlipbooks } from "./world/flipbooks";
 export { type FakeFrame } from "./world/frames";
+export { isShownThroughMasks } from "./world/frame-parts";
+export { createSecretNumber } from "./world/secret-value";
 export type { TooltipKind } from "./world/install-tooltips";

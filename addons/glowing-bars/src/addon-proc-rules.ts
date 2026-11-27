@@ -1,9 +1,11 @@
 // Putting the addon together, the stage of the proc rules (see addon.ts): a file of its own, as addon.ts is full.
 import type { Addon } from "@wowkit/core";
+import type { CooldownViewerService } from "@wowkit/wow";
 import type { Texts } from "./addon";
 import type { Game } from "./game-services";
 import { ProcRulesService } from "./glows/proc-rules.service";
 import { HealthRulesService } from "./glows/health-rules.service";
+import { StackRulesService } from "./glows/stack-rules.service";
 import { LowHealthRowsService } from "./glows/low-health-rows.service";
 import type { GlowCuesService } from "./glows/glow-cues.service";
 import { ProcRulesEditsService } from "./glows/proc-rules-edits.service";
@@ -39,15 +41,20 @@ export function makeProcRulesTab(game: Game, texts: Texts, procEdits: ProcRulesE
     return new ProcRulesTab(locale, game.spells, settings, procEdits, windows, addRow, rows);
 }
 
-/** The player's rules on the health: lit faded by the game, as Templar's Bulwark; the parts of the glows of the low health. */
+/**
+ * The player's rules on the health: lit faded by the game, as Templar's Bulwark; the rules on a buff's stacks, let through by
+ * the game in a fight; the parts of the glows of the low health.
+ */
 export function makeHealthRules(
     addon: Addon,
     procRules: ProcRulesService,
     glowCues: GlowCuesService,
     glowParts: Readonly<ConstructorParameters<typeof HealthRulesService> extends [unknown, unknown, ...infer Rest] ? Rest : never>,
+    viewer: CooldownViewerService,
 ): void {
     addon.register(new HealthRulesService(procRules, glowCues, ...glowParts));
+    const [player, spells, actionBars, glow, , , styles, settings, , idle, barKeys] = glowParts;
+    addon.register(new StackRulesService(procRules, glowCues, player, spells, actionBars, glow, viewer, styles, settings, idle, barKeys));
     // The look and switch of a defensive at low health, moved to its own row once
-    const [, , , , , , styles, settings] = glowParts;
     addon.register(new LowHealthRowsService(settings, styles));
 }

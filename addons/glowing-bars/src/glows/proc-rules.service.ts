@@ -17,6 +17,7 @@ import { BUILT_IN_PROC_RULES } from "./proc-rules.constants";
 import {
     buildGroupSwitchKey,
     buildProcRuleKey,
+    HEALTH_KINDS,
     HIDDEN_KINDS,
     type BuiltInProcRule,
     type ProcConditionKind,
@@ -40,6 +41,8 @@ export class ProcRulesService {
     private readonly litSpells = new LuaSet<number>();
     /** The player's rules on the health that are on, worked out with the others. */
     private ownHealthRules: ProcRule[] | undefined;
+    /** The rules on a buff's stacks that count, the addon's and the player's, worked out with the others. */
+    private stackRules: BuiltInProcRule[] | undefined;
     private readonly checks: { [kind in ProcConditionKind]?: Check };
 
     constructor(
@@ -79,6 +82,7 @@ export class ProcRulesService {
         this.spellIds = undefined;
         this.plainRowIds = undefined;
         this.ownHealthRules = undefined;
+        this.stackRules = undefined;
     }
 
     /** Every rule that counts: the class's own but those switched off, and the player's. */
@@ -161,12 +165,16 @@ export class ProcRulesService {
         return lit;
     }
 
-    /** The buffs the player's rules that are on ask for (up or gone), for the Cooldown Manager to track; none while the rules are off. */
+    /**
+     * The buffs the rules that count ask for (the player's on a buff, any on its stacks), for the Cooldown Manager to track;
+     * none while the rules are off.
+     */
     listRuleBuffs(): number[] {
         if (!this.isOn()) return [];
         const buffs: number[] = [];
-        for (const rule of this.settings.get("procRules")) {
-            if (rule.kind === "buff" && rule.isOff !== true && rule.value !== undefined) buffs.push(rule.value);
+        for (const rule of this.listRules()) {
+            const isAsked = rule.kind === "buffStacks" || (rule.kind === "buff" && rule.isOwn === true);
+            if (isAsked && rule.value !== undefined && !buffs.includes(rule.value)) buffs.push(rule.value);
         }
         return buffs;
     }
@@ -178,8 +186,16 @@ export class ProcRulesService {
 
     /** The player's rules on the health that are on: lit by a service of their own, as only the game knows the health. */
     listOwnHealthRules(): ProcRule[] {
-        this.ownHealthRules ??= this.settings.get("procRules").filter((rule) => rule.isOff !== true && HIDDEN_KINDS.includes(rule.kind));
+        this.ownHealthRules ??= this.settings.get("procRules").filter((rule) => rule.isOff !== true && HEALTH_KINDS.includes(rule.kind));
         return this.ownHealthRules;
+    }
+
+    /** The rules on a buff's stacks that count, the addon's and the player's: lit by a service of their own (see StackRulesService). */
+    listStackRules(): BuiltInProcRule[] {
+        if (this.stackRules !== undefined) return this.stackRules;
+        const rules = this.listRules().filter((rule) => rule.kind === "buffStacks");
+        if (this.player.getClassToken() !== undefined) this.stackRules = rules;
+        return rules;
     }
 
     /** The group of the rule that lit the spell at the last look: its look is that row's. */

@@ -53,10 +53,16 @@ const ARCANE_MISSILES: BuiltInProcRule[] = [describeGlow(Mage.ArcaneMissiles, "b
 export const EXECUTE_HEALTH_RULE: BuiltInProcRule = { ...describeGlow(Warrior.Execute, "targetHealth", 20), group: "Defensive Stance" };
 export const BULWARK_HEALTH_RULE: BuiltInProcRule = { ...describeGlow(Paladin.TemplarsBulwark, "myHealth", 10), group: "low health" };
 
+/**
+ * Unsealed Wrath at its most stacks, 3: its own icon in the Cooldown Manager glows (a Seal swap spends them). In a fight the
+ * game hides the number, and only lets the glow through at 3 (see StackRulesService).
+ */
+const UNSEALED_WRATH: BuiltInProcRule = { ...describeGlow(Paladin.UnsealedWrath, "buffStacks", Paladin.UnsealedWrath), stacks: 3 };
+
 export const BUILT_IN_PROC_RULES: { [classToken: string]: BuiltInProcRule[] | undefined } = {
     HUNTER: [describeGlow(Hunter.Counterattack, "usable"), describeGlow(Hunter.MongooseBite, "usable")],
     MAGE: ARCANE_MISSILES,
-    PALADIN: [describeGlow(Paladin.HammerOfWrath, "usable"), ...EXORCISM, BULWARK_HEALTH_RULE],
+    PALADIN: [describeGlow(Paladin.HammerOfWrath, "usable"), ...EXORCISM, BULWARK_HEALTH_RULE, UNSEALED_WRATH],
     ROGUE: [describeGlow(Rogue.Riposte, "usable")],
     // Instant with 5 stacks of Maelstrom Weapon only; its icon shows at any number, so no buff tells
     SHAMAN: [describeGlow(Shaman.LightningBolt, "instant")],

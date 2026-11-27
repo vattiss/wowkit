@@ -15,6 +15,7 @@ export const PROC_RULES_TEXTS = {
     LABEL_RULE_SPELL: "Spell ID",
     LABEL_RULE_BUFF: "Buff ID",
     LABEL_RULE_PERCENT: "Below %",
+    LABEL_RULE_STACKS: "Buff, stacks",
     LABEL_RULE_BUILT_IN: "built-in",
     TIP_RULE_BUILT_IN: "A rule of the addon's. To change it, switch it off and add your own.",
     TIP_RULE_GROUP: "Rules of a spell with the same group share a row and a look on the Procs tab, named after the group.",
@@ -33,6 +34,7 @@ export const PROC_RULES_TEXTS = {
     COND_IN_RANGE: "In range",
     COND_TARGET_HEALTH: "Target health below",
     COND_MY_HEALTH: "My health below",
+    COND_BUFF_STACKS: "Buff at stacks",
     CREATURE_BEAST: "Beast",
     CREATURE_DRAGONKIN: "Dragonkin",
     CREATURE_DEMON: "Demon",
@@ -41,7 +43,7 @@ export const PROC_RULES_TEXTS = {
     CREATURE_UNDEAD: "Undead",
     CREATURE_HUMANOID: "Humanoid",
     CREATURE_MECHANICAL: "Mechanical",
-    TIP_RULE_HEALTH_RESULT: "A rule on the health can only light its spell: the game hides the health, so nothing can keep it dark.",
+    TIP_RULE_HEALTH_RESULT: "This rule can only light its spell: the game hides what it asks, so nothing can keep it dark.",
     HDR_RULE_ID: "ID",
     HDR_RULE_CDM: "CDM",
     CDM_TRACKED: "CDM",
@@ -57,7 +59,8 @@ export const PROC_RULES_TEXTS = {
         "Move it to Tracked Buffs in the Cooldown Manager's settings (Edit Mode), or set the access to Full in Settings, Cooldown Manager.",
     TIP_CDM_UNLEARNED: "The Cooldown Manager shows it once the spell that gives it is learned.",
     TIP_CDM_NONE: "It is not on the Cooldown Manager's list: in a fight only your own cast of it counts.",
-    TIP_RULE_HEALTH_GROUP: "A rule on the health always has a row of its own on the Procs tab: named by its group, else by its condition.",
+    TIP_RULE_HEALTH_GROUP: "This rule always has a row of its own on the Procs tab: named by its group, else by its condition.",
+    TIP_RULE_STACKS: "Glows at these stacks or more. In a fight the game hides them: the buff's Cooldown Manager icon tells.",
     HELP_RULES_TITLE: "Proc rules (beta)",
     HELP_RULES_INTRO:
         "Switched on at the top of the Proc rules tab, the procs are lit by its rules, a new engine, instead of the built-in one. Each rule is a spell and one condition.",
@@ -82,6 +85,10 @@ export const PROC_RULES_TEXTS = {
     HELP_RULES_HEALTH: "Target health below, My health below",
     HELP_RULES_HEALTH_HOW:
         "only the game knows the health: the glow fades in below the percent, with no sound, repeat or glow time, and Glow only. It always has a row of its own on the Procs tab.",
+    HELP_RULES_STACKS: "Buff at stacks",
+    HELP_RULES_STACKS_HOW:
+        "the buff has at least that many stacks (Unsealed Wrath at 3). In a fight its Cooldown Manager icon tells, and only the game lets the glow through. Glow only, a row of its own.",
+    MSG_RULE_NO_STACKS: "Enter the stacks, 1 to 99, beside the Buff ID.",
     MSG_RULE_NO_PERCENT: "Enter the health percent, 1 to 99.",
     MSG_RULE_NO_BUFF: "Enter the Buff ID of the buff, as a spell's ID.",
 };

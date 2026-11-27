@@ -22,7 +22,7 @@ import type { StyleService } from "../settings/style.service";
 import { findWords } from "../tick/message-words";
 import { createWhenState, readWhenState } from "../tick/when-state";
 import type { GlowCuesService } from "./glow-cues.service";
-import { buildGroupSwitchKey, findHealthGroup, type ProcRule } from "./proc-rules.interface";
+import { buildGroupSwitchKey, findGlowOnlyGroup, type ProcRule } from "./proc-rules.interface";
 import type { ProcRulesService } from "./proc-rules.service";
 
 /** The name this service puts its faded line up by. */
@@ -81,7 +81,7 @@ export class HealthRulesService {
     private showRule(rule: ProcRule, hasText: boolean): boolean {
         const spellId = this.findReadySpell(rule);
         if (spellId === undefined) return false;
-        const group = findHealthGroup(rule);
+        const group = findGlowOnlyGroup(rule);
         const name = this.spells.getSpellLabel(rule.spellId) ?? string.format("%d", rule.spellId);
         if (this.settings.get("enabledSpells")[buildGroupSwitchKey(name, group)] === false) return false;
         const style = this.styles.getGroupStyle(rule.spellId, group);

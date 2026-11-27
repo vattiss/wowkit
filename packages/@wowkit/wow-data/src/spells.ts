@@ -112,6 +112,7 @@ export const Paladin = {
     DivineShield: 642,
     VoiceOfTruth: 1310897,
     TemplarsBulwark: 1311015,
+    UnsealedWrath: 1311703,
 };
 export const Warrior = {
     BattleShout: 6673,
@@ -548,6 +549,7 @@ export const SPELL_NAME_HINT: { [spellId: number]: string | string[] | undefined
     [Paladin.LightsVigil]: "Light's Vigil",
     [Paladin.VoiceOfTruth]: "Voice of Truth",
     [Paladin.TemplarsBulwark]: "Templar's Bulwark",
+    [Paladin.UnsealedWrath]: "Unsealed Wrath",
     [Paladin.SwiftJudgement]: "Swift Judgement",
     [Paladin.JudgementOfTheCrusader]: "Judgement of the Crusader",
     [Paladin.JudgementOfJustice]: "Judgement of Justice",
